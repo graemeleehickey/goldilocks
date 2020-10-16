@@ -1,0 +1,33 @@
+Package: goldilocks
+Title: Goldilocks Adaptive Trial Designs
+Version: 0.0.0.9000
+Authors@R: c(
+    person(given = "Graeme", family = "Hickey",
+           role = c("aut", "cre"),
+           email = "graeme.hickey@bd.com",
+           comment = c(ORCID = "0000-0002-4989-0054")),
+    person(given = "Ying", family = "Wan",
+           role = "aut",
+           email = "ying.wan@bd.com"),
+    person(given = "Thevaa", family = "Chandereng",
+           role = "aut",
+           email = "tc3123@cumc.columbia.edu",
+           comment = c(ORCID = "0000-0003-4078-9176")),
+    person(given = "Donald", family = "Musgrove",
+           role = "ctb",
+           comment = c("ppexp.Cpp")))
+Description: Implements the Goldilocks adaptive trial design for time to event
+    outcomes with a piecewise exponential model.
+License: GPL-3 | file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends:
+    survival
+Imports:
+    bayesDP,
+    dplyr,
+    MASS,
+    PWEALL,
+    stats
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
