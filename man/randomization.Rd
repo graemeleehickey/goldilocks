@@ -23,6 +23,15 @@ respectively.
 Implements a randomization allocation for control and treatment
 arms with different randomization ratios and block sizes.
 }
+\details{
+Complete randomization may not always be ideal due to the chance of
+drawing a large block of a single treatment arm, potentially impacting the
+time to enrollment completion. Therefore, a block randomization allocation
+may be preferable. The block randomization allocation specification allows
+for different randomization ratios, but they must be given in integer form.
+Additionally, the block size should be an integer that is divisible by the
+sum of the randomization allocation; see the examples.
+}
 \examples{
 # Implementing treatment allocation for control to treatment with 1:1.5
 # randomization ratio

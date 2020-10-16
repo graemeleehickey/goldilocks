@@ -9,6 +9,14 @@
 #' @param allocation vector. The randomization allocation in the order
 #'   \code{c(control, treatment)}.
 #'
+#' @details Complete randomization may not always be ideal due to the chance of
+#'   drawing a large block of a single treatment arm, potentially impacting the
+#'   time to enrollment completion. Therefore, a block randomization allocation
+#'   may be preferable. The block randomization allocation specification allows
+#'   for different randomization ratios, but they must be given in integer form.
+#'   Additionally, the block size should be an integer that is divisible by the
+#'   sum of the randomization allocation; see the examples.
+#'
 #' @return The randomization allocation with 0, 1 for control and treatment,
 #'   respectively.
 #'

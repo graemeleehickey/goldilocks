@@ -50,7 +50,11 @@ maximum sample size should not be included.}
 \item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
 will be evaluated.}
 
-\item{prior}{TODO}
+\item{prior}{vector. The prior distributions for the piecewise hazard rate
+parameters are each \eqn{Gamma(a_0, b_0)}, with specified (known)
+hyper-parameters \eqn{a_0} and \eqn{b_0}. The default non-informative prior
+distribution used is Gamma(0.1, 0.1), which is specified by setting
+\code{prior = c(0.1, 0.1)}.}
 
 \item{block}{scalar. Block size for generating the randomization schedule.}
 
@@ -86,10 +90,12 @@ distribution.}
 \item{N_trials}{integer. Number of trials to simulate.}
 }
 \value{
-TODO
+Data frame with 1 row per simulated trial and columns for key summary
+statistics.
 }
 \description{
-TODO
+Simulate multiple clinical trials with fixed input parameters,
+and tidly extract the relevant data to generate operating characteristics.
 }
 \details{
 This is basically a wrapper function for

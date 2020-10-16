@@ -7,7 +7,7 @@
 enrollment(param, N_total, time = NULL)
 }
 \arguments{
-\item{param}{vector. Lambda values for Poisson distribution.}
+\item{param}{vector. Rate parameter(s) for Poisson distribution.}
 
 \item{N_total}{integer. Value of total sample size.}
 
@@ -22,7 +22,35 @@ in days.
 Simulate enrollment time using a piecewise Poisson distribution.
 }
 \details{
-TODO
+Subject recruitment is assumed to follow a (piecewise stationary)
+Poisson process. We assume trial recruitment to be an independent process,
+thus the 'memoryless' property modeling of subject recruitment is used.
+Since the subject recruitment rate can vary over time, we can account for
+differential rates over time. Note that the first trial enrollment is
+assumed to occur at time zero.
+
+To illustrate, suppose we use a piecewise function to specify the change in
+enrollment rate over time:
+
+\deqn{
+    \lambda = \left\{
+      \begin{array}{ll}
+        0.3 & \text{time} \in [0, 5) \\
+        0.7 & \text{time} \in [5, 10) \\
+        0.9 & \text{time} \in [10, 15) \\
+        1.2 & \text{time} \in [15, \infty) \\
+      \end{array}
+    \right.
+}
+
+Then, to simulate individual patient enrollment dates with a sample size
+(\code{N_total}) of 50, we use
+
+\code{enrollment(param = c(0.3, 0.7, 0.9, 1.2), N_total = 50, time = c(5, 10, 15))}
+
+This function was ported from the
+\href{https://cran.r-project.org/web/packages/bayesCT/index.html}{\code{bayesCT}}
+R package.
 }
 \examples{
 enrollment(param = c(0.003, 0.7), 100, time = 10)

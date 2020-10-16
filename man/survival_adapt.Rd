@@ -50,7 +50,11 @@ maximum sample size should not be included.}
 \item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
 will be evaluated.}
 
-\item{prior}{TODO}
+\item{prior}{vector. The prior distributions for the piecewise hazard rate
+parameters are each \eqn{Gamma(a_0, b_0)}, with specified (known)
+hyper-parameters \eqn{a_0} and \eqn{b_0}. The default non-informative prior
+distribution used is Gamma(0.1, 0.1), which is specified by setting
+\code{prior = c(0.1, 0.1)}.}
 
 \item{block}{scalar. Block size for generating the randomization schedule.}
 
@@ -87,7 +91,36 @@ distribution.}
 code. Default is \code{debug = FALSE}.}
 }
 \value{
-TODO
+A list containing key input parameters (arguments) as well as
+statistics from the analysis, including:
+
+\describe{
+\item{\code{N_treatment}}{
+integer. The number of patients enrolled in the treatment arm for
+each simulation.}
+\item{\code{N_control}}{
+integer. The number of patients enrolled in the control arm for
+each simulation.}
+\item{\code{est_interim}}{
+scalar. The treatment effect that was estimated at the time of the
+interim analysis. Note this is not actually used in the final
+analysis.}
+\item{\code{est_final}}{
+scalar. The treatment effect that was estimated at the final analysis.
+Final analysis occurs when either the maximum sample size is reached
+and follow-up complete, or the interim analysis triggered an early
+stopping of enrollment/accrual and follow-up for those subjects is
+complete.}
+\item{\code{post_prob_ha}}{
+scalar. The corresponding posterior probability from the final
+analysis.}
+\item{\code{stop_futility}}{
+integer. A logical indicator of whether the
+trial was stopped early for futility.}
+\item{\code{stop_expected_success}}{
+integer. A logical indicator of whether the
+trial was stopped early for expected success.}
+}
 }
 \description{
 Simulate a single adaptive clinical trial with a time-to-event

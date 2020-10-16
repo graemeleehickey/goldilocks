@@ -14,7 +14,11 @@ frame and will be handled in the split.}
 
 \item{cutpoint}{vector. Default is \code{cutpoint = 0}.}
 
-\item{prior}{TODO}
+\item{prior}{vector. The prior distributions for the piecewise hazard rate
+parameters are each \eqn{Gamma(a_0, b_0)}, with specified (known)
+hyper-parameters \eqn{a_0} and \eqn{b_0}. The default non-informative prior
+distribution used is Gamma(0.1, 0.1), which is specified by setting
+\code{prior = c(0.1, 0.1)}.}
 
 \item{N_mcmc}{integer. Number of samples to from the posterior
 distribution.}

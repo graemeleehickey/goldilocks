@@ -1,7 +1,8 @@
 #' @title Simulate one or more clinical trials subject to known design
 #'   parameters and treatment effect
 #'
-#' @description TODO
+#' @description Simulate multiple clinical trials with fixed input parameters,
+#'   and tidly extract the relevant data to generate operating characteristics.
 #'
 #' @inheritParams survival_adapt
 #' @param N_trials integer. Number of trials to simulate.
@@ -10,7 +11,8 @@
 #'   \code{\link{survival_adapt}}, whereby we repeatedly run the function for a
 #'   independent number of trials (all with the same input design parameters and
 #'   treatment effect).
-#' @return TODO
+#' @return Data frame with 1 row per simulated trial and columns for key summary
+#'   statistics.
 #'
 #' @export
 #'
