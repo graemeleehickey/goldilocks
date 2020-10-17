@@ -25,6 +25,7 @@ survival_adapt(
   prob_ha = 0.95,
   N_impute = 10,
   N_mcmc = 100,
+  imputed_final = TRUE,
   debug = FALSE
 )
 }
@@ -86,6 +87,12 @@ missing data.}
 
 \item{N_mcmc}{integer. Number of samples to from the posterior
 distribution.}
+
+\item{imputed_final}{logical. Should the final analysis (after all subjects
+have been followed-up to the study end) be based on imputed outcomes for
+subjects who were LTFU (i.e. right-censored with time
+\code{<end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
+means that the final analysis would incorporate right-censoring.}
 
 \item{debug}{logical. If \code{TRUE} can be used to debug aspects of the
 code. Default is \code{debug = FALSE}.}

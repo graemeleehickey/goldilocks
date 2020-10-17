@@ -40,6 +40,11 @@
 #'   missing data.
 #' @param N_mcmc integer. Number of samples to from the posterior
 #'   distribution.
+#' @param imputed_final logical. Should the final analysis (after all subjects
+#'   have been followed-up to the study end) be based on imputed outcomes for
+#'   subjects who were LTFU (i.e. right-censored with time
+#'   \code{<end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
+#'   means that the final analysis would incorporate right-censoring.
 #' @param debug logical. If \code{TRUE} can be used to debug aspects of the
 #'   code. Default is \code{debug = FALSE}.
 #'
@@ -122,6 +127,7 @@ survival_adapt <- function(
   prob_ha               = 0.95,
   N_impute              = 10,
   N_mcmc                = 100,
+  imputed_final         = TRUE,
   debug = FALSE
 ) {
 
@@ -431,7 +437,12 @@ survival_adapt <- function(
   # All patients that have made it to the end of study
   # - complete follow-up (except any censoring)
   data_final <- data_total %>%
-    filter(id <= stage_trial_stopped)
+    filter(id <= stage_trial_stopped) %>%
+    mutate(
+      time_from_rand_at_look = enrollment[analysis_at_enrollnumber[i]] - enrollment,
+      subject_impute_success =
+        ((event == 1) * (time_from_rand_at_look <= time)) |
+        ((event == 0) * (time_from_rand_at_look <= end_of_study)))
 
   # Posterior distribution of lambdas: final data
   post_lambda_final <- posterior(data       = data_final,
@@ -440,17 +451,50 @@ survival_adapt <- function(
                                  N_mcmc     = N_mcmc,
                                  single_arm = single_arm)
 
-  # Posterior distribution of event proportions: final data
-  post_final <- haz_to_prop(post         = post_lambda_final,
-                            cutpoint     = cutpoint,
-                            end_of_study = end_of_study,
-                            single_arm   = single_arm)
+  if (imputed_final) {
+    # Final analysis will multiply-impute subjects LTFU
+    # Based on argument in Gelman et al. (2004, p. 520)
+    effect_final_mat <- matrix(nrow = N_mcmc, ncol = N_impute)
+    for (j in 1:N_impute) {
+      # Step 1: Draw from post_lambda_final & impute a data set
+      data_success_impute <- impute_data(
+        data_in      = data_final,
+        hazard       = post_lambda_final$post_treatment[j, ],
+        end_of_study = end_of_study,
+        cutpoint     = cutpoint,
+        type         = "success",
+        single_arm   = single_arm)
+      # Step 2: Transform to posterior sample of treatment effect
+      post_final <- haz_to_prop(post         = post_lambda_final,
+                                cutpoint     = cutpoint,
+                                end_of_study = end_of_study,
+                                single_arm   = single_arm)
+      # 3. Pool effects together
+      effect_final_mat[, j] <- post_final$effect
+    }
+    # 4(i): Calculate average effect
+    est_final <- mean(effect_final_mat)
+    # 4(ii): Calculate average probability
+    if (alternative == "two-sided") {
+      post_paa <- max(c(mean(est_final > h0), mean(est_final < h0)))
+    } else if (alternative == "greater") {
+      post_paa <- mean(est_final > h0)
+    } else {
+      post_paa <- mean(est_final < h0)
+    }
+  } else {
+    # Posterior distribution of event proportions: final data
+    post_final <- haz_to_prop(post         = post_lambda_final,
+                              cutpoint     = cutpoint,
+                              end_of_study = end_of_study,
+                              single_arm   = single_arm)
 
-  # Apply statistical test to declare success (e.g. efficacy)
-  post_paa <- test(post_final, alternative, h0, single_arm)
+    # Apply statistical test to declare success (e.g. efficacy)
+    post_paa <- test(post_final, alternative, h0, single_arm)
 
-  # Final interim analysis effect size
-  est_final <- mean(post_final$effect)
+    # Final interim analysis effect size
+    est_final <- mean(post_final$effect)
+  }
 
   N_treatment  <- sum(data_final$treatment == 1) # Total sample size analyzed - test group
   N_control    <- sum(data_final$treatment == 0) # Total sample size analyzed - control group
