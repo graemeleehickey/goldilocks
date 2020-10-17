@@ -65,7 +65,7 @@ sim_trials <- function(
   N_trials              = 10
 ) {
 
-  # Setup empty vectors for output
+  # Setup empty vectors for output (length = number of simulated trials)
   N_enrolled            <- vector(length = N_trials)
   N_treatment           <- vector(length = N_trials)
   N_control             <- vector(length = N_trials)
@@ -99,6 +99,7 @@ sim_trials <- function(
       N_mcmc                = N_mcmc
     )
 
+    # Collect up the vectors
     N_enrolled[k]            <- sim$N_enrolled
     stop_futility[k]         <- sim$stop_futility
     stop_expected_success[k] <- sim$stop_expected_success

@@ -5,6 +5,7 @@
 #'   compared to threshold values for declaring expected success or futility.
 #'
 #' @inheritParams survival_adapt
+#' @inheritParams haz_to_prop
 #' @param post_probs matrix (3 columns). Sampled draws from the posterior
 #'   distribution of the event rate for the \code{treatment} arm and the
 #'   \code{control} arm. If the trial is single-armed, the \code{control} arm

@@ -5,7 +5,7 @@
 \title{Posterior event estimates at endpoint time from posterior hazard
 distributions}
 \usage{
-haz_to_prop(post, cutpoint, end_of_study)
+haz_to_prop(post, cutpoint, end_of_study, single_arm)
 }
 \arguments{
 \item{post}{list. A list of posterior probabilities of the piecewise hazard
@@ -19,6 +19,9 @@ one column per each constant hazard piece.}
 
 \item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
 will be evaluated.}
+
+\item{single_arm}{logical. If \code{TRUE}, trial is single arm. Else, if
+\code{FALSE}, it is a randomized two-arm trial.}
 }
 \value{
 A data frame with 3 columns: the posterior probabilities of the event

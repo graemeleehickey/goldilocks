@@ -5,6 +5,7 @@
 #'   \dots, J}) is calculated and sampled from.
 #'
 #' @inheritParams survival_adapt
+#' @inheritParams haz_to_prop
 #' @param data data frame. Minimum requirements are 3 columns: event time
 #'   (\code{time}), indicator of the event (\code{event}), and indicator for
 #'   treatment arm (\code{treatment}). Other columns can be included in the data
@@ -17,9 +18,9 @@
 #' @importFrom stats rgamma
 #' @import survival
 #' @export
-posterior <- function(data, cutpoint, prior, N_mcmc) {
+posterior <- function(data, cutpoint, prior, N_mcmc, single_arm) {
 
-  cutpoint <- cutpoint[-1] # survSplit doesn't like cuts at 0
+  cutpoint <- cutpoint[-1] # Note: survSplit() doesn't like cuts at 0
   if (length(cutpoint) == 0) {
     cutpoint <- max(data$time)
   }
@@ -37,6 +38,7 @@ posterior <- function(data, cutpoint, prior, N_mcmc) {
               tot_events = sum(event))
 
   nbreaks <- max(data_survsplit$interval) - 1
+
   post_treatment <- matrix(nrow = N_mcmc, ncol = nbreaks + 1)
   post_control <- matrix(nrow = N_mcmc, ncol = nbreaks + 1)
 
@@ -47,7 +49,7 @@ posterior <- function(data, cutpoint, prior, N_mcmc) {
     )
   }
 
-  if (any(data$treatment == 0)) { # If control patients present
+  if (!single_arm) { # If control patients present
     for (j in 1:(nbreaks + 1)) {
       post_control[, j] <- with(
         dplyr::filter(data_summ, treatment == 0),

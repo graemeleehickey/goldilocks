@@ -122,17 +122,17 @@ survival_adapt <- function(
   debug = FALSE
 ) {
 
-  # Checking interim_look
+  # Check: 'interim_look' bounded by maximum sample size
   if (!is.null(interim_look)) {
     stopifnot(all(N_total > interim_look))
   }
 
-  # Checking if alternative is right
+  # Check: 'alternative' is correctly specified
   if (alternative != "two-sided" & alternative != "greater" & alternative != "less") {
     stop("The input for alternative is wrong!")
   }
 
-  # Make sure none of cutpoints are not more than end_of_study
+  # Check: none of the 'cutpoints' are not more than 'end_of_study'
   if (!is.null(cutpoint)) {
     stopifnot(any(cutpoint < end_of_study))
   }
@@ -146,8 +146,11 @@ survival_adapt <- function(
   enrollment <- enrollment + runif(length(enrollment))
   enrollment <- sort(enrollment)
 
+  # Indicator of single-arm study
+  single_arm <- is.null(hazard_control)
+
   # Simulating group and treatment group assignment
-  if (!is.null(hazard_control)) {
+  if (!single_arm) {
     group <- randomization(N_total = N_total, block = block,
                            allocation = rand_ratio)
   } else {
@@ -159,7 +162,7 @@ survival_adapt <- function(
 
   # Simulate TTE outcome
   # - Note: time = time *from* enrollment
-  if (!is.null(hazard_control)) {
+  if (!single_arm) {
     sim_control <- pwe_sim(hazard    = hazard_control,
                            n         = sum(!group),
                            maxtime   = end_of_study,
@@ -194,7 +197,8 @@ survival_adapt <- function(
                                                    0, data_total$time[data_total$loss_to_fu])
   data_total$event[data_total$loss_to_fu] <- rep(0, n_loss_to_fu)
 
-  if (debug) {
+  # KM plot for actual simulated data
+  if (debug & !single_arm) {
     plot(survfit(Surv(time, event) ~ treatment, data = data_total),
          col = c(1, 2),
          main = "Simulated Data: Complete",
@@ -213,7 +217,7 @@ survival_adapt <- function(
       # Indicators for subject type:
       # - subject_enrolled:        subject has data present in the current look
       # - subject_impute_success:  subject has data present in the current look but has not
-      #                            reached end of study or subject is lost to follow-up;
+      #                            reached end of study due to staged entry or LTFU;
       #                            needs imputation
       # - subject_impute_futility: subject has no data present in the current look;
       #                            needs imputation
@@ -227,8 +231,7 @@ survival_adapt <- function(
           time_from_rand_at_look = enrollment[analysis_at_enrollnumber[i]] - enrollment,
           subject_impute_success =
             ((event == 1) * (time_from_rand_at_look <= time) & subject_enrolled) |
-            ((event == 0) * (time_from_rand_at_look <= end_of_study) & subject_enrolled) |
-            (subject_enrolled & loss_to_fu))
+            ((event == 0) * (time_from_rand_at_look <= end_of_study) & subject_enrolled))
 
       # Mask the data at time of look
       data_interim <- data_interim %>%
@@ -242,7 +245,8 @@ survival_adapt <- function(
         filter(subject_enrolled) %>%
         select(time, event, treatment)
 
-      if (debug) {
+      # KM plot for masked data at interim analysis
+      if (debug & !single_arm) {
         plot(survfit(Surv(time, event) ~ treatment, data = data),
              col = c(1, 2),
              main = "Simulated Data: Masked @ IA",
@@ -251,7 +255,8 @@ survival_adapt <- function(
       }
 
       # Posterior distribution of lambdas: current data
-      post_lambda <- posterior(data, cutpoint, prior, N_mcmc)
+      post_lambda <- posterior(data, cutpoint, prior,
+                               N_mcmc, single_arm)
 
       # Imputation phase futility and expected success - initialize counters
       # for the current imputation phase
@@ -265,7 +270,7 @@ survival_adapt <- function(
         ##########################################################################
 
         # Imputing for control group
-        if (!is.null(hazard_control)) {
+        if (!single_arm) {
           control_impute <- data_interim %>%
             filter(treatment == 0 & subject_impute_success)
 
@@ -310,13 +315,20 @@ survival_adapt <- function(
                  event = event_impute) %>%
           select(-c(time_impute, event_impute))
 
+        # Check: imputed data should have same number of subjects as
+        #        the interim data
+        if (nrow(data_success_impute) != nrow(data_interim)) {
+          stop("Number of subjects different after imputation!")
+        }
+
         # Create enrolled subject data frame for analysis
         data <- data_success_impute %>%
           filter(subject_enrolled)  %>%
           ungroup() %>%
           select(time, event, treatment)
 
-        if (debug & j == 1) {
+        # KM plot for imputed data at interim analysis (expected success)
+        if (debug & !single_arm & (j == 1)) {
           plot(survfit(Surv(time, event) ~ treatment, data = data),
                col = c(1, 2),
                main = "Simulated Data: Imputed For Expected Success",
@@ -325,13 +337,15 @@ survival_adapt <- function(
         }
 
         # Posterior distribution of lambdas: imputed data
-        post_lambda_imp <- posterior(data, cutpoint, prior, N_mcmc)
+        post_lambda_imp <- posterior(data, cutpoint, prior,
+                                     N_mcmc, single_arm)
 
         # Posterior distribution of event proportions: imputed data
-        post_imp <- haz_to_prop(post_lambda_imp, cutpoint, end_of_study)
+        post_imp <- haz_to_prop(post_lambda_imp, cutpoint,
+                                end_of_study, single_arm)
 
         # Apply statistical test to declare success (e.g. efficacy)
-        success <- test(post_imp, alternative, h0)
+        success <- test(post_imp, alternative, h0, single_arm)
 
         # Increase success counter by 1 if P(efficacy | data) > prob_ha
         if (success > prob_ha) {
@@ -345,7 +359,7 @@ survival_adapt <- function(
         # For patients not enrolled, we also impute the outcome
 
         # Imputing the control group
-        if (!is.null(hazard_control)) {
+        if (!single_arm) {
           control_impute <- data_success_impute %>%
             filter(treatment == 0 & subject_impute_futility)
 
@@ -394,7 +408,8 @@ survival_adapt <- function(
         data <- data_futility_impute %>%
           select(time, event, treatment)
 
-        if (debug & j == 1) {
+        # KM plot for imputed data at interim analysis (futility)
+        if (debug & !single_arm & (j == 1)) {
           plot(survfit(Surv(time, event) ~ treatment, data = data),
                col = c(1, 2),
                main = "Simulated Data: Imputed For Futility",
@@ -403,13 +418,15 @@ survival_adapt <- function(
         }
 
         # Posterior distribution of lambdas: imputed data
-        post_lambda_imp <- posterior(data, cutpoint, prior, N_mcmc)
+        post_lambda_imp <- posterior(data, cutpoint, prior,
+                                     N_mcmc, single_arm)
 
         # Posterior distribution of event proportions: imputed data
-        post_imp <- haz_to_prop(post_lambda_imp, cutpoint, end_of_study)
+        post_imp <- haz_to_prop(post_lambda_imp, cutpoint,
+                                end_of_study, single_arm)
 
         # Apply statistical test to declare success (e.g. efficacy)
-        success <- test(post_imp, alternative, h0)
+        success <- test(post_imp, alternative, h0, single_arm)
 
         # Increase futility counter by 1 if P(efficacy | data) > prob_ha
         if (success > prob_ha) {
@@ -449,7 +466,8 @@ survival_adapt <- function(
     #         we are just interested in the effect size
 
     # Posterior distribution of event proportions: non-imputed data
-    post_imp <- haz_to_prop(post_lambda, cutpoint, end_of_study)
+    post_imp <- haz_to_prop(post_lambda, cutpoint,
+                            end_of_study, single_arm)
 
     # Final interim analysis effect size
     effect_int <- mean(post_imp$effect)
@@ -474,19 +492,21 @@ survival_adapt <- function(
     filter(id <= stage_trial_stopped)
 
   # Posterior distribution of lambdas: final data
-  post_lambda_final <- posterior(data_final, cutpoint, prior, N_mcmc)
+  post_lambda_final <- posterior(data_final, cutpoint, prior,
+                                 N_mcmc, single_arm)
 
   # Posterior distribution of event proportions: final data
-  post_final <- haz_to_prop(post_lambda_final, cutpoint, end_of_study)
+  post_final <- haz_to_prop(post_lambda_final, cutpoint,
+                            end_of_study, single_arm)
 
   # Apply statistical test to declare success (e.g. efficacy)
-  post_paa <- test(post_final, alternative, h0)
+  post_paa <- test(post_final, alternative, h0, single_arm)
 
   # Final interim analysis effect size
   est_final <- mean(post_final$effect)
 
-  N_treatment  <- sum(!!data_final$treatment) # Total sample size analyzed - test group
-  N_control    <- sum(!data_final$treatment)  # Total sample size analyzed - control group
+  N_treatment  <- sum(data_final$treatment == 1) # Total sample size analyzed - test group
+  N_control    <- sum(data_final$treatment == 0) # Total sample size analyzed - control group
 
   if (length(analysis_at_enrollnumber) > 1) {
     est_interim <- mean(effect_int) # Posterior treatment effect at the interim analysis (if any)

@@ -13,6 +13,8 @@
 #'   \code{post_treatment} and \code{post_control}. Each data frame is of length
 #'   \code{N_mcmc} (see \code{\link{survival_adapt}}) and has \eqn{J} columns --
 #'   one column per each constant hazard piece.
+#' @param single_arm logical. If \code{TRUE}, trial is single arm. Else, if
+#'   \code{FALSE}, it is a randomized two-arm trial.
 #'
 #' @return A data frame with 3 columns: the posterior probabilities of the event
 #'   for the \code{treatment} arm, the posterior probabilities of the event for
@@ -20,7 +22,7 @@
 #'   \code{effect}.
 #'
 #' @export
-haz_to_prop <- function(post, cutpoint, end_of_study) {
+haz_to_prop <- function(post, cutpoint, end_of_study, single_arm) {
 
   control <- all(!is.na(post$post_control)) # Is there a control arm?
 
@@ -28,7 +30,7 @@ haz_to_prop <- function(post, cutpoint, end_of_study) {
     # Standard exponential for zero cutpoint
     p_treatment <- pexp(q = end_of_study,
                         rate = post$post_treatment)
-    if (control) {
+    if (!single_arm) {
       p_control <- pexp(q = end_of_study,
                         rate = post$post_control)
     } else {
@@ -40,7 +42,7 @@ haz_to_prop <- function(post, cutpoint, end_of_study) {
       q = end_of_study,
       x = post$post_treatment,
       cuts = cutpoint)
-    if (control) {
+    if (!single_arm) {
       p_control <- bayesDP::ppexp(
         q = end_of_study,
         x = post$post_control,
@@ -50,7 +52,7 @@ haz_to_prop <- function(post, cutpoint, end_of_study) {
     }
   }
 
-  if (control) {
+  if (!single_arm) {
     effect <- p_treatment - p_control
   } else {
     effect <- p_treatment

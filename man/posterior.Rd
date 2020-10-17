@@ -4,7 +4,7 @@
 \alias{posterior}
 \title{Posterior distribution of piecewise exponential constant hazard rates}
 \usage{
-posterior(data, cutpoint, prior, N_mcmc)
+posterior(data, cutpoint, prior, N_mcmc, single_arm)
 }
 \arguments{
 \item{data}{data frame. Minimum requirements are 3 columns: event time
@@ -22,6 +22,9 @@ distribution used is Gamma(0.1, 0.1), which is specified by setting
 
 \item{N_mcmc}{integer. Number of samples to from the posterior
 distribution.}
+
+\item{single_arm}{logical. If \code{TRUE}, trial is single arm. Else, if
+\code{FALSE}, it is a randomized two-arm trial.}
 }
 \value{
 A list of two data frame elements: \code{post_treatment} and
