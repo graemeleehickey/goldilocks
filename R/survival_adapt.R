@@ -240,8 +240,11 @@ survival_adapt <- function(
           subject_impute_futility = !subject_enrolled,
           time_from_rand_at_look = enrollment[analysis_at_enrollnumber[i]] - enrollment,
           subject_impute_success =
-            ((event == 1) * (time_from_rand_at_look <= time) & subject_enrolled) |
-            ((event == 0) * (time_from_rand_at_look <= end_of_study) & subject_enrolled))
+            # Had event, but has not occurred yet (based on interim look)
+            ((event == 1) * (time_from_rand_at_look < time) & subject_enrolled) |
+            # Event-free and not had opportunity to complete full follow
+            ((event == 0) * (time_from_rand_at_look < end_of_study) & subject_enrolled) |
+            (loss_to_fu & subject_enrolled))
 
       # Mask the data at time of look
       data_interim <- data_interim %>%
@@ -441,8 +444,7 @@ survival_adapt <- function(
     mutate(
       time_from_rand_at_look = enrollment[analysis_at_enrollnumber[i]] - enrollment,
       subject_impute_success =
-        ((event == 1) * (time_from_rand_at_look <= time)) |
-        ((event == 0) * (time_from_rand_at_look <= end_of_study)))
+        ((event == 0) & (time < end_of_study)))
 
   # Posterior distribution of lambdas: final data
   post_lambda_final <- posterior(data       = data_final,
