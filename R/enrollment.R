@@ -47,6 +47,7 @@
 #' enrollment(param = c(0.003, 0.7), 100, time = 10)
 #' enrollment(param = c(0.3, 0.5, 0.9, 1.2, 2.1), 200, c(20, 30, 40, 60))
 enrollment <- function(param, N_total, time = NULL) {
+
   if (any(param <= 0)) {
     stop("The lambda(s) for poisson enrollment rate should be non-negative")
   }
@@ -85,4 +86,5 @@ enrollment <- function(param, N_total, time = NULL) {
   output <- output[1:N_total]
   output <- output - output[1]
   return(output)
+
 }
