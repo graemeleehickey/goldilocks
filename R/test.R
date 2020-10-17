@@ -15,13 +15,12 @@
 #' @return A posterior probability (scalar \eqn{[0, 1]}).
 #'
 #' @export
-test <- function(post_probs, alternative, h0) {
+test <- function(post_probs, alternative, h0, single_arm) {
 
   p_treatment <- post_probs$p_treatment
   p_control <- post_probs$p_control
-  control <- all(!is.na(p_control)) # Is there a control arm?
 
-  if (control) {
+  if (!single_arm) {
     # Two-arm
     effect <- p_treatment - p_control
   } else {

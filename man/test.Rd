@@ -4,7 +4,7 @@
 \alias{test}
 \title{Calculate posterior probability of the alternative hypothesis}
 \usage{
-test(post_probs, alternative, h0)
+test(post_probs, alternative, h0, single_arm)
 }
 \arguments{
 \item{post_probs}{matrix (3 columns). Sampled draws from the posterior
@@ -19,6 +19,9 @@ hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\text{treatment} -
 p_\text{control}}. Default is \code{h0 = 0}.}
+
+\item{single_arm}{logical. If \code{TRUE}, trial is single arm. Else, if
+\code{FALSE}, it is a randomized two-arm trial.}
 }
 \value{
 A posterior probability (scalar \eqn{[0, 1]}).
