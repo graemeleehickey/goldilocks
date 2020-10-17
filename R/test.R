@@ -18,15 +18,8 @@
 test <- function(post_probs, alternative, h0, single_arm) {
 
   p_treatment <- post_probs$p_treatment
-  p_control <- post_probs$p_control
-
-  if (!single_arm) {
-    # Two-arm
-    effect <- p_treatment - p_control
-  } else {
-    # One-arm
-    effect <- p_treatment
-  }
+  p_control   <- post_probs$p_control
+  effect      <- post_probs$effect
 
   # Apply test with direction
   if (alternative == "two-sided") {
