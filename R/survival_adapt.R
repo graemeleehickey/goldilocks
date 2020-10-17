@@ -140,7 +140,7 @@ survival_adapt <- function(
   # Assigning interim look and final look
   analysis_at_enrollnumber <- c(interim_look, N_total)
 
-  # Assignment of enrolment based on the enrolment function
+  # Assignment of enrollment based on the enrollment function
   enrollment <- enrollment(param = lambda, N_total = N_total,
                            time = lambda_time)
   enrollment <- enrollment + runif(length(enrollment))
@@ -158,7 +158,7 @@ survival_adapt <- function(
   event <- rep(NA, length = N_total)
 
   # Simulate TTE outcome
-  # - Note: time = time *from* enrolment
+  # - Note: time = time *from* enrollment
   if (!is.null(hazard_control)) {
     sim_control <- pwe_sim(hazard    = hazard_control,
                            n         = sum(!group),
@@ -195,7 +195,11 @@ survival_adapt <- function(
   data_total$event[data_total$loss_to_fu] <- rep(0, n_loss_to_fu)
 
   if (debug) {
-    plot(survfit(Surv(time, event) ~ treatment, data = data_total), col = c(1, 2))
+    plot(survfit(Surv(time, event) ~ treatment, data = data_total),
+         col = c(1, 2),
+         main = "Simulated Data: Complete",
+         xlab = "Time",
+         ylab = "Freedom from event")
   }
 
   # Assigning stop_futility and expected success
@@ -239,7 +243,11 @@ survival_adapt <- function(
         select(time, event, treatment)
 
       if (debug) {
-        plot(survfit(Surv(time, event) ~ treatment, data = data), col = c(1, 2))
+        plot(survfit(Surv(time, event) ~ treatment, data = data),
+             col = c(1, 2),
+             main = "Simulated Data: Masked @ IA",
+             xlab = "Time",
+             ylab = "Freedom from event")
       }
 
       # Posterior distribution of lambdas: current data
@@ -308,8 +316,12 @@ survival_adapt <- function(
           ungroup() %>%
           select(time, event, treatment)
 
-        if (debug) {
-          plot(survfit(Surv(time, event) ~ treatment, data = data), col = c(1, 2))
+        if (debug & j == 1) {
+          plot(survfit(Surv(time, event) ~ treatment, data = data),
+               col = c(1, 2),
+               main = "Simulated Data: Imputed For Expected Success",
+               xlab = "Time",
+               ylab = "Freedom from event")
         }
 
         # Posterior distribution of lambdas: imputed data
@@ -381,6 +393,14 @@ survival_adapt <- function(
         # Create enrolled subject data frame for analysis
         data <- data_futility_impute %>%
           select(time, event, treatment)
+
+        if (debug & j == 1) {
+          plot(survfit(Surv(time, event) ~ treatment, data = data),
+               col = c(1, 2),
+               main = "Simulated Data: Imputed For Futility",
+               xlab = "Time",
+               ylab = "Freedom from event")
+        }
 
         # Posterior distribution of lambdas: imputed data
         post_lambda_imp <- posterior(data, cutpoint, prior, N_mcmc)
