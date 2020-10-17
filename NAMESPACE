@@ -3,6 +3,7 @@
 export(enrollment)
 export(haz_est)
 export(haz_to_prop)
+export(impute_data)
 export(posterior)
 export(pwe_impute)
 export(pwe_sim)

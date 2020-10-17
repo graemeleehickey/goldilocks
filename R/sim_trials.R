@@ -11,6 +11,7 @@
 #'   \code{\link{survival_adapt}}, whereby we repeatedly run the function for a
 #'   independent number of trials (all with the same input design parameters and
 #'   treatment effect).
+#'
 #' @return Data frame with 1 row per simulated trial and columns for key summary
 #'   statistics.
 #'

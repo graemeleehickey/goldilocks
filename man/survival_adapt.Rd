@@ -127,6 +127,9 @@ Simulate a single adaptive clinical trial with a time-to-event
 endpoint
 }
 \examples{
+# RCT with exponential hazard (no piecewise breaks)
+# Note: the number of imputations is small to enable this example to run
+#       quickly on CRAN tests. In practice, much larger values are needed.
 survival_adapt(
  hazard_treatment = -log(0.85) / 36,
  hazard_control = -log(0.7) / 36,
@@ -146,5 +149,5 @@ survival_adapt(
  expected_success_prob = 0.9,
  prob_ha = 0.975,
  N_impute = 10,
- N_mcmc = 100)
+ N_mcmc = 10)
 }

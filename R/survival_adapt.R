@@ -79,6 +79,9 @@
 #' @export
 #'
 #' @examples
+#' # RCT with exponential hazard (no piecewise breaks)
+#' # Note: the number of imputations is small to enable this example to run
+#' #       quickly on CRAN tests. In practice, much larger values are needed.
 #' survival_adapt(
 #'  hazard_treatment = -log(0.85) / 36,
 #'  hazard_control = -log(0.7) / 36,
@@ -98,7 +101,7 @@
 #'  expected_success_prob = 0.9,
 #'  prob_ha = 0.975,
 #'  N_impute = 10,
-#'  N_mcmc = 100)
+#'  N_mcmc = 10)
 survival_adapt <- function(
   hazard_treatment,
   hazard_control        = NULL,
@@ -141,8 +144,9 @@ survival_adapt <- function(
   analysis_at_enrollnumber <- c(interim_look, N_total)
 
   # Assignment of enrollment based on the enrollment function
-  enrollment <- enrollment(param = lambda, N_total = N_total,
-                           time = lambda_time)
+  enrollment <- enrollment(param   = lambda,
+                           N_total = N_total,
+                           time    = lambda_time)
   enrollment <- enrollment + runif(length(enrollment))
   enrollment <- sort(enrollment)
 
@@ -255,8 +259,11 @@ survival_adapt <- function(
       }
 
       # Posterior distribution of lambdas: current data
-      post_lambda <- posterior(data, cutpoint, prior,
-                               N_mcmc, single_arm)
+      post_lambda <- posterior(data       = data,
+                               cutpoint   = cutpoint,
+                               prior      = prior,
+                               N_mcmc     = N_mcmc,
+                               single_arm = single_arm)
 
       # Imputation phase futility and expected success - initialize counters
       # for the current imputation phase
@@ -269,57 +276,12 @@ survival_adapt <- function(
         ### Expected success computations
         ##########################################################################
 
-        # Imputing for control group
-        if (!single_arm) {
-          control_impute <- data_interim %>%
-            filter(treatment == 0 & subject_impute_success)
-
-          impute_control <- pwe_impute(time     = control_impute$time,
-                                       hazard   = post_lambda$post_control[j, ],
-                                       maxtime  = end_of_study,
-                                       cutpoint = cutpoint)
-
-          data_control_success_impute <- data_interim %>%
-            filter(treatment == 0 & subject_impute_success) %>%
-            bind_cols(time_impute  = impute_control$time,
-                      event_impute = impute_control$event)
-        } else {
-          data_control_success_impute <- NULL
-        }
-
-        # Imputing for treatment group
-        treatment_impute <- data_interim %>%
-          filter(treatment == 1 & subject_impute_success)
-
-        impute_treatment <- pwe_impute(time     = treatment_impute$time,
-                                       hazard   = post_lambda$post_treatment[j, ],
-                                       maxtime  = end_of_study,
-                                       cutpoint = cutpoint)
-
-        data_treatment_success_impute <- data_interim %>%
-          filter(treatment == 1 & subject_impute_success) %>%
-          bind_cols(time_impute  = impute_treatment$time,
-                    event_impute = impute_treatment$event)
-
-        # Non-imputed data
-        data_noimpute <- data_interim %>%
-          filter(!subject_impute_success) %>%
-          mutate(time_impute = time,
-                 event_impute = event)
-
-        # Combine imputed and non-imputed data
-        data_success_impute <- bind_rows(data_control_success_impute,
-                                         data_treatment_success_impute,
-                                         data_noimpute) %>%
-          mutate(time = time_impute,
-                 event = event_impute) %>%
-          select(-c(time_impute, event_impute))
-
-        # Check: imputed data should have same number of subjects as
-        #        the interim data
-        if (nrow(data_success_impute) != nrow(data_interim)) {
-          stop("Number of subjects different after imputation!")
-        }
+        data_success_impute <- impute_data(data_in = data_interim,
+                                           hazard = post_lambda$post_treatment[j, ],
+                                           end_of_study = end_of_study,
+                                           cutpoint = cutpoint,
+                                           type = "success",
+                                           single_arm = single_arm)
 
         # Create enrolled subject data frame for analysis
         data <- data_success_impute %>%
@@ -337,15 +299,23 @@ survival_adapt <- function(
         }
 
         # Posterior distribution of lambdas: imputed data
-        post_lambda_imp <- posterior(data, cutpoint, prior,
-                                     N_mcmc, single_arm)
+        post_lambda_imp <- posterior(data       = data,
+                                     cutpoint   = cutpoint,
+                                     prior      = prior,
+                                     N_mcmc     = N_mcmc,
+                                     single_arm = single_arm)
 
         # Posterior distribution of event proportions: imputed data
-        post_imp <- haz_to_prop(post_lambda_imp, cutpoint,
-                                end_of_study, single_arm)
+        post_imp <- haz_to_prop(post         = post_lambda_imp,
+                                cutpoint     = cutpoint,
+                                end_of_study = end_of_study,
+                                single_arm   = single_arm)
 
         # Apply statistical test to declare success (e.g. efficacy)
-        success <- test(post_imp, alternative, h0, single_arm)
+        success <- test(post_probs  = post_imp,
+                        alternative = alternative,
+                        h0          = h0,
+                        single_arm  = single_arm)
 
         # Increase success counter by 1 if P(efficacy | data) > prob_ha
         if (success > prob_ha) {
@@ -356,53 +326,15 @@ survival_adapt <- function(
         ### Futility computations
         ##########################################################################
 
-        # For patients not enrolled, we also impute the outcome
+        # Take the already imputed data for expected success and append on
+        # imputed event times for subjects not yet enrolled
 
-        # Imputing the control group
-        if (!single_arm) {
-          control_impute <- data_success_impute %>%
-            filter(treatment == 0 & subject_impute_futility)
-
-          impute_control <- pwe_sim(hazard   = post_lambda$post_control[j, ],
-                                    n        = nrow(control_impute),
-                                    maxtime  = end_of_study,
-                                    cutpoint = cutpoint)
-
-          data_control_futility_impute <- data_success_impute %>%
-            filter(treatment == 0 & subject_impute_futility) %>%
-            bind_cols(time_impute  = impute_control$time,
-                      event_impute = impute_control$event)
-        } else {
-          data_control_futility_impute <- NULL
-        }
-
-        # Imputing the treatment group
-        treatment_impute <- data_success_impute %>%
-          filter(treatment == 1 & subject_impute_futility)
-
-        impute_treatment <- pwe_sim(hazard   = post_lambda$post_treatment[j, ],
-                                    n        = nrow(treatment_impute),
-                                    maxtime  = end_of_study,
-                                    cutpoint = cutpoint)
-
-        data_treatment_futility_impute <- data_success_impute %>%
-          filter(treatment == 1 & subject_impute_futility) %>%
-          bind_cols(time_impute  = impute_treatment$time,
-                    event_impute = impute_treatment$event)
-
-        # Non-imputed data
-        data_noimpute_futility <- data_success_impute %>%
-          filter(!subject_impute_futility) %>%
-          mutate(time_impute = time,
-                 event_impute = event)
-
-        # Combine imputed and non-imputed data
-        data_futility_impute <- bind_rows(data_control_futility_impute,
-                                          data_treatment_futility_impute,
-                                          data_noimpute_futility) %>%
-          mutate(time = time_impute,
-                 event = event_impute) %>%
-          select(-c(time_impute, event_impute))
+        data_futility_impute <- impute_data(data_in = data_success_impute,
+                                            hazard = post_lambda$post_treatment[j, ],
+                                            end_of_study = end_of_study,
+                                            cutpoint = cutpoint,
+                                            type = "futility",
+                                            single_arm = single_arm)
 
         # Create enrolled subject data frame for analysis
         data <- data_futility_impute %>%
@@ -418,15 +350,23 @@ survival_adapt <- function(
         }
 
         # Posterior distribution of lambdas: imputed data
-        post_lambda_imp <- posterior(data, cutpoint, prior,
-                                     N_mcmc, single_arm)
+        post_lambda_imp <- posterior(data       = data,
+                                     cutpoint   = cutpoint,
+                                     prior      = prior,
+                                     N_mcmc     = N_mcmc,
+                                     single_arm = single_arm)
 
         # Posterior distribution of event proportions: imputed data
-        post_imp <- haz_to_prop(post_lambda_imp, cutpoint,
-                                end_of_study, single_arm)
+        post_imp <- haz_to_prop(post         = post_lambda_imp,
+                                cutpoint     = cutpoint,
+                                end_of_study = end_of_study,
+                                single_arm   = single_arm)
 
         # Apply statistical test to declare success (e.g. efficacy)
-        success <- test(post_imp, alternative, h0, single_arm)
+        success <- test(post_probs  = post_imp,
+                        alternative = alternative,
+                        h0          = h0,
+                        single_arm  = single_arm)
 
         # Increase futility counter by 1 if P(efficacy | data) > prob_ha
         if (success > prob_ha) {
@@ -466,8 +406,10 @@ survival_adapt <- function(
     #         we are just interested in the effect size
 
     # Posterior distribution of event proportions: non-imputed data
-    post_imp <- haz_to_prop(post_lambda, cutpoint,
-                            end_of_study, single_arm)
+    post_imp <- haz_to_prop(post         = post_lambda,
+                            cutpoint     = cutpoint,
+                            end_of_study = end_of_study,
+                            single_arm   = single_arm)
 
     # Final interim analysis effect size
     effect_int <- mean(post_imp$effect)
@@ -492,12 +434,17 @@ survival_adapt <- function(
     filter(id <= stage_trial_stopped)
 
   # Posterior distribution of lambdas: final data
-  post_lambda_final <- posterior(data_final, cutpoint, prior,
-                                 N_mcmc, single_arm)
+  post_lambda_final <- posterior(data       = data_final,
+                                 cutpoint   = cutpoint,
+                                 prior      = prior,
+                                 N_mcmc     = N_mcmc,
+                                 single_arm = single_arm)
 
   # Posterior distribution of event proportions: final data
-  post_final <- haz_to_prop(post_lambda_final, cutpoint,
-                            end_of_study, single_arm)
+  post_final <- haz_to_prop(post         = post_lambda_final,
+                            cutpoint     = cutpoint,
+                            end_of_study = end_of_study,
+                            single_arm   = single_arm)
 
   # Apply statistical test to declare success (e.g. efficacy)
   post_paa <- test(post_final, alternative, h0, single_arm)
