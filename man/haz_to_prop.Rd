@@ -24,10 +24,16 @@ will be evaluated.}
 \code{FALSE}, it is a randomized two-arm trial.}
 }
 \value{
-A data frame with 3 columns: the posterior probabilities of the event
-for the \code{treatment} arm, the posterior probabilities of the event for
-the \code{control} arm, and the posterior distribution of the treatment
-\code{effect}.
+A data frame with 3 columns of posterior samples:
+
+\describe{
+\item{\code{p_treatment}}{
+The posterior probabilities of the event for the treatment arm.}
+\item{\code{p_control}}{
+The posterior probabilities of the event for the control arm.}
+\item{\code{effect}}{
+The posterior distribution of the treatment effect.}
+}
 }
 \description{
 The posterior distribution of the probability of an event
