@@ -466,23 +466,31 @@ survival_adapt <- function(
         cutpoint     = cutpoint,
         type         = "success",
         single_arm   = single_arm)
-      # Step 2: Transform to posterior sample of treatment effect
-      post_final <- haz_to_prop(post         = post_lambda_final,
+      data <- data_success_impute %>%
+        select(time, event, treatment)
+      # Step 2: Get posterior distribution of lambdas on imputed data
+      post_lambda_final_imp <- posterior(data = data,
+                                         cutpoint   = cutpoint,
+                                         prior      = prior,
+                                         N_mcmc     = N_mcmc,
+                                         single_arm = single_arm)
+      # Step 3: Transform to posterior sample of treatment effect
+      post_final <- haz_to_prop(post         = post_lambda_final_imp,
                                 cutpoint     = cutpoint,
                                 end_of_study = end_of_study,
                                 single_arm   = single_arm)
-      # 3. Pool effects together
+      # Step 4. Pool effects together
       effect_final_mat[, j] <- post_final$effect
     }
-    # 4(i): Calculate average effect
+    # Step 5(i): Calculate average effect
     est_final <- mean(effect_final_mat)
-    # 4(ii): Calculate average probability
+    # Step 5(ii): Calculate average probability
     if (alternative == "two-sided") {
-      post_paa <- max(c(mean(est_final > h0), mean(est_final < h0)))
+      post_paa <- max(c(mean(effect_final_mat > h0), mean(effect_final_mat < h0)))
     } else if (alternative == "greater") {
-      post_paa <- mean(est_final > h0)
+      post_paa <- mean(effect_final_mat > h0)
     } else {
-      post_paa <- mean(est_final < h0)
+      post_paa <- mean(effect_final_mat < h0)
     }
   } else {
     # Posterior distribution of event proportions: final data

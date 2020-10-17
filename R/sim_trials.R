@@ -102,6 +102,8 @@ sim_trials <- function(
 
     # Collect up the vectors
     N_enrolled[k]            <- sim$N_enrolled
+    N_treatment[k]           <- sim$N_treatment
+    N_control[k]             <- sim$N_control
     stop_futility[k]         <- sim$stop_futility
     stop_expected_success[k] <- sim$stop_expected_success
     est_interim[k]           <- sim$est_interim
