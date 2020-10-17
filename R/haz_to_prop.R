@@ -16,10 +16,16 @@
 #' @param single_arm logical. If \code{TRUE}, trial is single arm. Else, if
 #'   \code{FALSE}, it is a randomized two-arm trial.
 #'
-#' @return A data frame with 3 columns: the posterior probabilities of the event
-#'   for the \code{treatment} arm, the posterior probabilities of the event for
-#'   the \code{control} arm, and the posterior distribution of the treatment
-#'   \code{effect}.
+#' @return A data frame with 3 columns of posterior samples:
+#'
+#'   \describe{
+#'     \item{\code{p_treatment}}{
+#'       The posterior probabilities of the event for the treatment arm.}
+#'     \item{\code{p_control}}{
+#'       The posterior probabilities of the event for the control arm.}
+#'     \item{\code{effect}}{
+#'       The posterior distribution of the treatment effect.}
+#'   }
 #'
 #' @export
 haz_to_prop <- function(post, cutpoint, end_of_study, single_arm) {
