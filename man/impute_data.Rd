@@ -15,9 +15,11 @@ indicator of whether the subject requires imputation for expected success
 (\code{subject_impute_success}) or futility
 (\code{subject_impute_futility}).}
 
-\item{hazard}{vector. Hazard parameters for the piecewise exponential
+\item{hazard}{array. Hazard parameters for the piecewise exponential
 distribution. This will most likely be a single sample from a posterior
-distribution.}
+distribution. A single slice of the array is passed, meaning it must have
+dimensions 1 (rows), \eqn{J} (columns), and 2 (third dimension, in order of
+treatment and control).}
 
 \item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
 will be evaluated.}

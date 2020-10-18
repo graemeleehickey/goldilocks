@@ -11,9 +11,11 @@
 #'   treatment arm (\code{treatment}). Other columns can be included in the data
 #'   frame and will be handled in the split.
 #'
-#' @return A list of two data frame elements: \code{post_treatment} and
-#'   \code{post_control}. Each data frame is of length \code{N_mcmc} and has
-#'   \eqn{J} columns -- one column per each constant hazard piece.
+#' @return An array of dimension 3. The first dimension is of length
+#'   \code{N_mcmc}, the second dimension is of length \eqn{J} (one column for
+#'   each hazard piece), and the third dimension is of length 2, with the first
+#'   slice including posterior samples from \code{post_treatment}, and the
+#'   second slice including posterior samples from \code{post_control}.
 #'
 #' @importFrom stats rgamma
 #' @import survival
@@ -39,11 +41,12 @@ posterior <- function(data, cutpoint, prior, N_mcmc, single_arm) {
 
   nbreaks <- max(data_survsplit$interval) - 1
 
+  post <- array(dim = c(N_mcmc, nbreaks + 1, 2))
   post_treatment <- matrix(nrow = N_mcmc, ncol = nbreaks + 1)
   post_control <- matrix(nrow = N_mcmc, ncol = nbreaks + 1)
 
   for (j in 1:(nbreaks + 1)) {
-    post_treatment[, j] <- with(
+    post[, j, 1] <- with(
       dplyr::filter(data_summ, treatment == 1),
       rgamma(N_mcmc, prior[1] + tot_events[j], prior[2] + tot_time[j])
     )
@@ -51,13 +54,12 @@ posterior <- function(data, cutpoint, prior, N_mcmc, single_arm) {
 
   if (!single_arm) { # If control patients present
     for (j in 1:(nbreaks + 1)) {
-      post_control[, j] <- with(
+      post[, j, 2] <- with(
         dplyr::filter(data_summ, treatment == 0),
         rgamma(N_mcmc, prior[1] + tot_events[j], prior[2] + tot_time[j]))
     }
   }
 
-  return(list("post_treatment" = post_treatment,
-              "post_control" = post_control))
+  return(post)
 
 }

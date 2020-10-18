@@ -25,7 +25,8 @@ sim_trials(
   prob_ha = 0.95,
   N_impute = 10,
   N_mcmc = 100,
-  N_trials = 10
+  N_trials = 10,
+  imputed_final = TRUE
 )
 }
 \arguments{
@@ -88,6 +89,12 @@ missing data.}
 distribution.}
 
 \item{N_trials}{integer. Number of trials to simulate.}
+
+\item{imputed_final}{logical. Should the final analysis (after all subjects
+have been followed-up to the study end) be based on imputed outcomes for
+subjects who were LTFU (i.e. right-censored with time
+\code{<end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
+means that the final analysis would incorporate right-censoring.}
 }
 \value{
 Data frame with 1 row per simulated trial and columns for key summary

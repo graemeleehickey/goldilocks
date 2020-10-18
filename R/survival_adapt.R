@@ -286,7 +286,7 @@ survival_adapt <- function(
         ##########################################################################
 
         data_success_impute <- impute_data(data_in = data_interim,
-                                           hazard = post_lambda$post_treatment[j, ],
+                                           hazard = post_lambda[j, , , drop = FALSE],
                                            end_of_study = end_of_study,
                                            cutpoint = cutpoint,
                                            type = "success",
@@ -339,7 +339,7 @@ survival_adapt <- function(
         # imputed event times for subjects not yet enrolled
 
         data_futility_impute <- impute_data(data_in = data_success_impute,
-                                            hazard = post_lambda$post_treatment[j, ],
+                                            hazard = post_lambda[j, , , drop = FALSE],
                                             end_of_study = end_of_study,
                                             cutpoint = cutpoint,
                                             type = "futility",
@@ -461,7 +461,7 @@ survival_adapt <- function(
       # Step 1: Draw from post_lambda_final & impute a data set
       data_success_impute <- impute_data(
         data_in      = data_final,
-        hazard       = post_lambda_final$post_treatment[j, ],
+        hazard       = post_lambda_final[j, , , drop = FALSE],
         end_of_study = end_of_study,
         cutpoint     = cutpoint,
         type         = "success",

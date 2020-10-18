@@ -63,7 +63,8 @@ sim_trials <- function(
   prob_ha               = 0.95,
   N_impute              = 10,
   N_mcmc                = 100,
-  N_trials              = 10
+  N_trials              = 10,
+  imputed_final         = TRUE
 ) {
 
   # Setup empty vectors for output (length = number of simulated trials)

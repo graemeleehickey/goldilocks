@@ -14,9 +14,11 @@
 #'   indicator of whether the subject requires imputation for expected success
 #'   (\code{subject_impute_success}) or futility
 #'   (\code{subject_impute_futility}).
-#' @param hazard vector. Hazard parameters for the piecewise exponential
+#' @param hazard array. Hazard parameters for the piecewise exponential
 #'   distribution. This will most likely be a single sample from a posterior
-#'   distribution.
+#'   distribution. A single slice of the array is passed, meaning it must have
+#'   dimensions 1 (rows), \eqn{J} (columns), and 2 (third dimension, in order of
+#'   treatment and control).
 #' @param type character. Whether imputation is for \code{success} or
 #'   \code{futility}.
 #'
@@ -39,7 +41,7 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
       filter(treatment == 1 & subject_impute_success)
 
     impute_treatment <- pwe_impute(time     = treatment_impute$time,
-                                   hazard   = hazard,
+                                   hazard   = hazard[1, , 1],
                                    maxtime  = end_of_study,
                                    cutpoint = cutpoint)
 
@@ -50,7 +52,7 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
 
       # Impute PWE event times conditional on current observed time
       impute_control <- pwe_impute(time     = control_impute$time,
-                                   hazard   = hazard,
+                                   hazard   = hazard[1, , 2],
                                    maxtime  = end_of_study,
                                    cutpoint = cutpoint)
     }
@@ -62,7 +64,7 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
       filter(treatment == 1 & subject_impute_futility)
 
     impute_treatment <- pwe_sim(n        = nrow(treatment_impute),
-                                hazard   = hazard,
+                                hazard   = hazard[1, , 1],
                                 maxtime  = end_of_study,
                                 cutpoint = cutpoint)
 
@@ -73,7 +75,7 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
 
       # Impute PWE event times conditional on current observed time
       impute_control <- pwe_sim(n        = nrow(control_impute),
-                                hazard   = hazard,
+                                hazard   = hazard[1, , 2],
                                 maxtime  = end_of_study,
                                 cutpoint = cutpoint)
     }

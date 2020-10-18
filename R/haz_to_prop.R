@@ -7,12 +7,13 @@
 #'   distribution of the piecewise exponential hazard constant hazard rates.
 #'
 #' @inheritParams survival_adapt
-#' @param post list. A list of posterior probabilities of the piecewise hazard
+#' @param post array An array of posterior probabilities of the piecewise hazard
 #'   rates (\eqn{\lambda_j}, for \code{j=1, \dots, J}) estimated by
-#'   \code{\link{posterior}}. The list has two data frame elements:
-#'   \code{post_treatment} and \code{post_control}. Each data frame is of length
-#'   \code{N_mcmc} (see \code{\link{survival_adapt}}) and has \eqn{J} columns --
-#'   one column per each constant hazard piece.
+#'   \code{\link{posterior}}. The array has dimension 3. The first dimension is
+#'   of length \code{N_mcmc}, the second dimension is of length \eqn{J} (one
+#'   column for each hazard piece), and the third dimension is of length 2, with
+#'   the first slice including posterior samples from \code{post_treatment}, and
+#'   the second slice including posterior samples from \code{post_control}.
 #' @param single_arm logical. If \code{TRUE}, trial is single arm. Else, if
 #'   \code{FALSE}, it is a randomized two-arm trial.
 #'
@@ -30,15 +31,13 @@
 #' @export
 haz_to_prop <- function(post, cutpoint, end_of_study, single_arm) {
 
-  control <- all(!is.na(post$post_control)) # Is there a control arm?
-
   if (length(cutpoint) == 1) {
-    # Standard exponential for zero cutpoint
+    # Standard exponential for when no internal cutpoints
     p_treatment <- pexp(q = end_of_study,
-                        rate = post$post_treatment)
+                        rate = post[, , 1])
     if (!single_arm) {
       p_control <- pexp(q = end_of_study,
-                        rate = post$post_control)
+                        rate = post[, , 2])
     } else {
       p_control <- NA
     }
@@ -46,12 +45,12 @@ haz_to_prop <- function(post, cutpoint, end_of_study, single_arm) {
     # PWE for >=1 break
     p_treatment <- bayesDP::ppexp(
       q = end_of_study,
-      x = post$post_treatment,
+      x = post[, , 1],
       cuts = cutpoint)
     if (!single_arm) {
       p_control <- bayesDP::ppexp(
         q = end_of_study,
-        x = post$post_control,
+        x = post[, , 2],
         cuts = cutpoint)
     } else {
       p_control <- NA
