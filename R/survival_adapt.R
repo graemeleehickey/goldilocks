@@ -113,7 +113,7 @@
 #'  prob_ha = 0.975,
 #'  N_impute = 10,
 #'  N_mcmc = 10,
-#'  method = "logrank")
+#'  method = "bayes")
 survival_adapt <- function(
   hazard_treatment,
   hazard_control        = NULL,
@@ -293,12 +293,14 @@ survival_adapt <- function(
         ### Expected success computations
         ##########################################################################
 
-        data_success_impute <- impute_data(data_in = data_interim,
-                                           hazard = post_lambda[j, , , drop = FALSE],
-                                           end_of_study = end_of_study,
-                                           cutpoint = cutpoint,
-                                           type = "success",
-                                           single_arm = single_arm)
+        # Single imputed data set
+        data_success_impute <- impute_data(
+          data_in      = data_interim,
+          hazard       = post_lambda[j, , , drop = FALSE],
+          end_of_study = end_of_study,
+          cutpoint     = cutpoint,
+          type         = "success",
+          single_arm   = single_arm)
 
         # Create enrolled subject data frame for analysis
         data <- data_success_impute %>%
@@ -316,12 +318,15 @@ survival_adapt <- function(
         }
 
         # Apply primary analysis to imputed data
-        success <- analyse_data(data = data,
-                                cutpoint = cutpoint,
-                                prior = prior,
-                                N_mcmc = N_mcmc,
-                                single_arm = single_arm,
-                                method = method)$success
+        success <- analyse_data(data         = data,
+                                cutpoint     = cutpoint,
+                                end_of_study = end_of_study,
+                                prior        = prior,
+                                N_mcmc       = N_mcmc,
+                                single_arm   = single_arm,
+                                method       = method,
+                                alternative  = alternative,
+                                h0           = h0)$success
 
         # Increase success counter by 1 if P(efficacy | data) > prob_ha
         if (success > prob_ha) {
@@ -335,12 +340,14 @@ survival_adapt <- function(
         # Take the already imputed data for expected success and append on
         # imputed event times for subjects not yet enrolled
 
-        data_futility_impute <- impute_data(data_in = data_success_impute,
-                                            hazard = post_lambda[j, , , drop = FALSE],
-                                            end_of_study = end_of_study,
-                                            cutpoint = cutpoint,
-                                            type = "futility",
-                                            single_arm = single_arm)
+        # Single imputed data set
+        data_futility_impute <- impute_data(
+          data_in      = data_success_impute,
+          hazard       = post_lambda[j, , , drop = FALSE],
+          end_of_study = end_of_study,
+          cutpoint     = cutpoint,
+          type         = "futility",
+          single_arm   = single_arm)
 
         # Create enrolled subject data frame for analysis
         data <- data_futility_impute %>%
@@ -356,12 +363,15 @@ survival_adapt <- function(
         }
 
         # Apply primary analysis to imputed data
-        success <- analyse_data(data = data,
-                                cutpoint = cutpoint,
-                                prior = prior,
-                                N_mcmc = N_mcmc,
-                                single_arm = single_arm,
-                                method = method)$success
+        success <- analyse_data(data         = data,
+                                cutpoint     = cutpoint,
+                                end_of_study = end_of_study,
+                                prior        = prior,
+                                N_mcmc       = N_mcmc,
+                                single_arm   = single_arm,
+                                method       = method,
+                                alternative  = alternative,
+                                h0           = h0)$success
 
         # Increase futility counter by 1 if P(efficacy | data) > prob_ha
         if (success > prob_ha) {
@@ -448,24 +458,29 @@ survival_adapt <- function(
     post_paa <- vector(length = N_impute)
     # Impute multiple data sets
     for (j in 1:N_impute) {
-      data_success_impute <- impute_data(data_in = data_final,
-                                         hazard = post_lambda_final[j, , , drop = FALSE],
-                                         end_of_study = end_of_study,
-                                         cutpoint = cutpoint,
-                                         type = "success",
-                                         single_arm = single_arm)
+      # Single imputed data set
+      data_success_impute <- impute_data(
+        data_in      = data_final,
+        hazard       = post_lambda_final[j, , , drop = FALSE],
+        end_of_study = end_of_study,
+        cutpoint     = cutpoint,
+        type         = "success",
+        single_arm   = single_arm)
 
       # Create enrolled subject data frame for analysis
       data <- data_success_impute %>%
         select(time, event, treatment)
 
       # Apply primary analysis to imputed data
-      success <- analyse_data(data = data,
-                              cutpoint = cutpoint,
-                              prior = prior,
-                              N_mcmc = N_mcmc,
-                              single_arm = single_arm,
-                              method = method)
+      success <- analyse_data(data         = data,
+                              cutpoint     = cutpoint,
+                              end_of_study = end_of_study,
+                              prior        = prior,
+                              N_mcmc       = N_mcmc,
+                              single_arm   = single_arm,
+                              method       = method,
+                              alternative  = alternative,
+                              h0           = h0)
       post_paa[j] <- success$success
 
       if (method == "bayes") {
@@ -477,12 +492,15 @@ survival_adapt <- function(
     post_paa  <- mean(post_paa)
   } else {
     # Posterior distribution of event proportions: final data
-    success <- analyse_data(data = data_final,
-                            cutpoint = cutpoint,
-                            prior = prior,
-                            N_mcmc = N_mcmc,
-                            single_arm = single_arm,
-                            method = method)
+    success <- analyse_data(data         = data_final,
+                            cutpoint     = cutpoint,
+                            end_of_study = end_of_study,
+                            prior        = prior,
+                            N_mcmc       = N_mcmc,
+                            single_arm   = single_arm,
+                            method       = method,
+                            alternative  = alternative,
+                            h0           = h0)
 
     # Apply statistical test to declare success (e.g. efficacy)
     post_paa <- success$success

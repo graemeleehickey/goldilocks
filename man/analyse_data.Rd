@@ -4,7 +4,17 @@
 \alias{analyse_data}
 \title{Perform the final analysis test/method on the complete data}
 \usage{
-analyse_data(data, cutpoint, prior, N_mcmc, single_arm, method)
+analyse_data(
+  data,
+  cutpoint,
+  end_of_study,
+  prior,
+  N_mcmc,
+  single_arm,
+  method,
+  alternative,
+  h0
+)
 }
 \arguments{
 \item{data}{data frame. The time-to-event analysis data to be analyzed per
@@ -12,6 +22,9 @@ the pre-specified analysis method. Generally this will be an imputed data
 set, and the analysis will be looped over multiple imputed datasets.}
 
 \item{cutpoint}{vector. Default is \code{cutpoint = 0}.}
+
+\item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
+will be evaluated.}
 
 \item{prior}{vector. The prior distributions for the piecewise hazard rate
 parameters are each \eqn{Gamma(a_0, b_0)}, with specified (known)
@@ -29,6 +42,13 @@ distribution.}
 follow-up is complete), whether the analysis should be a log-rank
 (\code{method=logrank}) test or a fully-Bayesian analysis
 (\code{method=bayes}). See Details section.}
+
+\item{alternative}{character. The string specifying the alternative
+hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
+\code{"two-sided"}.}
+
+\item{h0}{scalar. Null hypothesis value of \eqn{p_\text{treatment} -
+p_\text{control}}. Default is \code{h0 = 0}.}
 }
 \value{
 A list with 2 elements:

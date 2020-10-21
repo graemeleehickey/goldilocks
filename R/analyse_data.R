@@ -19,7 +19,16 @@
 #'
 #' @importFrom stats pchisq
 #' @export
-analyse_data <- function(data, cutpoint, prior, N_mcmc, single_arm, method) {
+analyse_data <- function(
+  data,
+  cutpoint,
+  end_of_study,
+  prior,
+  N_mcmc,
+  single_arm,
+  method,
+  alternative,
+  h0) {
 
   # If we do a Bayesian test of CIF_mesh(T) - CIF_control(T) on each
   # imputed data set

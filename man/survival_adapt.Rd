@@ -166,5 +166,5 @@ survival_adapt(
  prob_ha = 0.975,
  N_impute = 10,
  N_mcmc = 10,
- method = "logrank")
+ method = "bayes")
 }
