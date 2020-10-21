@@ -6,6 +6,7 @@
 #'
 #' @inheritParams survival_adapt
 #' @param N_trials integer. Number of trials to simulate.
+#' @param ncores integer. Number of cores to use for parallel processing.
 #'
 #' @details This is basically a wrapper function for
 #'   \code{\link{survival_adapt}}, whereby we repeatedly run the function for a
@@ -15,6 +16,7 @@
 #' @return Data frame with 1 row per simulated trial and columns for key summary
 #'   statistics.
 #'
+#' @importFrom parallel mclapply
 #' @export
 #'
 #' @examples
@@ -42,7 +44,8 @@
 #'   N_impute = 5,
 #'   N_mcmc = 5,
 #'   N_trials = 2,
-#'   method = "logrank")
+#'   method = "logrank",
+#'   ncores = 1)
 
 sim_trials <- function(
   hazard_treatment,
@@ -66,73 +69,34 @@ sim_trials <- function(
   N_mcmc                = 100,
   N_trials              = 10,
   method                = "logrank",
-  imputed_final         = TRUE
+  imputed_final         = TRUE,
+  ncores                = 1
 ) {
 
-  # Setup empty vectors for output (length = number of simulated trials)
-  N_enrolled            <- vector(length = N_trials)
-  N_treatment           <- vector(length = N_trials)
-  N_control             <- vector(length = N_trials)
-  stop_futility         <- vector(length = N_trials)
-  stop_expected_success <- vector(length = N_trials)
-  est_interim           <- vector(length = N_trials)
-  est_final             <- vector(length = N_trials)
-  post_prob_ha          <- vector(length = N_trials)
+  out <- mclapply(1:N_trials, survival_adapt, mc.cores = ncores,
+                  hazard_treatment      = hazard_treatment,
+                  hazard_control        = hazard_control,
+                  cutpoint              = cutpoint,
+                  N_total               = N_total,
+                  lambda                = lambda,
+                  lambda_time           = lambda_time,
+                  interim_look          = interim_look,
+                  end_of_study          = end_of_study,
+                  prior                 = prior,
+                  block                 = block,
+                  rand_ratio            = rand_ratio,
+                  prop_loss_to_followup = prop_loss_to_followup,
+                  alternative           = alternative,
+                  h0                    = h0,
+                  futility_prob         = futility_prob,
+                  expected_success_prob = expected_success_prob,
+                  prob_ha               = prob_ha,
+                  N_impute              = N_impute,
+                  N_mcmc                = N_mcmc,
+                  method                = method,
+                  imputed_final         = imputed_final)
 
-  # Progress bar
-  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent) eta: :eta",
-                         total = N_trials)
-  pb$tick(0)
-
-  # Run adaptive design over simulated designs
-  for (k in 1:N_trials) {
-    sim <- survival_adapt(
-      hazard_treatment      = hazard_treatment,
-      hazard_control        = hazard_control,
-      cutpoint              = cutpoint,
-      N_total               = N_total,
-      lambda                = lambda,
-      lambda_time           = lambda_time,
-      interim_look          = interim_look,
-      end_of_study          = end_of_study,
-      prior                 = prior,
-      block                 = block,
-      rand_ratio            = rand_ratio,
-      prop_loss_to_followup = prop_loss_to_followup,
-      alternative           = alternative,
-      h0                    = h0,
-      futility_prob         = futility_prob,
-      expected_success_prob = expected_success_prob,
-      prob_ha               = prob_ha,
-      N_impute              = N_impute,
-      N_mcmc                = N_mcmc,
-      method                = method,
-      imputed_final         = imputed_final
-    )
-
-    pb$tick(1) # increment progress bar
-
-    # Collect up the vectors
-    N_enrolled[k]            <- sim$N_enrolled
-    N_treatment[k]           <- sim$N_treatment
-    N_control[k]             <- sim$N_control
-    stop_futility[k]         <- sim$stop_futility
-    stop_expected_success[k] <- sim$stop_expected_success
-    est_interim[k]           <- sim$est_interim
-    est_final[k]             <- sim$est_final
-    post_prob_ha[k]          <- sim$post_prob_ha
-  }
-
-  out <- data.frame(
-    N_enrolled,
-    N_treatment,
-    N_control,
-    stop_futility,
-    stop_expected_success,
-    est_interim,
-    est_final,
-    post_prob_ha
-  )
+  out <- do.call("rbind", out)
 
   return(out)
 

@@ -27,7 +27,8 @@ sim_trials(
   N_mcmc = 100,
   N_trials = 10,
   method = "logrank",
-  imputed_final = TRUE
+  imputed_final = TRUE,
+  ncores = 1
 )
 }
 \arguments{
@@ -101,6 +102,8 @@ have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time
 \code{<end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
 means that the final analysis would incorporate right-censoring.}
+
+\item{ncores}{integer. Number of cores to use for parallel processing.}
 }
 \value{
 Data frame with 1 row per simulated trial and columns for key summary
@@ -141,5 +144,6 @@ out <- sim_trials(
   N_impute = 5,
   N_mcmc = 5,
   N_trials = 2,
-  method = "logrank")
+  method = "logrank",
+  ncores = 1)
 }

@@ -104,7 +104,7 @@ means that the final analysis would incorporate right-censoring.}
 code. Default is \code{debug = FALSE}.}
 }
 \value{
-A list containing key input parameters (arguments) as well as
+A data frame containing some input parameters (arguments) as well as
 statistics from the analysis, including:
 
 \describe{

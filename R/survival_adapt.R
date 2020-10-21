@@ -54,7 +54,7 @@
 #'
 #' @details TBA - Bayesian tests
 #'
-#' @return A list containing key input parameters (arguments) as well as
+#' @return A data frame containing some input parameters (arguments) as well as
 #'   statistics from the analysis, including:
 #'
 #'   \describe{
@@ -371,7 +371,9 @@ survival_adapt <- function(
       }
 
       # Test if expected success criteria met
-      if (expected_success_test / N_impute > expected_success_prob) {
+      # Note: ppp_success = posterior predictive probability of eventual success
+      ppp_success <- expected_success_test / N_impute
+      if (ppp_success > expected_success_prob) {
         stop_expected_success <- 1
         stage_trial_stopped   <- analysis_at_enrollnumber[i]
         break # No further SS looks
@@ -396,18 +398,19 @@ survival_adapt <- function(
     ### Effect at interim analysis (where trial stopped)
     ##############################################################################
 
-    # Note 1: not imputed
-    # Note 2: do not need to calculate posterior probability of success here,
-    #         we are just interested in the effect size
+    effect_int <- NA
 
-    # Posterior distribution of event proportions: non-imputed data
-    post_imp <- haz_to_prop(post         = post_lambda,
-                            cutpoint     = cutpoint,
-                            end_of_study = end_of_study,
-                            single_arm   = single_arm)
-
-    # Final interim analysis effect size
-    effect_int <- mean(post_imp$effect)
+    # # Note: not imputed
+    # if (method == "bayes") {
+    #   # Posterior distribution of event proportions: non-imputed data
+    #   post_imp <- haz_to_prop(post         = post_lambda,
+    #                           cutpoint     = cutpoint,
+    #                           end_of_study = end_of_study,
+    #                           single_arm   = single_arm)
+    #
+    #   # Final interim analysis effect size
+    #   effect_int <- mean(post_imp$effect)
+    # }
 
     # Number of patients enrolled at trial stop
     N_enrolled <- nrow(data_interim[data_interim$id <= stage_trial_stopped, ])
@@ -498,26 +501,22 @@ survival_adapt <- function(
   }
 
   # Output
-  results_list <- list(
-    hazard_treatment      = hazard_treatment,         # Probability of treatment in binomial
-    hazard_control        = hazard_control,           # Probability of control in binomial
-    cutpoint              = cutpoint,
+  results <- data.frame(
     prob_threshold        = prob_ha,
     margin                = h0,                       # Margin for error
     alternative           = alternative,              # Alternative hypothesis
-    interim_look          = interim_look,             # Print interim looks
     N_treatment           = N_treatment,
     N_control             = N_control,
     N_enrolled            = N_treatment + N_control,
     N_max                 = N_total, 				          # Total potential sample size
     post_prob_ha          = post_paa,                 # Posterior probability that alternative hypothesis is true
     est_final             = est_final,                # Posterior treatment effect at final analysis
+    ppp_success           = ppp_success,              # Posterior predictive probability of eventual success
     est_interim           = est_interim,              # Posterior treatment effect at the interim analysis
     stop_futility         = stop_futility,            # Did the trial stop for futility
     stop_expected_success = stop_expected_success     # Did the trial stop for expected success
   )
 
-  # Return results
-  return(results_list)
+  return(results)
 
 }
