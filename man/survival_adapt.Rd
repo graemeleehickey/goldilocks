@@ -165,5 +165,6 @@ survival_adapt(
  expected_success_prob = 0.9,
  prob_ha = 0.975,
  N_impute = 10,
- N_mcmc = 10)
+ N_mcmc = 10,
+ method = "logrank")
 }

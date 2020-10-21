@@ -38,8 +38,8 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
   if (type == "success") {
 
     # Imputing for treatment group
-    treatment_impute <- data_in %>%
-      filter(treatment == 1 & subject_impute_success)
+    treatment_impute <- subset(data_in,
+                               treatment == 1 & subject_impute_success)
 
     impute_treatment <- pwe_impute(time     = treatment_impute$time,
                                    hazard   = hazard[1, , 1],
@@ -48,8 +48,8 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
 
     # Imputing for control group
     if (!single_arm) {
-      control_impute <- data_in %>%
-        filter(treatment == 0 & subject_impute_success)
+      control_impute <- subset(data_in,
+                               treatment == 0 & subject_impute_success)
 
       # Impute PWE event times conditional on current observed time
       impute_control <- pwe_impute(time     = control_impute$time,
@@ -61,8 +61,8 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
   } else if (type == "futility") {
 
     # Imputing for treatment group
-    treatment_impute <- data_in %>%
-      filter(treatment == 1 & subject_impute_futility)
+    treatment_impute <- subset(data_in,
+                               treatment == 1 & subject_impute_futility)
 
     impute_treatment <- pwe_sim(n        = nrow(treatment_impute),
                                 hazard   = hazard[1, , 1],
@@ -71,8 +71,8 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
 
     # Imputing for control group
     if (!single_arm) {
-      control_impute <- data_in %>%
-        filter(treatment == 0 & subject_impute_futility)
+      control_impute <- subset(data_in,
+                               treatment == 0 & subject_impute_futility)
 
       # Impute PWE event times conditional on current observed time
       impute_control <- pwe_sim(n        = nrow(control_impute),
@@ -82,37 +82,35 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
     }
   }
 
-  data_treatment_impute <- treatment_impute %>%
-    bind_cols(time_impute  = impute_treatment$time,
-              event_impute = impute_treatment$event)
+  data_treatment_impute <- cbind(treatment_impute,
+                                 "time_impute"  = impute_treatment$time,
+                                 "event_impute" = impute_treatment$event)
 
   if (!single_arm) {
-    data_control_impute <- control_impute %>%
-      bind_cols(time_impute  = impute_control$time,
-                event_impute = impute_control$event)
+    data_control_impute <- cbind(control_impute,
+                                 "time_impute"  = impute_control$time,
+                                 "event_impute" = impute_control$event)
   } else {
     data_control_impute <- NULL
   }
 
   # Non-imputed data
-  data_noimpute <- data_in %>%
-    mutate(time_impute = time,
-           event_impute = event)
+  data_noimpute              <- data_in
+  data_noimpute$time_impute  <- data_noimpute$time
+  data_noimpute$event_impute <- data_noimpute$event
   if (type == "success") {
-    data_noimpute <- data_noimpute %>%
-      filter(!subject_impute_success)
+    data_noimpute <- subset(data_noimpute, !subject_impute_success)
   } else if (type == "futility") {
-    data_noimpute <- data_noimpute %>%
-      filter(!subject_impute_futility)
+    data_noimpute <- subset(data_noimpute, !subject_impute_futility)
   }
 
   # Combine imputed and non-imputed data
-  data_impute <- bind_rows(data_control_impute,
-                           data_treatment_impute,
-                           data_noimpute) %>%
-    mutate(time = time_impute,
-           event = event_impute) %>%
-    select(-c(time_impute, event_impute))
+  data_impute <- rbind(data_control_impute,
+                       data_treatment_impute,
+                       data_noimpute)
+  data_impute$time  <- data_impute$time_impute
+  data_impute$event <- data_impute$event_impute
+  data_impute <- data_impute[, 1:10]
 
   # Check: imputed data should have same number of subjects as
   #        the interim data

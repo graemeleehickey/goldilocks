@@ -26,6 +26,7 @@ sim_trials(
   N_impute = 10,
   N_mcmc = 100,
   N_trials = 10,
+  method = "logrank",
   imputed_final = TRUE
 )
 }
@@ -90,6 +91,11 @@ distribution.}
 
 \item{N_trials}{integer. Number of trials to simulate.}
 
+\item{method}{character. For an imputed data set (or the final data set after
+follow-up is complete), whether the analysis should be a log-rank
+(\code{method=logrank}) test or a fully-Bayesian analysis
+(\code{method=bayes}). See Details section.}
+
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time
@@ -134,5 +140,6 @@ out <- sim_trials(
   prob_ha = 0.975,
   N_impute = 5,
   N_mcmc = 5,
-  N_trials = 2)
+  N_trials = 2,
+  method = "logrank")
 }

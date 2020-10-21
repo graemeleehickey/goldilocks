@@ -41,7 +41,8 @@
 #'   prob_ha = 0.975,
 #'   N_impute = 5,
 #'   N_mcmc = 5,
-#'   N_trials = 2)
+#'   N_trials = 2,
+#'   method = "logrank")
 
 sim_trials <- function(
   hazard_treatment,
@@ -64,6 +65,7 @@ sim_trials <- function(
   N_impute              = 10,
   N_mcmc                = 100,
   N_trials              = 10,
+  method                = "logrank",
   imputed_final         = TRUE
 ) {
 
@@ -103,7 +105,9 @@ sim_trials <- function(
       expected_success_prob = expected_success_prob,
       prob_ha               = prob_ha,
       N_impute              = N_impute,
-      N_mcmc                = N_mcmc
+      N_mcmc                = N_mcmc,
+      method                = method,
+      imputed_final         = imputed_final
     )
 
     pb$tick(1) # increment progress bar

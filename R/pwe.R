@@ -17,7 +17,7 @@
 #'   respective event indicator (\code{event}, 1 = event occurred, 0 =
 #'   censoring).
 #'
-#' @importFrom PWEALL rpwe qpwe
+#' @importFrom PWEALL rpwe qpwe pwe
 #' @export
 #'
 #' @examples
@@ -114,15 +114,20 @@ pwe_impute <- function(time, hazard, cutpoint = 0, maxtime = NULL) {
     }
   }
 
-  impute1 <- function(s) {
-    Fs <- bayesDP::ppexp(s, hazard, cutpoint)
-    u <- runif(1)
-    PWEALL::qpwe(u*(1 - Fs) + Fs, hazard, cutpoint)$q
-    #msm::qpexp(u*(1 - Fs) + Fs, hazard, cutpoint)
-    #rpact::qpwexp(u*(1 - Fs) + Fs, lambda = hazard, s = cutpoint)
-  }
+  # Use inverse CDF to get conditional samples
+  Fs <- PWEALL::pwe(t = time, rate = hazard, tchange = cutpoint)$dist
+  U <- runif(length(time))
+  time_imp <- PWEALL::qpwe(U*(1 - Fs) + Fs, hazard, cutpoint)$q
 
-  time_imp <- sapply(time, impute1)
+  # impute1 <- function(s) {
+  #   Fs <- bayesDP::ppexp(s, hazard, cutpoint)
+  #   u <- runif(1)
+  #   PWEALL::qpwe(u*(1 - Fs) + Fs, hazard, cutpoint)$q
+  #   #msm::qpexp(u*(1 - Fs) + Fs, hazard, cutpoint)
+  #   #rpact::qpwexp(u*(1 - Fs) + Fs, lambda = hazard, s = cutpoint)
+  # }
+  #
+  # time_imp <- sapply(time, impute1)
 
   # Check: impute timed occur after landmark observed times
   if (any(time > time_imp)) {
