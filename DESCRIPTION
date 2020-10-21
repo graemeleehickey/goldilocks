@@ -27,6 +27,7 @@ Imports:
     bayesDP,
     dplyr,
     MASS,
+    progress,
     PWEALL,
     stats
 Roxygen: list(markdown = TRUE)

@@ -77,6 +77,11 @@ sim_trials <- function(
   est_final             <- vector(length = N_trials)
   post_prob_ha          <- vector(length = N_trials)
 
+  # Progress bar
+  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent) eta: :eta",
+                         total = N_trials)
+  pb$tick(0)
+
   # Run adaptive design over simulated designs
   for (k in 1:N_trials) {
     sim <- survival_adapt(
@@ -100,6 +105,8 @@ sim_trials <- function(
       N_impute              = N_impute,
       N_mcmc                = N_mcmc
     )
+
+    pb$tick(1) # increment progress bar
 
     # Collect up the vectors
     N_enrolled[k]            <- sim$N_enrolled

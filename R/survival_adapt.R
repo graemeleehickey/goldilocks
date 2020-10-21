@@ -40,6 +40,10 @@
 #'   missing data.
 #' @param N_mcmc integer. Number of samples to from the posterior
 #'   distribution.
+#' @param method character. For an imputed data set (or the final data set after
+#'   follow-up is complete), whether the analysis should be a log-rank
+#'   (\code{method=logrank}) test or a fully-Bayesian analysis
+#'   (\code{method=bayes}). See Details section.
 #' @param imputed_final logical. Should the final analysis (after all subjects
 #'   have been followed-up to the study end) be based on imputed outcomes for
 #'   subjects who were LTFU (i.e. right-censored with time
@@ -47,6 +51,8 @@
 #'   means that the final analysis would incorporate right-censoring.
 #' @param debug logical. If \code{TRUE} can be used to debug aspects of the
 #'   code. Default is \code{debug = FALSE}.
+#'
+#' @details TBA - Bayesian tests
 #'
 #' @return A list containing key input parameters (arguments) as well as
 #'   statistics from the analysis, including:
@@ -127,6 +133,7 @@ survival_adapt <- function(
   prob_ha               = 0.95,
   N_impute              = 10,
   N_mcmc                = 100,
+  method                = "logrank",
   imputed_final         = TRUE,
   debug = FALSE
 ) {
@@ -307,24 +314,13 @@ survival_adapt <- function(
                ylab = "Freedom from event")
         }
 
-        # Posterior distribution of lambdas: imputed data
-        post_lambda_imp <- posterior(data       = data,
-                                     cutpoint   = cutpoint,
-                                     prior      = prior,
-                                     N_mcmc     = N_mcmc,
-                                     single_arm = single_arm)
-
-        # Posterior distribution of event proportions: imputed data
-        post_imp <- haz_to_prop(post         = post_lambda_imp,
-                                cutpoint     = cutpoint,
-                                end_of_study = end_of_study,
-                                single_arm   = single_arm)
-
-        # Apply statistical test to declare success (e.g. efficacy)
-        success <- test(post_probs  = post_imp,
-                        alternative = alternative,
-                        h0          = h0,
-                        single_arm  = single_arm)
+        # Apply primary analysis to imputed data
+        success <- analyse_data(data = data,
+                                cutpoint = cutpoint,
+                                prior = prior,
+                                N_mcmc = N_mcmc,
+                                single_arm = single_arm,
+                                method = method)$success
 
         # Increase success counter by 1 if P(efficacy | data) > prob_ha
         if (success > prob_ha) {
@@ -358,24 +354,13 @@ survival_adapt <- function(
                ylab = "Freedom from event")
         }
 
-        # Posterior distribution of lambdas: imputed data
-        post_lambda_imp <- posterior(data       = data,
-                                     cutpoint   = cutpoint,
-                                     prior      = prior,
-                                     N_mcmc     = N_mcmc,
-                                     single_arm = single_arm)
-
-        # Posterior distribution of event proportions: imputed data
-        post_imp <- haz_to_prop(post         = post_lambda_imp,
-                                cutpoint     = cutpoint,
-                                end_of_study = end_of_study,
-                                single_arm   = single_arm)
-
-        # Apply statistical test to declare success (e.g. efficacy)
-        success <- test(post_probs  = post_imp,
-                        alternative = alternative,
-                        h0          = h0,
-                        single_arm  = single_arm)
+        # Apply primary analysis to imputed data
+        success <- analyse_data(data = data,
+                                cutpoint = cutpoint,
+                                prior = prior,
+                                N_mcmc = N_mcmc,
+                                single_arm = single_arm,
+                                method = method)$success
 
         # Increase futility counter by 1 if P(efficacy | data) > prob_ha
         if (success > prob_ha) {
@@ -454,56 +439,52 @@ survival_adapt <- function(
                                  single_arm = single_arm)
 
   if (imputed_final) {
-    # Final analysis will multiply-impute subjects LTFU
-    # Based on argument in Gelman et al. (2004, p. 520)
+    # Effect matrix + posterior probability
     effect_final_mat <- matrix(nrow = N_mcmc, ncol = N_impute)
+    post_paa <- vector(length = N_impute)
+    # Impute multiple data sets
     for (j in 1:N_impute) {
-      # Step 1: Draw from post_lambda_final & impute a data set
-      data_success_impute <- impute_data(
-        data_in      = data_final,
-        hazard       = post_lambda_final[j, , , drop = FALSE],
-        end_of_study = end_of_study,
-        cutpoint     = cutpoint,
-        type         = "success",
-        single_arm   = single_arm)
+      data_success_impute <- impute_data(data_in = data_final,
+                                         hazard = post_lambda_final[j, , , drop = FALSE],
+                                         end_of_study = end_of_study,
+                                         cutpoint = cutpoint,
+                                         type = "success",
+                                         single_arm = single_arm)
+
+      # Create enrolled subject data frame for analysis
       data <- data_success_impute %>%
         select(time, event, treatment)
-      # Step 2: Get posterior distribution of lambdas on imputed data
-      post_lambda_final_imp <- posterior(data = data,
-                                         cutpoint   = cutpoint,
-                                         prior      = prior,
-                                         N_mcmc     = N_mcmc,
-                                         single_arm = single_arm)
-      # Step 3: Transform to posterior sample of treatment effect
-      post_final <- haz_to_prop(post         = post_lambda_final_imp,
-                                cutpoint     = cutpoint,
-                                end_of_study = end_of_study,
-                                single_arm   = single_arm)
-      # Step 4. Pool effects together
-      effect_final_mat[, j] <- post_final$effect
+
+      # Apply primary analysis to imputed data
+      success <- analyse_data(data = data,
+                              cutpoint = cutpoint,
+                              prior = prior,
+                              N_mcmc = N_mcmc,
+                              single_arm = single_arm,
+                              method = method)
+      post_paa[j] <- success$success
+
+      if (method == "bayes") {
+        effect_final_mat[, j] <- success$effect
+      }
     }
-    # Step 5(i): Calculate average effect
-    est_final <- mean(effect_final_mat)
-    # Step 5(ii): Calculate average probability
-    if (alternative == "two-sided") {
-      post_paa <- max(c(mean(effect_final_mat > h0), mean(effect_final_mat < h0)))
-    } else if (alternative == "greater") {
-      post_paa <- mean(effect_final_mat > h0)
-    } else {
-      post_paa <- mean(effect_final_mat < h0)
-    }
+
+    est_final <- mean(effect_final_mat) # See Gelman et al. (2004, p. 520)
+    post_paa  <- mean(post_paa)
   } else {
     # Posterior distribution of event proportions: final data
-    post_final <- haz_to_prop(post         = post_lambda_final,
-                              cutpoint     = cutpoint,
-                              end_of_study = end_of_study,
-                              single_arm   = single_arm)
+    success <- analyse_data(data = data_final,
+                            cutpoint = cutpoint,
+                            prior = prior,
+                            N_mcmc = N_mcmc,
+                            single_arm = single_arm,
+                            method = method)
 
     # Apply statistical test to declare success (e.g. efficacy)
-    post_paa <- test(post_final, alternative, h0, single_arm)
+    post_paa <- success$success
 
     # Final interim analysis effect size
-    est_final <- mean(post_final$effect)
+    est_final <- mean(success$effect)
   }
 
   N_treatment  <- sum(data_final$treatment == 1) # Total sample size analyzed - test group

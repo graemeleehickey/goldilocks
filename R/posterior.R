@@ -47,7 +47,7 @@ posterior <- function(data, cutpoint, prior, N_mcmc, single_arm) {
 
   for (j in 1:(nbreaks + 1)) {
     post[, j, 1] <- with(
-      dplyr::filter(data_summ, treatment == 1),
+      subset(data_summ, treatment == 1),
       rgamma(N_mcmc, prior[1] + tot_events[j], prior[2] + tot_time[j])
     )
   }
@@ -55,7 +55,7 @@ posterior <- function(data, cutpoint, prior, N_mcmc, single_arm) {
   if (!single_arm) { # If control patients present
     for (j in 1:(nbreaks + 1)) {
       post[, j, 2] <- with(
-        dplyr::filter(data_summ, treatment == 0),
+        subset(data_summ, treatment == 0),
         rgamma(N_mcmc, prior[1] + tot_events[j], prior[2] + tot_time[j]))
     }
   }

@@ -29,6 +29,7 @@
 #' @return A data frame with the same number of rows (number of subjects), but
 #'   with imputed event times.
 #'
+#' @importFrom progress progress_bar
 #' @export
 impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
                         single_arm) {

@@ -25,6 +25,7 @@ survival_adapt(
   prob_ha = 0.95,
   N_impute = 10,
   N_mcmc = 100,
+  method = "logrank",
   imputed_final = TRUE,
   debug = FALSE
 )
@@ -88,6 +89,11 @@ missing data.}
 \item{N_mcmc}{integer. Number of samples to from the posterior
 distribution.}
 
+\item{method}{character. For an imputed data set (or the final data set after
+follow-up is complete), whether the analysis should be a log-rank
+(\code{method=logrank}) test or a fully-Bayesian analysis
+(\code{method=bayes}). See Details section.}
+
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time
@@ -132,6 +138,9 @@ trial was stopped early for expected success.}
 \description{
 Simulate a single adaptive clinical trial with a time-to-event
 endpoint
+}
+\details{
+TBA - Bayesian tests
 }
 \examples{
 # RCT with exponential hazard (no piecewise breaks)
