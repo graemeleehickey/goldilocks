@@ -53,10 +53,26 @@
 #'   code. Default is \code{debug = FALSE}.
 #'
 #' @details Implements the Goldilocks design method described in Broglio et al.
-#'   (2014) with analysis methods as:
+#'   (2014). At each interim analysis, two probabilities are computed:
 #'
-#' \itemize{
-#'   \item{Log-rank test (\code{method = "logrank"}).}{
+#'   1. **The posterior predictive probability of eventual success.** This is
+#'   calculated as the proportion of imputed datasets at the *current* sample
+#'   size that would go on to be success at the specified threshold. At each
+#'   interim analysis it is compared to \code{expected_success_prob}, and if it
+#'   exceeds the threshold, accrual/enrollment is suspended and the outstanding
+#'   follow-up allowed to complete before conducting the pre-specified final
+#'   analysis.
+#'
+#'   2. **The posterior predictive probability of final success**. This is
+#'   calculated as the proportion of imputed datasets at the *maximum* threshold
+#'   that would go on to be successful. Similar to above, it is compared to
+#'   \code{futility_prob}, and if it is less than the threshold,
+#'   accrual/enrollment is suspended and the trial terminated. Typically this
+#'   would be a binding decision.
+#'
+#'   At each interim (and final) analysis methods as:
+#'
+#'  * Log-rank test (\code{method = "logrank"}).
 #'      Each (imputed) dataset with both treatment and control arms can be
 #'      compared using a standard log-rank test. The output is a \emph{P}-value,
 #'      and there is no treatment effect reported. The function returns \eqn{1 -
@@ -65,8 +81,9 @@
 #'      the success threshold is \eqn{P < 0.05}, then one requires
 #'      \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to enable
 #'      simple switching between Bayesian and frequentist paradigms for
-#'      analysis.}
-#'   \item{Bayesian absolute difference (\code{method = "bayes"}).}{
+#'      analysis.
+#'
+#'   * Bayesian absolute difference (\code{method = "bayes"}).
 #'      Each imputed dataset is used to update the conjugate Gamma prior
 #'      (defined by \code{prior}), yielding a posterior distribution for the
 #'      piecewise exponential rate parameters. In turn, the posterior
@@ -77,18 +94,18 @@
 #'      independent posteriors are used to estimate the posterior distribution
 #'      of the difference. A posterior probability is calculated according to
 #'      the specification of the test type (\code{alternative}) and the value of
-#'      the null hypothesis (\code{h0}).}
-#'   \item{Imputed final analysis (\code{imputed_final}).}{ The overall final
-#'      analysis conducted after accrual is suspended and follow-up is complete
-#'      can be analyzed on imputed datasets (default) or on the non-imputed
-#'      dataset. Since the imputations/predictions used during the interim
-#'      analyses assume all subjects are imputed (since loss to follow-up is not
-#'      yet known), it would seem most appropriate to conduct the trial in the
-#'      same manner, especially if loss to follow-up rates are appreciable.
-#'      Note, this only applies to subjects who are right-censored due to loss
-#'      to follow-up, which we assume is a non-informative process. This can be
-#'      used with any \code{method}.}
-#' }
+#'      the null hypothesis (\code{h0}).
+#'
+#'  * Imputed final analysis (\code{imputed_final}).
+#'      The overall final analysis conducted after accrual is suspended and
+#'      follow-up is complete can be analyzed on imputed datasets (default) or
+#'      on the non-imputed dataset. Since the imputations/predictions used
+#'      during the interim analyses assume all subjects are imputed (since loss
+#'      to follow-up is not yet known), it would seem most appropriate to
+#'      conduct the trial in the same manner, especially if loss to follow-up
+#'      rates are appreciable. Note, this only applies to subjects who are
+#'      right-censored due to loss to follow-up, which we assume is a
+#'      non-informative process. This can be used with any \code{method}.
 #'
 #' @return A data frame containing some input parameters (arguments) as well as
 #'   statistics from the analysis, including:
@@ -200,6 +217,14 @@ survival_adapt <- function(
     stop("The log-rank test can only be used as two-sided test")
   }
 
+  # Indicator of single-arm study
+  single_arm <- is.null(hazard_control)
+
+  # Check: log-rank test only available for two-armed trials
+  if (single_arm & method == "logrank") {
+    stop("The log-rank test can only be used for two-armed trials")
+  }
+
   # Assigning interim look and final look
   analysis_at_enrollnumber <- c(interim_look, N_total)
 
@@ -209,9 +234,6 @@ survival_adapt <- function(
                            time    = lambda_time)
   enrollment <- enrollment + runif(length(enrollment))
   enrollment <- sort(enrollment)
-
-  # Indicator of single-arm study
-  single_arm <- is.null(hazard_control)
 
   # Simulating group and treatment group assignment
   if (!single_arm) {

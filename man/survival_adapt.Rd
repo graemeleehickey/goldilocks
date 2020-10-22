@@ -141,10 +141,26 @@ endpoint
 }
 \details{
 Implements the Goldilocks design method described in Broglio et al.
-(2014) with analysis methods as:
+(2014). At each interim analysis, two probabilities are computed:
+\enumerate{
+\item \strong{The posterior predictive probability of eventual success.} This is
+calculated as the proportion of imputed datasets at the \emph{current} sample
+size that would go on to be success at the specified threshold. At each
+interim analysis it is compared to \code{expected_success_prob}, and if it
+exceeds the threshold, accrual/enrollment is suspended and the outstanding
+follow-up allowed to complete before conducting the pre-specified final
+analysis.
+\item \strong{The posterior predictive probability of final success}. This is
+calculated as the proportion of imputed datasets at the \emph{maximum} threshold
+that would go on to be successful. Similar to above, it is compared to
+\code{futility_prob}, and if it is less than the threshold,
+accrual/enrollment is suspended and the trial terminated. Typically this
+would be a binding decision.
+}
 
+At each interim (and final) analysis methods as:
 \itemize{
-\item{Log-rank test (\code{method = "logrank"}).}{
+\item Log-rank test (\code{method = "logrank"}).
 Each (imputed) dataset with both treatment and control arms can be
 compared using a standard log-rank test. The output is a \emph{P}-value,
 and there is no treatment effect reported. The function returns \eqn{1 -
@@ -153,8 +169,8 @@ probability, it can be contrasted in the same manner. For example, if
 the success threshold is \eqn{P < 0.05}, then one requires
 \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to enable
 simple switching between Bayesian and frequentist paradigms for
-analysis.}
-\item{Bayesian absolute difference (\code{method = "bayes"}).}{
+analysis.
+\item Bayesian absolute difference (\code{method = "bayes"}).
 Each imputed dataset is used to update the conjugate Gamma prior
 (defined by \code{prior}), yielding a posterior distribution for the
 piecewise exponential rate parameters. In turn, the posterior
@@ -165,17 +181,17 @@ summarizes the treatment effect, else, if a two-armed study, the
 independent posteriors are used to estimate the posterior distribution
 of the difference. A posterior probability is calculated according to
 the specification of the test type (\code{alternative}) and the value of
-the null hypothesis (\code{h0}).}
-\item{Imputed final analysis (\code{imputed_final}).}{ The overall final
-analysis conducted after accrual is suspended and follow-up is complete
-can be analyzed on imputed datasets (default) or on the non-imputed
-dataset. Since the imputations/predictions used during the interim
-analyses assume all subjects are imputed (since loss to follow-up is not
-yet known), it would seem most appropriate to conduct the trial in the
-same manner, especially if loss to follow-up rates are appreciable.
-Note, this only applies to subjects who are right-censored due to loss
-to follow-up, which we assume is a non-informative process. This can be
-used with any \code{method}.}
+the null hypothesis (\code{h0}).
+\item Imputed final analysis (\code{imputed_final}).
+The overall final analysis conducted after accrual is suspended and
+follow-up is complete can be analyzed on imputed datasets (default) or
+on the non-imputed dataset. Since the imputations/predictions used
+during the interim analyses assume all subjects are imputed (since loss
+to follow-up is not yet known), it would seem most appropriate to
+conduct the trial in the same manner, especially if loss to follow-up
+rates are appreciable. Note, this only applies to subjects who are
+right-censored due to loss to follow-up, which we assume is a
+non-informative process. This can be used with any \code{method}.
 }
 }
 \examples{
