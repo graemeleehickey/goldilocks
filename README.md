@@ -11,8 +11,7 @@ status](https://ci.appveyor.com/api/projects/status/github/graemeleehickey/goldi
 status](https://travis-ci.com/graemeleehickey/goldilocks.svg?branch=master)](https://travis-ci.com/graemeleehickey/goldilocks)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
-[![Codecov test
-coverage](https://codecov.io/gh/graemeleehickey/goldilocks/branch/master/graph/badge.svg)](https://codecov.io/gh/graemeleehickey/goldilocks?branch=master)
+[![codecov](https://codecov.io/gh/graemeleehickey/goldilocks/branch/main/graph/badge.svg?token=9V6BH1Q4K3)](https://codecov.io/gh/graemeleehickey/goldilocks)
 <!-- badges: end -->
 
 The goal of `goldilocks` is to implement the Golilocks Bayesian adaptive
