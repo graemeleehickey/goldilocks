@@ -30,7 +30,7 @@ Imports:
     parallel,
     PWEALL,
     stats
+Suggests: 
+    covr    
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
-Suggests: 
-    covr
