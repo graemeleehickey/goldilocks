@@ -13,10 +13,10 @@
 #'   independent number of trials (all with the same input design parameters and
 #'   treatment effect).
 #'
-#'   To use will mutiple cores (where available), the argument \code{ncores}
-#'   can be increased from the default of 1. Note: on Windows machines, it is not
-#'   possible to use the \code{\link[parallel]{mclappy}} function with \code{ncores}
-#'   \eqn{>1}.
+#'   To use will multiple cores (where available), the argument \code{ncores}
+#'   can be increased from the default of 1. Note: on Windows machines, it is
+#'   not possible to use the \code{\link[parallel]{mclapply}} function with
+#'   \code{ncores} \eqn{>1}.
 #'
 #' @return Data frame with 1 row per simulated trial and columns for key summary
 #'   statistics.
@@ -41,7 +41,7 @@
 #'   block = 2,
 #'   rand_ratio = c(1, 1),
 #'   prop_loss_to_followup = 0.30,
-#'   alternative = "less",
+#'   alternative = "two-sided",
 #'   h0 = 0,
 #'   futility_prob = 0.05,
 #'   expected_success_prob = 0.9,

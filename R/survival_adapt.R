@@ -347,7 +347,7 @@ survival_adapt <- function(
       post_lambda <- posterior(data       = data,
                                cutpoint   = cutpoint,
                                prior      = prior,
-                               N_mcmc     = N_mcmc,
+                               N_mcmc     = N_impute,
                                single_arm = single_arm)
 
       # Imputation phase futility and expected success - initialize counters
@@ -476,19 +476,8 @@ survival_adapt <- function(
     ### Effect at interim analysis (where trial stopped)
     ##############################################################################
 
+    # TBC
     effect_int <- NA
-
-    # # Note: not imputed
-    # if (method == "bayes") {
-    #   # Posterior distribution of event proportions: non-imputed data
-    #   post_imp <- haz_to_prop(post         = post_lambda,
-    #                           cutpoint     = cutpoint,
-    #                           end_of_study = end_of_study,
-    #                           single_arm   = single_arm)
-    #
-    #   # Final interim analysis effect size
-    #   effect_int <- mean(post_imp$effect)
-    # }
 
     # Number of patients enrolled at trial stop
     N_enrolled <- nrow(data_interim[data_interim$id <= stage_trial_stopped, ])
@@ -517,7 +506,7 @@ survival_adapt <- function(
   post_lambda_final <- posterior(data       = data_final,
                                  cutpoint   = cutpoint,
                                  prior      = prior,
-                                 N_mcmc     = N_mcmc,
+                                 N_mcmc     = N_impute,
                                  single_arm = single_arm)
 
   if (imputed_final) {

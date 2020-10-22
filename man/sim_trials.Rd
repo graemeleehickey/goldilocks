@@ -119,10 +119,10 @@ This is basically a wrapper function for
 independent number of trials (all with the same input design parameters and
 treatment effect).
 
-To use will mutiple cores (where available), the argument \code{ncores}
-can be increased from the default of 1. Note: on Windows machines, it is not
-possible to use the \code{\link[parallel]{mclappy}} function with \code{ncores}
-\eqn{>1}.
+To use will multiple cores (where available), the argument \code{ncores}
+can be increased from the default of 1. Note: on Windows machines, it is
+not possible to use the \code{\link[parallel]{mclapply}} function with
+\code{ncores} \eqn{>1}.
 }
 \examples{
 hc <- haz_est(c(0.20, 0.30), 12, 36)
@@ -141,7 +141,7 @@ out <- sim_trials(
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss_to_followup = 0.30,
-  alternative = "less",
+  alternative = "two-sided",
   h0 = 0,
   futility_prob = 0.05,
   expected_success_prob = 0.9,
