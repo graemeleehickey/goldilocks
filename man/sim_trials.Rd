@@ -28,7 +28,7 @@ sim_trials(
   N_trials = 10,
   method = "logrank",
   imputed_final = TRUE,
-  ncores = 1
+  ncores = 1L
 )
 }
 \arguments{
@@ -118,6 +118,11 @@ This is basically a wrapper function for
 \code{\link{survival_adapt}}, whereby we repeatedly run the function for a
 independent number of trials (all with the same input design parameters and
 treatment effect).
+
+To use will mutiple cores (where available), the argument \code{ncores}
+can be increased from the default of 1. Note: on Windows machines, it is not
+possible to use the \code{\link[parallel]{mclappy}} function with \code{ncores}
+\eqn{>1}.
 }
 \examples{
 hc <- haz_est(c(0.20, 0.30), 12, 36)

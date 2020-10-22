@@ -13,10 +13,15 @@
 #'   independent number of trials (all with the same input design parameters and
 #'   treatment effect).
 #'
+#'   To use will mutiple cores (where available), the argument \code{ncores}
+#'   can be increased from the default of 1. Note: on Windows machines, it is not
+#'   possible to use the \code{\link[parallel]{mclappy}} function with \code{ncores}
+#'   \eqn{>1}.
+#'
 #' @return Data frame with 1 row per simulated trial and columns for key summary
 #'   statistics.
 #'
-#' @importFrom parallel mclapply
+#' @importFrom parallel mclapply detectCores
 #' @export
 #'
 #' @examples
@@ -70,8 +75,23 @@ sim_trials <- function(
   N_trials              = 10,
   method                = "logrank",
   imputed_final         = TRUE,
-  ncores                = 1
+  ncores                = 1L
 ) {
+
+  # Check: missing 'ncores' defaults to max available (spare 1)
+  if (missing(ncores)) {
+    ncores <- min(1, parallel::detectCores() - 1)
+  }
+
+  # Check: cannot specify <1 core
+  if (ncores < 1) {
+    warning("Must use at least 1 core... setting ncores = 1")
+  }
+
+  # Check: if Windows and if ncores = 1
+  if (.Platform$OS.type == "Windows" & ncores > 1L) {
+    stop("On Windows machines it is required that ncores = 1L")
+  }
 
   out <- mclapply(1:N_trials, survival_adapt, mc.cores = ncores,
                   hazard_treatment      = hazard_treatment,
