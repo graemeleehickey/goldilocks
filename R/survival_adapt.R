@@ -187,12 +187,17 @@ survival_adapt <- function(
 
   # Check: 'alternative' is correctly specified
   if (alternative != "two-sided" & alternative != "greater" & alternative != "less") {
-    stop("The input for alternative is wrong!")
+    stop("The input for alternative is wrong")
   }
 
   # Check: none of the 'cutpoints' are not more than 'end_of_study'
   if (!is.null(cutpoint)) {
     stopifnot(any(cutpoint < end_of_study))
+  }
+
+  # Check: log-rank test only available as a two-sided test
+  if (alternative != "two-sided" & method == "logrank") {
+    stop("The log-rank test can only be used as two-sided test")
   }
 
   # Assigning interim look and final look

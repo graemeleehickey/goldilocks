@@ -28,23 +28,23 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoint = 0, maxtime = NULL) {
 
   # Check: 'cutpoint' should be same length as hazard
   if (length(cutpoint) != length(hazard)) {
-    stop("length of t must be equal to length of rate")
+    stop("Length of 'cutpoint' must be equal to length of rate")
   }
 
   # Check: first element of 'cutpoint' should be 0
   if (cutpoint[1] != 0) {
-    stop("first element of t should be 0")
+    stop("First element of 'cutpoint' should be 0")
   }
 
   # Check: 'cutpoint' is increasing
   if (is.unsorted(cutpoint)) {
-    stop("t should be in increasing order")
+    stop("'cutpoint' should be in increasing order")
   }
 
   # Check: 'maxtime' is positive or NULL
   if (!is.null(maxtime)) {
     if (maxtime <= 0 | length(maxtime) > 1) {
-      stop("The 'maxtime' must be a postive single value!")
+      stop("'maxtime' must be a postive single value")
     }
   }
 
@@ -99,18 +99,18 @@ pwe_impute <- function(time, hazard, cutpoint = 0, maxtime = NULL) {
 
   # Check: 'hazard' is positive
   if (any(hazard < 0)) {
-    stop("At least one of the hazard rate(s) is less than 0!")
+    stop("At least one of the hazard rate(s) is less than 0")
   }
 
   # Check: 'time' is positive integer
   if (any(time < 0)) {
-    stop("The time has to always be positive!")
+    stop("'time' must always be positive")
   }
 
   # Check: 'maxtime' is positive or NULL
   if (!is.null(maxtime)) {
     if (maxtime <= 0 | length(maxtime) > 1) {
-      stop("The 'maxtime' must be a postive single value!")
+      stop("'maxtime' must be a postive single value")
     }
   }
 
@@ -131,7 +131,7 @@ pwe_impute <- function(time, hazard, cutpoint = 0, maxtime = NULL) {
 
   # Check: impute timed occur after landmark observed times
   if (any(time > time_imp)) {
-    stop("Imputed times cannot precede the observed times!")
+    stop("Imputed times cannot precede the observed times")
   }
 
   if (!is.null(maxtime)) {

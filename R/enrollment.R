@@ -61,7 +61,7 @@ enrollment <- function(param, N_total, time = NULL) {
   }
 
   if (length(param) == 1 & !is.null(time)) {
-    warning("The time input is not used!")
+    warning("The time input is not being used")
   }
 
   output <- NULL

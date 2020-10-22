@@ -43,11 +43,11 @@ randomization <- function(N_total, block = 2, allocation = c(1, 1)) {
   }
 
   if (any(block %% sum(allocation) != 0)) {
-    stop("The sum of 'allocation' must be a multiple of 'block'")
+    stop("Sum of 'allocation' must be a multiple of 'block'")
   }
 
   if (N_total < sum(block)) {
-    stop("The number of subjects must be at least the size of 'block'")
+    stop("Number of subjects must be at least the size of 'block'")
   }
 
   if (any(allocation %% 1 != 0)) {
