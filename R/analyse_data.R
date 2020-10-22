@@ -63,7 +63,7 @@ analyse_data <- function(
   # If we do a log-rank test on each imputed data set
   if (method == "logrank") {
     lrt <- survdiff(Surv(time, event) ~ treatment, data = data)
-    p <- pchisq(lrt$chisq, length(lrt$n) - 1, lower.tail = FALSE)
+    p <- pchisq(lrt$chisq, 1, lower.tail = FALSE)
     success <- 1 - p
     effect <- NULL
   }
