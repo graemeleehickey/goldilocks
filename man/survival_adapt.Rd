@@ -140,7 +140,43 @@ Simulate a single adaptive clinical trial with a time-to-event
 endpoint
 }
 \details{
-TBA - Bayesian tests
+Implements the Goldilocks design method described in Broglio et al.
+(2014) with analysis methods as:
+
+\itemize{
+\item{Log-rank test (\code{method = "logrank"}).}{
+Each (imputed) dataset with both treatment and control arms can be
+compared using a standard log-rank test. The output is a \emph{P}-value,
+and there is no treatment effect reported. The function returns \eqn{1 -
+     P}, which is reported in \code{post_prob_ha}. Whilst not a posterior
+probability, it can be contrasted in the same manner. For example, if
+the success threshold is \eqn{P < 0.05}, then one requires
+\code{post_prob_ha} \eqn{> 0.95}. The reason for this is to enable
+simple switching between Bayesian and frequentist paradigms for
+analysis.}
+\item{Bayesian absolute difference (\code{method = "bayes"}).}{
+Each imputed dataset is used to update the conjugate Gamma prior
+(defined by \code{prior}), yielding a posterior distribution for the
+piecewise exponential rate parameters. In turn, the posterior
+distribution of the cumulative incidence function (\eqn{1 - S(t)}, where
+\eqn{S(t)} is the survival function) evaluated at time
+\code{end_of_study} is calculated. If a single arm study, then this
+summarizes the treatment effect, else, if a two-armed study, the
+independent posteriors are used to estimate the posterior distribution
+of the difference. A posterior probability is calculated according to
+the specification of the test type (\code{alternative}) and the value of
+the null hypothesis (\code{h0}).}
+\item{Imputed final analysis (\code{imputed_final}).}{ The overall final
+analysis conducted after accrual is suspended and follow-up is complete
+can be analyzed on imputed datasets (default) or on the non-imputed
+dataset. Since the imputations/predictions used during the interim
+analyses assume all subjects are imputed (since loss to follow-up is not
+yet known), it would seem most appropriate to conduct the trial in the
+same manner, especially if loss to follow-up rates are appreciable.
+Note, this only applies to subjects who are right-censored due to loss
+to follow-up, which we assume is a non-informative process. This can be
+used with any \code{method}.}
+}
 }
 \examples{
 # RCT with exponential hazard (no piecewise breaks)
@@ -167,4 +203,9 @@ survival_adapt(
  N_impute = 10,
  N_mcmc = 10,
  method = "bayes")
+}
+\references{
+Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks
+approach to sample size selection. \emph{Journal of Biopharmaceutical
+Statistics}, 2014; 24(3): 685–705.
 }

@@ -52,7 +52,43 @@
 #' @param debug logical. If \code{TRUE} can be used to debug aspects of the
 #'   code. Default is \code{debug = FALSE}.
 #'
-#' @details TBA - Bayesian tests
+#' @details Implements the Goldilocks design method described in Broglio et al.
+#'   (2014) with analysis methods as:
+#'
+#' \itemize{
+#'   \item{Log-rank test (\code{method = "logrank"}).}{
+#'      Each (imputed) dataset with both treatment and control arms can be
+#'      compared using a standard log-rank test. The output is a \emph{P}-value,
+#'      and there is no treatment effect reported. The function returns \eqn{1 -
+#'      P}, which is reported in \code{post_prob_ha}. Whilst not a posterior
+#'      probability, it can be contrasted in the same manner. For example, if
+#'      the success threshold is \eqn{P < 0.05}, then one requires
+#'      \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to enable
+#'      simple switching between Bayesian and frequentist paradigms for
+#'      analysis.}
+#'   \item{Bayesian absolute difference (\code{method = "bayes"}).}{
+#'      Each imputed dataset is used to update the conjugate Gamma prior
+#'      (defined by \code{prior}), yielding a posterior distribution for the
+#'      piecewise exponential rate parameters. In turn, the posterior
+#'      distribution of the cumulative incidence function (\eqn{1 - S(t)}, where
+#'      \eqn{S(t)} is the survival function) evaluated at time
+#'      \code{end_of_study} is calculated. If a single arm study, then this
+#'      summarizes the treatment effect, else, if a two-armed study, the
+#'      independent posteriors are used to estimate the posterior distribution
+#'      of the difference. A posterior probability is calculated according to
+#'      the specification of the test type (\code{alternative}) and the value of
+#'      the null hypothesis (\code{h0}).}
+#'   \item{Imputed final analysis (\code{imputed_final}).}{ The overall final
+#'      analysis conducted after accrual is suspended and follow-up is complete
+#'      can be analyzed on imputed datasets (default) or on the non-imputed
+#'      dataset. Since the imputations/predictions used during the interim
+#'      analyses assume all subjects are imputed (since loss to follow-up is not
+#'      yet known), it would seem most appropriate to conduct the trial in the
+#'      same manner, especially if loss to follow-up rates are appreciable.
+#'      Note, this only applies to subjects who are right-censored due to loss
+#'      to follow-up, which we assume is a non-informative process. This can be
+#'      used with any \code{method}.}
+#' }
 #'
 #' @return A data frame containing some input parameters (arguments) as well as
 #'   statistics from the analysis, including:
@@ -84,6 +120,11 @@
 #'     integer. A logical indicator of whether the
 #'       trial was stopped early for expected success.}
 #'  }
+#'
+#' @references
+#' Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks
+#' approach to sample size selection. \emph{Journal of Biopharmaceutical
+#' Statistics}, 2014; 24(3): 685–705.
 #'
 #' @importFrom stats pexp runif sd
 #' @import dplyr
@@ -484,14 +525,14 @@ survival_adapt <- function(
       post_paa[j] <- success$success
 
       if (method == "bayes") {
-        effect_final_mat[, j] <- success$effect
+        effect_final_mat[, j] <- success$effect # See Gelman et al. (2004, p. 520)
       }
     }
-
-    est_final <- mean(effect_final_mat) # See Gelman et al. (2004, p. 520)
+    # Average over imputations
+    est_final <- mean(effect_final_mat)
     post_paa  <- mean(post_paa)
   } else {
-    # Posterior distribution of event proportions: final data
+    # Posterior distribution of event proportions: final data (without imputation)
     success <- analyse_data(data         = data_final,
                             cutpoint     = cutpoint,
                             end_of_study = end_of_study,
