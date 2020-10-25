@@ -12,5 +12,8 @@ r:
   - release
   - devel
 
+env:
+  - CODECOV_TOKEN=$CODECOV_TOKEN
+
 after_success:
   - travis_wait 20 Rscript -e 'covr::codecov()'
