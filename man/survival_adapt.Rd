@@ -71,8 +71,8 @@ follow-up.}
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \code{"two-sided"}.}
 
-\item{h0}{scalar. Null hypothesis value of \eqn{p_\text{treatment} -
-p_\text{control}}. Default is \code{h0 = 0}.}
+\item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
+p_\textrm{control}}. Default is \code{h0 = 0}.}
 
 \item{futility_prob}{scalar \code{[0, 1]}. Probability threshold to stop
 early for futility.}

@@ -2,9 +2,15 @@
 
 language: R
 cache: packages
+sudo: true
 
 r_packages:
   - covr
 
+r:
+  - oldrel
+  - release
+  - devel
+
 after_success:
-  - Rscript -e 'library(covr); codecov()'
+  - travis_wait 20 Rscript -e 'covr::codecov()'

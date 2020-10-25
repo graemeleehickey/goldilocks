@@ -72,8 +72,8 @@ follow-up.}
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \code{"two-sided"}.}
 
-\item{h0}{scalar. Null hypothesis value of \eqn{p_\text{treatment} -
-p_\text{control}}. Default is \code{h0 = 0}.}
+\item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
+p_\textrm{control}}. Default is \code{h0 = 0}.}
 
 \item{futility_prob}{scalar \code{[0, 1]}. Probability threshold to stop
 early for futility.}
@@ -111,7 +111,7 @@ statistics.
 }
 \description{
 Simulate multiple clinical trials with fixed input parameters,
-and tidly extract the relevant data to generate operating characteristics.
+and tidily extract the relevant data to generate operating characteristics.
 }
 \details{
 This is basically a wrapper function for

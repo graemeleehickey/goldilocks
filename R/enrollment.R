@@ -72,9 +72,8 @@ enrollment <- function(param, N_total, time = NULL) {
       count <- count + 1
       output <- c(output, rep(count, rpois(1, param)))
     }
-  }
-  # For different lambda values in Poisson distribution as a function of time
-  else {
+  } else {
+    # For different lambda values in Poisson distribution as a function of time
     while (length(output) < N_total) {
       count <- count + 1
       index <- min(c(which(time >= (count - 1)), length(param)))

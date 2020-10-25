@@ -2,7 +2,7 @@
 #'   parameters and treatment effect
 #'
 #' @description Simulate multiple clinical trials with fixed input parameters,
-#'   and tidly extract the relevant data to generate operating characteristics.
+#'   and tidily extract the relevant data to generate operating characteristics.
 #'
 #' @inheritParams survival_adapt
 #' @param N_trials integer. Number of trials to simulate.
