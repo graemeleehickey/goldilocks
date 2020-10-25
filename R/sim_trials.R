@@ -93,28 +93,33 @@ sim_trials <- function(
     stop("On Windows machines it is required that ncores = 1L")
   }
 
-  out <- mclapply(1:N_trials, survival_adapt, mc.cores = ncores,
-                  hazard_treatment      = hazard_treatment,
-                  hazard_control        = hazard_control,
-                  cutpoint              = cutpoint,
-                  N_total               = N_total,
-                  lambda                = lambda,
-                  lambda_time           = lambda_time,
-                  interim_look          = interim_look,
-                  end_of_study          = end_of_study,
-                  prior                 = prior,
-                  block                 = block,
-                  rand_ratio            = rand_ratio,
-                  prop_loss_to_followup = prop_loss_to_followup,
-                  alternative           = alternative,
-                  h0                    = h0,
-                  futility_prob         = futility_prob,
-                  expected_success_prob = expected_success_prob,
-                  prob_ha               = prob_ha,
-                  N_impute              = N_impute,
-                  N_mcmc                = N_mcmc,
-                  method                = method,
-                  imputed_final         = imputed_final)
+  survival_adapt_wrapper <- function(x) {
+    survival_adapt(
+      hazard_treatment      = hazard_treatment,
+      hazard_control        = hazard_control,
+      cutpoint              = cutpoint,
+      N_total               = N_total,
+      lambda                = lambda,
+      lambda_time           = lambda_time,
+      interim_look          = interim_look,
+      end_of_study          = end_of_study,
+      prior                 = prior,
+      block                 = block,
+      rand_ratio            = rand_ratio,
+      prop_loss_to_followup = prop_loss_to_followup,
+      alternative           = alternative,
+      h0                    = h0,
+      futility_prob         = futility_prob,
+      expected_success_prob = expected_success_prob,
+      prob_ha               = prob_ha,
+      N_impute              = N_impute,
+      N_mcmc                = N_mcmc,
+      method                = method,
+      imputed_final         = imputed_final,
+      debug                 = FALSE)
+  }
+
+  out <- mclapply(1:N_trials, survival_adapt_wrapper, mc.cores = ncores)
 
   out <- do.call("rbind", out)
 

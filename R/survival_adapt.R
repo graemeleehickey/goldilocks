@@ -194,7 +194,7 @@ survival_adapt <- function(
   N_mcmc                = 100,
   method                = "logrank",
   imputed_final         = TRUE,
-  debug = FALSE
+  debug                 = FALSE
 ) {
 
   # Check: 'interim_look' bounded by maximum sample size
