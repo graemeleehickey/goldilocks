@@ -20,10 +20,10 @@
 #'   \deqn{
 #'     \lambda = \left\{
 #'       \begin{array}{ll}
-#'         0.3 & \text{time} \in [0, 5) \\
-#'         0.7 & \text{time} \in [5, 10) \\
-#'         0.9 & \text{time} \in [10, 15) \\
-#'         1.2 & \text{time} \in [15, \infty) \\
+#'         0.3 & \textrm{time} \in [0, 5) \\
+#'         0.7 & \textrm{time} \in [5, 10) \\
+#'         0.9 & \textrm{time} \in [10, 15) \\
+#'         1.2 & \textrm{time} \in [15, \infty) \\
 #'       \end{array}
 #'     \right.
 #' }
