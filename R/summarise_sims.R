@@ -10,17 +10,18 @@
 #' @export
 summarise_sims <- function(data) {
 
-  if (is.list(data)) {
-    multi <- TRUE
-    if (!all(sapply(data, is.data.frame))) {
-      stop("Each element of list must be a data.frame")
+  if (class(data) == "list") {
+    for (i in 1:length(data)) {
+      data[[i]]$scenario <- i
+      data[[i]]
     }
-  } else if (!is.data.frame(results)) {
-    multi <- FALSE
-    stop("Input data should be a data.frame")
+    data <- do.call("rbind", data)
+  } else {
+    data$scenario <- 1
   }
 
   out <- data %>%
+    group_by(scenario) %>%
     summarise(
       "type_2_error"  = mean(!stop_futility & post_prob_ha > prob_threshold),
       "stop_success"  = mean(stop_expected_success),
