@@ -30,8 +30,8 @@
 #'
 #'
 #' haz_est(c(0.15, 0.30), 12, 24) # 15% probability at 12-months, and 30% at
-#' bayesDP::ppexp(12, haz_est(c(0.15, 0.30), 12, 24), c(0, 12))
-#' bayesDP::ppexp(24, haz_est(c(0.15, 0.30), 12, 24), c(0, 12))
+#' PWEALL::pwe(12, haz_est(c(0.15, 0.30), 12, 24), c(0, 12))$dist
+#' PWEALL::pwe(24, haz_est(c(0.15, 0.30), 12, 24), c(0, 12))$dist
 haz_est <- function(probs, cutpoints = NULL, endtime) {
 
   if (!is.null(cutpoints)) {

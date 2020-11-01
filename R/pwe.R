@@ -91,7 +91,6 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoint = 0, maxtime = NULL) {
 #' @return A data frame with simulated follow-up times (\code{time}) and
 #'   respective event indicator (\code{event}, 1 = event occurred, 0 =
 #'   censoring).
-#' @importFrom bayesDP ppexp
 #' @export
 #'
 #' @examples
