@@ -75,11 +75,19 @@ hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
 p_\textrm{control}}. Default is \code{h0 = 0}.}
 
-\item{futility_prob}{scalar \code{[0, 1]}. Probability threshold to stop
-early for futility.}
+\item{futility_prob}{vector of \code{[0, 1]} values. Each element is the
+probability threshold to stop at the \eqn{i}-th look early for futility. If
+there are no interim looks (i.e. \code{interim_look = NULL}), then
+\code{futility_prob} is not used in the simulations or analysis. The length
+of \code{futility_prob} should be the same as \code{interim_look}, else the
+values are recycled.}
 
-\item{expected_success_prob}{scalar \code{[0, 1]}. Probability threshold to
-stop early for expected success.}
+\item{expected_success_prob}{vector of \code{[0, 1]} values. Each element is
+the probability threshold to stop at the \eqn{i}-th look early for expected
+success. If there are no interim looks (i.e. \code{interim_look = NULL}),
+then \code{expected_success_prob} is not used in the simulations or
+analysis. The length of \code{expected_success_prob} should be the same as
+\code{interim_look}, else the values are recycled.}
 
 \item{prob_ha}{scalar \code{[0, 1]}. Probability threshold of alternative
 hypothesis.}

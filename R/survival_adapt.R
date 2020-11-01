@@ -30,10 +30,18 @@
 #'   \code{"two-sided"}.
 #' @param h0 scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
 #'   p_\textrm{control}}. Default is \code{h0 = 0}.
-#' @param futility_prob scalar \code{[0, 1]}. Probability threshold to stop
-#'   early for futility.
-#' @param expected_success_prob scalar \code{[0, 1]}. Probability threshold to
-#'   stop early for expected success.
+#' @param futility_prob vector of \code{[0, 1]} values. Each element is the
+#'   probability threshold to stop at the \eqn{i}-th look early for futility. If
+#'   there are no interim looks (i.e. \code{interim_look = NULL}), then
+#'   \code{futility_prob} is not used in the simulations or analysis. The length
+#'   of \code{futility_prob} should be the same as \code{interim_look}, else the
+#'   values are recycled.
+#' @param expected_success_prob vector of \code{[0, 1]} values. Each element is
+#'   the probability threshold to stop at the \eqn{i}-th look early for expected
+#'   success. If there are no interim looks (i.e. \code{interim_look = NULL}),
+#'   then \code{expected_success_prob} is not used in the simulations or
+#'   analysis. The length of \code{expected_success_prob} should be the same as
+#'   \code{interim_look}, else the values are recycled.
 #' @param prob_ha scalar \code{[0, 1]}. Probability threshold of alternative
 #'   hypothesis.
 #' @param N_impute integer. Number of imputations for Monte Carlo simulation of
@@ -58,17 +66,17 @@
 #'   1. **The posterior predictive probability of eventual success.** This is
 #'   calculated as the proportion of imputed datasets at the *current* sample
 #'   size that would go on to be success at the specified threshold. At each
-#'   interim analysis it is compared to \code{expected_success_prob}, and if it
-#'   exceeds the threshold, accrual/enrollment is suspended and the outstanding
-#'   follow-up allowed to complete before conducting the pre-specified final
-#'   analysis.
+#'   interim analysis it is compared to the corresponding element of
+#'   \code{expected_success_prob}, and if it exceeds the threshold,
+#'   accrual/enrollment is suspended and the outstanding follow-up allowed to
+#'   complete before conducting the pre-specified final analysis.
 #'
 #'   2. **The posterior predictive probability of final success**. This is
 #'   calculated as the proportion of imputed datasets at the *maximum* threshold
-#'   that would go on to be successful. Similar to above, it is compared to
-#'   \code{futility_prob}, and if it is less than the threshold,
-#'   accrual/enrollment is suspended and the trial terminated. Typically this
-#'   would be a binding decision.
+#'   that would go on to be successful. Similar to above, it is compared to the
+#'   corresponding element of \code{futility_prob}, and if it is less than the
+#'   threshold, accrual/enrollment is suspended and the trial terminated.
+#'   Typically this would be a binding decision.
 #'
 #'   At each interim (and final) analysis methods as:
 #'
@@ -228,6 +236,22 @@ survival_adapt <- function(
   # Assigning interim look and final look
   analysis_at_enrollnumber <- c(interim_look, N_total)
 
+  # Check: thresholds of consistent dimension
+  if (length(expected_success_prob) != length(futility_prob)) {
+    stop("Probability threshold vectors need to be the same length")
+  }
+
+  # Check: thresholds available for each interim look
+  N_looks <- length(analysis_at_enrollnumber)
+  if (N_looks <= length(futility_prob)) {
+    stop("More thresholds specified than actual interim looks")
+  }
+  if (N_looks > 1 & length(futility_prob) == 1) {
+    # Recycle thresholds if needed
+    expected_success_prob <- rep(expected_success_prob, N_looks - 1)
+    futility_prob         <- rep(futility_prob, N_looks - 1)
+  }
+
   # Assignment of enrollment based on the enrollment function
   enrollment <- enrollment(param   = lambda,
                            N_total = N_total,
@@ -296,10 +320,10 @@ survival_adapt <- function(
   stop_futility         <- 0
   stop_expected_success <- 0
 
-  if (length(analysis_at_enrollnumber) > 1) {
-    for (i in 1:(length(analysis_at_enrollnumber) - 1)) {
+  if (N_looks > 1) {
+    for (i in 1:(N_looks - 1)) {
 
-      # Analysis at the `analysis_at_enrollnumber` look
+      # Analysis at the `analysis_at_enrollnumber` look (not incl. final look)
       # Indicators for subject type:
       # - subject_enrolled:        subject has data present in the current look
       # - subject_impute_success:  subject has data present in the current look but has not
@@ -451,14 +475,14 @@ survival_adapt <- function(
       # Test if expected success criteria met
       # Note: ppp_success = posterior predictive probability of eventual success
       ppp_success <- expected_success_test / N_impute
-      if (ppp_success > expected_success_prob) {
+      if (ppp_success > expected_success_prob[i]) {
         stop_expected_success <- 1
         stage_trial_stopped   <- analysis_at_enrollnumber[i]
         break # No further SS looks
       }
 
       # Test if futility success criteria is met
-      if (futility_test / N_impute < futility_prob) {
+      if (futility_test / N_impute < futility_prob[i]) {
         stop_futility       <- 1
         stage_trial_stopped <- analysis_at_enrollnumber[i]
         break # No further SS looks
