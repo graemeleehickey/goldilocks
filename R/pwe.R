@@ -18,6 +18,7 @@
 #'   censoring).
 #'
 #' @importFrom PWEALL rpwe qpwe pwe
+#' @importFrom stats rexp
 #' @export
 #'
 #' @examples
@@ -48,7 +49,11 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoint = 0, maxtime = NULL) {
     }
   }
 
-  ret <- PWEALL::rpwe(n, rate = hazard, tchange = cutpoint)$r
+  if (length(hazard) == 1) {
+    ret <- rexp(n, rate = hazard)
+  } else {
+    ret <- PWEALL::rpwe(n, rate = hazard, tchange = cutpoint)$r
+  }
 
   if (!is.null(maxtime)) {
     min_time <- pmin(ret, maxtime)
