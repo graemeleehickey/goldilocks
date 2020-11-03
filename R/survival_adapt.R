@@ -252,14 +252,14 @@ survival_adapt <- function(
     futility_prob         <- rep(futility_prob, N_looks - 1)
   }
 
-  # Assignment of enrollment based on the enrollment function
+  # Simulate enrollment times
   enrollment <- enrollment(param   = lambda,
                            N_total = N_total,
                            time    = lambda_time)
   enrollment <- enrollment + runif(length(enrollment))
   enrollment <- sort(enrollment)
 
-  # Simulating group and treatment group assignment
+  # Simulate treatment arm assignment
   if (!single_arm) {
     group <- randomization(N_total = N_total, block = block,
                            allocation = rand_ratio)
@@ -277,16 +277,16 @@ survival_adapt <- function(
                            n         = sum(!group),
                            maxtime   = end_of_study,
                            cutpoint  = cutpoint)
-    time[which(!group)]  <- sim_control$time
-    event[which(!group)] <- sim_control$event
+    time[group == 0]  <- sim_control$time
+    event[group == 0] <- sim_control$event
   }
 
   sim_treatment <- pwe_sim(hazard   = hazard_treatment,
                            n        = sum(group),
                            maxtime  = end_of_study,
                            cutpoint = cutpoint)
-  time[which(!!group)]  <- sim_treatment$time
-  event[which(!!group)] <- sim_treatment$event
+  time[group == 1]  <- sim_treatment$time
+  event[group == 1] <- sim_treatment$event
 
   # Simulate loss to follow-up
   n_loss_to_fu <- ceiling(prop_loss_to_followup * N_total)
@@ -303,8 +303,8 @@ survival_adapt <- function(
     loss_to_fu = loss_to_fu)
 
   # Subjects lost are uniformly distributed
-  data_total$time[data_total$loss_to_fu]  <- runif(n_loss_to_fu,
-                                                   0, data_total$time[data_total$loss_to_fu])
+  data_total$time[data_total$loss_to_fu]  <- runif(
+    n_loss_to_fu, 0, data_total$time[data_total$loss_to_fu])
   data_total$event[data_total$loss_to_fu] <- rep(0, n_loss_to_fu)
 
   # KM plot for actual simulated data
@@ -316,7 +316,7 @@ survival_adapt <- function(
          ylab = "Freedom from event")
   }
 
-  # Assigning stop_futility and expected success
+  # Assigning stop_futility and stop_expected_success
   stop_futility         <- 0
   stop_expected_success <- 0
 
