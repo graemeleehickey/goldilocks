@@ -134,13 +134,19 @@ stopping of enrollment/accrual and follow-up for those subjects is
 complete.}
 \item{\code{post_prob_ha}}{
 scalar. The corresponding posterior probability from the final
-analysis.}
+analysis. If \code{imputed_final} is true, this is calculated as the
+posterior probability of efficacy (or equivalent, depending on how
+\code{alternative} and \code{h0} were specified) for each imputed
+final analysis dataset, and then averaged over the \code{N_impute}
+imputations. If \code{method = "logrank"}, \code{post_prob_ha} is
+calculated in the same fashion, but value represents \eqn{1 - P},
+where \eqn{P} denotes the frequentist \eqn{P}-value.}
 \item{\code{stop_futility}}{
-integer. A logical indicator of whether the
-trial was stopped early for futility.}
+integer. A logical indicator of whether the trial was stopped early for
+futility.}
 \item{\code{stop_expected_success}}{
-integer. A logical indicator of whether the
-trial was stopped early for expected success.}
+integer. A logical indicator of whether the trial was stopped early for
+expected success.}
 }
 }
 \description{
@@ -159,11 +165,19 @@ interim analysis it is compared to the corresponding element of
 accrual/enrollment is suspended and the outstanding follow-up allowed to
 complete before conducting the pre-specified final analysis.
 \item \strong{The posterior predictive probability of final success}. This is
-calculated as the proportion of imputed datasets at the \emph{maximum} threshold
-that would go on to be successful. Similar to above, it is compared to the
-corresponding element of \code{futility_prob}, and if it is less than the
-threshold, accrual/enrollment is suspended and the trial terminated.
-Typically this would be a binding decision.
+calculated as the proportion of imputed datasets at the \emph{maximum}
+threshold that would go on to be successful. Similar to above, it is
+compared to the corresponding element of \code{futility_prob}, and if it
+is less than the threshold, accrual/enrollment is suspended and the
+trial terminated. Typically this would be a binding decision.
+}
+
+Hence, at each interim analysis look, 3 decisions are allowed:
+\enumerate{
+\item \strong{Stop for expected success}
+\item \strong{Stop for futility}
+\item \strong{Continue to enroll} new subjects, or if at maximum sample size,
+proceed to final analysis.
 }
 
 At each interim (and final) analysis methods as:
