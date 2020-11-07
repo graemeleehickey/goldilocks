@@ -21,7 +21,8 @@
 #' @return Data frame with 1 row per simulated trial and columns for key summary
 #'   statistics.
 #'
-#' @importFrom parallel mclapply detectCores
+#' @importFrom parallel detectCores
+#' @importFrom pbmcapply pbmclapply
 #' @export
 #'
 #' @examples
@@ -119,7 +120,7 @@ sim_trials <- function(
       debug                 = FALSE)
   }
 
-  out <- mclapply(1:N_trials, survival_adapt_wrapper, mc.cores = ncores)
+  out <- pbmclapply(1:N_trials, survival_adapt_wrapper, mc.cores = ncores)
 
   out <- do.call("rbind", out)
 
