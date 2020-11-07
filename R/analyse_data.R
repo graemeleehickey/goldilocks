@@ -18,6 +18,7 @@
 #' }
 #'
 #' @importFrom stats pchisq
+#' @importFrom fastlogranktest logrank_test
 #' @export
 analyse_data <- function(
   data,
@@ -62,8 +63,13 @@ analyse_data <- function(
 
   # If we do a log-rank test on each imputed data set
   if (method == "logrank") {
-    lrt <- survdiff(Surv(time, event) ~ treatment, data = data)
-    p <- pchisq(lrt$chisq, 1, lower.tail = FALSE)
+    t0 <- data$time[data$treatment == 0]
+    t1 <- data$time[data$treatment == 1]
+    e0 <- data$event[data$treatment == 0]
+    e1 <- data$event[data$treatment == 1]
+    p <- fastlogranktest::logrank_test(t0, t1, e0, e1)[3]
+    # lrt <- survdiff(Surv(time, event) ~ treatment, data = data)
+    # p <- pchisq(lrt$chisq, 1, lower.tail = FALSE)
     success <- 1 - p
     effect <- NULL
   }

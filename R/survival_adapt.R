@@ -408,10 +408,9 @@ survival_adapt <- function(
           single_arm   = single_arm)
 
         # Create enrolled subject data frame for analysis
-        data <- data_success_impute %>%
-          filter(subject_enrolled)  %>%
-          ungroup() %>%
-          select(time, event, treatment)
+        data <- subset(data_success_impute,
+                       subset = subject_enrolled,
+                       select = c(time, event, treatment))
 
         # KM plot for imputed data at interim analysis (expected success)
         if (debug & !single_arm & (j == 1)) {
@@ -454,9 +453,9 @@ survival_adapt <- function(
           type         = "futility",
           single_arm   = single_arm)
 
-        # Create enrolled subject data frame for analysis
-        data <- data_futility_impute %>%
-          select(time, event, treatment)
+        # Create data frame for analysis
+        data <- subset(data_futility_impute,
+                       select = c(time, event, treatment))
 
         # KM plot for imputed data at interim analysis (futility)
         if (debug & !single_arm & (j == 1)) {
