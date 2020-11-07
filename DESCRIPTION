@@ -12,7 +12,10 @@ Authors@R: c(
     person(given = "Thevaa", family = "Chandereng",
            role = "aut",
            email = "tc3123@cumc.columbia.edu",
-           comment = c(ORCID = "0000-0003-4078-9176")))
+           comment = c(ORCID = "0000-0003-4078-9176",
+           "bayesDP code as a template")),
+    person(given = "Becton, Dickinson and Company",
+           role = "cph"))
 Description: Implements the Goldilocks adaptive trial design for time to event
     outcomes with a piecewise exponential model.
 License: GPL-3 | file LICENSE
