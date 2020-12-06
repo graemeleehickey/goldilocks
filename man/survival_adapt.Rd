@@ -169,7 +169,9 @@ calculated as the proportion of imputed datasets at the \emph{maximum}
 threshold that would go on to be successful. Similar to above, it is
 compared to the corresponding element of \code{futility_prob}, and if it
 is less than the threshold, accrual/enrollment is suspended and the
-trial terminated. Typically this would be a binding decision.
+trial terminated. Typically this would be a binding decision. If it is
+not a binding decision, then one should also explore the simulations
+with \code{futility_prob = 0}.
 }
 
 Hence, at each interim analysis look, 3 decisions are allowed:

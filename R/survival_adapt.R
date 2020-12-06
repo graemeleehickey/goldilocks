@@ -76,7 +76,9 @@
 #'      threshold that would go on to be successful. Similar to above, it is
 #'      compared to the corresponding element of \code{futility_prob}, and if it
 #'      is less than the threshold, accrual/enrollment is suspended and the
-#'      trial terminated. Typically this would be a binding decision.
+#'      trial terminated. Typically this would be a binding decision. If it is
+#'      not a binding decision, then one should also explore the simulations
+#'      with \code{futility_prob = 0}.
 #'
 #'   Hence, at each interim analysis look, 3 decisions are allowed:
 #'
@@ -263,6 +265,12 @@ survival_adapt <- function(
     # Recycle thresholds if needed
     expected_success_prob <- rep(expected_success_prob, N_looks - 1)
     futility_prob         <- rep(futility_prob, N_looks - 1)
+  }
+
+  # Check: if no interim looks, set thresholds to 0, as they are not needed
+  if (is.null(futility_prob) & N_looks == 1) {
+    expected_success_prob <- 0
+    futility_prob         <- 0
   }
 
   # Simulate enrollment times
@@ -523,6 +531,7 @@ survival_adapt <- function(
     stage_trial_stopped   <- N_total
     stop_futility         <- 0
     stop_expected_success <- 0
+    ppp_success           <- NA
   }
 
   ##############################################################################

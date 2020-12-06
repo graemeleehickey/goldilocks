@@ -4,7 +4,8 @@
 #'
 #' @param param vector. Rate parameter(s) for Poisson distribution.
 #' @param time vector. Knots (of \code{length(param)} - 1) indicating end of
-#'   time when a specific lambda is used.
+#'   time when a specific lambda is used. Note: final element of \code{param} is
+#'   assumed to be constant as \code{time} tends to infinity.
 #' @param N_total integer. Value of total sample size.
 #'
 #' @details Subject recruitment is assumed to follow a (piecewise stationary)

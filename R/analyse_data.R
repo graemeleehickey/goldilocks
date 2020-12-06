@@ -71,7 +71,7 @@ analyse_data <- function(
     # lrt <- survdiff(Surv(time, event) ~ treatment, data = data)
     # p <- pchisq(lrt$chisq, 1, lower.tail = FALSE)
     success <- 1 - p
-    effect <- NULL
+    effect <- NA
   }
 
   return(list(

@@ -1,6 +1,6 @@
 Package: goldilocks
 Title: Goldilocks Adaptive Trial Designs
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: c(
     person(given = "Graeme", family = "Hickey",
            role = c("aut", "cre"),
