@@ -10,7 +10,7 @@ status](https://ci.appveyor.com/api/projects/status/github/graemeleehickey/goldi
 [![CRAN
 status](https://www.r-pkg.org/badges/version/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
 [![R build
-status](https://github.com/graemeleehickey/goldilocks/workflows/R-CMD-check/badge.svg)](https://github.com/graemeleehickey/goldilocks/actions)
+status](https://github.com/graemeleehickey/goldilocks/workflows/check-standard/badge.svg)](https://github.com/graemeleehickey/goldilocks/actions)
 <!-- badges: end -->
 
 The goal of `goldilocks` is to implement the Golilocks Bayesian adaptive
