@@ -11,8 +11,12 @@
 summarise_sims <- function(data) {
 
   if (class(data) == "list") {
+    fnames <- names(data)
+    if (is.null(fnames)) {
+      fnames <- 1:length(data)
+    }
     for (i in 1:length(data)) {
-      data[[i]]$scenario <- i
+      data[[i]]$scenario <- fnames[i]
       data[[i]]
     }
     data <- do.call("rbind", data)
