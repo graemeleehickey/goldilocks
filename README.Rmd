@@ -18,7 +18,6 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/graemeleehickey/goldilocks?branch=master&svg=true)](https://ci.appveyor.com/project/graemeleehickey/goldilocks)
 [![CRAN status](https://www.r-pkg.org/badges/version/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
-[![codecov](https://codecov.io/gh/graemeleehickey/goldilocks/branch/main/graph/badge.svg?token=9V6BH1Q4K3)](https://codecov.io/gh/graemeleehickey/goldilocks)
 [![R build status](https://github.com/graemeleehickey/goldilocks/workflows/R-CMD-check/badge.svg)](https://github.com/graemeleehickey/goldilocks/actions)
 <!-- badges: end -->
 
