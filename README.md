@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# goldilocks
+# goldilocks <img src="man/figures/hex.png" width = "175" height = "200" align="right" />
 
 <!-- badges: start -->
 
