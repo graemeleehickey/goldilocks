@@ -246,7 +246,7 @@ survival_adapt <- function(
     stop("The log-rank test can only be used as two.sided test")
   }
 
-  # Indicator of single-arm study
+  # Assign: indicator of whether single-arm study
   single_arm <- is.null(hazard_control)
 
   # Check: log-rank test only available for two-armed trials
@@ -254,10 +254,10 @@ survival_adapt <- function(
     stop("The log-rank test can only be used for two-armed trials")
   }
 
-  # Assigning interim look and final look
+  # Assign: interim look and final look
   analysis_at_enrollnumber <- c(interim_look, N_total)
 
-  # Check: do we need to evaluate futility
+  # Assign: futility assessment required?
   if (is.null(futility_prob) | all(futility_prob == 0)) {
     check_futility <- FALSE
   } else {
@@ -276,11 +276,12 @@ survival_adapt <- function(
   }
   if (N_looks > 1 & length(futility_prob) == 1) {
     # Recycle thresholds if needed
+    # Note - we already enforce that 'expected_success_prob' == 'futility_prob'
     expected_success_prob <- rep(expected_success_prob, N_looks - 1)
     futility_prob         <- rep(futility_prob, N_looks - 1)
   }
 
-  # Check: if no interim looks, set thresholds to 0, as they are not needed
+  # Assign: if no interim looks, set thresholds to 0, as they are not needed
   if (is.null(futility_prob) & N_looks == 1) {
     expected_success_prob <- 0
     futility_prob         <- 0
