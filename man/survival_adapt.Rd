@@ -109,7 +109,8 @@ subjects who were LTFU (i.e. right-censored with time
 means that the final analysis would incorporate right-censoring.}
 
 \item{debug}{logical. If \code{TRUE} can be used to debug aspects of the
-code. Default is \code{debug = FALSE}.}
+code, including producing Kaplan-Meier graphs at each step of the
+algorithm. Default is \code{debug = FALSE}.}
 }
 \value{
 A data frame containing some input parameters (arguments) as well as
@@ -231,7 +232,7 @@ survival_adapt(
  lambda_time = NULL,
  interim_look = 400,
  end_of_study = 36,
- prior = c(.1, .1),
+ prior = c(0.1, 0.1),
  block = 2,
  rand_ratio = c(1, 1),
  prop_loss_to_followup = 0.30,

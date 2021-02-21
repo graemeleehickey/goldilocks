@@ -58,7 +58,8 @@
 #'   \code{<end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
 #'   means that the final analysis would incorporate right-censoring.
 #' @param debug logical. If \code{TRUE} can be used to debug aspects of the
-#'   code. Default is \code{debug = FALSE}.
+#'   code, including producing Kaplan-Meier graphs at each step of the
+#'   algorithm. Default is \code{debug = FALSE}.
 #'
 #' @details Implements the Goldilocks design method described in Broglio et al.
 #'   (2014). At each interim analysis, two probabilities are computed:
@@ -183,7 +184,7 @@
 #'  lambda_time = NULL,
 #'  interim_look = 400,
 #'  end_of_study = 36,
-#'  prior = c(.1, .1),
+#'  prior = c(0.1, 0.1),
 #'  block = 2,
 #'  rand_ratio = c(1, 1),
 #'  prop_loss_to_followup = 0.30,
@@ -334,12 +335,19 @@ survival_adapt <- function(
   data_total$event[data_total$loss_to_fu] <- rep(0, n_loss_to_fu)
 
   # KM plot for actual simulated data
-  if (debug & !single_arm) {
-    plot(survfit(Surv(time, event) ~ treatment, data = data_total),
-         col = c(1, 2),
-         main = "Simulated Data: Complete",
-         xlab = "Time",
-         ylab = "Freedom from event")
+  if (debug) {
+    if (!single_arm) {
+      plot(survfit(Surv(time, event) ~ treatment, data = data_total),
+           col  = c(1, 2),
+           main = "Simulated Data: Complete",
+           xlab = "Time",
+           ylab = "Freedom from event")
+    } else if (single_arm) {
+      plot(survfit(Surv(time, event) ~ 1, data = data_total),
+           main = "Simulated Data: Complete",
+           xlab = "Time",
+           ylab = "Freedom from event")
+    }
   }
 
   # Assigning stop_futility and stop_expected_success
@@ -385,12 +393,19 @@ survival_adapt <- function(
         select(time, event, treatment)
 
       # KM plot for masked data at interim analysis
-      if (debug & !single_arm) {
-        plot(survfit(Surv(time, event) ~ treatment, data = data),
-             col = c(1, 2),
-             main = "Simulated Data: Masked @ IA",
-             xlab = "Time",
-             ylab = "Freedom from event")
+      if (debug) {
+        if (!single_arm) {
+          plot(survfit(Surv(time, event) ~ treatment, data = data),
+               col  = c(1, 2),
+               main = "Simulated Data: Masked @ IA",
+               xlab = "Time",
+               ylab = "Freedom from event")
+        } else if (single_arm) {
+          plot(survfit(Surv(time, event) ~ 1, data = data),
+               main = "Simulated Data: Masked @ IA",
+               xlab = "Time",
+               ylab = "Freedom from event")
+        }
       }
 
       # Posterior distribution of lambdas: current data
@@ -426,12 +441,19 @@ survival_adapt <- function(
                        select = c(time, event, treatment))
 
         # KM plot for imputed data at interim analysis (expected success)
-        if (debug & !single_arm & (j == 1)) {
-          plot(survfit(Surv(time, event) ~ treatment, data = data),
-               col = c(1, 2),
-               main = "Simulated Data: Imputed For Expected Success",
-               xlab = "Time",
-               ylab = "Freedom from event")
+        if (debug & (j == 1)) {
+          if (!single_arm) {
+            plot(survfit(Surv(time, event) ~ treatment, data = data),
+                 col  = c(1, 2),
+                 main = "Simulated Data: Imputed For Expected Success",
+                 xlab = "Time",
+                 ylab = "Freedom from event")
+          } else if (single_arm) {
+            plot(survfit(Surv(time, event) ~ 1, data = data),
+                 main = "Simulated Data: Imputed For Expected Success",
+                 xlab = "Time",
+                 ylab = "Freedom from event")
+          }
         }
 
         # Apply primary analysis to imputed data
@@ -471,12 +493,19 @@ survival_adapt <- function(
                        select = c(time, event, treatment))
 
         # KM plot for imputed data at interim analysis (futility)
-        if (debug & !single_arm & (j == 1)) {
-          plot(survfit(Surv(time, event) ~ treatment, data = data),
-               col = c(1, 2),
-               main = "Simulated Data: Imputed For Futility",
-               xlab = "Time",
-               ylab = "Freedom from event")
+        if (debug & (j == 1)) {
+          if (!single_arm) {
+            plot(survfit(Surv(time, event) ~ treatment, data = data),
+                 col  = c(1, 2),
+                 main = "Simulated Data: Imputed For Futility",
+                 xlab = "Time",
+                 ylab = "Freedom from event")
+          } else if (single_arm) {
+            plot(survfit(Surv(time, event) ~ 1, data = data),
+                 main = "Simulated Data: Imputed For Futility",
+                 xlab = "Time",
+                 ylab = "Freedom from event")
+          }
         }
 
         # Apply primary analysis to imputed data

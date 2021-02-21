@@ -31,7 +31,12 @@ analyse_data <- function(
   alternative,
   h0) {
 
-  # Bayesian test: CIF_trt(T) - CIF_con(T)
+  ####################################################
+  ### Bayesian test
+  ####################################################
+
+  # CIF_trt(T) - CIF_con(T) for two-armed trial
+
   if (method == "bayes") {
     # Posterior distribution of lambdas: imputed data
     post_lambda_imp <- posterior(data       = data,
@@ -54,13 +59,16 @@ analyse_data <- function(
     }
   }
 
-  # Log-rank test
+  ####################################################
+  ### Log-rank test
+  ####################################################
+
   if (method == "logrank") {
     t0 <- data$time[data$treatment == 0]
     t1 <- data$time[data$treatment == 1]
     e0 <- data$event[data$treatment == 0]
     e1 <- data$event[data$treatment == 1]
-    p <- fastlogranktest::logrank_test(t0, t1, e0, e1)[3]
+    p  <- fastlogranktest::logrank_test(t0, t1, e0, e1)[3]
     # lrt <- survdiff(Surv(time, event) ~ treatment, data = data)
     # p <- pchisq(lrt$chisq, 1, lower.tail = FALSE)
     success <- 1 - p
