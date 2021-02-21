@@ -16,10 +16,10 @@ knitr::opts_chunk$set(
 # goldilocks <img src="man/figures/hex.png" width = "175" height = "200" align="right" />
 
 <!-- badges: start -->
-[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/graemeleehickey/goldilocks?branch=master&svg=true)](https://ci.appveyor.com/project/graemeleehickey/goldilocks)
 [![CRAN status](https://www.r-pkg.org/badges/version/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
 [![R build status](https://github.com/graemeleehickey/goldilocks/workflows/R-CMD-check/badge.svg)](https://github.com/graemeleehickey/goldilocks/actions)
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/graemeleehickey/goldilocks?branch=main&svg=true)](https://ci.appveyor.com/project/graemeleehickey/goldilocks)
+[![codecov](https://codecov.io/gh/graemeleehickey/goldilocks/branch/main/graph/badge.svg?token=9V6BH1Q4K3)](https://codecov.io/gh/graemeleehickey/goldilocks)
 <!-- badges: end -->
 
 The goal of `goldilocks` is to implement the Golilocks Bayesian adaptive design
