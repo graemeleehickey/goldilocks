@@ -257,6 +257,13 @@ survival_adapt <- function(
   # Assigning interim look and final look
   analysis_at_enrollnumber <- c(interim_look, N_total)
 
+  # Check: do we need to evaluate futility
+  if (is.null(futility_prob) | all(futility_prob == 0)) {
+    check_futility <- FALSE
+  } else {
+    check_futility <- TRUE
+  }
+
   # Check: thresholds of consistent dimension
   if (length(expected_success_prob) != length(futility_prob)) {
     stop("Probability threshold vectors need to be the same length")
@@ -277,6 +284,7 @@ survival_adapt <- function(
   if (is.null(futility_prob) & N_looks == 1) {
     expected_success_prob <- 0
     futility_prob         <- 0
+    check_futility        <- FALSE
   }
 
   # Simulate enrollment times
@@ -476,54 +484,56 @@ survival_adapt <- function(
         ### Futility computations
         ##########################################################################
 
-        # Take the already imputed data for expected success and append on
-        # imputed event times for subjects not yet enrolled
+        if (check_futility) {
+          # Take the already imputed data for expected success and append on
+          # imputed event times for subjects not yet enrolled
 
-        # Single imputed data set
-        data_futility_impute <- impute_data(
-          data_in      = data_success_impute,
-          hazard       = post_lambda[j, , , drop = FALSE],
-          end_of_study = end_of_study,
-          cutpoint     = cutpoint,
-          type         = "futility",
-          single_arm   = single_arm)
+          # Single imputed data set
+          data_futility_impute <- impute_data(
+            data_in      = data_success_impute,
+            hazard       = post_lambda[j, , , drop = FALSE],
+            end_of_study = end_of_study,
+            cutpoint     = cutpoint,
+            type         = "futility",
+            single_arm   = single_arm)
 
-        # Create data frame for analysis
-        data <- subset(data_futility_impute,
-                       select = c(time, event, treatment))
+          # Create data frame for analysis
+          data <- subset(data_futility_impute,
+                         select = c(time, event, treatment))
 
-        # KM plot for imputed data at interim analysis (futility)
-        if (debug & (j == 1)) {
-          if (!single_arm) {
-            plot(survfit(Surv(time, event) ~ treatment, data = data),
-                 col  = c(1, 2),
-                 main = "Simulated Data: Imputed For Futility",
-                 xlab = "Time",
-                 ylab = "Freedom from event")
-          } else if (single_arm) {
-            plot(survfit(Surv(time, event) ~ 1, data = data),
-                 main = "Simulated Data: Imputed For Futility",
-                 xlab = "Time",
-                 ylab = "Freedom from event")
+          # KM plot for imputed data at interim analysis (futility)
+          if (debug & (j == 1)) {
+            if (!single_arm) {
+              plot(survfit(Surv(time, event) ~ treatment, data = data),
+                   col  = c(1, 2),
+                   main = "Simulated Data: Imputed For Futility",
+                   xlab = "Time",
+                   ylab = "Freedom from event")
+            } else if (single_arm) {
+              plot(survfit(Surv(time, event) ~ 1, data = data),
+                   main = "Simulated Data: Imputed For Futility",
+                   xlab = "Time",
+                   ylab = "Freedom from event")
+            }
           }
+
+          # Apply primary analysis to imputed data
+          success <- analyse_data(data         = data,
+                                  cutpoint     = cutpoint,
+                                  end_of_study = end_of_study,
+                                  prior        = prior,
+                                  N_mcmc       = N_mcmc,
+                                  single_arm   = single_arm,
+                                  method       = method,
+                                  alternative  = alternative,
+                                  h0           = h0)$success
+
+          # Increase futility counter by 1 if P(efficacy | data) > prob_ha
+          if (success > prob_ha) {
+            futility_test <- futility_test + 1
+          }
+
         }
-
-        # Apply primary analysis to imputed data
-        success <- analyse_data(data         = data,
-                                cutpoint     = cutpoint,
-                                end_of_study = end_of_study,
-                                prior        = prior,
-                                N_mcmc       = N_mcmc,
-                                single_arm   = single_arm,
-                                method       = method,
-                                alternative  = alternative,
-                                h0           = h0)$success
-
-        # Increase futility counter by 1 if P(efficacy | data) > prob_ha
-        if (success > prob_ha) {
-          futility_test <- futility_test + 1
-        }
-
       }
 
       # Test if expected success criteria met
