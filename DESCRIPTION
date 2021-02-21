@@ -32,7 +32,9 @@ Imports:
     PWEALL,
     stats
 Suggests: 
-    covr
+    covr,
+    testthat (>= 3.0.0)
 Language: en-US
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
+Config/testthat/edition: 3
