@@ -25,14 +25,14 @@
 #' @export
 #'
 #' @examples
-#' lambda <- haz_est(0.15, endtime = 36) # 15% probability at 36-months
+#' lambda <- prop_to_haz(0.15, endtime = 36) # 15% probability at 36-months
 #' all.equal(pexp(36, lambda), 0.15)
 #'
-#'
-#' haz_est(c(0.15, 0.30), 12, 24) # 15% probability at 12-months, and 30% at
-#' PWEALL::pwe(12, haz_est(c(0.15, 0.30), 12, 24), c(0, 12))$dist
-#' PWEALL::pwe(24, haz_est(c(0.15, 0.30), 12, 24), c(0, 12))$dist
-haz_est <- function(probs, cutpoints = NULL, endtime) {
+#' # 15% probability at 12-months, and 30% at 24-months
+#' prop_to_haz(c(0.15, 0.30), 12, 24)
+#' PWEALL::pwe(12, prop_to_haz(c(0.15, 0.30), 12, 24), c(0, 12))$dist
+#' PWEALL::pwe(24, prop_to_haz(c(0.15, 0.30), 12, 24), c(0, 12))$dist
+prop_to_haz <- function(probs, cutpoints = NULL, endtime) {
 
   if (!is.null(cutpoints)) {
     if (cutpoints[1] == 0) {

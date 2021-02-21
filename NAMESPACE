@@ -2,10 +2,10 @@
 
 export(analyse_data)
 export(enrollment)
-export(haz_est)
 export(haz_to_prop)
 export(impute_data)
 export(posterior)
+export(prop_to_haz)
 export(pwe_impute)
 export(pwe_sim)
 export(randomization)

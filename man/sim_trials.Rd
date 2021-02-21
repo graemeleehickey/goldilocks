@@ -133,8 +133,8 @@ not possible to use the \code{\link[parallel]{mclapply}} function with
 \code{ncores} \eqn{>1}.
 }
 \examples{
-hc <- haz_est(c(0.20, 0.30), 12, 36)
-ht <- haz_est(c(0.05, 0.15), 12, 36)
+hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
+ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
 
 out <- sim_trials(
   hazard_treatment = ht,
