@@ -14,10 +14,10 @@ status](https://ci.appveyor.com/api/projects/status/github/graemeleehickey/goldi
 [![codecov](https://codecov.io/gh/graemeleehickey/goldilocks/branch/main/graph/badge.svg?token=9V6BH1Q4K3)](https://codecov.io/gh/graemeleehickey/goldilocks)
 <!-- badges: end -->
 
-The goal of `goldilocks` is to implement the Golilocks Bayesian adaptive
-design proposed by Broglio et al. (2014) for time-to-event endpoint
-trials, both one- and two-arm, with an underlying piecewise exponential
-hazard model.
+The goal of `goldilocks` is to implement the Goldilocks Bayesian
+adaptive design proposed by Broglio et al. (2014) for time-to-event
+endpoint trials, both one- and two-arm, with an underlying piecewise
+exponential hazard model.
 
 The method can be used for a confirmatory trial to select a trial’s
 sample size based on accumulating data. During accrual, frequent sample

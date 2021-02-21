@@ -25,7 +25,7 @@ Simulate enrollment time using a piecewise Poisson distribution.
 \details{
 Subject recruitment is assumed to follow a (piecewise stationary)
 Poisson process. We assume trial recruitment to be an independent process,
-thus the 'memoryless' property modeling of subject recruitment is used.
+thus the 'memoryless' property modelling of subject recruitment is used.
 Since the subject recruitment rate can vary over time, we can account for
 differential rates over time. Note that the first trial enrollment is
 assumed to occur at time zero.

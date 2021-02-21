@@ -79,7 +79,7 @@ sim_trials <- function(
   ncores                = 1L
 ) {
 
-  # Check: missing 'ncores' defaults to max available (spare 1)
+  # Check: missing 'ncores' defaults to maximum available (spare 1)
   if (missing(ncores)) {
     ncores <- min(1, parallel::detectCores() - 1)
   }
