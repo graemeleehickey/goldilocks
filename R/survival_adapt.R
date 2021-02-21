@@ -588,17 +588,15 @@ survival_adapt <- function(
     filter(id <= stage_trial_stopped) %>%
     mutate(
       time_from_rand_at_look = enrollment[analysis_at_enrollnumber[i]] - enrollment,
-      subject_impute_success =
-        ((event == 0) & (time < end_of_study)))
-
-  # Posterior distribution of lambdas: final data
-  post_lambda_final <- posterior(data       = data_final,
-                                 cutpoint   = cutpoint,
-                                 prior      = prior,
-                                 N_mcmc     = N_impute,
-                                 single_arm = single_arm)
+      subject_impute_success = ((event == 0) & (time < end_of_study)))
 
   if (imputed_final) {
+    # Posterior distribution of lambdas: final data
+    post_lambda_final <- posterior(data       = data_final,
+                                   cutpoint   = cutpoint,
+                                   prior      = prior,
+                                   N_mcmc     = N_impute,
+                                   single_arm = single_arm)
     # Effect matrix + posterior probability
     effect_final_mat <- matrix(nrow = N_mcmc, ncol = N_impute)
     post_paa <- vector(length = N_impute)
@@ -627,17 +625,17 @@ survival_adapt <- function(
                               method       = method,
                               alternative  = alternative,
                               h0           = h0)
-      post_paa[j] <- success$success
 
+      post_paa[j] <- success$success
       if (method == "bayes") {
         effect_final_mat[, j] <- success$effect # See Gelman et al. (2004, p. 520)
       }
     }
     # Average over imputations
-    est_final <- mean(effect_final_mat)
     post_paa  <- mean(post_paa)
+    est_final <- mean(effect_final_mat)
   } else {
-    # Posterior distribution of event proportions: final data (without imputation)
+    # Apply primary analysis to final data (without imputation)
     success <- analyse_data(data         = data_final,
                             cutpoint     = cutpoint,
                             end_of_study = end_of_study,
@@ -648,15 +646,12 @@ survival_adapt <- function(
                             alternative  = alternative,
                             h0           = h0)
 
-    # Apply statistical test to declare success (e.g. efficacy)
     post_paa <- success$success
-
-    # Final interim analysis effect size
     est_final <- mean(success$effect)
   }
 
-  N_treatment  <- sum(data_final$treatment == 1) # Total sample size analyzed - test group
-  N_control    <- sum(data_final$treatment == 0) # Total sample size analyzed - control group
+  N_treatment  <- sum(data_final$treatment == 1) # Total sample size analyzed: test group
+  N_control    <- sum(data_final$treatment == 0) # Total sample size analyzed: control group
 
   if (length(analysis_at_enrollnumber) > 1) {
     est_interim <- mean(effect_int) # Posterior treatment effect at the interim analysis (if any)
@@ -675,7 +670,7 @@ survival_adapt <- function(
     N_max                 = N_total, 				          # Total potential sample size
     post_prob_ha          = post_paa,                 # Posterior probability that alternative hypothesis is true
     est_final             = est_final,                # Posterior treatment effect at final analysis
-    ppp_success           = ppp_success,              # Posterior predictive probability of eventual success
+    ppp_success           = ppp_success,              # Posterior predictive probability of eventual success when trial stopped
     est_interim           = est_interim,              # Posterior treatment effect at the interim analysis
     stop_futility         = stop_futility,            # Did the trial stop for futility
     stop_expected_success = stop_expected_success     # Did the trial stop for expected success
