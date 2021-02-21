@@ -45,7 +45,7 @@ follow-up is complete), whether the analysis should be a log-rank
 
 \item{alternative}{character. The string specifying the alternative
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
-\code{"two-sided"}.}
+\code{"two.sided"}.}
 
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
 p_\textrm{control}}. Default is \code{h0 = 0}.}

@@ -31,8 +31,7 @@ analyse_data <- function(
   alternative,
   h0) {
 
-  # If we do a Bayesian test of CIF_mesh(T) - CIF_control(T) on each
-  # imputed data set
+  # Bayesian test: CIF_trt(T) - CIF_con(T)
   if (method == "bayes") {
     # Posterior distribution of lambdas: imputed data
     post_lambda_imp <- posterior(data       = data,
@@ -47,21 +46,15 @@ analyse_data <- function(
                             end_of_study = end_of_study,
                             single_arm   = single_arm)
 
-    # Apply statistical test to declare success (e.g. efficacy)
     effect <- post_imp$effect
-
-    # Apply test with direction
-    if (alternative == "two-sided") {
-      success <- max(c(mean(effect > h0), mean(effect < h0)))
-    } else if (alternative == "greater") {
+    if (alternative == "greater") {
       success <- mean(effect > h0)
-    } else {
+    } else if (alternative == "less") {
       success <- mean(effect < h0)
     }
-
   }
 
-  # If we do a log-rank test on each imputed data set
+  # Log-rank test
   if (method == "logrank") {
     t0 <- data$time[data$treatment == 0]
     t1 <- data$time[data$treatment == 1]

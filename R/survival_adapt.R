@@ -27,7 +27,7 @@
 #'   follow-up.
 #' @param alternative character. The string specifying the alternative
 #'   hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
-#'   \code{"two-sided"}.
+#'   \code{"two.sided"}.
 #' @param h0 scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
 #'   p_\textrm{control}}. Default is \code{h0 = 0}.
 #' @param futility_prob vector of \code{[0, 1]} values. Each element is the
@@ -226,7 +226,7 @@ survival_adapt <- function(
   }
 
   # Check: 'alternative' is correctly specified
-  if (alternative != "two-sided" & alternative != "greater" & alternative != "less") {
+  if (alternative != "two.sided" & alternative != "greater" & alternative != "less") {
     stop("The input for alternative is wrong")
   }
 
@@ -235,9 +235,14 @@ survival_adapt <- function(
     stopifnot(any(cutpoint < end_of_study))
   }
 
-  # Check: log-rank test only available as a two-sided test
-  if (alternative != "two-sided" & method == "logrank") {
-    stop("The log-rank test can only be used as two-sided test")
+  # Check: Bayesian test only available as a one-sided test
+  if (alternative == "two.sided" & method == "bayes") {
+    stop("The Bayes test can only be used with alternative equal to 'greater' or 'less'")
+  }
+
+  # Check: log-rank test only available as a two.sided test
+  if (alternative != "two.sided" & method == "logrank") {
+    stop("The log-rank test can only be used as two.sided test")
   }
 
   # Indicator of single-arm study

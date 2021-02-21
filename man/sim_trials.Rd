@@ -70,7 +70,7 @@ follow-up.}
 
 \item{alternative}{character. The string specifying the alternative
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
-\code{"two-sided"}.}
+\code{"two.sided"}.}
 
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
 p_\textrm{control}}. Default is \code{h0 = 0}.}
@@ -145,11 +145,11 @@ out <- sim_trials(
   lambda_time = NULL,
   interim_look = c(400, 500),
   end_of_study = 36,
-  prior = c(.1, .1),
+  prior = c(0.1, 0.1),
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss_to_followup = 0.30,
-  alternative = "two-sided",
+  alternative = "two.sided",
   h0 = 0,
   futility_prob = 0.05,
   expected_success_prob = 0.9,
