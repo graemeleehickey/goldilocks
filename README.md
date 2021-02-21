@@ -31,6 +31,26 @@ Broglio et al. (2014) re refer to this as a *Goldilocks trial design*,
 as it is constantly asking the question, “Is the sample size too big,
 too small, or just right?”
 
+## Key benefits
+
+Other software and R packages are available to implement this algorithm.
+However, when designing studies it is generally required that many
+thousands of trials are simulated to adequately characterize the
+operating characteristics, e.g. type I error and power. Hence, a
+computationally efficient and fast algorithm is helpful. The
+`goldilocks` package takes advantage of many tools to achieve this:
+
+-   Log-rank tests are implemented via the
+    [`fastlogranktest`](https://CRAN.R-project.org/package=fastlogranktest)
+    package, which uses a lightweight C++ implementation
+
+-   Piecewise exponential simulation is implemented via the
+    [`PWEALL`](https://CRAN.R-project.org/package=PWEALL) package, which
+    uses a lightweight Fortran implementation
+
+-   Simulation of multiple trials can be performed in parallel using the
+    [`pbmcapply`](https://CRAN.R-project.org/package=pbmcapply) package
+
 ## References
 
 Broglio KR, Connor JT, Berry SM. Not too big, not too small: a
