@@ -27,9 +27,9 @@ continuing accrual would be futile. The algorithm explicitly accounts
 for complete follow-up of all patients before the primary analysis is
 conducted.
 
-Broglio et al. (2014) re refer to this as a *Goldilocks trial design*,
-as it is constantly asking the question, “Is the sample size too big,
-too small, or just right?”
+Broglio et al. (2014) refer to this as a *Goldilocks trial design*, as
+it is constantly asking the question, “Is the sample size too big, too
+small, or just right?”
 
 ## Key benefits
 

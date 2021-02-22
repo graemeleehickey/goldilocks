@@ -16,8 +16,11 @@ Authors@R: c(
            "bayesDP code as a template")),
     person(given = "Becton, Dickinson and Company",
            role = "cph"))
-Description: Implements the Goldilocks adaptive trial design for time to event
-    outcomes with a piecewise exponential model.
+Description: Implements the Goldilocks adaptive trial design for a time to event
+    outcome using a piecewise exponential model and conjugate Gamma prior
+    distributions. The method closely follows the article by Broglio and
+    colleagues <doi:10.1080/10543406.2014.888569>, which allows users to explore
+    the operating characteristics of different trial designs.
 License: GPL-3 | file LICENSE
 Encoding: UTF-8
 LazyData: true
