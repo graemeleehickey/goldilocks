@@ -25,9 +25,8 @@
 NULL
 
 
-# Quiets concerns of R CMD check re: the .'s that appear in pipelines
+# Quiets concerns of R CMD check re: no visible binding
 if(getRversion() >= "2.15.1") {
-  utils::globalVariables(c("."))
-  utils::globalVariables(c("treatment", "subject_impute_success",
-                           "subject_impute_futility", "id"))
+  utils::globalVariables(c("id", "subject_impute_futility",
+                           "subject_impute_success", "treatment"))
 }

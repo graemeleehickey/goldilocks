@@ -18,44 +18,41 @@
 #'   second slice including posterior samples from \code{post_control}.
 #'
 #' @importFrom stats rgamma
-#' @importFrom data.table data.table
+#' @importFrom dplyr %>% summarise group_by ungroup
+#' @importFrom rlang .data
 #' @import survival
 #' @export
 posterior <- function(data, cutpoint, prior, N_mcmc, single_arm) {
 
-  cutpoint <- cutpoint[-1] # Note: survSplit() doesn't like cuts at 0
-  if (length(cutpoint) == 0) {
-    cutpoint <- max(data$time)
+  n_intervals <- length(cutpoint)
+
+  ik <- cutpoint[-1] # Note: survSplit() doesn't like cuts at 0, so ik = inner knots
+  if (length(ik) == 0) {
+    ik <- max(data$time)
   }
 
   data_survsplit <- survSplit(
     Surv(time, event) ~ .,
     data = data,
-    cut = cutpoint,
+    cut = ik,
     episode = "interval")
 
-  time <- tstart <- event <- treatment <- interval <- NULL
-  data_survsplit <- data.table(data_survsplit)
-  data_summ <- data_survsplit[, .(n = length(time),
-                                  tot_time = sum(time - tstart),
-                                  tot_events = sum(event)),
-                              by = list(treatment, interval)]
+  # In case interim data doesn't span all intervals possible
+  data_survsplit$interval <- factor(data_survsplit$interval,
+                                    levels = 1:n_intervals)
 
-  # # dplyr implementation
-  # data_summ <- data_survsplit %>%
-  #   group_by(.data$treatment, .data$interval) %>%
-  #   summarise(n = length(.data$time),
-  #             tot_time = sum(.data$time - .data$tstart),
-  #             tot_events = sum(.data$event)) %>%
-  #   ungroup()
+  data_summ <- data_survsplit %>%
+    group_by(.data$treatment, .data$interval, .drop = FALSE) %>%
+    summarise(n = length(.data$time),
+              tot_time = sum(.data$time - .data$tstart),
+              tot_events = sum(.data$event)) %>%
+    ungroup()
 
-  nbreaks <- max(data_survsplit$interval) - 1
+  post <- array(dim = c(N_mcmc, n_intervals, 2))
+  post_treatment <- matrix(nrow = N_mcmc, ncol = n_intervals)
+  post_control <- matrix(nrow = N_mcmc, ncol = n_intervals)
 
-  post <- array(dim = c(N_mcmc, nbreaks + 1, 2))
-  post_treatment <- matrix(nrow = N_mcmc, ncol = nbreaks + 1)
-  post_control <- matrix(nrow = N_mcmc, ncol = nbreaks + 1)
-
-  for (j in 1:(nbreaks + 1)) {
+  for (j in 1:n_intervals) {
     post[, j, 1] <- with(
       subset(data_summ, treatment == 1),
       rgamma(N_mcmc, prior[1] + tot_events[j], prior[2] + tot_time[j])
@@ -63,7 +60,7 @@ posterior <- function(data, cutpoint, prior, N_mcmc, single_arm) {
   }
 
   if (!single_arm) { # If control patients present
-    for (j in 1:(nbreaks + 1)) {
+    for (j in 1:n_intervals) {
       post[, j, 2] <- with(
         subset(data_summ, treatment == 0),
         rgamma(N_mcmc, prior[1] + tot_events[j], prior[2] + tot_time[j]))

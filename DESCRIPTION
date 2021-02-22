@@ -24,12 +24,13 @@ LazyData: true
 Depends:
     survival
 Imports:
-    data.table,
+    dplyr,
     fastlogranktest,
     MASS,
     parallel,
     pbmcapply,
     PWEALL,
+    rlang,
     stats
 Suggests: 
     covr,
