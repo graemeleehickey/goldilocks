@@ -24,7 +24,7 @@ LazyData: true
 Depends:
     survival
 Imports:
-    dplyr,
+    data.table,
     fastlogranktest,
     MASS,
     parallel,

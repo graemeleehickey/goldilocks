@@ -18,6 +18,7 @@
 #'   second slice including posterior samples from \code{post_control}.
 #'
 #' @importFrom stats rgamma
+#' @importFrom data.table data.table
 #' @import survival
 #' @export
 posterior <- function(data, cutpoint, prior, N_mcmc, single_arm) {
@@ -33,11 +34,20 @@ posterior <- function(data, cutpoint, prior, N_mcmc, single_arm) {
     cut = cutpoint,
     episode = "interval")
 
-  data_summ <- data_survsplit %>%
-    group_by(treatment, interval) %>%
-    summarise(n = n(),
-              tot_time = sum(time - tstart),
-              tot_events = sum(event))
+  time <- tstart <- event <- treatment <- interval <- NULL
+  data_survsplit <- data.table(data_survsplit)
+  data_summ <- data_survsplit[, .(n = length(time),
+                                  tot_time = sum(time - tstart),
+                                  tot_events = sum(event)),
+                              by = list(treatment, interval)]
+
+  # # dplyr implementation
+  # data_summ <- data_survsplit %>%
+  #   group_by(.data$treatment, .data$interval) %>%
+  #   summarise(n = length(.data$time),
+  #             tot_time = sum(.data$time - .data$tstart),
+  #             tot_events = sum(.data$event)) %>%
+  #   ungroup()
 
   nbreaks <- max(data_survsplit$interval) - 1
 

@@ -168,7 +168,6 @@
 #' Statistics}, 2014; 24(3): 685–705.
 #'
 #' @importFrom stats pexp runif sd
-#' @import dplyr
 #' @export
 #'
 #' @examples
@@ -377,29 +376,29 @@ survival_adapt <- function(
       # - time_from_rand_at_look:  time from randomization to sample size look
       #                            e.g. if patient enrolled month 3, but look occurs month 7,
       #                            then patient could potentially be observed for 4 months
-      data_interim <- data_total %>%
-        mutate(
-          subject_enrolled = id <= analysis_at_enrollnumber[i],
-          subject_impute_futility = !subject_enrolled,
-          time_from_rand_at_look = enrollment[analysis_at_enrollnumber[i]] - enrollment,
-          subject_impute_success =
-            # Had event, but has not occurred yet (based on interim look)
-            ((event == 1) * (time_from_rand_at_look < time) & subject_enrolled) |
-            # Event-free and not had opportunity to complete full follow
-            ((event == 0) * (time_from_rand_at_look < end_of_study) & subject_enrolled) |
-            (loss_to_fu & subject_enrolled))
+      data_interim <- within(data_total, {
+        subject_enrolled = (id <= analysis_at_enrollnumber[i])
+        subject_impute_futility = !subject_enrolled
+        time_from_rand_at_look = enrollment[analysis_at_enrollnumber[i]] - enrollment
+        subject_impute_success =
+          # Had event, but has not occurred yet (based on interim look)
+          ((event == 1) * (time_from_rand_at_look < time) & subject_enrolled) |
+          # Event-free and not had opportunity to complete full follow
+          ((event == 0) * (time_from_rand_at_look < end_of_study) & subject_enrolled) |
+          (loss_to_fu & subject_enrolled)
+      })
 
       # Mask the data at time of look
-      data_interim <- data_interim %>%
-        mutate(
-          time = pmin(time, time_from_rand_at_look) + sd(time) / 1e4,
-          event = if_else(subject_impute_success, 0, event))
+      data_interim <- within(data_interim, {
+        time  = pmin(time, time_from_rand_at_look) + sd(time) / 1e4
+        event = ifelse(subject_impute_success, 0, event)
+      })
 
       # Carry out interim analysis on patients with complete data only
       # - Set-up new 'data' data frame
-      data <- data_interim %>%
-        filter(subject_enrolled) %>%
-        select(time, event, treatment)
+      data <- subset(data_interim,
+                     subset = subject_enrolled,
+                     select = c(time, event, treatment))
 
       # KM plot for masked data at interim analysis
       if (debug) {
@@ -585,11 +584,11 @@ survival_adapt <- function(
 
   # All patients that have made it to the end of study
   # - complete follow-up (except any censoring)
-  data_final <- data_total %>%
-    filter(id <= stage_trial_stopped) %>%
-    mutate(
-      time_from_rand_at_look = enrollment[analysis_at_enrollnumber[i]] - enrollment,
-      subject_impute_success = ((event == 0) & (time < end_of_study)))
+  data_final <- subset(data_total, id <= stage_trial_stopped)
+  data_final <- within(data_final, {
+    time_from_rand_at_look = enrollment[analysis_at_enrollnumber[i]] - enrollment
+    subject_impute_success = ((event == 0) & (time < end_of_study))
+  })
 
   if (imputed_final) {
     # Posterior distribution of lambdas: final data
@@ -613,8 +612,8 @@ survival_adapt <- function(
         single_arm   = single_arm)
 
       # Create enrolled subject data frame for analysis
-      data <- data_success_impute %>%
-        select(time, event, treatment)
+      data <- subset(data_success_impute,
+                     select = c(time, event, treatment))
 
       # Apply primary analysis to imputed data
       success <- analyse_data(data         = data,

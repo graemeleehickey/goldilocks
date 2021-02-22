@@ -56,7 +56,7 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
                                    maxtime  = end_of_study,
                                    cutpoint = cutpoint)
     }
-  ## Futility
+    ## Futility
   } else if (type == "futility") {
 
     # Imputing for treatment group
