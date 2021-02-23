@@ -50,8 +50,9 @@
 #'   distribution.
 #' @param method character. For an imputed data set (or the final data set after
 #'   follow-up is complete), whether the analysis should be a log-rank
-#'   (\code{method=logrank}) test or a fully-Bayesian analysis
-#'   (\code{method=bayes}). See Details section.
+#'   (\code{method = "logrank"}) test, Cox proportional hazards regression model
+#'   Wald test (\code{method = "cox"}), or a fully-Bayesian analysis
+#'   (\code{method = "bayes"}). See Details section.
 #' @param imputed_final logical. Should the final analysis (after all subjects
 #'   have been followed-up to the study end) be based on imputed outcomes for
 #'   subjects who were LTFU (i.e. right-censored with time
@@ -100,6 +101,14 @@
 #'      \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to enable
 #'      simple switching between Bayesian and frequentist paradigms for
 #'      analysis.
+#'
+#'   * Cox proportional hazards regression Wald test (\code{method = "cox"}).
+#'      Similar to the log-rank test, a \emph{P}-value is calculated based on a
+#'      two-sided test. However, for consistency, \eqn{1 - P}, which is
+#'      reported in \code{post_prob_ha}. Whilst not a posterior probability, it
+#'      can be contrasted in the same manner. For example, if the success
+#'      threshold is \eqn{P < 0.05}, then one requires \code{post_prob_ha}
+#'      \eqn{> 0.95}.
 #'
 #'   * Bayesian absolute difference (\code{method = "bayes"}).
 #'      Each imputed dataset is used to update the conjugate Gamma prior
@@ -167,7 +176,7 @@
 #' approach to sample size selection. \emph{Journal of Biopharmaceutical
 #' Statistics}, 2014; 24(3): 685–705.
 #'
-#' @importFrom stats pexp runif sd
+#' @importFrom stats pexp runif sd coef
 #' @export
 #'
 #' @examples
@@ -241,16 +250,16 @@ survival_adapt <- function(
   }
 
   # Check: log-rank test only available as a two.sided test
-  if (alternative != "two.sided" & method == "logrank") {
-    stop("The log-rank test can only be used as two.sided test")
+  if (alternative != "two.sided" & method %in% c("logrank", "cox")) {
+    stop("The log-rank and Cox PH tests can only be applied with a two-sided test")
   }
 
   # Assign: indicator of whether single-arm study
   single_arm <- is.null(hazard_control)
 
   # Check: log-rank test only available for two-armed trials
-  if (single_arm & method == "logrank") {
-    stop("The log-rank test can only be used for two-armed trials")
+  if (single_arm & method %in% c("logrank", "cox")) {
+    stop("The log-rank and Cox PH tests can only be used for two-armed trials")
   }
 
   # Assign: interim look and final look
@@ -627,7 +636,7 @@ survival_adapt <- function(
                               h0           = h0)
 
       post_paa[j] <- success$success
-      if (method == "bayes") {
+      if (method %in% c("cox", "bayes")) {
         effect_final_mat[, j] <- success$effect # See Gelman et al. (2004, p. 520)
       }
     }

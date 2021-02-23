@@ -40,8 +40,9 @@ distribution.}
 
 \item{method}{character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
-(\code{method=logrank}) test or a fully-Bayesian analysis
-(\code{method=bayes}). See Details section.}
+(\code{method = "logrank"}) test, Cox proportional hazards regression model
+Wald test (\code{method = "cox"}), or a fully-Bayesian analysis
+(\code{method = "bayes"}). See Details section.}
 
 \item{alternative}{character. The string specifying the alternative
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
@@ -56,10 +57,11 @@ A list with 2 elements:
 \describe{
 \item{\code{success}}{
 The mean posterior probability of effect (or 1 - the conventional
-P-value if \code{method = "logrank"}).}
+P-value if \code{method = "logrank"} or \code{method = "cox"}).}
 \item{\code{effect}}{
 A sample from the posterior distribution of the effect size. If
-\code{method = "logrank"}, then this is \code{NULL}.}
+\code{method = "logrank"} or \code{method = "cox"}, then this is
+\code{NULL}.}
 }
 }
 \description{

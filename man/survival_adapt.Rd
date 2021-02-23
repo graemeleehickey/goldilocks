@@ -99,8 +99,9 @@ distribution.}
 
 \item{method}{character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
-(\code{method=logrank}) test or a fully-Bayesian analysis
-(\code{method=bayes}). See Details section.}
+(\code{method = "logrank"}) test, Cox proportional hazards regression model
+Wald test (\code{method = "cox"}), or a fully-Bayesian analysis
+(\code{method = "bayes"}). See Details section.}
 
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
@@ -195,6 +196,13 @@ the success threshold is \eqn{P < 0.05}, then one requires
 \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to enable
 simple switching between Bayesian and frequentist paradigms for
 analysis.
+\item Cox proportional hazards regression Wald test (\code{method = "cox"}).
+Similar to the log-rank test, a \emph{P}-value is calculated based on a
+two-sided test. However, for consistency, \eqn{1 - P}, which is
+reported in \code{post_prob_ha}. Whilst not a posterior probability, it
+can be contrasted in the same manner. For example, if the success
+threshold is \eqn{P < 0.05}, then one requires \code{post_prob_ha}
+\eqn{> 0.95}.
 \item Bayesian absolute difference (\code{method = "bayes"}).
 Each imputed dataset is used to update the conjugate Gamma prior
 (defined by \code{prior}), yielding a posterior distribution for the

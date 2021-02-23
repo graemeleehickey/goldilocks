@@ -11,14 +11,16 @@
 #' \describe{
 #'     \item{\code{success}}{
 #'        The mean posterior probability of effect (or 1 - the conventional
-#'        P-value if \code{method = "logrank"}).}
+#'        P-value if \code{method = "logrank"} or \code{method = "cox"}).}
 #'     \item{\code{effect}}{
 #'        A sample from the posterior distribution of the effect size. If
-#'        \code{method = "logrank"}, then this is \code{NULL}.}
+#'        \code{method = "logrank"} or \code{method = "cox"}, then this is
+#'        \code{NULL}.}
 #' }
 #'
 #' @importFrom stats pchisq
 #' @importFrom fastlogranktest logrank_test
+#' @import survival
 #' @export
 analyse_data <- function(
   data,
@@ -73,6 +75,17 @@ analyse_data <- function(
     # p <- pchisq(lrt$chisq, 1, lower.tail = FALSE)
     success <- 1 - p
     effect <- NA
+  }
+
+  ####################################################
+  ### Cox regression test
+  ####################################################
+
+  if (method == "cox") {
+    fit_cox <- coxph(Surv(time, event) ~ treatment, data = data)
+    fit_res <- coef(summary(fit_cox))
+    success <- 1 - fit_res[5]
+    effect <- fit_res[1]
   }
 
   return(list(

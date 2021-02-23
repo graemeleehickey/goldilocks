@@ -102,8 +102,9 @@ distribution.}
 
 \item{method}{character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
-(\code{method=logrank}) test or a fully-Bayesian analysis
-(\code{method=bayes}). See Details section.}
+(\code{method = "logrank"}) test, Cox proportional hazards regression model
+Wald test (\code{method = "cox"}), or a fully-Bayesian analysis
+(\code{method = "bayes"}). See Details section.}
 
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for

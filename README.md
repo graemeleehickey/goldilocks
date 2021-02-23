@@ -25,7 +25,10 @@ size selection analyses are made and predictive probabilities are used
 to determine whether the current sample size is sufficient or whether
 continuing accrual would be futile. The algorithm explicitly accounts
 for complete follow-up of all patients before the primary analysis is
-conducted.
+conducted. Final analysis tests include the log-rank test, Cox
+proportional hazards regression Wald test, and a Bayesian test that
+compares the absolute difference in cumulative incidence functions at a
+fixed time point.
 
 Broglio et al. (2014) refer to this as a *Goldilocks trial design*, as
 it is constantly asking the question, “Is the sample size too big, too
