@@ -20,8 +20,8 @@ survival_adapt(
   prop_loss_to_followup = 0.1,
   alternative = "greater",
   h0 = 0,
-  futility_prob = 0.05,
-  expected_success_prob = 0.9,
+  Fn = 0.05,
+  Sn = 0.9,
   prob_ha = 0.95,
   N_impute = 10,
   N_mcmc = 100,
@@ -74,19 +74,18 @@ hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
 p_\textrm{control}}. Default is \code{h0 = 0}.}
 
-\item{futility_prob}{vector of \code{[0, 1]} values. Each element is the
-probability threshold to stop at the \eqn{i}-th look early for futility. If
-there are no interim looks (i.e. \code{interim_look = NULL}), then
-\code{futility_prob} is not used in the simulations or analysis. The length
-of \code{futility_prob} should be the same as \code{interim_look}, else the
-values are recycled.}
+\item{Fn}{vector of \code{[0, 1]} values. Each element is the probability
+threshold to stop at the \eqn{i}-th look early for futility. If there are
+no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
+used in the simulations or analysis. The length of \code{Fn} should be the
+same as \code{interim_look}, else the values are recycled.}
 
-\item{expected_success_prob}{vector of \code{[0, 1]} values. Each element is
-the probability threshold to stop at the \eqn{i}-th look early for expected
-success. If there are no interim looks (i.e. \code{interim_look = NULL}),
-then \code{expected_success_prob} is not used in the simulations or
-analysis. The length of \code{expected_success_prob} should be the same as
-\code{interim_look}, else the values are recycled.}
+\item{Sn}{vector of \code{[0, 1]} values. Each element is the probability
+threshold to stop at the \eqn{i}-th look early for expected success. If
+there are no interim looks (i.e. \code{interim_look = NULL}), then
+\code{Sn} is not used in the simulations or analysis. The length of
+\code{Sn} should be the same as \code{interim_look}, else the values are
+recycled.}
 
 \item{prob_ha}{scalar \code{[0, 1]}. Probability threshold of alternative
 hypothesis.}
@@ -163,17 +162,17 @@ Implements the Goldilocks design method described in Broglio et al.
 calculated as the proportion of imputed datasets at the \emph{current} sample
 size that would go on to be success at the specified threshold. At each
 interim analysis it is compared to the corresponding element of
-\code{expected_success_prob}, and if it exceeds the threshold,
+\code{Sn}, and if it exceeds the threshold,
 accrual/enrollment is suspended and the outstanding follow-up allowed to
 complete before conducting the pre-specified final analysis.
 \item \strong{The posterior predictive probability of final success}. This is
 calculated as the proportion of imputed datasets at the \emph{maximum}
 threshold that would go on to be successful. Similar to above, it is
-compared to the corresponding element of \code{futility_prob}, and if it
+compared to the corresponding element of \code{Fn}, and if it
 is less than the threshold, accrual/enrollment is suspended and the
 trial terminated. Typically this would be a binding decision. If it is
 not a binding decision, then one should also explore the simulations
-with \code{futility_prob = 0}.
+with \code{Fn = 0}.
 }
 
 Hence, at each interim analysis look, 3 decisions are allowed:
@@ -246,8 +245,8 @@ survival_adapt(
  prop_loss_to_followup = 0.30,
  alternative = "less",
  h0 = 0,
- futility_prob = 0.05,
- expected_success_prob = 0.9,
+ Fn = 0.05,
+ Sn = 0.9,
  prob_ha = 0.975,
  N_impute = 10,
  N_mcmc = 10,

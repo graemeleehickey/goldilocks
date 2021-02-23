@@ -20,8 +20,8 @@ sim_trials(
   prop_loss_to_followup = 0.1,
   alternative = "greater",
   h0 = 0,
-  futility_prob = 0.05,
-  expected_success_prob = 0.9,
+  Fn = 0.05,
+  Sn = 0.9,
   prob_ha = 0.95,
   N_impute = 10,
   N_mcmc = 100,
@@ -75,19 +75,18 @@ hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
 p_\textrm{control}}. Default is \code{h0 = 0}.}
 
-\item{futility_prob}{vector of \code{[0, 1]} values. Each element is the
-probability threshold to stop at the \eqn{i}-th look early for futility. If
-there are no interim looks (i.e. \code{interim_look = NULL}), then
-\code{futility_prob} is not used in the simulations or analysis. The length
-of \code{futility_prob} should be the same as \code{interim_look}, else the
-values are recycled.}
+\item{Fn}{vector of \code{[0, 1]} values. Each element is the probability
+threshold to stop at the \eqn{i}-th look early for futility. If there are
+no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
+used in the simulations or analysis. The length of \code{Fn} should be the
+same as \code{interim_look}, else the values are recycled.}
 
-\item{expected_success_prob}{vector of \code{[0, 1]} values. Each element is
-the probability threshold to stop at the \eqn{i}-th look early for expected
-success. If there are no interim looks (i.e. \code{interim_look = NULL}),
-then \code{expected_success_prob} is not used in the simulations or
-analysis. The length of \code{expected_success_prob} should be the same as
-\code{interim_look}, else the values are recycled.}
+\item{Sn}{vector of \code{[0, 1]} values. Each element is the probability
+threshold to stop at the \eqn{i}-th look early for expected success. If
+there are no interim looks (i.e. \code{interim_look = NULL}), then
+\code{Sn} is not used in the simulations or analysis. The length of
+\code{Sn} should be the same as \code{interim_look}, else the values are
+recycled.}
 
 \item{prob_ha}{scalar \code{[0, 1]}. Probability threshold of alternative
 hypothesis.}
@@ -152,8 +151,8 @@ out <- sim_trials(
   prop_loss_to_followup = 0.30,
   alternative = "two.sided",
   h0 = 0,
-  futility_prob = 0.05,
-  expected_success_prob = 0.9,
+  Fn = 0.05,
+  Sn = 0.9,
   prob_ha = 0.975,
   N_impute = 5,
   N_mcmc = 5,

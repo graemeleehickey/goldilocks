@@ -30,18 +30,17 @@
 #'   \code{"two.sided"}.
 #' @param h0 scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
 #'   p_\textrm{control}}. Default is \code{h0 = 0}.
-#' @param futility_prob vector of \code{[0, 1]} values. Each element is the
-#'   probability threshold to stop at the \eqn{i}-th look early for futility. If
+#' @param Fn vector of \code{[0, 1]} values. Each element is the probability
+#'   threshold to stop at the \eqn{i}-th look early for futility. If there are
+#'   no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
+#'   used in the simulations or analysis. The length of \code{Fn} should be the
+#'   same as \code{interim_look}, else the values are recycled.
+#' @param Sn vector of \code{[0, 1]} values. Each element is the probability
+#'   threshold to stop at the \eqn{i}-th look early for expected success. If
 #'   there are no interim looks (i.e. \code{interim_look = NULL}), then
-#'   \code{futility_prob} is not used in the simulations or analysis. The length
-#'   of \code{futility_prob} should be the same as \code{interim_look}, else the
-#'   values are recycled.
-#' @param expected_success_prob vector of \code{[0, 1]} values. Each element is
-#'   the probability threshold to stop at the \eqn{i}-th look early for expected
-#'   success. If there are no interim looks (i.e. \code{interim_look = NULL}),
-#'   then \code{expected_success_prob} is not used in the simulations or
-#'   analysis. The length of \code{expected_success_prob} should be the same as
-#'   \code{interim_look}, else the values are recycled.
+#'   \code{Sn} is not used in the simulations or analysis. The length of
+#'   \code{Sn} should be the same as \code{interim_look}, else the values are
+#'   recycled.
 #' @param prob_ha scalar \code{[0, 1]}. Probability threshold of alternative
 #'   hypothesis.
 #' @param N_impute integer. Number of imputations for Monte Carlo simulation of
@@ -69,18 +68,18 @@
 #'      calculated as the proportion of imputed datasets at the *current* sample
 #'      size that would go on to be success at the specified threshold. At each
 #'      interim analysis it is compared to the corresponding element of
-#'      \code{expected_success_prob}, and if it exceeds the threshold,
+#'      \code{Sn}, and if it exceeds the threshold,
 #'      accrual/enrollment is suspended and the outstanding follow-up allowed to
 #'      complete before conducting the pre-specified final analysis.
 #'
 #'   2. **The posterior predictive probability of final success**. This is
 #'      calculated as the proportion of imputed datasets at the *maximum*
 #'      threshold that would go on to be successful. Similar to above, it is
-#'      compared to the corresponding element of \code{futility_prob}, and if it
+#'      compared to the corresponding element of \code{Fn}, and if it
 #'      is less than the threshold, accrual/enrollment is suspended and the
 #'      trial terminated. Typically this would be a binding decision. If it is
 #'      not a binding decision, then one should also explore the simulations
-#'      with \code{futility_prob = 0}.
+#'      with \code{Fn = 0}.
 #'
 #'   Hence, at each interim analysis look, 3 decisions are allowed:
 #'
@@ -198,8 +197,8 @@
 #'  prop_loss_to_followup = 0.30,
 #'  alternative = "less",
 #'  h0 = 0,
-#'  futility_prob = 0.05,
-#'  expected_success_prob = 0.9,
+#'  Fn = 0.05,
+#'  Sn = 0.9,
 #'  prob_ha = 0.975,
 #'  N_impute = 10,
 #'  N_mcmc = 10,
@@ -219,8 +218,8 @@ survival_adapt <- function(
   prop_loss_to_followup = 0.10,
   alternative           = "greater",
   h0                    = 0,
-  futility_prob         = 0.05,
-  expected_success_prob = 0.9,
+  Fn                    = 0.05,
+  Sn                    = 0.9,
   prob_ha               = 0.95,
   N_impute              = 10,
   N_mcmc                = 100,
@@ -266,34 +265,34 @@ survival_adapt <- function(
   analysis_at_enrollnumber <- c(interim_look, N_total)
 
   # Assign: futility assessment required?
-  if (is.null(futility_prob) | all(futility_prob == 0)) {
+  if (is.null(Fn) | all(Fn == 0)) {
     check_futility <- FALSE
   } else {
     check_futility <- TRUE
   }
 
   # Check: thresholds of consistent dimension
-  if (length(expected_success_prob) != length(futility_prob)) {
+  if (length(Sn) != length(Fn)) {
     stop("Probability threshold vectors need to be the same length")
   }
 
   # Check: thresholds available for each interim look
   N_looks <- length(analysis_at_enrollnumber)
-  if (N_looks <= length(futility_prob)) {
+  if (N_looks <= length(Fn)) {
     stop("More thresholds specified than actual interim looks")
   }
-  if (N_looks > 1 & length(futility_prob) == 1) {
+  if (N_looks > 1 & length(Fn) == 1) {
     # Recycle thresholds if needed
-    # Note - we already enforce that 'expected_success_prob' == 'futility_prob'
-    expected_success_prob <- rep(expected_success_prob, N_looks - 1)
-    futility_prob         <- rep(futility_prob, N_looks - 1)
+    # Note - we already enforce that Sn = Fn
+    Sn <- rep(Sn, N_looks - 1)
+    Fn <- rep(Fn, N_looks - 1)
   }
 
   # Assign: if no interim looks, set thresholds to 0, as they are not needed
-  if (is.null(futility_prob) & N_looks == 1) {
-    expected_success_prob <- 0
-    futility_prob         <- 0
-    check_futility        <- FALSE
+  if (is.null(Fn) & N_looks == 1) {
+    Sn <- 0
+    Fn <- 0
+    check_futility <- FALSE
   }
 
   # Simulate enrollment times
@@ -548,14 +547,14 @@ survival_adapt <- function(
       # Test if expected success criteria met
       # Note: ppp_success = posterior predictive probability of eventual success
       ppp_success <- expected_success_test / N_impute
-      if (ppp_success > expected_success_prob[i]) {
+      if (ppp_success > Sn[i]) {
         stop_expected_success <- 1
         stage_trial_stopped   <- analysis_at_enrollnumber[i]
         break # No further SS looks
       }
 
       # Test if futility success criteria is met
-      if (futility_test / N_impute < futility_prob[i]) {
+      if (futility_test / N_impute < Fn[i]) {
         stop_futility       <- 1
         stage_trial_stopped <- analysis_at_enrollnumber[i]
         break # No further SS looks
