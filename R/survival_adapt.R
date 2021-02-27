@@ -49,8 +49,8 @@
 #'   hypothesis.
 #' @param N_impute integer. Number of imputations for Monte Carlo simulation of
 #'   missing data.
-#' @param N_mcmc integer. Number of samples to from the posterior
-#'   distribution.
+#' @param N_mcmc integer. Number of samples to draw from the posterior
+#'   distribution when using a Bayesian test (\code{method = "bayes"}).
 #' @param method character. For an imputed data set (or the final data set after
 #'   follow-up is complete), whether the analysis should be a log-rank
 #'   (\code{method = "logrank"}) test, Cox proportional hazards regression model
@@ -226,7 +226,7 @@ survival_adapt <- function(
   Sn                = 0.9,
   prob_ha           = 0.95,
   N_impute          = 10,
-  N_mcmc            = 100,
+  N_mcmc            = 10,
   method            = "logrank",
   imputed_final     = FALSE,
   debug             = FALSE
@@ -297,6 +297,11 @@ survival_adapt <- function(
     Sn <- 0
     Fn <- 0
     check_futility <- FALSE
+  }
+
+  # Assign: if not using Bayesian test, then set N_mcmc = 1
+  if (method != "bayes") {
+    N_mcmc <- 1
   }
 
   # Simulate enrollment times

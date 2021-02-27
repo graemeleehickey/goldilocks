@@ -24,7 +24,7 @@ survival_adapt(
   Sn = 0.9,
   prob_ha = 0.95,
   N_impute = 10,
-  N_mcmc = 100,
+  N_mcmc = 10,
   method = "logrank",
   imputed_final = FALSE,
   debug = FALSE
@@ -97,8 +97,8 @@ hypothesis.}
 \item{N_impute}{integer. Number of imputations for Monte Carlo simulation of
 missing data.}
 
-\item{N_mcmc}{integer. Number of samples to from the posterior
-distribution.}
+\item{N_mcmc}{integer. Number of samples to draw from the posterior
+distribution when using a Bayesian test (\code{method = "bayes"}).}
 
 \item{method}{character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank

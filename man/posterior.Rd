@@ -22,8 +22,8 @@ hyper-parameters \eqn{a_0} and \eqn{b_0}. The default non-informative prior
 distribution used is Gamma(0.1, 0.1), which is specified by setting
 \code{prior = c(0.1, 0.1)}.}
 
-\item{N_mcmc}{integer. Number of samples to from the posterior
-distribution.}
+\item{N_mcmc}{integer. Number of samples to draw from the posterior
+distribution when using a Bayesian test (\code{method = "bayes"}).}
 
 \item{single_arm}{logical. If \code{TRUE}, trial is single arm. Else, if
 \code{FALSE}, it is a randomized two-arm trial.}

@@ -11,23 +11,23 @@ sim_trials(
   cutpoints = 0,
   N_total,
   lambda = 0.3,
-  lambda_time = NULL,
+  lambda_time = 0,
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss = 0,
-  alternative = "greater",
+  alternative = "two.sided",
   h0 = 0,
-  Fn = 0.05,
+  Fn = 0.1,
   Sn = 0.9,
   prob_ha = 0.95,
   N_impute = 10,
-  N_mcmc = 100,
+  N_mcmc = 10,
   N_trials = 10,
   method = "logrank",
-  imputed_final = TRUE,
+  imputed_final = FALSE,
   ncores = 1L
 )
 }
@@ -98,8 +98,8 @@ hypothesis.}
 \item{N_impute}{integer. Number of imputations for Monte Carlo simulation of
 missing data.}
 
-\item{N_mcmc}{integer. Number of samples to from the posterior
-distribution.}
+\item{N_mcmc}{integer. Number of samples to draw from the posterior
+distribution when using a Bayesian test (\code{method = "bayes"}).}
 
 \item{N_trials}{integer. Number of trials to simulate.}
 
