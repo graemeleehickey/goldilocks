@@ -26,9 +26,10 @@ test_that("sim_trials-logrank", {
     method = "logrank",
     ncores = 1)
 
-  expect_s3_class(out, "data.frame")
+  expect_type(out, "list")
+  expect_s3_class(out$sims, "data.frame")
 
-  summ_out <- summarise_sims(out)
+  summ_out <- summarise_sims(out$sims)
   expect_s3_class(summ_out, "data.frame")
 })
 
@@ -60,9 +61,10 @@ test_that("sim_trials-bayes", {
     method = "bayes",
     ncores = 1)
 
-  expect_s3_class(out, "data.frame")
+  expect_type(out, "list")
+  expect_s3_class(out$sims, "data.frame")
 
-  summ_out <- summarise_sims(out)
+  summ_out <- summarise_sims(out$sims)
   expect_s3_class(summ_out, "data.frame")
 })
 

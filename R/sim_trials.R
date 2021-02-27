@@ -79,6 +79,8 @@ sim_trials <- function(
   ncores            = 1L
 ) {
 
+  Call <- match.call()
+
   # Check: missing 'ncores' defaults to maximum available (spare 1)
   if (missing(ncores)) {
     ncores <- min(1, parallel::detectCores() - 1)
@@ -121,9 +123,10 @@ sim_trials <- function(
       debug            = FALSE)
   }
 
-  out <- pbmclapply(1:N_trials, survival_adapt_wrapper, mc.cores = ncores)
+  sims <- pbmclapply(1:N_trials, survival_adapt_wrapper, mc.cores = ncores)
 
-  out <- do.call("rbind", out)
+  sims <- do.call("rbind", sims)
+  out <- list(sims = sims, call = Call)
 
   return(out)
 
