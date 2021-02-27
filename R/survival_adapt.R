@@ -3,7 +3,9 @@
 #'
 #' @param hazard_treatment vector. Constant hazard rates under the treatment arm.
 #' @param hazard_control vector. Constant hazard rates under the control arm.
-#' @param cutpoint vector. Default is \code{cutpoint = 0}.
+#' @param cutpoints  vector. Times at which the baseline hazard changes. Default
+#'   is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
+#'   exponential model.
 #' @param N_total integer. Maximum sample size allowable
 #' @param lambda vector. Enrollment rates across simulated enrollment times. See
 #'   \code{\link{enrollment}} for more details.
@@ -187,10 +189,10 @@
 #' survival_adapt(
 #'  hazard_treatment = -log(0.85) / 36,
 #'  hazard_control = -log(0.7) / 36,
-#'  cutpoint = 0,
+#'  cutpoints = 0,
 #'  N_total = 600,
 #'  lambda = 20,
-#'  lambda_time = NULL,
+#'  lambda_time = 0,
 #'  interim_look = 400,
 #'  end_of_study = 36,
 #'  prior = c(0.1, 0.1),
@@ -208,10 +210,10 @@
 survival_adapt <- function(
   hazard_treatment,
   hazard_control    = NULL,
-  cutpoint          = 0,
+  cutpoints         = 0,
   N_total,
   lambda            = 0.3,
-  lambda_time       = NULL,
+  lambda_time       = 0,
   interim_look      = NULL,
   end_of_study,
   prior             = c(0.1, 0.1),
@@ -241,8 +243,8 @@ survival_adapt <- function(
   }
 
   # Check: none of the 'cutpoints' are not more than 'end_of_study'
-  if (!is.null(cutpoint)) {
-    stopifnot(any(cutpoint < end_of_study))
+  if (!is.null(cutpoints)) {
+    stopifnot(any(cutpoints < end_of_study))
   }
 
   # Check: Bayesian test only available as a one-sided test
@@ -298,15 +300,16 @@ survival_adapt <- function(
   }
 
   # Simulate enrollment times
-  enrollment <- enrollment(param   = lambda,
-                           N_total = N_total,
-                           time    = lambda_time)
+  enrollment <- enrollment(lambda      = lambda,
+                           N_total     = N_total,
+                           lambda_time = lambda_time)
   enrollment <- enrollment + runif(length(enrollment))
   enrollment <- sort(enrollment)
 
   # Simulate treatment arm assignment
   if (!single_arm) {
-    group <- randomization(N_total = N_total, block = block,
+    group <- randomization(N_total    = N_total,
+                           block      = block,
                            allocation = rand_ratio)
   } else {
     group <- rep(1, N_total)
@@ -318,18 +321,18 @@ survival_adapt <- function(
   # Simulate TTE outcome
   # - Note: time = time *from* enrollment
   if (!single_arm) {
-    sim_control <- pwe_sim(hazard    = hazard_control,
-                           n         = sum(!group),
-                           maxtime   = end_of_study,
-                           cutpoint  = cutpoint)
+    sim_control <- pwe_sim(hazard     = hazard_control,
+                           n          = sum(!group),
+                           maxtime    = end_of_study,
+                           cutpoints  = cutpoints)
     time[group == 0]  <- sim_control$time
     event[group == 0] <- sim_control$event
   }
 
-  sim_treatment <- pwe_sim(hazard   = hazard_treatment,
-                           n        = sum(group),
-                           maxtime  = end_of_study,
-                           cutpoint = cutpoint)
+  sim_treatment <- pwe_sim(hazard    = hazard_treatment,
+                           n         = sum(group),
+                           maxtime   = end_of_study,
+                           cutpoints = cutpoints)
   time[group == 1]  <- sim_treatment$time
   event[group == 1] <- sim_treatment$event
 
@@ -432,7 +435,7 @@ survival_adapt <- function(
 
       # Posterior distribution of lambdas: current data
       post_lambda <- posterior(data       = data,
-                               cutpoint   = cutpoint,
+                               cutpoints  = cutpoints,
                                prior      = prior,
                                N_mcmc     = N_impute,
                                single_arm = single_arm)
@@ -453,7 +456,7 @@ survival_adapt <- function(
           data_in      = data_interim,
           hazard       = post_lambda[j, , , drop = FALSE],
           end_of_study = end_of_study,
-          cutpoint     = cutpoint,
+          cutpoints    = cutpoints,
           type         = "success",
           single_arm   = single_arm)
 
@@ -480,7 +483,7 @@ survival_adapt <- function(
 
         # Apply primary analysis to imputed data
         success <- analyse_data(data         = data,
-                                cutpoint     = cutpoint,
+                                cutpoints    = cutpoints,
                                 end_of_study = end_of_study,
                                 prior        = prior,
                                 N_mcmc       = N_mcmc,
@@ -507,7 +510,7 @@ survival_adapt <- function(
             data_in      = data_success_impute,
             hazard       = post_lambda[j, , , drop = FALSE],
             end_of_study = end_of_study,
-            cutpoint     = cutpoint,
+            cutpoints    = cutpoints,
             type         = "futility",
             single_arm   = single_arm)
 
@@ -533,7 +536,7 @@ survival_adapt <- function(
 
           # Apply primary analysis to imputed data
           success <- analyse_data(data         = data,
-                                  cutpoint     = cutpoint,
+                                  cutpoints    = cutpoints,
                                   end_of_study = end_of_study,
                                   prior        = prior,
                                   N_mcmc       = N_mcmc,
@@ -607,7 +610,7 @@ survival_adapt <- function(
   if (imputed_final) {
     # Posterior distribution of lambdas: final data
     post_lambda_final <- posterior(data       = data_final,
-                                   cutpoint   = cutpoint,
+                                   cutpoints  = cutpoints,
                                    prior      = prior,
                                    N_mcmc     = N_impute,
                                    single_arm = single_arm)
@@ -621,7 +624,7 @@ survival_adapt <- function(
         data_in      = data_final,
         hazard       = post_lambda_final[j, , , drop = FALSE],
         end_of_study = end_of_study,
-        cutpoint     = cutpoint,
+        cutpoints    = cutpoints,
         type         = "success",
         single_arm   = single_arm)
 
@@ -631,7 +634,7 @@ survival_adapt <- function(
 
       # Apply primary analysis to imputed data
       success <- analyse_data(data         = data,
-                              cutpoint     = cutpoint,
+                              cutpoints    = cutpoints,
                               end_of_study = end_of_study,
                               prior        = prior,
                               N_mcmc       = N_mcmc,
@@ -651,7 +654,7 @@ survival_adapt <- function(
   } else {
     # Apply primary analysis to final data (without imputation)
     success <- analyse_data(data         = data_final,
-                            cutpoint     = cutpoint,
+                            cutpoints    = cutpoints,
                             end_of_study = end_of_study,
                             prior        = prior,
                             N_mcmc       = N_mcmc,

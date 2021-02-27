@@ -30,7 +30,7 @@
 #'   with imputed event times.
 #'
 #' @export
-impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
+impute_data <- function(data_in, hazard, end_of_study, cutpoints, type,
                         single_arm) {
 
   ## Expected success
@@ -40,10 +40,10 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
     treatment_impute <- subset(data_in,
                                treatment == 1 & subject_impute_success)
 
-    impute_treatment <- pwe_impute(time     = treatment_impute$time,
-                                   hazard   = hazard[1, , 1],
-                                   maxtime  = end_of_study,
-                                   cutpoint = cutpoint)
+    impute_treatment <- pwe_impute(time      = treatment_impute$time,
+                                   hazard    = hazard[1, , 1],
+                                   maxtime   = end_of_study,
+                                   cutpoints = cutpoints)
 
     # Imputing for control group
     if (!single_arm) {
@@ -51,10 +51,10 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
                                treatment == 0 & subject_impute_success)
 
       # Impute PWE event times conditional on current observed time
-      impute_control <- pwe_impute(time     = control_impute$time,
-                                   hazard   = hazard[1, , 2],
-                                   maxtime  = end_of_study,
-                                   cutpoint = cutpoint)
+      impute_control <- pwe_impute(time      = control_impute$time,
+                                   hazard    = hazard[1, , 2],
+                                   maxtime   = end_of_study,
+                                   cutpoints = cutpoints)
     }
     ## Futility
   } else if (type == "futility") {
@@ -63,10 +63,10 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
     treatment_impute <- subset(data_in,
                                treatment == 1 & subject_impute_futility)
 
-    impute_treatment <- pwe_sim(n        = nrow(treatment_impute),
-                                hazard   = hazard[1, , 1],
-                                maxtime  = end_of_study,
-                                cutpoint = cutpoint)
+    impute_treatment <- pwe_sim(n         = nrow(treatment_impute),
+                                hazard    = hazard[1, , 1],
+                                maxtime   = end_of_study,
+                                cutpoints = cutpoints)
 
     # Imputing for control group
     if (!single_arm) {
@@ -74,10 +74,10 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoint, type,
                                treatment == 0 & subject_impute_futility)
 
       # Impute PWE event times conditional on current observed time
-      impute_control <- pwe_sim(n        = nrow(control_impute),
-                                hazard   = hazard[1, , 2],
-                                maxtime  = end_of_study,
-                                cutpoint = cutpoint)
+      impute_control <- pwe_sim(n         = nrow(control_impute),
+                                hazard    = hazard[1, , 2],
+                                maxtime   = end_of_study,
+                                cutpoints = cutpoints)
     }
   }
 

@@ -4,7 +4,7 @@
 \alias{pwe_impute}
 \title{Impute piecewise exponential time-to-event outcomes}
 \usage{
-pwe_impute(time, hazard, cutpoint = 0, maxtime = NULL)
+pwe_impute(time, hazard, cutpoints = 0, maxtime = NULL)
 }
 \arguments{
 \item{time}{vector. The observed time for patient that have had no event or
@@ -12,8 +12,8 @@ passed \code{maxtime}.}
 
 \item{hazard}{vector. The constant hazard rates for exponential failures.}
 
-\item{cutpoint}{vector. The change-point vector indicating time when the
-hazard rates change. Note the first element of \code{cutpoint} should
+\item{cutpoints}{vector. The change-point vector indicating time when the
+hazard rates change. Note the first element of \code{cutpoints} should
 always be 0.}
 
 \item{maxtime}{scalar. Maximum time before end of study.}
@@ -39,9 +39,9 @@ free up until \eqn{s}) as \eqn{F^{-1}(U(1-F(s)) + F(s))}. Note: if \eqn{s =
 PWE distribution.
 }
 \examples{
-pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoint = c(0, 12))
-pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoint = c(0, 12),
+pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = c(0, 12))
+pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = c(0, 12),
            maxtime = 36)
 pwe_impute(time = 19.621870008, hazard = c(2.585924e-02, 3.685254e-09),
-           cutpoint = c(0, 12), maxtime = 36)
+           cutpoints = c(0, 12), maxtime = 36)
 }

@@ -4,7 +4,7 @@
 \alias{posterior}
 \title{Posterior distribution of piecewise exponential constant hazard rates}
 \usage{
-posterior(data, cutpoint, prior, N_mcmc, single_arm)
+posterior(data, cutpoints, prior, N_mcmc, single_arm)
 }
 \arguments{
 \item{data}{data frame. Minimum requirements are 3 columns: event time
@@ -12,7 +12,9 @@ posterior(data, cutpoint, prior, N_mcmc, single_arm)
 treatment arm (\code{treatment}). Other columns can be included in the data
 frame and will be handled in the split.}
 
-\item{cutpoint}{vector. Default is \code{cutpoint = 0}.}
+\item{cutpoints}{vector. Times at which the baseline hazard changes. Default
+is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
+exponential model.}
 
 \item{prior}{vector. The prior distributions for the piecewise hazard rate
 parameters are each \eqn{Gamma(a_0, b_0)}, with specified (known)

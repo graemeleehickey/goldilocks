@@ -5,7 +5,7 @@
 \title{Impute incomplete data set with event times conditional on observed
 data}
 \usage{
-impute_data(data_in, hazard, end_of_study, cutpoint, type, single_arm)
+impute_data(data_in, hazard, end_of_study, cutpoints, type, single_arm)
 }
 \arguments{
 \item{data_in}{data frame. The time-to-event data that requires imputation,
@@ -24,7 +24,9 @@ treatment and control).}
 \item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
 will be evaluated.}
 
-\item{cutpoint}{vector. Default is \code{cutpoint = 0}.}
+\item{cutpoints}{vector. Times at which the baseline hazard changes. Default
+is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
+exponential model.}
 
 \item{type}{character. Whether imputation is for \code{success} or
 \code{futility}.}

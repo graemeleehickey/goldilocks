@@ -6,7 +6,7 @@
 \usage{
 analyse_data(
   data,
-  cutpoint,
+  cutpoints,
   end_of_study,
   prior,
   N_mcmc,
@@ -21,7 +21,9 @@ analyse_data(
 the pre-specified analysis method. Generally this will be an imputed data
 set, and the analysis will be looped over multiple imputed datasets.}
 
-\item{cutpoint}{vector. Default is \code{cutpoint = 0}.}
+\item{cutpoints}{vector. Times at which the baseline hazard changes. Default
+is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
+exponential model.}
 
 \item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
 will be evaluated.}

@@ -2,10 +2,12 @@
 #'
 #' @description Simulate enrollment time using a piecewise Poisson distribution.
 #'
-#' @param param vector. Rate parameter(s) for Poisson distribution.
-#' @param time vector. Knots (of \code{length(param)} - 1) indicating end of
-#'   time when a specific lambda is used. Note: final element of \code{param} is
-#'   assumed to be constant as \code{time} tends to infinity.
+#' @param lambda vector. Rate parameter(s) for Poisson distribution.
+#' @param lambda_time vector. Knots (of \code{length(lambda)}) indicating
+#'   regions where a specific hazard rate (\code{lambda}) applies. The first
+#'   element is always \code{lambda_time = 0}, denoting the trial start time.
+#'   Note: final element of \code{lambda} is assumed to be constant as
+#'   \code{lambda_time} tends to infinity.
 #' @param N_total integer. Value of total sample size.
 #'
 #' @details Subject recruitment is assumed to follow a (piecewise stationary)
@@ -32,53 +34,58 @@
 #'   Then, to simulate individual patient enrollment dates with a sample size
 #'   (\code{N_total}) of 50, we use
 #'
-#'   \code{enrollment(param = c(0.3, 0.7, 0.9, 1.2), N_total = 50, time = c(5, 10, 15))}
-#'
-#'   This function was ported from the
-#'   [\code{bayesCT}](https://cran.r-project.org/web/packages/bayesCT/index.html)
-#'   R package.
+#'   \code{enrollment(lambda = c(0.3, 0.7, 0.9, 1.2), N_total = 50, lambda_time = c(0, 5, 10, 15))}
 #'
 #' @return A vector of enrollment times (from time of first patient enrollment)
 #'   in days.
+#'
+#' @seealso This function is based on the \code{enrollment} function from the
+#'   [\code{bayesCT}](https://cran.r-project.org/web/packages/bayesCT/index.html)
+#'    R package.
 #'
 #' @importFrom stats rpois
 #' @export
 #'
 #' @examples
-#' enrollment(param = c(0.003, 0.7), 100, time = 10)
-#' enrollment(param = c(0.3, 0.5, 0.9, 1.2, 2.1), 200, c(20, 30, 40, 60))
-enrollment <- function(param, N_total, time = NULL) {
+#' enrollment(lambda = c(0.003, 0.7), N_total = 100, lambda_time = c(0, 10))
+#' enrollment(lambda = c(0.3, 0.5, 0.9, 1.2, 2.1), N_total = 200,
+#'            lambda_time = c(0, 20, 30, 40, 60))
+enrollment <- function(lambda = 1, N_total, lambda_time = 0) {
 
-  if (any(param <= 0)) {
-    stop("The lambda(s) for poisson enrollment rate should be non-negative")
+  if (any(lambda <= 0)) {
+    stop("The lambda(s) for Poisson enrollment rate should be non-negative")
   }
 
   if (N_total <= 0) {
     stop("The sample size for enrollment needs to be greater than 0")
   }
 
-  if (length(param) > 1  & (is.null(time) | (length(param) != (length(time) + 1)))) {
-    stop("The cutoff time for lambda is not correct")
+  if (length(lambda) != length(lambda_time)) {
+    stop("The length of rates should match the length of knots")
   }
 
-  if (length(param) == 1 & !is.null(time)) {
-    warning("The time input is not being used")
+  if (is.null(lambda_time) | any(is.na(lambda_time))) {
+    stop("The lambda_time argument is required")
+  }
+
+  if (lambda_time[1] != 0) {
+    stop("The first cutpoint should always 0")
   }
 
   output <- NULL
   count <- 0
   # For constant lambda in Poisson distribution
-  if (length(param) == 1) {
+  if (length(lambda) == 1) {
     while (length(output) < N_total) {
       count <- count + 1
-      output <- c(output, rep(count, rpois(1, param)))
+      output <- c(output, rep(count, rpois(1, lambda)))
     }
   } else {
-    # For different lambda values in Poisson distribution as a function of time
+    # For different lambda values in Poisson distribution as a function of lambda_time
     while (length(output) < N_total) {
       count <- count + 1
-      index <- min(c(which(time >= (count - 1)), length(param)))
-      output <- c(output, rep(count, rpois(1, param[index])))
+      index <- min(c(which(lambda_time[-1] >= (count - 1)), length(lambda)))
+      output <- c(output, rep(count, rpois(1, lambda[index])))
     }
   }
 

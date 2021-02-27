@@ -4,16 +4,18 @@
 \alias{enrollment}
 \title{Simulate enrollment times}
 \usage{
-enrollment(param, N_total, time = NULL)
+enrollment(lambda = 1, N_total, lambda_time = 0)
 }
 \arguments{
-\item{param}{vector. Rate parameter(s) for Poisson distribution.}
+\item{lambda}{vector. Rate parameter(s) for Poisson distribution.}
 
 \item{N_total}{integer. Value of total sample size.}
 
-\item{time}{vector. Knots (of \code{length(param)} - 1) indicating end of
-time when a specific lambda is used. Note: final element of \code{param} is
-assumed to be constant as \code{time} tends to infinity.}
+\item{lambda_time}{vector. Knots (of \code{length(lambda)}) indicating
+regions where a specific hazard rate (\code{lambda}) applies. The first
+element is always \code{lambda_time = 0}, denoting the trial start time.
+Note: final element of \code{lambda} is assumed to be constant as
+\code{lambda_time} tends to infinity.}
 }
 \value{
 A vector of enrollment times (from time of first patient enrollment)
@@ -47,13 +49,15 @@ enrollment rate over time:
 Then, to simulate individual patient enrollment dates with a sample size
 (\code{N_total}) of 50, we use
 
-\code{enrollment(param = c(0.3, 0.7, 0.9, 1.2), N_total = 50, time = c(5, 10, 15))}
-
-This function was ported from the
-\href{https://cran.r-project.org/web/packages/bayesCT/index.html}{\code{bayesCT}}
-R package.
+\code{enrollment(lambda = c(0.3, 0.7, 0.9, 1.2), N_total = 50, lambda_time = c(0, 5, 10, 15))}
 }
 \examples{
-enrollment(param = c(0.003, 0.7), 100, time = 10)
-enrollment(param = c(0.3, 0.5, 0.9, 1.2, 2.1), 200, c(20, 30, 40, 60))
+enrollment(lambda = c(0.003, 0.7), N_total = 100, lambda_time = c(0, 10))
+enrollment(lambda = c(0.3, 0.5, 0.9, 1.2, 2.1), N_total = 200,
+           lambda_time = c(0, 20, 30, 40, 60))
+}
+\seealso{
+This function is based on the \code{enrollment} function from the
+\href{https://cran.r-project.org/web/packages/bayesCT/index.html}{\code{bayesCT}}
+R package.
 }

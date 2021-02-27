@@ -5,7 +5,7 @@
 \title{Posterior event estimates at endpoint time from posterior hazard
 distributions}
 \usage{
-haz_to_prop(post, cutpoint, end_of_study, single_arm)
+haz_to_prop(post, cutpoints, end_of_study, single_arm)
 }
 \arguments{
 \item{post}{array An array of posterior probabilities of the piecewise hazard
@@ -16,7 +16,9 @@ column for each hazard piece), and the third dimension is of length 2, with
 the first slice including posterior samples from \code{post_treatment}, and
 the second slice including posterior samples from \code{post_control}.}
 
-\item{cutpoint}{vector. Default is \code{cutpoint = 0}.}
+\item{cutpoints}{vector. Times at which the baseline hazard changes. Default
+is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
+exponential model.}
 
 \item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
 will be evaluated.}

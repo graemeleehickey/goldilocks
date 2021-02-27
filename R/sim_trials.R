@@ -32,10 +32,10 @@
 #' out <- sim_trials(
 #'   hazard_treatment = ht,
 #'   hazard_control = hc,
-#'   cutpoint = c(0, 12),
+#'   cutpoints = c(0, 12),
 #'   N_total = 600,
 #'   lambda = 20,
-#'   lambda_time = NULL,
+#'   lambda_time = 0,
 #'   interim_look = c(400, 500),
 #'   end_of_study = 36,
 #'   prior = c(0.1, 0.1),
@@ -56,7 +56,7 @@
 sim_trials <- function(
   hazard_treatment,
   hazard_control    = NULL,
-  cutpoint          = 0,
+  cutpoints         = 0,
   N_total,
   lambda            = 0.3,
   lambda_time       = NULL,
@@ -98,7 +98,7 @@ sim_trials <- function(
     survival_adapt(
       hazard_treatment = hazard_treatment,
       hazard_control   = hazard_control,
-      cutpoint         = cutpoint,
+      cutpoints        = cutpoints,
       N_total          = N_total,
       lambda           = lambda,
       lambda_time      = lambda_time,

@@ -22,11 +22,11 @@
 #' @importFrom rlang .data
 #' @import survival
 #' @export
-posterior <- function(data, cutpoint, prior, N_mcmc, single_arm) {
+posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
 
-  n_intervals <- length(cutpoint)
+  n_intervals <- length(cutpoints)
 
-  ik <- cutpoint[-1] # Note: survSplit() doesn't like cuts at 0, so ik = inner knots
+  ik <- cutpoints[-1] # Note: survSplit() doesn't like cuts at 0, so ik = inner knots
   if (length(ik) == 0) {
     ik <- max(data$time)
   }

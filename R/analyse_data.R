@@ -24,7 +24,7 @@
 #' @export
 analyse_data <- function(
   data,
-  cutpoint,
+  cutpoints,
   end_of_study,
   prior,
   N_mcmc,
@@ -42,14 +42,14 @@ analyse_data <- function(
   if (method == "bayes") {
     # Posterior distribution of lambdas: imputed data
     post_lambda_imp <- posterior(data       = data,
-                                 cutpoint   = cutpoint,
+                                 cutpoints  = cutpoints,
                                  prior      = prior,
                                  N_mcmc     = N_mcmc,
                                  single_arm = single_arm)
 
     # Posterior distribution of event proportions: imputed data
     post_imp <- haz_to_prop(post         = post_lambda_imp,
-                            cutpoint     = cutpoint,
+                            cutpoints    = cutpoints,
                             end_of_study = end_of_study,
                             single_arm   = single_arm)
 

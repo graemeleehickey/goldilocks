@@ -6,8 +6,8 @@
 #' @param n integer. The number of random samples to generate. Default is
 #'   \code{n=1}.
 #' @param hazard vector. The constant hazard rates for exponential failures.
-#' @param cutpoint vector. The change-point vector indicating time when the
-#'   hazard rates change. Note the first element of \code{cutpoint} should
+#' @param cutpoints vector. The change-point vector indicating time when the
+#'   hazard rates change. Note the first element of \code{cutpoints} should
 #'   always be 0.
 #' @param maxtime scalar. Maximum time before end of study.
 #'
@@ -22,24 +22,24 @@
 #' @export
 #'
 #' @examples
-#' pwe_sim(10, hazard = c(0.005, 0.001), cutpoint = c(0, 3), maxtime = 36)
+#' pwe_sim(10, hazard = c(0.005, 0.001), cutpoints = c(0, 3), maxtime = 36)
 #' y <- pwe_sim(n = 1, hazard = c(2.585924e-02, 3.685254e-09),
-#'              cutpoint = c(0, 12))
-pwe_sim <- function(n = 1, hazard = 1, cutpoint = 0, maxtime = NULL) {
+#'              cutpoints = c(0, 12))
+pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
 
-  # Check: 'cutpoint' should be same length as hazard
-  if (length(cutpoint) != length(hazard)) {
-    stop("Length of 'cutpoint' must be equal to length of rate")
+  # Check: 'cutpoints' should be same length as hazard
+  if (length(cutpoints) != length(hazard)) {
+    stop("Length of 'cutpoints' must be equal to length of rate")
   }
 
-  # Check: first element of 'cutpoint' should be 0
-  if (cutpoint[1] != 0) {
-    stop("First element of 'cutpoint' should be 0")
+  # Check: first element of 'cutpoints' should be 0
+  if (cutpoints[1] != 0) {
+    stop("First element of 'cutpoints' should be 0")
   }
 
-  # Check: 'cutpoint' is increasing
-  if (is.unsorted(cutpoint)) {
-    stop("'cutpoint' should be in increasing order")
+  # Check: 'cutpoints' is increasing
+  if (is.unsorted(cutpoints)) {
+    stop("'cutpoints' should be in increasing order")
   }
 
   # Check: 'maxtime' is positive or NULL
@@ -52,7 +52,7 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoint = 0, maxtime = NULL) {
   if (length(hazard) == 1) {
     ret <- rexp(n, rate = hazard)
   } else {
-    ret <- PWEALL::rpwe(n, rate = hazard, tchange = cutpoint)$r
+    ret <- PWEALL::rpwe(n, rate = hazard, tchange = cutpoints)$r
   }
 
   if (!is.null(maxtime)) {
@@ -94,12 +94,12 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoint = 0, maxtime = NULL) {
 #' @export
 #'
 #' @examples
-#' pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoint = c(0, 12))
-#' pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoint = c(0, 12),
+#' pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = c(0, 12))
+#' pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = c(0, 12),
 #'            maxtime = 36)
 #' pwe_impute(time = 19.621870008, hazard = c(2.585924e-02, 3.685254e-09),
-#'            cutpoint = c(0, 12), maxtime = 36)
-pwe_impute <- function(time, hazard, cutpoint = 0, maxtime = NULL) {
+#'            cutpoints = c(0, 12), maxtime = 36)
+pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
 
   # Check: 'hazard' is positive
   if (any(hazard < 0)) {
@@ -119,16 +119,16 @@ pwe_impute <- function(time, hazard, cutpoint = 0, maxtime = NULL) {
   }
 
   # Use inverse CDF to get conditional samples
-  Fs <- PWEALL::pwe(t = time, rate = hazard, tchange = cutpoint)$dist
+  Fs <- PWEALL::pwe(t = time, rate = hazard, tchange = cutpoints)$dist
   U <- runif(length(time))
-  time_imp <- PWEALL::qpwe(U*(1 - Fs) + Fs, hazard, cutpoint)$q
+  time_imp <- PWEALL::qpwe(U*(1 - Fs) + Fs, hazard, cutpoints)$q
 
   # impute1 <- function(s) {
-  #   Fs <- bayesDP::ppexp(s, hazard, cutpoint)
+  #   Fs <- bayesDP::ppexp(s, hazard, cutpoints)
   #   u <- runif(1)
-  #   PWEALL::qpwe(u*(1 - Fs) + Fs, hazard, cutpoint)$q
-  #   #msm::qpexp(u*(1 - Fs) + Fs, hazard, cutpoint)
-  #   #rpact::qpwexp(u*(1 - Fs) + Fs, lambda = hazard, s = cutpoint)
+  #   PWEALL::qpwe(u*(1 - Fs) + Fs, hazard, cutpoints)$q
+  #   #msm::qpexp(u*(1 - Fs) + Fs, hazard, cutpoints)
+  #   #rpact::qpwexp(u*(1 - Fs) + Fs, lambda = hazard, s = cutpoints)
   # }
   #
   # time_imp <- sapply(time, impute1)

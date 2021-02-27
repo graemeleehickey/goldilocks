@@ -29,9 +29,9 @@
 #'   }
 #'
 #' @export
-haz_to_prop <- function(post, cutpoint, end_of_study, single_arm) {
+haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
 
-  if (length(cutpoint) == 1) {
+  if (length(cutpoints) == 1) {
     # Standard exponential for when no internal cutpoints
     p_treatment <- pexp(q    = end_of_study,
                         rate = post[, , 1])
@@ -46,20 +46,20 @@ haz_to_prop <- function(post, cutpoint, end_of_study, single_arm) {
     # p_treatment <- bayesDP::ppexp(
     #   q = end_of_study,
     #   x = post[, , 1],
-    #   cuts = cutpoint)
+    #   cuts = cutpoints)
     p_treatment <- PWEALL::pwe(
       t       = end_of_study,
       rate    = post[, , 1],
-      tchange = cutpoint)$dist
+      tchange = cutpoints)$dist
     if (!single_arm) {
       # p_control <- bayesDP::ppexp(
       #   q = end_of_study,
       #   x = post[, , 2],
-      #   cuts = cutpoint)
+      #   cuts = cutpoints)
       p_control <- PWEALL::pwe(
         t       = end_of_study,
         rate    = post[, , 2],
-        tchange = cutpoint)$dist
+        tchange = cutpoints)$dist
     } else {
       p_control <- NA
     }

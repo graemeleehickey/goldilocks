@@ -8,10 +8,10 @@ endpoint}
 survival_adapt(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoint = 0,
+  cutpoints = 0,
   N_total,
   lambda = 0.3,
-  lambda_time = NULL,
+  lambda_time = 0,
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
@@ -35,7 +35,9 @@ survival_adapt(
 
 \item{hazard_control}{vector. Constant hazard rates under the control arm.}
 
-\item{cutpoint}{vector. Default is \code{cutpoint = 0}.}
+\item{cutpoints}{vector. Times at which the baseline hazard changes. Default
+is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
+exponential model.}
 
 \item{N_total}{integer. Maximum sample size allowable}
 
@@ -235,10 +237,10 @@ non-informative process. This can be used with any \code{method}.
 survival_adapt(
  hazard_treatment = -log(0.85) / 36,
  hazard_control = -log(0.7) / 36,
- cutpoint = 0,
+ cutpoints = 0,
  N_total = 600,
  lambda = 20,
- lambda_time = NULL,
+ lambda_time = 0,
  interim_look = 400,
  end_of_study = 36,
  prior = c(0.1, 0.1),

@@ -8,7 +8,7 @@ parameters and treatment effect}
 sim_trials(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoint = 0,
+  cutpoints = 0,
   N_total,
   lambda = 0.3,
   lambda_time = NULL,
@@ -36,7 +36,9 @@ sim_trials(
 
 \item{hazard_control}{vector. Constant hazard rates under the control arm.}
 
-\item{cutpoint}{vector. Default is \code{cutpoint = 0}.}
+\item{cutpoints}{vector. Times at which the baseline hazard changes. Default
+is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
+exponential model.}
 
 \item{N_total}{integer. Maximum sample size allowable}
 
@@ -141,10 +143,10 @@ ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
 out <- sim_trials(
   hazard_treatment = ht,
   hazard_control = hc,
-  cutpoint = c(0, 12),
+  cutpoints = c(0, 12),
   N_total = 600,
   lambda = 20,
-  lambda_time = NULL,
+  lambda_time = 0,
   interim_look = c(400, 500),
   end_of_study = 36,
   prior = c(0.1, 0.1),
