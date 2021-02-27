@@ -24,12 +24,14 @@
 #'   to treatment. Integer values mapping the size of the block. See
 #'   \code{\link{randomization}} for more details.
 #' @param prop_loss_to_followup scalar. Overall proportion of subjects lost to
-#'   follow-up.
+#'   follow-up. Defaults to zero.
 #' @param alternative character. The string specifying the alternative
 #'   hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 #'   \code{"two.sided"}.
 #' @param h0 scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
-#'   p_\textrm{control}}. Default is \code{h0 = 0}.
+#'   p_\textrm{control}} when \code{method = "bayes"}. Default is \code{h0 = 0}.
+#'   The argument is ignored when \code{method = "logrank"} or \code{= "cox"};
+#'   in those cases the usual test of non-equal hazards is assumed.
 #' @param Fn vector of \code{[0, 1]} values. Each element is the probability
 #'   threshold to stop at the \eqn{i}-th look early for futility. If there are
 #'   no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
@@ -215,7 +217,7 @@ survival_adapt <- function(
   prior                 = c(0.1, 0.1),
   block                 = 2,
   rand_ratio            = c(1, 1),
-  prop_loss_to_followup = 0.10,
+  prop_loss_to_followup = 0,
   alternative           = "greater",
   h0                    = 0,
   Fn                    = 0.05,
@@ -224,7 +226,7 @@ survival_adapt <- function(
   N_impute              = 10,
   N_mcmc                = 100,
   method                = "logrank",
-  imputed_final         = TRUE,
+  imputed_final         = FALSE,
   debug                 = FALSE
 ) {
 
@@ -332,9 +334,11 @@ survival_adapt <- function(
   event[group == 1] <- sim_treatment$event
 
   # Simulate loss to follow-up
-  n_loss_to_fu <- ceiling(prop_loss_to_followup * N_total)
   loss_to_fu   <- rep(FALSE, N_total)
-  loss_to_fu[sample(1:N_total, n_loss_to_fu)] <- TRUE
+  if (prop_loss_to_followup > 0) {
+    n_loss_to_fu <- ceiling(prop_loss_to_followup * N_total)
+    loss_to_fu[sample(1:N_total, n_loss_to_fu)] <- TRUE
+  }
 
   # Creating a new data.frame for all the variables
   data_total <- data.frame(
@@ -346,9 +350,11 @@ survival_adapt <- function(
     loss_to_fu = loss_to_fu)
 
   # Subjects lost are uniformly distributed
-  data_total$time[data_total$loss_to_fu]  <- runif(
-    n_loss_to_fu, 0, data_total$time[data_total$loss_to_fu])
-  data_total$event[data_total$loss_to_fu] <- rep(0, n_loss_to_fu)
+  if (prop_loss_to_followup > 0) {
+    data_total$time[data_total$loss_to_fu]  <- runif(
+      n_loss_to_fu, 0, data_total$time[data_total$loss_to_fu])
+    data_total$event[data_total$loss_to_fu] <- rep(0, n_loss_to_fu)
+  }
 
   # KM plot for actual simulated data
   if (debug) {

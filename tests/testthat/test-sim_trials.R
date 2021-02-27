@@ -1,6 +1,6 @@
 test_that("sim_trials-logrank", {
-  hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
-  ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
+  hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
+  ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
 
   out <- sim_trials(
     hazard_treatment = ht,
@@ -33,8 +33,8 @@ test_that("sim_trials-logrank", {
 })
 
 test_that("sim_trials-bayes", {
-  hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
-  ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
+  hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
+  ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
 
   out <- sim_trials(
     hazard_treatment = ht,
@@ -67,8 +67,8 @@ test_that("sim_trials-bayes", {
 })
 
 test_that("sim_trials-zero_cores", {
-  hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
-  ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
+  hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
+  ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
 
   expect_error(
     sim_trials(

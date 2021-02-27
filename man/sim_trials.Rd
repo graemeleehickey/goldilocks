@@ -66,14 +66,16 @@ to treatment. Integer values mapping the size of the block. See
 \code{\link{randomization}} for more details.}
 
 \item{prop_loss_to_followup}{scalar. Overall proportion of subjects lost to
-follow-up.}
+follow-up. Defaults to zero.}
 
 \item{alternative}{character. The string specifying the alternative
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \code{"two.sided"}.}
 
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
-p_\textrm{control}}. Default is \code{h0 = 0}.}
+  p_\textrm{control}} when \code{method = "bayes"}. Default is \code{h0 = 0}.
+The argument is ignored when \code{method = "logrank"} or \code{= "cox"};
+in those cases the usual test of non-equal hazards is assumed.}
 
 \item{Fn}{vector of \code{[0, 1]} values. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for futility. If there are
@@ -133,8 +135,8 @@ not possible to use the \code{\link[parallel]{mclapply}} function with
 \code{ncores} \eqn{>1}.
 }
 \examples{
-hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
-ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
+hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
+ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
 
 out <- sim_trials(
   hazard_treatment = ht,

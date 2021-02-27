@@ -49,7 +49,9 @@ hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \code{"two.sided"}.}
 
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
-p_\textrm{control}}. Default is \code{h0 = 0}.}
+  p_\textrm{control}} when \code{method = "bayes"}. Default is \code{h0 = 0}.
+The argument is ignored when \code{method = "logrank"} or \code{= "cox"};
+in those cases the usual test of non-equal hazards is assumed.}
 }
 \value{
 A list with 2 elements:

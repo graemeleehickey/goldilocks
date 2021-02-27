@@ -77,8 +77,8 @@ test_that("survival_adapt-cox", {
 })
 
 test_that("survival_adapt-complex", {
-  hc <- prop_to_haz(c(0.20, 0.25, 0.30), c(6, 12), 24)
-  ht <- prop_to_haz(c(0.05, 0.10, 0.15), c(6, 12), 24)
+  hc <- prop_to_haz(c(0.20, 0.25, 0.30), c(0, 6, 12), 24)
+  ht <- prop_to_haz(c(0.05, 0.10, 0.15), c(0, 6, 12), 24)
 
   out <- survival_adapt(
     hazard_treatment = ht,
