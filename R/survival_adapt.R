@@ -23,7 +23,7 @@
 #' @param rand_ratio vector. Randomization allocation for the ratio of control
 #'   to treatment. Integer values mapping the size of the block. See
 #'   \code{\link{randomization}} for more details.
-#' @param prop_loss_to_followup scalar. Overall proportion of subjects lost to
+#' @param prop_loss scalar. Overall proportion of subjects lost to
 #'   follow-up. Defaults to zero.
 #' @param alternative character. The string specifying the alternative
 #'   hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
@@ -196,7 +196,7 @@
 #'  prior = c(0.1, 0.1),
 #'  block = 2,
 #'  rand_ratio = c(1, 1),
-#'  prop_loss_to_followup = 0.30,
+#'  prop_loss = 0.30,
 #'  alternative = "less",
 #'  h0 = 0,
 #'  Fn = 0.05,
@@ -207,27 +207,27 @@
 #'  method = "bayes")
 survival_adapt <- function(
   hazard_treatment,
-  hazard_control        = NULL,
-  cutpoint              = 0,
+  hazard_control    = NULL,
+  cutpoint          = 0,
   N_total,
-  lambda                = 0.3,
-  lambda_time           = NULL,
-  interim_look          = NULL,
+  lambda            = 0.3,
+  lambda_time       = NULL,
+  interim_look      = NULL,
   end_of_study,
-  prior                 = c(0.1, 0.1),
-  block                 = 2,
-  rand_ratio            = c(1, 1),
-  prop_loss_to_followup = 0,
-  alternative           = "greater",
-  h0                    = 0,
-  Fn                    = 0.05,
-  Sn                    = 0.9,
-  prob_ha               = 0.95,
-  N_impute              = 10,
-  N_mcmc                = 100,
-  method                = "logrank",
-  imputed_final         = FALSE,
-  debug                 = FALSE
+  prior             = c(0.1, 0.1),
+  block             = 2,
+  rand_ratio        = c(1, 1),
+  prop_loss         = 0,
+  alternative       = "greater",
+  h0                = 0,
+  Fn                = 0.05,
+  Sn                = 0.9,
+  prob_ha           = 0.95,
+  N_impute          = 10,
+  N_mcmc            = 100,
+  method            = "logrank",
+  imputed_final     = FALSE,
+  debug             = FALSE
 ) {
 
   # Check: 'interim_look' bounded by maximum sample size
@@ -335,8 +335,8 @@ survival_adapt <- function(
 
   # Simulate loss to follow-up
   loss_to_fu   <- rep(FALSE, N_total)
-  if (prop_loss_to_followup > 0) {
-    n_loss_to_fu <- ceiling(prop_loss_to_followup * N_total)
+  if (prop_loss > 0) {
+    n_loss_to_fu <- ceiling(prop_loss * N_total)
     loss_to_fu[sample(1:N_total, n_loss_to_fu)] <- TRUE
   }
 
@@ -350,7 +350,7 @@ survival_adapt <- function(
     loss_to_fu = loss_to_fu)
 
   # Subjects lost are uniformly distributed
-  if (prop_loss_to_followup > 0) {
+  if (prop_loss > 0) {
     data_total$time[data_total$loss_to_fu]  <- runif(
       n_loss_to_fu, 0, data_total$time[data_total$loss_to_fu])
     data_total$event[data_total$loss_to_fu] <- rep(0, n_loss_to_fu)

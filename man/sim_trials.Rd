@@ -17,7 +17,7 @@ sim_trials(
   prior = c(0.1, 0.1),
   block = 2,
   rand_ratio = c(1, 1),
-  prop_loss_to_followup = 0.1,
+  prop_loss = 0,
   alternative = "greater",
   h0 = 0,
   Fn = 0.05,
@@ -65,7 +65,7 @@ distribution used is Gamma(0.1, 0.1), which is specified by setting
 to treatment. Integer values mapping the size of the block. See
 \code{\link{randomization}} for more details.}
 
-\item{prop_loss_to_followup}{scalar. Overall proportion of subjects lost to
+\item{prop_loss}{scalar. Overall proportion of subjects lost to
 follow-up. Defaults to zero.}
 
 \item{alternative}{character. The string specifying the alternative
@@ -150,7 +150,7 @@ out <- sim_trials(
   prior = c(0.1, 0.1),
   block = 2,
   rand_ratio = c(1, 1),
-  prop_loss_to_followup = 0.30,
+  prop_loss = 0.30,
   alternative = "two.sided",
   h0 = 0,
   Fn = 0.05,
