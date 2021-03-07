@@ -25,6 +25,7 @@ License: GPL-3 | file LICENSE
 Encoding: UTF-8
 LazyData: true
 Depends:
+    R (>= 3.6.0),
     survival
 Imports:
     dplyr,
@@ -37,8 +38,11 @@ Imports:
     stats
 Suggests: 
     covr,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
 Language: en-US
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Config/testthat/edition: 3
+VignetteBuilder: knitr

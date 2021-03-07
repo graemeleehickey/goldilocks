@@ -5,3 +5,4 @@
 ^\.travis\.yml$
 ^\.github$
 ^appveyor\.yml$
+data-raw

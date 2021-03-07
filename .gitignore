@@ -28,3 +28,4 @@ vignettes/*.pdf
 *.knit.md
 # R Environment Variables
 .Renviron
+inst/doc
