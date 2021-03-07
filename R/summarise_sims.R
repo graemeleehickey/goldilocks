@@ -30,7 +30,7 @@ summarise_sims <- function(data) {
       "type_2_error"  = mean(!.data$stop_futility & .data$post_prob_ha > .data$prob_threshold),
       "stop_success"  = mean(.data$stop_expected_success),
       "stop_futility" = mean(.data$stop_futility),
-      "stop_max_N"    = mean(!(.data$stop_expected_success == 1 | .data$stop_futility == 1)),
+      "stop_max_N"    = 1 - mean(.data$stop_success) - mean(.data$stop_futility),
       "mean_N"        = mean(.data$N_enrolled),
       "sd_N"          = sd(.data$N_enrolled),
       "stop_and_fail" = mean(.data$stop_expected_success & .data$post_prob_ha <= .data$prob_threshold)
