@@ -1,10 +1,10 @@
 Package: goldilocks
-Title: Goldilocks Adaptive Trial Designs
+Title: Goldilocks Adaptive Trial Designs for Time-to-Event Endpoints
 Version: 0.2.1
 Authors@R: c(
-    person(given = "Graeme", family = "Hickey",
+    person(given = "Graeme L.", family = "Hickey",
            role = c("aut", "cre"),
-           email = "graeme.hickey@bd.com",
+           email = "graemeleehickey@gmail.com",
            comment = c(ORCID = "0000-0002-4989-0054")),
     person(given = "Ying", family = "Wan",
            role = "aut",
