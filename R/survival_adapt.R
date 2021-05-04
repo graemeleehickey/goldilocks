@@ -232,6 +232,7 @@ survival_adapt <- function(
   debug             = FALSE
 ) {
 
+
   # Check: 'interim_look' bounded by maximum sample size
   if (!is.null(interim_look)) {
     stopifnot(all(N_total > interim_look))
@@ -398,6 +399,11 @@ survival_adapt <- function(
       # - time_from_rand_at_look:  time from randomization to sample size look
       #                            e.g. if patient enrolled month 3, but look occurs month 7,
       #                            then patient could potentially be observed for 4 months
+
+      if (debug) {
+        print(paste("Look:", i))
+      }
+
       data_interim <- within(data_total, {
         subject_enrolled = (id <= analysis_at_enrollnumber[i])
         subject_impute_futility = !subject_enrolled
@@ -452,6 +458,10 @@ survival_adapt <- function(
 
       for (j in 1:N_impute) {
 
+        if (debug) {
+          print(paste("Imputation:", j))
+        }
+
         ##########################################################################
         ### Expected success computations
         ##########################################################################
@@ -484,6 +494,10 @@ survival_adapt <- function(
                  xlab = "Time",
                  ylab = "Freedom from event")
           }
+        }
+
+        if (debug) {
+          print("Expected success")
         }
 
         # Apply primary analysis to imputed data
@@ -537,6 +551,10 @@ survival_adapt <- function(
                    xlab = "Time",
                    ylab = "Freedom from event")
             }
+          }
+
+          if (debug) {
+            print("Futility")
           }
 
           # Apply primary analysis to imputed data

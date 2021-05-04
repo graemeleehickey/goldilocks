@@ -77,6 +77,9 @@ test_that("survival_adapt-cox", {
 })
 
 test_that("survival_adapt-complex", {
+
+  skip_on_cran()
+
   hc <- prop_to_haz(c(0.20, 0.25, 0.30), c(0, 6, 12), 24)
   ht <- prop_to_haz(c(0.05, 0.10, 0.15), c(0, 6, 12), 24)
 
@@ -84,9 +87,9 @@ test_that("survival_adapt-complex", {
   out <- survival_adapt(
     hazard_treatment = ht,
     hazard_control = hc,
-    cutpoints = c(0, 6, 12),
+    cutpoints = c(0, 3, 6),
     N_total = 400,
-    lambda = c(10, 12),
+    lambda = c(6, 8),
     lambda_time = c(0, 6),
     interim_look = c(90, 210),
     end_of_study = 24,
