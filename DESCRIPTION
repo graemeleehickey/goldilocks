@@ -30,7 +30,6 @@ Depends:
 Imports:
     dplyr,
     fastlogranktest,
-    MASS,
     parallel,
     pbmcapply,
     PWEALL,
