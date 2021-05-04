@@ -48,6 +48,21 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
               tot_events = sum(.data$event)) %>%
     ungroup()
 
+  # If a time-interval has zero subjects at a given interim analysis, it will
+  # mean that there is zero exposure time and events for that stratum. To avoid
+  # unrealistic hazard parameter estimates, we propagate the exposure time and
+  # event counts from the last non-zero stratum. This is equivalent to
+  # independent draws from Gamma posterior from the last non-zero stratum.
+  if (any(data_summ$n == 0)) {
+    get_i <- which(data_summ$n == 0)
+    for (i in get_i) {
+      if (i == 1) {
+        stop("No subjects in first strata")
+      }
+      data_summ[i, c("tot_time", "tot_events")] <- data_summ[(i - 1), c("tot_time", "tot_events")]
+    }
+  }
+
   post <- array(dim = c(N_mcmc, n_intervals, 2))
   post_treatment <- matrix(nrow = N_mcmc, ncol = n_intervals)
   post_control <- matrix(nrow = N_mcmc, ncol = n_intervals)
