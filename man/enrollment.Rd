@@ -58,6 +58,6 @@ enrollment(lambda = c(0.3, 0.5, 0.9, 1.2, 2.1), N_total = 200,
 }
 \seealso{
 This function is based on the \code{enrollment} function from the
-\href{https://cran.r-project.org/web/packages/bayesCT/index.html}{\code{bayesCT}}
+\href{https://cran.r-project.org/package=bayesCT}{\code{bayesCT}}
 R package.
 }

@@ -40,7 +40,7 @@
 #'   in days.
 #'
 #' @seealso This function is based on the \code{enrollment} function from the
-#'   [\code{bayesCT}](https://cran.r-project.org/web/packages/bayesCT/index.html)
+#'   [\code{bayesCT}](https://cran.r-project.org/package=bayesCT)
 #'    R package.
 #'
 #' @importFrom stats rpois
