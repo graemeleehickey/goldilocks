@@ -15,10 +15,9 @@
 #'   (\code{subject_impute_success}) or futility
 #'   (\code{subject_impute_futility}).
 #' @param hazard array. Hazard parameters for the piecewise exponential
-#'   distribution. This will most likely be a single sample from a posterior
-#'   distribution. A single slice of the array is passed, meaning it must have
-#'   dimensions 1 (rows), \eqn{J} (columns), and 2 (third dimension, in order of
-#'   treatment and control).
+#'   distribution. This should be a single sample from a posterior distribution.
+#'   The single slice must have dimensions 1 (rows), \eqn{J} (columns), and 2
+#'   (third dimension, in order of treatment and control).
 #' @param type character. Whether imputation is for \code{success} or
 #'   \code{futility}.
 #'
@@ -32,6 +31,8 @@
 #' @export
 impute_data <- function(data_in, hazard, end_of_study, cutpoints, type,
                         single_arm) {
+
+  stopifnot(dim(hazard)[1] == 1) # otherwise, need to use vectorized ppwe()
 
   ## Expected success
   if (type == "success") {

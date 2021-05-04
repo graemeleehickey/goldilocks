@@ -47,19 +47,17 @@ haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
     #   q = end_of_study,
     #   x = post[, , 1],
     #   cuts = cutpoints)
-    p_treatment <- PWEALL::pwe(
-      t       = end_of_study,
-      rate    = post[, , 1],
-      tchange = cutpoints)$dist
+    p_treatment <- ppwe(hazard = post[, , 1],
+                        end_of_study = end_of_study,
+                        cutpoints = cutpoints)
     if (!single_arm) {
       # p_control <- bayesDP::ppexp(
       #   q = end_of_study,
       #   x = post[, , 2],
       #   cuts = cutpoints)
-      p_control <- PWEALL::pwe(
-        t       = end_of_study,
-        rate    = post[, , 2],
-        tchange = cutpoints)$dist
+      p_control <- ppwe(hazard = post[, , 2],
+                        end_of_study = end_of_study,
+                        cutpoints = cutpoints)
     } else {
       p_control <- NA
     }

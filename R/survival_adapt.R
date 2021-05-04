@@ -497,7 +497,7 @@ survival_adapt <- function(
         }
 
         if (debug) {
-          print("Expected success")
+          print("Testing: expected success")
         }
 
         # Apply primary analysis to imputed data
@@ -554,7 +554,7 @@ survival_adapt <- function(
           }
 
           if (debug) {
-            print("Futility")
+            print("Testing: futility")
           }
 
           # Apply primary analysis to imputed data
@@ -638,7 +638,8 @@ survival_adapt <- function(
                                    N_mcmc     = N_impute,
                                    single_arm = single_arm)
     # Effect matrix + posterior probability
-    effect_final_mat <- matrix(nrow = N_mcmc, ncol = N_impute)
+    effect_final_mat <- matrix(nrow = ifelse(method == "bayes", N_mcmc, 1),
+                               ncol = N_impute)
     post_paa <- vector(length = N_impute)
     # Impute multiple data sets
     for (j in 1:N_impute) {

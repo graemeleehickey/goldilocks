@@ -80,18 +80,18 @@ test_that("survival_adapt-complex", {
 
   skip_on_cran()
 
-  hc <- prop_to_haz(c(0.20, 0.25, 0.30), c(0, 6, 12), 24)
-  ht <- prop_to_haz(c(0.05, 0.10, 0.15), c(0, 6, 12), 24)
+  hc <- prop_to_haz(c(0.20, 0.25, 0.30), c(0, 3, 6), 24)
+  ht <- prop_to_haz(c(0.075, 0.125, 0.175), c(0, 3, 6), 24)
 
   set.seed(12345)
   out <- survival_adapt(
     hazard_treatment = ht,
     hazard_control = hc,
     cutpoints = c(0, 3, 6),
-    N_total = 400,
+    N_total = 500,
     lambda = c(6, 8),
     lambda_time = c(0, 6),
-    interim_look = c(90, 210),
+    interim_look = c(200, 350),
     end_of_study = 24,
     prior = c(0.1, 0.1),
     block = 3,
@@ -102,9 +102,11 @@ test_that("survival_adapt-complex", {
     Fn = 0.05,
     Sn = 0.9,
     prob_ha = 0.95,
-    N_impute = 2,
-    N_mcmc = 2,
-    method = "bayes")
+    N_impute = 20,
+    N_mcmc = 20,
+    method = "bayes",
+    imputed_final = TRUE,
+    debug = TRUE)
 
   expect_s3_class(out, "data.frame")
 })

@@ -121,7 +121,7 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
   # Use inverse CDF to get conditional samples
   Fs <- PWEALL::pwe(t = time, rate = hazard, tchange = cutpoints)$dist
   U <- runif(length(time))
-  time_imp <- PWEALL::qpwe(U*(1 - Fs) + Fs, hazard, cutpoints)$q
+  time_imp <- PWEALL::qpwe(U * (1 - Fs) + Fs, hazard, cutpoints)$q
 
   # impute1 <- function(s) {
   #   Fs <- bayesDP::ppexp(s, hazard, cutpoints)
@@ -148,5 +148,39 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
   }
 
   return(dat)
+
+}
+
+
+#' @title Cumulative distribution function of the PWE for a vectorized hazard
+#'   rate parameter
+#'
+#' @description Extends the \code{\link[PWEALL]{pwe}} function to allow for
+#'   vectorization over the hazard rates.
+#'
+#' @param hazard matrix. A matrix of hazard rate parameters with number of
+#'   columns equal to the length of the \code{cutpoints} vector. The number of
+#'   rows can be anything, and is typically dictated by the number of MCMC
+#'   draws.
+#' @inheritParams pwe_sim
+#' @inheritParams survival_adapt
+#'
+#' @export
+ppwe <- function(hazard, end_of_study, cutpoints) {
+
+  if (ncol(hazard) != length(cutpoints)) {
+    stop("The length of the hazard rates and cutpoints do not match")
+  }
+
+  ppwe_scalar <- function(x, end_of_study, cutpoints) {
+    PWEALL::pwe(
+      t       = end_of_study,
+      rate    = x,
+      tchange = cutpoints)$dist
+  }
+
+  apply(hazard, 1, ppwe_scalar,
+        end_of_study = end_of_study,
+        cutpoints = cutpoints)
 
 }
