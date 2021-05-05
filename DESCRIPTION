@@ -1,6 +1,6 @@
 Package: goldilocks
 Title: Goldilocks Adaptive Trial Designs for Time-to-Event Endpoints
-Version: 0.2.1
+Version: 0.3.0
 Authors@R: c(
     person(given = "Graeme L.", family = "Hickey",
            role = c("aut", "cre"),
@@ -23,7 +23,6 @@ Description: Implements the Goldilocks adaptive trial design for a time to event
     the operating characteristics of different trial designs.
 License: GPL-3 | file LICENSE
 Encoding: UTF-8
-LazyData: true
 Depends:
     R (>= 3.6.0),
     survival

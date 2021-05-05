@@ -6,3 +6,4 @@
 ^\.github$
 ^appveyor\.yml$
 data-raw
+^cran-comments\.md$
