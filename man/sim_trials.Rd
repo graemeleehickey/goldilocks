@@ -119,7 +119,8 @@ means that the final analysis would incorporate right-censoring.}
 }
 \value{
 Data frame with 1 row per simulated trial and columns for key summary
-statistics.
+statistics. See \code{\link{survival_adapt}} for details of what is
+returned in each row.
 }
 \description{
 Simulate multiple clinical trials with fixed input parameters,

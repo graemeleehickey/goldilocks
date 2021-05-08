@@ -21,7 +21,7 @@ Description: Implements the Goldilocks adaptive trial design for a time to event
     distributions. The method closely follows the article by Broglio and
     colleagues <doi:10.1080/10543406.2014.888569>, which allows users to explore
     the operating characteristics of different trial designs.
-License: GPL-3 | file LICENSE
+License: GPL-3
 Encoding: UTF-8
 Depends:
     R (>= 3.6.0),

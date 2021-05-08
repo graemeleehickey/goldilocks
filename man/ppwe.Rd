@@ -20,6 +20,11 @@ will be evaluated.}
 hazard rates change. Note the first element of \code{cutpoints} should
 always be 0.}
 }
+\value{
+A vector of (0, 1) probabilities from evaluation of the PWE
+cumulative distribution function. Length of the vector matches the number
+of rows of the \code{hazard} matrix parameter.
+}
 \description{
 Extends the \code{\link[PWEALL]{pwe}} function to allow for
 vectorization over the hazard rates.

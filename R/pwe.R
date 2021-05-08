@@ -165,6 +165,10 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
 #' @inheritParams pwe_sim
 #' @inheritParams survival_adapt
 #'
+#' @return A vector of (0, 1) probabilities from evaluation of the PWE
+#'   cumulative distribution function. Length of the vector matches the number
+#'   of rows of the `hazard` matrix parameter.
+#'
 #' @export
 ppwe <- function(hazard, end_of_study, cutpoints) {
 

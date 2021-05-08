@@ -14,7 +14,13 @@ simulation scenarios, \code{data} will be a \code{list} object, with each
 element being a \code{data.frame} object.}
 }
 \value{
-Data frame reporting the operating characteristics.
+Data frame reporting the operating characteristics, including the
+type 2 error (which will be equal to the type I error in the null case);
+the proportion of trials that stopped for early expected success, futility,
+or went to the maximum sample size. The average stopping sample size (and
+standard deviation) are also recorded. The proportion of trials that
+stopped early for expected success, yet went to ultimately fail are also
+reported.
 }
 \description{
 Summarize simulations to get operating characteristics

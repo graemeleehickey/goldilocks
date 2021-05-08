@@ -20,7 +20,8 @@
 #'   s_{J})}, with conditions that \eqn{s_0 = 0} and \eqn{s_J = \infty}. Each
 #'   interval corresponds to constant hazard \eqn{\lambda_j}.
 #'
-#' @return Vector of constant hazard rates.
+#' @return Vector of constant hazard rates for each time piece defined by
+#'   `cutpoints`.
 #'
 #' @export
 #'

@@ -21,7 +21,8 @@
 #' @importFrom dplyr %>% summarise group_by ungroup
 #' @importFrom rlang .data
 #' @import survival
-#' @export
+#'
+#' @noRd
 posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
 
   n_intervals <- length(cutpoints)

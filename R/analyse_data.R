@@ -12,16 +12,16 @@
 #'     \item{\code{success}}{
 #'        The mean posterior probability of effect (or 1 - the conventional
 #'        P-value if \code{method = "logrank"} or \code{method = "cox"}).}
-#'     \item{\code{effect}}{
-#'        A sample from the posterior distribution of the effect size. If
-#'        \code{method = "logrank"} or \code{method = "cox"}, then this is
-#'        \code{NULL}.}
+#'     \item{\code{effect}}{ A sample vector from the posterior distribution of
+#'        the effect size. If \code{method = "logrank"} or
+#'        \code{method = "cox"}, then this is \code{NULL}.}
 #' }
 #'
 #' @importFrom stats pchisq
 #' @importFrom fastlogranktest logrank_test
 #' @import survival
-#' @export
+#'
+#' @noRd
 analyse_data <- function(
   data,
   cutpoints,

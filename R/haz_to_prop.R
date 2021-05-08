@@ -28,7 +28,7 @@
 #'       The posterior distribution of the treatment effect.}
 #'   }
 #'
-#' @export
+#' @noRd
 haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
 
   if (length(cutpoints) == 1) {

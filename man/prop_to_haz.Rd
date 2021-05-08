@@ -20,7 +20,8 @@ exponential model.}
 corresponds to. Typically this would be the study endpoint time.}
 }
 \value{
-Vector of constant hazard rates.
+Vector of constant hazard rates for each time piece defined by
+\code{cutpoints}.
 }
 \description{
 Given estimates of the event probability at one or more fixed

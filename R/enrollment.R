@@ -37,7 +37,7 @@
 #'   \code{enrollment(lambda = c(0.3, 0.7, 0.9, 1.2), N_total = 50, lambda_time = c(0, 5, 10, 15))}
 #'
 #' @return A vector of enrollment times (from time of first patient enrollment)
-#'   in days.
+#'   in unit time (e.g. days).
 #'
 #' @seealso This function is based on the \code{enrollment} function from the
 #'   [\code{bayesCT}](https://cran.r-project.org/package=bayesCT)

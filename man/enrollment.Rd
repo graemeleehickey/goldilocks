@@ -19,7 +19,7 @@ Note: final element of \code{lambda} is assumed to be constant as
 }
 \value{
 A vector of enrollment times (from time of first patient enrollment)
-in days.
+in unit time (e.g. days).
 }
 \description{
 Simulate enrollment time using a piecewise Poisson distribution.

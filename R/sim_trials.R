@@ -19,7 +19,8 @@
 #'   \code{ncores} \eqn{>1}.
 #'
 #' @return Data frame with 1 row per simulated trial and columns for key summary
-#'   statistics.
+#'   statistics. See \code{\link{survival_adapt}} for details of what is
+#'   returned in each row.
 #'
 #' @importFrom parallel detectCores
 #' @importFrom pbmcapply pbmclapply
