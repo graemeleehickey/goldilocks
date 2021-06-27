@@ -118,3 +118,7 @@ summarise_sims(list(out_power2$sims, out_t1error2$sims))
 Assuming the treatment arm has an OS rate of 50% at 12-months, the trial would be expected to stop early 89% of time, with an average sample size of 175. Overall, the power is 92%. Conversely, if the treatment arm OS rate is the same as the control arm, 87% of the trials stopped early for expected futility.
 
 Once we have identified a suitable design, we would typically re-run the simulations using a larger number of simulations and, perhaps, imputations.
+
+## References
+
+Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks approach to sample size selection. *Journal of Biopharmaceutical Statistics*, 2014; **24(3)**: 685–705.
