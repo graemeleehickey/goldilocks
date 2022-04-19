@@ -245,7 +245,6 @@ survival_adapt <- function(
   debug             = FALSE
 ) {
 
-
   # Check: 'interim_look' bounded by maximum sample size
   if (!is.null(interim_look)) {
     stopifnot(all(N_total > interim_look))
