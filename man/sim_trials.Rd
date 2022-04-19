@@ -162,7 +162,7 @@ out <- sim_trials(
   prob_ha = 0.975,
   N_impute = 5,
   N_mcmc = 5,
-  N_trials = 2,
   method = "logrank",
+  N_trials = 2,
   ncores = 1)
 }
