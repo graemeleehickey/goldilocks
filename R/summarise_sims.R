@@ -7,9 +7,9 @@
 #'   element being a \code{data.frame} object.
 #'
 #' @return Data frame reporting the operating characteristics, including the
-#'   type 2 error (which will be equal to the type I error in the null case);
-#'   the proportion of trials that stopped for early expected success, futility,
-#'   or went to the maximum sample size. The average stopping sample size (and
+#'   power (which will be equal to the type I error in the null case); the
+#'   proportion of trials that stopped for early expected success, futility, or
+#'   went to the maximum sample size. The average stopping sample size (and
 #'   standard deviation) are also recorded. The proportion of trials that
 #'   stopped early for expected success, yet went to ultimately fail are also
 #'   reported.
@@ -33,7 +33,7 @@ summarise_sims <- function(data) {
   out <- data %>%
     group_by(.data$scenario) %>%
     summarise(
-      "type_2_error"  = mean(!.data$stop_futility & .data$post_prob_ha > .data$prob_threshold),
+      "power"         = mean(!.data$stop_futility & .data$post_prob_ha > .data$prob_threshold),
       "stop_success"  = mean(.data$stop_expected_success),
       "stop_futility" = mean(.data$stop_futility),
       "stop_max_N"    = 1 - mean(.data$stop_success) - mean(.data$stop_futility),
