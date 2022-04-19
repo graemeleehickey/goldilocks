@@ -103,8 +103,9 @@ distribution when using a Bayesian test (\code{method = "bayes"}).}
 \item{method}{character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
 (\code{method = "logrank"}) test, Cox proportional hazards regression model
-Wald test (\code{method = "cox"}), or a fully-Bayesian analysis
-(\code{method = "bayes"}). See Details section.}
+Wald test (\code{method = "cox"}), a fully-Bayesian analysis (\code{method
+  = "bayes"}), or a chi-square test (\code{method = "chisq"}). See Details
+section.}
 
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
@@ -218,6 +219,17 @@ independent posteriors are used to estimate the posterior distribution
 of the difference. A posterior probability is calculated according to
 the specification of the test type (\code{alternative}) and the value of
 the null hypothesis (\code{h0}).
+\item Chi-square test (\code{method = "chisq"}).
+Each (imputed) dataset with both treatment and control arms can be
+compared using a standard chi-square test on the final event status,
+which discards the event time information. The output is a
+\emph{P}-value, and there is no treatment effect reported. The function
+returns \eqn{1 - P}, which is reported in \code{post_prob_ha}. Whilst
+not a posterior probability, it can be contrasted in the same manner.
+For example, if the success threshold is \eqn{P < 0.05}, then one
+requires \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to
+enable simple switching between Bayesian and frequentist paradigms for
+analysis.
 \item Imputed final analysis (\code{imputed_final}).
 The overall final analysis conducted after accrual is suspended and
 follow-up is complete can be analyzed on imputed datasets (default) or

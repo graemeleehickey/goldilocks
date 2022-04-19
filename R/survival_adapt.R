@@ -54,8 +54,9 @@
 #' @param method character. For an imputed data set (or the final data set after
 #'   follow-up is complete), whether the analysis should be a log-rank
 #'   (\code{method = "logrank"}) test, Cox proportional hazards regression model
-#'   Wald test (\code{method = "cox"}), or a fully-Bayesian analysis
-#'   (\code{method = "bayes"}). See Details section.
+#'   Wald test (\code{method = "cox"}), a fully-Bayesian analysis (\code{method
+#'   = "bayes"}), or a chi-square test (\code{method = "chisq"}). See Details
+#'   section.
 #' @param imputed_final logical. Should the final analysis (after all subjects
 #'   have been followed-up to the study end) be based on imputed outcomes for
 #'   subjects who were LTFU (i.e. right-censored with time
@@ -126,6 +127,18 @@
 #'      the specification of the test type (\code{alternative}) and the value of
 #'      the null hypothesis (\code{h0}).
 #'
+#'  * Chi-square test (\code{method = "chisq"}).
+#'      Each (imputed) dataset with both treatment and control arms can be
+#'      compared using a standard chi-square test on the final event status,
+#'      which discards the event time information. The output is a
+#'      \emph{P}-value, and there is no treatment effect reported. The function
+#'      returns \eqn{1 - P}, which is reported in \code{post_prob_ha}. Whilst
+#'      not a posterior probability, it can be contrasted in the same manner.
+#'      For example, if the success threshold is \eqn{P < 0.05}, then one
+#'      requires \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to
+#'      enable simple switching between Bayesian and frequentist paradigms for
+#'      analysis.
+#'
 #'  * Imputed final analysis (\code{imputed_final}).
 #'      The overall final analysis conducted after accrual is suspended and
 #'      follow-up is complete can be analyzed on imputed datasets (default) or
@@ -179,7 +192,7 @@
 #' approach to sample size selection. \emph{Journal of Biopharmaceutical
 #' Statistics}, 2014; 24(3): 685–705.
 #'
-#' @importFrom stats pexp runif sd coef
+#' @importFrom stats pexp runif sd coef chisq.test
 #' @export
 #'
 #' @examples
@@ -253,17 +266,17 @@ survival_adapt <- function(
     stop("The Bayes test can only be used with alternative equal to 'greater' or 'less'")
   }
 
-  # Check: log-rank test only available as a two.sided test
-  if (alternative != "two.sided" & method %in% c("logrank", "cox")) {
-    stop("The log-rank and Cox PH tests can only be applied with a two-sided test")
+  # Check: frequentist tests (currently) only available as two.sided tests
+  if (alternative != "two.sided" & method %in% c("logrank", "cox", "chisq")) {
+    stop("The selected method can only be applied as a two-sided test")
   }
 
   # Assign: indicator of whether single-arm study
   single_arm <- is.null(hazard_control)
 
-  # Check: log-rank test only available for two-armed trials
-  if (single_arm & method %in% c("logrank", "cox")) {
-    stop("The log-rank and Cox PH tests can only be used for two-armed trials")
+  # Check: frequentist tests only available for two-armed trials
+  if (single_arm & method %in% c("logrank", "cox", "chisq")) {
+    stop("The selected method can only be used for two-armed trials")
   }
 
   # Assign: interim look and final look
@@ -343,7 +356,7 @@ survival_adapt <- function(
   event[group == 1] <- sim_treatment$event
 
   # Simulate loss to follow-up
-  loss_to_fu   <- rep(FALSE, N_total)
+  loss_to_fu <- rep(FALSE, N_total)
   if (prop_loss > 0) {
     n_loss_to_fu <- ceiling(prop_loss * N_total)
     loss_to_fu[sample(1:N_total, n_loss_to_fu)] <- TRUE
@@ -604,7 +617,7 @@ survival_adapt <- function(
     ### Effect at interim analysis (where trial stopped)
     ##############################################################################
 
-    # TBC
+    # TODO
     effect_int <- NA
 
     # Number of patients enrolled at trial stop

@@ -2,7 +2,7 @@
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams haz_to_prop
-#' @param data data frame. The time-to-event analysis data to be analyzed per
+#' @param data data frame. The (time-to-event) analysis data to be analyzed per
 #'   the pre-specified analysis method. Generally this will be an imputed data
 #'   set, and the analysis will be looped over multiple imputed datasets.
 #'
@@ -11,10 +11,11 @@
 #' \describe{
 #'     \item{\code{success}}{
 #'        The mean posterior probability of effect (or 1 - the conventional
-#'        P-value if \code{method = "logrank"} or \code{method = "cox"}).}
+#'        P-value if \code{method = "logrank"}, \code{method = "cox"}, or
+#'        \code{method = "chisq"}).}
 #'     \item{\code{effect}}{ A sample vector from the posterior distribution of
-#'        the effect size. If \code{method = "logrank"} or
-#'        \code{method = "cox"}, then this is \code{NULL}.}
+#'        the effect size. If \code{method = "logrank"}, then this is
+#'        \code{NULL}.}
 #' }
 #'
 #' @importFrom stats pchisq
@@ -86,6 +87,19 @@ analyse_data <- function(
     fit_res <- coef(summary(fit_cox))
     success <- 1 - fit_res[5]
     effect <- fit_res[1]
+  }
+
+  ####################################################
+  ### Chi-square test
+  ####################################################
+
+  # Assumes all LTFU subjects have been imputed
+
+  if (method == "chisq") {
+    mat <- with(data, table(event, treatment))
+    fit_cs <- chisq.test(mat, correct = FALSE)
+    success <- 1 - fit_cs$p.val
+    effect <- fit_cs$statistic
   }
 
   return(list(
