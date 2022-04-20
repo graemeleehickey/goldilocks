@@ -84,7 +84,7 @@ sim_trials <- function(
 
   # Check: missing 'ncores' defaults to maximum available (spare 1)
   if (missing(ncores)) {
-    ncores <- min(1, parallel::detectCores() - 1)
+    ncores <- max(1, parallel::detectCores() - 1)
   }
 
   # Check: cannot specify <1 core
