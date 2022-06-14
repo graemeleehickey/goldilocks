@@ -7,6 +7,7 @@
 #'   futility, or final analysis imputation.
 #'
 #' @inheritParams survival_adapt
+#' @inheritParams sim_comp_data
 #' @inheritParams haz_to_prop
 #' @param data_in data frame. The time-to-event data that requires imputation,
 #'   with columns for treatment arm (\code{treatment}, which can be all 1s if

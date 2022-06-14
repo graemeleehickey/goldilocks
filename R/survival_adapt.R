@@ -1,32 +1,14 @@
-#' @title Simulate a single adaptive clinical trial with a time-to-event
+#' @title Simulate a single adaptive clinical trial design with a time-to-event
 #'   endpoint
 #'
-#' @param hazard_treatment vector. Constant hazard rates under the treatment arm.
-#' @param hazard_control vector. Constant hazard rates under the control arm.
-#' @param cutpoints  vector. Times at which the baseline hazard changes. Default
-#'   is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
-#'   exponential model.
-#' @param N_total integer. Maximum sample size allowable
-#' @param lambda vector. Enrollment rates across simulated enrollment times. See
-#'   \code{\link{enrollment}} for more details.
-#' @param lambda_time vector. Enrollment time(s) at which the enrollment rates
-#'   change. Must be same length as lambda. See
-#'   \code{\link{enrollment}} for more details.
+#' @inheritParams sim_comp_data
 #' @param interim_look vector. Sample size for each interim look. Note: the
 #'   maximum sample size should not be included.
-#' @param end_of_study scalar. Length of the study; i.e. time at which endpoint
-#'   will be evaluated.
 #' @param prior vector. The prior distributions for the piecewise hazard rate
 #'   parameters are each \eqn{Gamma(a_0, b_0)}, with specified (known)
 #'   hyper-parameters \eqn{a_0} and \eqn{b_0}. The default non-informative prior
 #'   distribution used is Gamma(0.1, 0.1), which is specified by setting
 #'   \code{prior = c(0.1, 0.1)}.
-#' @param block scalar. Block size for generating the randomization schedule.
-#' @param rand_ratio vector. Randomization allocation for the ratio of control
-#'   to treatment. Integer values mapping the size of the block. See
-#'   \code{\link{randomization}} for more details.
-#' @param prop_loss scalar. Overall proportion of subjects lost to
-#'   follow-up. Defaults to zero.
 #' @param alternative character. The string specifying the alternative
 #'   hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 #'   \code{"two.sided"}.
@@ -154,35 +136,35 @@
 #'   statistics from the analysis, including:
 #'
 #'   \describe{
-#'     \item{\code{N_treatment}}{
+#'     \item{\code{N_treatment:}}{
 #'       integer. The number of patients enrolled in the treatment arm for
 #'       each simulation.}
-#'     \item{\code{N_control}}{
+#'     \item{\code{N_control:}}{
 #'       integer. The number of patients enrolled in the control arm for
 #'       each simulation.}
-#'     \item{\code{est_interim}}{
+#'     \item{\code{est_interim:}}{
 #'       scalar. The treatment effect that was estimated at the time of the
 #'       interim analysis. Note this is not actually used in the final
 #'       analysis.}
-#'     \item{\code{est_final}}{
+#'     \item{\code{est_final:}}{
 #'       scalar. The treatment effect that was estimated at the final analysis.
 #'       Final analysis occurs when either the maximum sample size is reached
 #'       and follow-up complete, or the interim analysis triggered an early
 #'       stopping of enrollment/accrual and follow-up for those subjects is
 #'       complete.}
-#'     \item{\code{post_prob_ha}}{
+#'     \item{\code{post_prob_ha:}}{
 #'       scalar. The corresponding posterior probability from the final
 #'       analysis. If \code{imputed_final} is true, this is calculated as the
 #'       posterior probability of efficacy (or equivalent, depending on how
-#'       \code{alternative} and \code{h0} were specified) for each imputed
+#'       \code{alternative:} and \code{h0} were specified) for each imputed
 #'       final analysis dataset, and then averaged over the \code{N_impute}
 #'       imputations. If \code{method = "logrank"}, \code{post_prob_ha} is
 #'       calculated in the same fashion, but value represents \eqn{1 - P},
 #'       where \eqn{P} denotes the frequentist \eqn{P}-value.}
-#'     \item{\code{stop_futility}}{
+#'     \item{\code{stop_futility:}}{
 #'       integer. A logical indicator of whether the trial was stopped early for
 #'       futility.}
-#'     \item{\code{stop_expected_success}}{
+#'     \item{\code{stop_expected_success:}}{
 #'       integer. A logical indicator of whether the trial was stopped early for
 #'       expected success.}
 #'  }
@@ -192,7 +174,7 @@
 #' approach to sample size selection. \emph{Journal of Biopharmaceutical
 #' Statistics}, 2014; 24(3): 685–705.
 #'
-#' @importFrom stats pexp runif sd coef chisq.test
+#' @importFrom stats pexp coef chisq.test
 #' @export
 #'
 #' @examples
@@ -243,7 +225,7 @@ survival_adapt <- function(
   method            = "logrank",
   imputed_final     = FALSE,
   debug             = FALSE
-) {
+  ) {
 
   ##############################################################################
   ### Run checks on arguments
@@ -257,11 +239,6 @@ survival_adapt <- function(
   # Check: 'alternative' is correctly specified
   if (alternative != "two.sided" & alternative != "greater" & alternative != "less") {
     stop("The input for alternative is wrong")
-  }
-
-  # Check: none of the 'cutpoints' exceed 'end_of_study'
-  if (!is.null(cutpoints)) {
-    stopifnot(any(cutpoints < end_of_study))
   }
 
   # Check: Bayesian test only available as a one-sided test
@@ -325,65 +302,18 @@ survival_adapt <- function(
   ### Simulate complete data for trial
   ##############################################################################
 
-  # Simulate enrollment times
-  enrollment <- enrollment(lambda      = lambda,
-                           N_total     = N_total,
-                           lambda_time = lambda_time)
-  enrollment <- enrollment + runif(length(enrollment))
-  enrollment <- sort(enrollment)
-
-  # Simulate treatment arm assignment
-  if (!single_arm) {
-    group <- randomization(N_total    = N_total,
-                           block      = block,
-                           allocation = rand_ratio)
-  } else {
-    group <- rep(1, N_total)
-  }
-
-  time  <- rep(NA, length = N_total)
-  event <- rep(NA, length = N_total)
-
-  # Simulate TTE outcome
-  # - Note: time = time *from* enrollment
-  if (!single_arm) {
-    sim_control <- pwe_sim(hazard     = hazard_control,
-                           n          = sum(!group),
-                           maxtime    = end_of_study,
-                           cutpoints  = cutpoints)
-    time[group == 0]  <- sim_control$time
-    event[group == 0] <- sim_control$event
-  }
-
-  sim_treatment <- pwe_sim(hazard    = hazard_treatment,
-                           n         = sum(group),
-                           maxtime   = end_of_study,
-                           cutpoints = cutpoints)
-  time[group == 1]  <- sim_treatment$time
-  event[group == 1] <- sim_treatment$event
-
-  # Simulate loss to follow-up
-  loss_to_fu <- rep(FALSE, N_total)
-  if (prop_loss > 0) {
-    n_loss_to_fu <- ceiling(prop_loss * N_total)
-    loss_to_fu[sample(1:N_total, n_loss_to_fu)] <- TRUE
-  }
-
-  # Creating a new data.frame for all the variables
-  data_total <- data.frame(
-    time       = time,
-    treatment  = group,
-    event      = event,
-    enrollment = enrollment,
-    id         = 1:N_total,
-    loss_to_fu = loss_to_fu)
-
-  # Subjects lost are uniformly distributed
-  if (prop_loss > 0) {
-    data_total$time[data_total$loss_to_fu]  <- runif(
-      n_loss_to_fu, 0, data_total$time[data_total$loss_to_fu])
-    data_total$event[data_total$loss_to_fu] <- rep(0, n_loss_to_fu)
-  }
+  data_total <- sim_comp_data(
+    hazard_treatment = hazard_treatment,
+    hazard_control   = hazard_control,
+    cutpoints        = cutpoints,
+    N_total          = N_total,
+    lambda           = lambda,
+    lambda_time      = lambda_time,
+    end_of_study     = end_of_study,
+    block            = block,
+    rand_ratio       = rand_ratio,
+    prop_loss        = prop_loss
+  )
 
   # KM plot for actual simulated data
   if (debug) {
@@ -427,6 +357,8 @@ survival_adapt <- function(
       if (debug) {
         print(paste("Look:", i))
       }
+
+      loss_to_fu <- NA
 
       data_interim <- within(data_total, {
         subject_enrolled = (id <= analysis_at_enrollnumber[i])

@@ -32,7 +32,8 @@ sim_trials(
 )
 }
 \arguments{
-\item{hazard_treatment}{vector. Constant hazard rates under the treatment arm.}
+\item{hazard_treatment}{vector. Constant hazard rates under the treatment
+arm.}
 
 \item{hazard_control}{vector. Constant hazard rates under the control arm.}
 
@@ -46,8 +47,8 @@ exponential model.}
 \code{\link{enrollment}} for more details.}
 
 \item{lambda_time}{vector. Enrollment time(s) at which the enrollment rates
-change. Must be same length as lambda. See
-\code{\link{enrollment}} for more details.}
+change. Must be same length as lambda. See \code{\link{enrollment}} for
+more details.}
 
 \item{interim_look}{vector. Sample size for each interim look. Note: the
 maximum sample size should not be included.}
@@ -67,8 +68,8 @@ distribution used is Gamma(0.1, 0.1), which is specified by setting
 to treatment. Integer values mapping the size of the block. See
 \code{\link{randomization}} for more details.}
 
-\item{prop_loss}{scalar. Overall proportion of subjects lost to
-follow-up. Defaults to zero.}
+\item{prop_loss}{scalar. Overall proportion of subjects lost to follow-up.
+Defaults to zero.}
 
 \item{alternative}{character. The string specifying the alternative
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or

@@ -5,6 +5,7 @@
 #'   and tidily extract the relevant data to generate operating characteristics.
 #'
 #' @inheritParams survival_adapt
+#' @inheritParams sim_comp_data
 #' @param N_trials integer. Number of trials to simulate.
 #' @param ncores integer. Number of cores to use for parallel processing.
 #'

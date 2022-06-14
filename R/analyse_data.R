@@ -1,6 +1,7 @@
 #' @title Perform the final analysis test/method on the complete data
 #'
 #' @inheritParams survival_adapt
+#' @inheritParams sim_comp_data
 #' @inheritParams haz_to_prop
 #' @param data data frame. The (time-to-event) analysis data to be analyzed per
 #'   the pre-specified analysis method. Generally this will be an imputed data

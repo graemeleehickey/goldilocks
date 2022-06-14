@@ -7,6 +7,7 @@
 #'   distribution of the piecewise exponential hazard constant hazard rates.
 #'
 #' @inheritParams survival_adapt
+#' @inheritParams sim_comp_data
 #' @param post array An array of posterior probabilities of the piecewise hazard
 #'   rates (\eqn{\lambda_j}, for \code{j=1, \dots, J}) estimated by
 #'   \code{\link{posterior}}. The array has dimension 3. The first dimension is
