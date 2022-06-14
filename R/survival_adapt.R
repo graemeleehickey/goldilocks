@@ -1,5 +1,5 @@
-#' @title Simulate a single adaptive clinical trial design with a time-to-event
-#'   endpoint
+#' @title Simulate and execute a single adaptive clinical trial design with a
+#'   time-to-event endpoint
 #'
 #' @inheritParams sim_comp_data
 #' @param interim_look vector. Sample size for each interim look. Note: the

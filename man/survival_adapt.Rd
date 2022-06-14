@@ -2,8 +2,8 @@
 % Please edit documentation in R/survival_adapt.R
 \name{survival_adapt}
 \alias{survival_adapt}
-\title{Simulate a single adaptive clinical trial design with a time-to-event
-endpoint}
+\title{Simulate and execute a single adaptive clinical trial design with a
+time-to-event endpoint}
 \usage{
 survival_adapt(
   hazard_treatment,
@@ -157,8 +157,8 @@ expected success.}
 }
 }
 \description{
-Simulate a single adaptive clinical trial design with a time-to-event
-endpoint
+Simulate and execute a single adaptive clinical trial design with a
+time-to-event endpoint
 }
 \details{
 Implements the Goldilocks design method described in Broglio et al.
