@@ -245,6 +245,10 @@ survival_adapt <- function(
   debug             = FALSE
 ) {
 
+  ##############################################################################
+  ### Run checks on arguments
+  ##############################################################################
+
   # Check: 'interim_look' bounded by maximum sample size
   if (!is.null(interim_look)) {
     stopifnot(all(N_total > interim_look))
@@ -255,7 +259,7 @@ survival_adapt <- function(
     stop("The input for alternative is wrong")
   }
 
-  # Check: none of the 'cutpoints' are not more than 'end_of_study'
+  # Check: none of the 'cutpoints' exceed 'end_of_study'
   if (!is.null(cutpoints)) {
     stopifnot(any(cutpoints < end_of_study))
   }
@@ -316,6 +320,10 @@ survival_adapt <- function(
   if (method != "bayes") {
     N_mcmc <- 1
   }
+
+  ##############################################################################
+  ### Simulate complete data for trial
+  ##############################################################################
 
   # Simulate enrollment times
   enrollment <- enrollment(lambda      = lambda,
@@ -392,6 +400,10 @@ survival_adapt <- function(
            ylab = "Freedom from event")
     }
   }
+
+  ##############################################################################
+  ### Evaluate trial at each interim analysis
+  ##############################################################################
 
   # Assigning stop_futility and stop_expected_success
   stop_futility         <- 0
@@ -474,9 +486,9 @@ survival_adapt <- function(
           print(paste("Imputation:", j))
         }
 
-        ##########################################################################
+        ########################################################################
         ### Expected success computations
-        ##########################################################################
+        ########################################################################
 
         # Single imputed data set
         data_success_impute <- impute_data(
@@ -528,9 +540,9 @@ survival_adapt <- function(
           expected_success_test <- expected_success_test + 1
         }
 
-        ##########################################################################
+        ########################################################################
         ### Futility computations
-        ##########################################################################
+        ########################################################################
 
         if (check_futility) {
           # Take the already imputed data for expected success and append on
@@ -612,9 +624,9 @@ survival_adapt <- function(
 
     }
 
-    ##############################################################################
+    ############################################################################
     ### Effect at interim analysis (where trial stopped)
-    ##############################################################################
+    ############################################################################
 
     # TODO
     effect_int <- NA
