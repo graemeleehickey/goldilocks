@@ -44,9 +44,6 @@
 #'   subjects who were LTFU (i.e. right-censored with time
 #'   \code{<end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
 #'   means that the final analysis would incorporate right-censoring.
-#' @param debug logical. If \code{TRUE} can be used to debug aspects of the
-#'   code, including producing Kaplan-Meier graphs at each step of the
-#'   algorithm. Default is \code{debug = FALSE}.
 #'
 #' @details Implements the Goldilocks design method described in Broglio et al.
 #'   (2014). At each interim analysis, two probabilities are computed:
@@ -223,9 +220,7 @@ survival_adapt <- function(
   N_impute          = 10,
   N_mcmc            = 10,
   method            = "logrank",
-  imputed_final     = FALSE,
-  debug             = FALSE
-  ) {
+  imputed_final     = FALSE) {
 
   ##############################################################################
   ### Derive variables
@@ -321,22 +316,6 @@ survival_adapt <- function(
     prop_loss        = prop_loss
   )
 
-  # KM plot for actual simulated data
-  if (debug) {
-    if (!single_arm) {
-      plot(survfit(Surv(time, event) ~ treatment, data = data_total),
-           col  = c(1, 2),
-           main = "Simulated Data: Complete",
-           xlab = "Time",
-           ylab = "Freedom from event")
-    } else if (single_arm) {
-      plot(survfit(Surv(time, event) ~ 1, data = data_total),
-           main = "Simulated Data: Complete",
-           xlab = "Time",
-           ylab = "Freedom from event")
-    }
-  }
-
   ##############################################################################
   ### Evaluate trial at each interim analysis
   ##############################################################################
@@ -359,10 +338,6 @@ survival_adapt <- function(
       # - time_from_rand_at_look:  time from randomization to sample size look
       #                            e.g. if patient enrolled month 3, but look occurs month 7,
       #                            then patient could potentially be observed for 4 months
-
-      if (debug) {
-        print(paste("Look:", i))
-      }
 
       loss_to_fu <- NA
 
@@ -390,22 +365,6 @@ survival_adapt <- function(
                      subset = subject_enrolled,
                      select = c(time, event, treatment))
 
-      # KM plot for masked data at interim analysis
-      if (debug) {
-        if (!single_arm) {
-          plot(survfit(Surv(time, event) ~ treatment, data = data),
-               col  = c(1, 2),
-               main = "Simulated Data: Masked @ IA",
-               xlab = "Time",
-               ylab = "Freedom from event")
-        } else if (single_arm) {
-          plot(survfit(Surv(time, event) ~ 1, data = data),
-               main = "Simulated Data: Masked @ IA",
-               xlab = "Time",
-               ylab = "Freedom from event")
-        }
-      }
-
       # Posterior distribution of lambdas: current data
       post_lambda <- posterior(data       = data,
                                cutpoints  = cutpoints,
@@ -420,9 +379,7 @@ survival_adapt <- function(
 
       for (j in 1:N_impute) {
 
-        if (debug) {
-          print(paste("Imputation:", j))
-        }
+        h <- post_lambda[j, , , drop = FALSE]
 
         ########################################################################
         ### Expected success computations
@@ -431,7 +388,7 @@ survival_adapt <- function(
         # Single imputed data set
         data_success_impute <- impute_data(
           data_in      = data_interim,
-          hazard       = post_lambda[j, , , drop = FALSE],
+          hazard       = h,
           end_of_study = end_of_study,
           cutpoints    = cutpoints,
           type         = "success",
@@ -441,26 +398,6 @@ survival_adapt <- function(
         data <- subset(data_success_impute,
                        subset = subject_enrolled,
                        select = c(time, event, treatment))
-
-        # KM plot for imputed data at interim analysis (expected success)
-        if (debug & (j == 1)) {
-          if (!single_arm) {
-            plot(survfit(Surv(time, event) ~ treatment, data = data),
-                 col  = c(1, 2),
-                 main = "Simulated Data: Imputed For Expected Success",
-                 xlab = "Time",
-                 ylab = "Freedom from event")
-          } else if (single_arm) {
-            plot(survfit(Surv(time, event) ~ 1, data = data),
-                 main = "Simulated Data: Imputed For Expected Success",
-                 xlab = "Time",
-                 ylab = "Freedom from event")
-          }
-        }
-
-        if (debug) {
-          print("Testing: expected success")
-        }
 
         # Apply primary analysis to imputed data
         success <- analyse_data(data         = data,
@@ -489,7 +426,7 @@ survival_adapt <- function(
           # Single imputed data set
           data_futility_impute <- impute_data(
             data_in      = data_success_impute,
-            hazard       = post_lambda[j, , , drop = FALSE],
+            hazard       = h,
             end_of_study = end_of_study,
             cutpoints    = cutpoints,
             type         = "futility",
@@ -498,26 +435,6 @@ survival_adapt <- function(
           # Create data frame for analysis
           data <- subset(data_futility_impute,
                          select = c(time, event, treatment))
-
-          # KM plot for imputed data at interim analysis (futility)
-          if (debug & (j == 1)) {
-            if (!single_arm) {
-              plot(survfit(Surv(time, event) ~ treatment, data = data),
-                   col  = c(1, 2),
-                   main = "Simulated Data: Imputed For Futility",
-                   xlab = "Time",
-                   ylab = "Freedom from event")
-            } else if (single_arm) {
-              plot(survfit(Surv(time, event) ~ 1, data = data),
-                   main = "Simulated Data: Imputed For Futility",
-                   xlab = "Time",
-                   ylab = "Freedom from event")
-            }
-          }
-
-          if (debug) {
-            print("Testing: futility")
-          }
 
           # Apply primary analysis to imputed data
           success <- analyse_data(data         = data,
