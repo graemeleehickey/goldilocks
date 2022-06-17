@@ -121,8 +121,7 @@ sim_trials <- function(
       N_impute         = N_impute,
       N_mcmc           = N_mcmc,
       method           = method,
-      imputed_final    = imputed_final,
-      debug            = FALSE)
+      imputed_final    = imputed_final)
   }
 
   sims <- pbmclapply(1:N_trials, survival_adapt_wrapper, mc.cores = ncores)

@@ -105,8 +105,7 @@ test_that("survival_adapt-complex", {
     N_impute = 20,
     N_mcmc = 20,
     method = "bayes",
-    imputed_final = TRUE,
-    debug = TRUE)
+    imputed_final = TRUE)
 
   expect_s3_class(out, "data.frame")
 })

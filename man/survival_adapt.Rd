@@ -26,8 +26,7 @@ survival_adapt(
   N_impute = 10,
   N_mcmc = 10,
   method = "logrank",
-  imputed_final = FALSE,
-  debug = FALSE
+  imputed_final = FALSE
 )
 }
 \arguments{
@@ -113,10 +112,6 @@ have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time
 \code{<end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
 means that the final analysis would incorporate right-censoring.}
-
-\item{debug}{logical. If \code{TRUE} can be used to debug aspects of the
-code, including producing Kaplan-Meier graphs at each step of the
-algorithm. Default is \code{debug = FALSE}.}
 }
 \value{
 A data frame containing some input parameters (arguments) as well as
