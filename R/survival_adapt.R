@@ -228,6 +228,31 @@ survival_adapt <- function(
   ) {
 
   ##############################################################################
+  ### Derive variables
+  ##############################################################################
+
+  # Indicator of whether single-arm study
+  single_arm <- is.null(hazard_control)
+
+  # Interim look and final look
+  analysis_at_enrollnumber <- c(interim_look, N_total)
+
+  # Futility assessment required?
+  if (is.null(Fn) | all(Fn == 0)) {
+    check_futility <- FALSE
+  } else {
+    check_futility <- TRUE
+  }
+
+  # Number of looks
+  N_looks <- length(analysis_at_enrollnumber)
+
+  # If not using Bayesian test, then set N_mcmc = 1
+  if (method != "bayes") {
+    N_mcmc <- 1
+  }
+
+  ##############################################################################
   ### Run checks on arguments
   ##############################################################################
 
@@ -237,7 +262,7 @@ survival_adapt <- function(
   }
 
   # Check: 'alternative' is correctly specified
-  if (alternative != "two.sided" & alternative != "greater" & alternative != "less") {
+  if (!alternative %in% c("two.sided", "greater", "less")) {
     stop("The input for alternative is wrong")
   }
 
@@ -251,22 +276,9 @@ survival_adapt <- function(
     stop("The selected method can only be applied as a two-sided test")
   }
 
-  # Assign: indicator of whether single-arm study
-  single_arm <- is.null(hazard_control)
-
   # Check: frequentist tests only available for two-armed trials
   if (single_arm & method %in% c("logrank", "cox", "chisq")) {
     stop("The selected method can only be used for two-armed trials")
-  }
-
-  # Assign: interim look and final look
-  analysis_at_enrollnumber <- c(interim_look, N_total)
-
-  # Assign: futility assessment required?
-  if (is.null(Fn) | all(Fn == 0)) {
-    check_futility <- FALSE
-  } else {
-    check_futility <- TRUE
   }
 
   # Check: thresholds of consistent dimension
@@ -275,7 +287,6 @@ survival_adapt <- function(
   }
 
   # Check: thresholds available for each interim look
-  N_looks <- length(analysis_at_enrollnumber)
   if (N_looks <= length(Fn)) {
     stop("More thresholds specified than actual interim looks")
   }
@@ -291,11 +302,6 @@ survival_adapt <- function(
     Sn <- 0
     Fn <- 0
     check_futility <- FALSE
-  }
-
-  # Assign: if not using Bayesian test, then set N_mcmc = 1
-  if (method != "bayes") {
-    N_mcmc <- 1
   }
 
   ##############################################################################
