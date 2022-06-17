@@ -377,82 +377,37 @@ survival_adapt <- function(
       futility_test         <- 0
       expected_success_test <- 0
 
+      # Repeat over each imputation index
       for (j in 1:N_impute) {
 
         h <- post_lambda[j, , , drop = FALSE]
 
-        ########################################################################
-        ### Expected success computations
-        ########################################################################
+        stop_check <- test_stop_success(
+          data           = data_interim,
+          hazard         = h,
+          end_of_study   = end_of_study,
+          cutpoints      = cutpoints,
+          single_arm     = single_arm,
+          prior          = prior,
+          N_mcmc         = N_mcmc,
+          method         = method,
+          alternative    = alternative,
+          h0             = h0,
+          check_futility = check_futility
+        )
 
-        # Single imputed data set
-        data_success_impute <- impute_data(
-          data_in      = data_interim,
-          hazard       = h,
-          end_of_study = end_of_study,
-          cutpoints    = cutpoints,
-          type         = "success",
-          single_arm   = single_arm)
-
-        # Create enrolled subject data frame for analysis
-        data <- subset(data_success_impute,
-                       subset = subject_enrolled,
-                       select = c(time, event, treatment))
-
-        # Apply primary analysis to imputed data
-        success <- analyse_data(data         = data,
-                                cutpoints    = cutpoints,
-                                end_of_study = end_of_study,
-                                prior        = prior,
-                                N_mcmc       = N_mcmc,
-                                single_arm   = single_arm,
-                                method       = method,
-                                alternative  = alternative,
-                                h0           = h0)$success
-
-        # Increase success counter by 1 if P(efficacy | data) > prob_ha
-        if (success > prob_ha) {
+        # Increment counter if P(efficacy | data) > prob_ha
+        prob_now <- stop_check$success_now$success
+        if (prob_now > prob_ha) {
           expected_success_test <- expected_success_test + 1
         }
 
-        ########################################################################
-        ### Futility computations
-        ########################################################################
-
-        if (check_futility) {
-          # Take the already imputed data for expected success and append on
-          # imputed event times for subjects not yet enrolled
-
-          # Single imputed data set
-          data_futility_impute <- impute_data(
-            data_in      = data_success_impute,
-            hazard       = h,
-            end_of_study = end_of_study,
-            cutpoints    = cutpoints,
-            type         = "futility",
-            single_arm   = single_arm)
-
-          # Create data frame for analysis
-          data <- subset(data_futility_impute,
-                         select = c(time, event, treatment))
-
-          # Apply primary analysis to imputed data
-          success <- analyse_data(data         = data,
-                                  cutpoints    = cutpoints,
-                                  end_of_study = end_of_study,
-                                  prior        = prior,
-                                  N_mcmc       = N_mcmc,
-                                  single_arm   = single_arm,
-                                  method       = method,
-                                  alternative  = alternative,
-                                  h0           = h0)$success
-
-          # Increase futility counter by 1 if P(efficacy | data) > prob_ha
-          if (success > prob_ha) {
-            futility_test <- futility_test + 1
-          }
-
+        # Increase futility counter by 1 if P(efficacy | data) > prob_ha
+        prob_max <- stop_check$success_max$success
+        if (check_futility & prob_max > prob_ha) {
+          futility_test <- futility_test + 1
         }
+
       }
 
       # Test if expected success criteria met
