@@ -372,12 +372,11 @@ survival_adapt <- function(
                                N_mcmc     = N_impute,
                                single_arm = single_arm)
 
-      # Imputation phase futility and expected success - initialize counters
-      # for the current imputation phase
+      ##########################################################################
+      ### Loop over multiple imputations
+      ##########################################################################
       futility_test         <- 0
       expected_success_test <- 0
-
-      # Repeat over each imputation index
       for (j in 1:N_impute) {
 
         h <- post_lambda[j, , , drop = FALSE]
