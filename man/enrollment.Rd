@@ -49,7 +49,8 @@ enrollment rate over time:
 Then, to simulate individual patient enrollment dates with a sample size
 (\code{N_total}) of 50, we use
 
-\code{enrollment(lambda = c(0.3, 0.7, 0.9, 1.2), N_total = 50, lambda_time = c(0, 5, 10, 15))}
+\code{enrollment(lambda = c(0.3, 0.7, 0.9, 1.2), N_total = 50,
+        lambda_time = c(0, 5, 10, 15))}
 }
 \examples{
 enrollment(lambda = c(0.003, 0.7), N_total = 100, lambda_time = c(0, 10))

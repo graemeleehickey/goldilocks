@@ -34,7 +34,8 @@
 #'   Then, to simulate individual patient enrollment dates with a sample size
 #'   (\code{N_total}) of 50, we use
 #'
-#'   \code{enrollment(lambda = c(0.3, 0.7, 0.9, 1.2), N_total = 50, lambda_time = c(0, 5, 10, 15))}
+#'   \code{enrollment(lambda = c(0.3, 0.7, 0.9, 1.2), N_total = 50,
+#'         lambda_time = c(0, 5, 10, 15))}
 #'
 #' @return A vector of enrollment times (from time of first patient enrollment)
 #'   in unit time (e.g. days).
@@ -81,7 +82,8 @@ enrollment <- function(lambda = 1, N_total, lambda_time = 0) {
       output <- c(output, rep(count, rpois(1, lambda)))
     }
   } else {
-    # For different lambda values in Poisson distribution as a function of lambda_time
+    # For different lambda values in Poisson distribution as a function of
+    # lambda_time
     while (length(output) < N_total) {
       count <- count + 1
       index <- min(c(which(lambda_time[-1] >= (count - 1)), length(lambda)))
