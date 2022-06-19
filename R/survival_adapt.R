@@ -447,7 +447,7 @@ survival_adapt <- function(
   }
 
   ##############################################################################
-  ### Effect at final analysis (after enrollment complete)
+  ### Final analysis (after enrollment complete)
   ##############################################################################
 
   # All patients that have made it to the end of study
@@ -458,66 +458,20 @@ survival_adapt <- function(
     subject_impute_success = ((event == 0) & (time < end_of_study))
   })
 
-  if (imputed_final) {
-    # Posterior distribution of lambdas: final data
-    post_lambda_final <- posterior(data       = data_final,
-                                   cutpoints  = cutpoints,
-                                   prior      = prior,
-                                   N_mcmc     = N_impute,
-                                   single_arm = single_arm)
-    # Effect matrix + posterior probability
-    effect_final_mat <- matrix(nrow = ifelse(method == "bayes", N_mcmc, 1),
-                               ncol = N_impute)
-    post_paa <- vector(length = N_impute)
-    # Impute multiple data sets
-    for (j in 1:N_impute) {
-      # Single imputed data set
-      data_success_impute <- impute_data(
-        data_in      = data_final,
-        hazard       = post_lambda_final[j, , , drop = FALSE],
-        end_of_study = end_of_study,
-        cutpoints    = cutpoints,
-        type         = "success",
-        single_arm   = single_arm)
+  results_final <- test_final(data_in       = data_final,
+                              cutpoints     = cutpoints,
+                              prior         = prior,
+                              N_mcmc        = N_mcmc,
+                              single_arm    = single_arm,
+                              imputed_final = imputed_final,
+                              method        = method,
+                              N_impute      = N_impute,
+                              alternative   = alternative,
+                              h0            = h0,
+                              end_of_study  = end_of_study)
 
-      # Create enrolled subject data frame for analysis
-      data <- subset(data_success_impute,
-                     select = c(time, event, treatment))
-
-      # Apply primary analysis to imputed data
-      success <- analyse_data(data         = data,
-                              cutpoints    = cutpoints,
-                              end_of_study = end_of_study,
-                              prior        = prior,
-                              N_mcmc       = N_mcmc,
-                              single_arm   = single_arm,
-                              method       = method,
-                              alternative  = alternative,
-                              h0           = h0)
-
-      post_paa[j] <- success$success
-      if (method %in% c("cox", "bayes")) {
-        effect_final_mat[, j] <- success$effect # See Gelman et al. (2004, p. 520)
-      }
-    }
-    # Average over imputations
-    post_paa  <- mean(post_paa)
-    est_final <- mean(effect_final_mat)
-  } else {
-    # Apply primary analysis to final data (without imputation)
-    success <- analyse_data(data         = data_final,
-                            cutpoints    = cutpoints,
-                            end_of_study = end_of_study,
-                            prior        = prior,
-                            N_mcmc       = N_mcmc,
-                            single_arm   = single_arm,
-                            method       = method,
-                            alternative  = alternative,
-                            h0           = h0)
-
-    post_paa <- success$success
-    est_final <- mean(success$effect)
-  }
+  post_paa  <- results_final[1]
+  est_final <- results_final[2]
 
   N_treatment  <- sum(data_final$treatment == 1) # Total sample size analyzed: test group
   N_control    <- sum(data_final$treatment == 0) # Total sample size analyzed: control group
@@ -525,7 +479,7 @@ survival_adapt <- function(
   # Output
   results <- data.frame(
     prob_threshold        = prob_ha,
-    margin                = h0,                       # Margin for error
+    margin                = h0,                       # Margin
     alternative           = alternative,              # Alternative hypothesis
     N_treatment           = N_treatment,
     N_control             = N_control,
