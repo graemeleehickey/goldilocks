@@ -375,6 +375,7 @@ survival_adapt <- function(
       ##########################################################################
       ### Loop over multiple imputations
       ##########################################################################
+
       futility_test         <- 0
       expected_success_test <- 0
       for (j in 1:N_impute) {
@@ -433,15 +434,9 @@ survival_adapt <- function(
 
     }
 
-    ############################################################################
-    ### Effect at interim analysis (where trial stopped)
-    ############################################################################
-
-    # TODO
-    effect_int <- NA
-
     # Number of patients enrolled at trial stop
     N_enrolled <- nrow(data_interim[data_interim$id <= stage_trial_stopped, ])
+
   } else {
     # Assigning stage trial stopped given no interim look
     N_enrolled            <- N_total
@@ -527,12 +522,6 @@ survival_adapt <- function(
   N_treatment  <- sum(data_final$treatment == 1) # Total sample size analyzed: test group
   N_control    <- sum(data_final$treatment == 0) # Total sample size analyzed: control group
 
-  if (length(analysis_at_enrollnumber) > 1) {
-    est_interim <- mean(effect_int) # Posterior treatment effect at the interim analysis (if any)
-  } else {
-    est_interim <- NA
-  }
-
   # Output
   results <- data.frame(
     prob_threshold        = prob_ha,
@@ -545,7 +534,6 @@ survival_adapt <- function(
     post_prob_ha          = post_paa,                 # Posterior probability that alternative hypothesis is true
     est_final             = est_final,                # Posterior treatment effect at final analysis
     ppp_success           = ppp_success,              # Posterior predictive probability of eventual success when trial stopped
-    est_interim           = est_interim,              # Posterior treatment effect at the interim analysis
     stop_futility         = stop_futility,            # Did the trial stop for futility
     stop_expected_success = stop_expected_success     # Did the trial stop for expected success
   )
