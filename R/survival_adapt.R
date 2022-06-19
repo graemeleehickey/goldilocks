@@ -476,8 +476,11 @@ survival_adapt <- function(
   N_treatment  <- sum(data_final$treatment == 1) # Total sample size analyzed: test group
   N_control    <- sum(data_final$treatment == 0) # Total sample size analyzed: control group
 
-  # Output
-  results <- data.frame(
+  ##############################################################################
+  ### Output
+  ##############################################################################
+
+    results <- data.frame(
     prob_threshold        = prob_ha,
     margin                = h0,                       # Margin
     alternative           = alternative,              # Alternative hypothesis
