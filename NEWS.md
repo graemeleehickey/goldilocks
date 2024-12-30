@@ -1,3 +1,17 @@
+# goldilocks 0.4.0
+
+## Main updates
+
+* Because `fastlogranktest` is no longer available on CRAN, a copy of the C++ 
+code and wrapper from the CRAN archive have been included directly into the 
+source code of this package.
+
+## Housekeeping
+
+* Updated GitHub actions workflows
+* Updated README badges
+* Changed logic check in `summarise_sims.R`
+
 # goldilocks 0.3.1
 
 ## Features

@@ -1,3 +1,6 @@
+#' @keywords internal
+"_PACKAGE"
+#' @name goldilocks
 #' @title goldilocks
 #'
 #' @description The goal of `goldilocks` is to implement the Goldilocks Bayesian
@@ -17,9 +20,6 @@
 #' Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks
 #' approach to sample size selection. *Journal of Biopharmaceutical Statistics*,
 #' 2014; **24(3)**: 685–705.
-#'
-#' @docType package
-#' @name goldilocks
 #'
 #' @importFrom utils globalVariables
 NULL

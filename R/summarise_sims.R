@@ -16,7 +16,7 @@
 #' @export
 summarise_sims <- function(data) {
 
-  if (class(data) == "list") {
+  if (inherits(data, "list")) {
     fnames <- names(data)
     if (is.null(fnames)) {
       fnames <- 1:length(data)

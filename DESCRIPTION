@@ -1,6 +1,6 @@
 Package: goldilocks
 Title: Goldilocks Adaptive Trial Designs for Time-to-Event Endpoints
-Version: 0.3.1
+Version: 0.4.0
 Authors@R: c(
     person(given = "Graeme L.", family = "Hickey",
            role = c("aut", "cre"),
@@ -15,7 +15,11 @@ Authors@R: c(
            comment = c(ORCID = "0000-0003-4078-9176",
            "bayesDP code as a template")),
     person(given = "Becton, Dickinson and Company",
-           role = "cph"))
+           role = "cph"),
+    person(given = "Tim", family = "Kacprowski",
+           role = "ctb",
+           email = "t.kacprowski@tu-braunschweig.de",
+           comment = "For code from fastlogrank R package."))
 Description: Implements the Goldilocks adaptive trial design for a time to event
     outcome using a piecewise exponential model and conjugate Gamma prior
     distributions. The method closely follows the article by Broglio and
@@ -30,10 +34,10 @@ Depends:
     survival
 Imports:
     dplyr,
-    fastlogranktest,
     parallel,
     pbmcapply,
     PWEALL,
+    Rcpp,
     rlang,
     stats
 Suggests: 
@@ -41,8 +45,11 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
+LinkingTo:
+    BH,
+    Rcpp
 Language: en-US
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.0
+RoxygenNote: 7.3.2
 Config/testthat/edition: 3
 VignetteBuilder: knitr

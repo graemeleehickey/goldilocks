@@ -20,7 +20,6 @@
 #' }
 #'
 #' @importFrom stats pchisq
-#' @importFrom fastlogranktest logrank_test
 #' @import survival
 #'
 #' @noRd
@@ -72,7 +71,7 @@ analyse_data <- function(
     t1 <- data$time[data$treatment == 1]
     e0 <- data$event[data$treatment == 0]
     e1 <- data$event[data$treatment == 1]
-    p  <- fastlogranktest::logrank_test(t0, t1, e0, e1)[3]
+    p  <- logrank_test(t0, t1, e0, e1)[3]
     # lrt <- survdiff(Surv(time, event) ~ treatment, data = data)
     # p <- pchisq(lrt$chisq, 1, lower.tail = FALSE)
     success <- 1 - p

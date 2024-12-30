@@ -7,10 +7,10 @@
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
-[![R build
-status](https://github.com/graemeleehickey/goldilocks/workflows/R-CMD-check/badge.svg)](https://github.com/graemeleehickey/goldilocks/actions)
-[![codecov](https://codecov.io/gh/graemeleehickey/goldilocks/branch/main/graph/badge.svg?token=9V6BH1Q4K3)](https://codecov.io/gh/graemeleehickey/goldilocks)
 [![](https://cranlogs.r-pkg.org/badges/grand-total/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
+[![Codecov test
+coverage](https://codecov.io/gh/graemeleehickey/goldilocks/graph/badge.svg)](https://app.codecov.io/gh/graemeleehickey/goldilocks)
+[![R-CMD-check](https://github.com/graemeleehickey/goldilocks/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/graemeleehickey/goldilocks/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of `goldilocks` is to implement the Goldilocks Bayesian
@@ -42,16 +42,16 @@ operating characteristics, e.g. type I error and power. Hence, a
 computationally efficient and fast algorithm is helpful. The
 `goldilocks` package takes advantage of many tools to achieve this:
 
--   Log-rank tests are implemented via the
-    [`fastlogranktest`](https://CRAN.R-project.org/package=fastlogranktest)
-    package, which uses a lightweight C++ implementation
+- Log-rank tests are implemented via the
+  [`fastlogranktest`](https://CRAN.R-project.org/package=fastlogranktest)
+  package, which uses a lightweight C++ implementation
 
--   Piecewise exponential simulation is implemented via the
-    [`PWEALL`](https://CRAN.R-project.org/package=PWEALL) package, which
-    uses a lightweight Fortran implementation
+- Piecewise exponential simulation is implemented via the
+  [`PWEALL`](https://CRAN.R-project.org/package=PWEALL) package, which
+  uses a lightweight Fortran implementation
 
--   Simulation of multiple trials can be performed in parallel using the
-    [`pbmcapply`](https://CRAN.R-project.org/package=pbmcapply) package
+- Simulation of multiple trials can be performed in parallel using the
+  [`pbmcapply`](https://CRAN.R-project.org/package=pbmcapply) package
 
 ## References
 
