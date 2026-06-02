@@ -2,19 +2,8 @@
 // [[Rcpp::depends(BH)]]
 #include <cmath>
 #include <boost/math/distributions.hpp>
-#include <iostream>
 #include <vector>
-#include <string>
 #include <algorithm>
-#include <stdio.h>
-#include <thread>
-
-std::vector<std::vector<double>> res;
-std::vector<std::vector<double>> groupas;
-std::vector<std::vector<int>> groupacensoreds;
-std::vector<std::vector<double>> groupbs;
-std::vector<std::vector<int>> groupbcensoreds;
-bool onlyz;
 
 bool compareFunction(std::pair<double, int>& a, std::pair<double, int>& b)
 {
@@ -127,11 +116,5 @@ std::vector<double> logrank_instance(std::vector<double>& groupa, std::vector<do
       //std::cout << pvalue << std::endl;
     }
     return std::vector<double>{static_cast<double>(logrank),static_cast<double>(zstat),pvalue};
-  }
-}
-
-void startthread(unsigned long long start, unsigned long long end) {
-  for (unsigned long long j = start; j < end; ++j) {
-    res[j]=logrank_instance(groupas[j], groupbs[j], groupacensoreds[j], groupbcensoreds[j], onlyz);
   }
 }
