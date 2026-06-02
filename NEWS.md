@@ -1,3 +1,19 @@
+# goldilocks 0.4.1
+
+## Improvements
+
+* Removed unused C++ global variables and dead threading code inherited from the deprecated `fastlogranktest` package.
+* Replaced all uses of the magrittr pipe (`%>%`) with the base pipe (`|>`) in `summarise_sims()` and `posterior()`, and removed the `dplyr::%>%` re-export from the NAMESPACE.
+
+## Housekeeping
+
+* Added unit tests for `enrollment()`, `randomization()`, `pwe_sim()`, `pwe_impute()`, `ppwe()`, `prop_to_haz()`, `sim_comp_data()`, and `summarise_sims()`.
+* Added `_pkgdown.yml` configuration for a documentation website.
+* Added GitHub Actions workflow for pkgdown site deployment.
+* Updated GitHub Actions (`actions/checkout`, `actions/upload-artifact`) from v4 to v5 for Node.js 24 compatibility.
+* Added `.positai` to `.Rbuildignore` to suppress `R CMD check` NOTE.
+* Updated README to clarify that the C++ log-rank code was ported from the now-deprecated `fastlogranktest` package.
+
 # goldilocks 0.4.0
 
 ## Main updates
