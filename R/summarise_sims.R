@@ -30,8 +30,8 @@ summarise_sims <- function(data) {
     data$scenario <- 1
   }
 
-  out <- data %>%
-    group_by(.data$scenario) %>%
+  out <- data |>
+    group_by(.data$scenario) |>
     summarise(
       "power"         = mean(!.data$stop_futility & .data$post_prob_ha > .data$prob_threshold),
       "stop_success"  = mean(.data$stop_expected_success),

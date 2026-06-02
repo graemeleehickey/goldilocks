@@ -18,7 +18,7 @@
 #'   second slice including posterior samples from \code{post_control}.
 #'
 #' @importFrom stats rgamma
-#' @importFrom dplyr %>% summarise group_by ungroup
+#' @importFrom dplyr summarise group_by ungroup
 #' @importFrom rlang .data
 #' @import survival
 #'

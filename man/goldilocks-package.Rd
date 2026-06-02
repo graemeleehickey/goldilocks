@@ -10,6 +10,7 @@ Implements the Goldilocks adaptive trial design for a time to event outcome usin
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://graemeleehickey.github.io/goldilocks/}
   \item \url{https://github.com/graemeleehickey/goldilocks}
   \item Report bugs at \url{https://github.com/graemeleehickey/goldilocks/issues}
 }
