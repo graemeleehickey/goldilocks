@@ -11,13 +11,18 @@
       "head *": "allow",
       "Rscript *": "allow",
       "air *": "allow",
-      "*": "allow"
+      "*": "allow",
+      "git add *": "allow",
+      "git commit *": "allow",
+      "git push *": "allow"
     },
     "edit": {
       "*.R": "allow",
       "*.yml": "allow",
       "*/DESCRIPTION": "allow",
-      "*.yaml": "allow"
+      "*.yaml": "allow",
+      "*.Rmd": "allow",
+      "*.md": "allow"
     },
     "executeCode": {
       "*": "allow"
