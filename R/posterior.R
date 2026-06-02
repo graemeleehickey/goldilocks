@@ -42,11 +42,11 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
   data_survsplit$interval <- factor(data_survsplit$interval,
                                     levels = 1:n_intervals)
 
-  data_summ <- data_survsplit %>%
-    group_by(.data$treatment, .data$interval, .drop = FALSE) %>%
+  data_summ <- data_survsplit |>
+    group_by(.data$treatment, .data$interval, .drop = FALSE) |>
     summarise(n = length(.data$time),
               tot_time = sum(.data$time - .data$tstart),
-              tot_events = sum(.data$event)) %>%
+              tot_events = sum(.data$event)) |>
     ungroup()
 
   # If a time-interval has zero subjects at a given interim analysis, it will
