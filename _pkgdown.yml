@@ -1,0 +1,47 @@
+url: https://graemeleehickey.github.io/goldilocks/
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [intro, reference, articles]
+    right: [search, github]
+  components:
+    github:
+      icon: fa-github
+      href: https://github.com/graemeleehickey/goldilocks
+
+reference:
+  - title: Adaptive trial simulation
+    desc: >
+      Core functions for simulating and summarizing Goldilocks adaptive
+      trial designs.
+    contents:
+      - survival_adapt
+      - sim_trials
+      - summarise_sims
+
+  - title: Trial data generation
+    desc: >
+      Simulate complete trial datasets, including enrollment, randomization,
+      and time-to-event outcomes.
+    contents:
+      - sim_comp_data
+      - enrollment
+      - randomization
+
+  - title: Piecewise exponential utilities
+    desc: >
+      Functions for simulating, imputing, and computing distributions under
+      the piecewise exponential model.
+    contents:
+      - pwe_sim
+      - pwe_impute
+      - ppwe
+      - prop_to_haz
+
+articles:
+  - title: Getting started
+    contents:
+      - broglio

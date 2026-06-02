@@ -1,0 +1,26 @@
+{
+  "sandbox": {
+    "enabled": false
+  },
+  "permission": {
+    "bash": {
+      "cd *": "allow",
+      "cat *": "allow",
+      "ls *": "allow",
+      "echo *": "allow",
+      "head *": "allow",
+      "Rscript *": "allow",
+      "air *": "allow",
+      "*": "allow"
+    },
+    "edit": {
+      "*.R": "allow",
+      "*.yml": "allow",
+      "*/DESCRIPTION": "allow",
+      "*.yaml": "allow"
+    },
+    "executeCode": {
+      "*": "allow"
+    }
+  }
+}

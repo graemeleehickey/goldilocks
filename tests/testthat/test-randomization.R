@@ -1,0 +1,60 @@
+test_that("randomization returns correct length", {
+  out <- randomization(N_total = 100, block = 2, allocation = c(1, 1))
+  expect_length(out, 100)
+})
+
+test_that("randomization produces only 0s and 1s", {
+  set.seed(3847)
+  out <- randomization(N_total = 100, block = 4, allocation = c(1, 1))
+  expect_true(all(out %in% c(0, 1)))
+})
+
+test_that("1:1 randomization gives balanced allocation within blocks", {
+  set.seed(5612)
+  out <- randomization(N_total = 100, block = 2, allocation = c(1, 1))
+  # With block size 2 and 1:1, 50 complete blocks of 2 = exactly balanced
+  expect_equal(sum(out), 50)
+})
+
+test_that("randomization respects unequal allocation ratio", {
+  set.seed(9214)
+  out <- randomization(N_total = 90, block = 3, allocation = c(1, 2))
+  # 30 complete blocks: 30 control, 60 treatment
+  expect_equal(sum(out == 0), 30)
+  expect_equal(sum(out == 1), 60)
+})
+
+test_that("randomization works with multiple block sizes", {
+  set.seed(1053)
+  out <- randomization(N_total = 100, block = c(3, 9, 6), allocation = c(1, 2))
+  expect_length(out, 100)
+  expect_true(all(out %in% c(0, 1)))
+})
+
+test_that("randomization errors on non-integer block", {
+  expect_error(
+    randomization(N_total = 100, block = 2.5, allocation = c(1, 1)),
+    "non-negative integer"
+  )
+})
+
+test_that("randomization errors when block not divisible by allocation sum", {
+  expect_error(
+    randomization(N_total = 100, block = 3, allocation = c(1, 1)),
+    "multiple"
+  )
+})
+
+test_that("randomization errors when N_total < block", {
+  expect_error(
+    randomization(N_total = 1, block = 4, allocation = c(1, 1)),
+    "at least the size"
+  )
+})
+
+test_that("randomization errors on non-integer allocation", {
+  expect_error(
+    randomization(N_total = 100, block = 2, allocation = c(0.5, 0.5)),
+    "integer"
+  )
+})
