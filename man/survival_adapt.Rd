@@ -55,10 +55,13 @@ maximum sample size should not be included.}
 will be evaluated.}
 
 \item{prior}{vector. The prior distributions for the piecewise hazard rate
-parameters are each \eqn{Gamma(a_0, b_0)}, with specified (known)
-hyper-parameters \eqn{a_0} and \eqn{b_0}. The default non-informative prior
-distribution used is Gamma(0.1, 0.1), which is specified by setting
-\code{prior = c(0.1, 0.1)}.}
+parameters are each \eqn{Gamma(a_0, b_0)}, where \eqn{a_0} is the shape
+parameter and \eqn{b_0} is the rate parameter (i.e., the inverse of the
+scale). This follows R's \code{\link[stats]{rgamma}} parameterization. The
+same prior is applied to all piecewise intervals and to both treatment
+arms. The default non-informative prior distribution used is
+\code{Gamma(0.1, 0.1)}, which is specified by setting \code{prior = c(0.1,
+  0.1)}.}
 
 \item{block}{scalar. Block size for generating the randomization schedule.}
 

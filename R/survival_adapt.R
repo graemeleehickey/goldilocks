@@ -5,10 +5,13 @@
 #' @param interim_look vector. Sample size for each interim look. Note: the
 #'   maximum sample size should not be included.
 #' @param prior vector. The prior distributions for the piecewise hazard rate
-#'   parameters are each \eqn{Gamma(a_0, b_0)}, with specified (known)
-#'   hyper-parameters \eqn{a_0} and \eqn{b_0}. The default non-informative prior
-#'   distribution used is Gamma(0.1, 0.1), which is specified by setting
-#'   \code{prior = c(0.1, 0.1)}.
+#'   parameters are each \eqn{Gamma(a_0, b_0)}, where \eqn{a_0} is the shape
+#'   parameter and \eqn{b_0} is the rate parameter (i.e., the inverse of the
+#'   scale). This follows R's \code{\link[stats]{rgamma}} parameterization. The
+#'   same prior is applied to all piecewise intervals and to both treatment
+#'   arms. The default non-informative prior distribution used is
+#'   \code{Gamma(0.1, 0.1)}, which is specified by setting \code{prior = c(0.1,
+#'   0.1)}.
 #' @param alternative character. The string specifying the alternative
 #'   hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 #'   \code{"two.sided"}.
@@ -454,7 +457,7 @@ survival_adapt <- function(
   # - complete follow-up (except any censoring)
   data_final <- subset(data_total, id <= stage_trial_stopped)
   data_final <- within(data_final, {
-    time_from_rand_at_look = enrollment[analysis_at_enrollnumber[i]] - enrollment
+    time_from_rand_at_look = enrollment[stage_trial_stopped] - enrollment
     subject_impute_success = ((event == 0) & (time < end_of_study))
   })
 

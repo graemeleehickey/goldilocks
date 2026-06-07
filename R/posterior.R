@@ -60,6 +60,11 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
       if (i == 1) {
         stop("No subjects in first strata")
       }
+      warning(
+        "Interval ", i, " has zero subjects; propagating data from ",
+        "interval ", i - 1, " for posterior estimation.",
+        call. = FALSE
+      )
       data_summ[i, c("tot_time", "tot_events")] <- data_summ[(i - 1), c("tot_time", "tot_events")]
     }
   }

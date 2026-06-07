@@ -4,6 +4,11 @@
 
 * Removed unused C++ global variables and dead threading code inherited from the deprecated `fastlogranktest` package.
 * Replaced all uses of the magrittr pipe (`%>%`) with the base pipe (`|>`) in `summarise_sims()` and `posterior()`, and removed the `dplyr::%>%` re-export from the NAMESPACE.
+* `posterior()` now warns when a piecewise interval has zero subjects and data is propagated from an adjacent interval.
+
+## Bug fixes
+
+* `survival_adapt()` no longer errors when called without interim looks (`interim_look = NULL`). The final analysis previously relied on an undefined loop index variable, which has been replaced with `stage_trial_stopped`.
 
 ## Housekeeping
 
@@ -13,6 +18,7 @@
 * Updated GitHub Actions (`actions/checkout`, `actions/upload-artifact`) from v4 to v5 for Node.js 24 compatibility.
 * Added `.positai` to `.Rbuildignore` to suppress `R CMD check` NOTE.
 * Updated README to clarify that the C++ log-rank code was ported from the now-deprecated `fastlogranktest` package.
+* Clarified `prior` parameter documentation to explicitly state the Gamma rate parameterization and that the same prior is shared across all piecewise intervals and treatment arms.
 
 # goldilocks 0.4.0
 
