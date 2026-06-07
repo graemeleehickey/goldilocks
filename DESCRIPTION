@@ -28,7 +28,8 @@ Description: Implements the Goldilocks adaptive trial design for a time to event
 License: GPL-3
 Encoding: UTF-8
 URL: https://graemeleehickey.github.io/goldilocks/,
-    https://github.com/graemeleehickey/goldilocks
+    https://github.com/graemeleehickey/goldilocks,
+    https://CRAN.R-project.org/package=goldilocks
 BugReports: https://github.com/graemeleehickey/goldilocks/issues
 Depends:
     R (>= 3.6.0),
