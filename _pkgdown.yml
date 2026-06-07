@@ -13,6 +13,10 @@ navbar:
       href: https://github.com/graemeleehickey/goldilocks
 
 reference:
+  - title: Package
+    contents:
+      - goldilocks
+
   - title: Adaptive trial simulation
     desc: >
       Core functions for simulating and summarizing Goldilocks adaptive
