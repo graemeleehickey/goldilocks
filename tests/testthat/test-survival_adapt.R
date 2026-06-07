@@ -292,6 +292,37 @@ test_that("error-prob-thresholds-length_v1", {
   )
 })
 
+test_that("survival_adapt works with no interim looks", {
+  set.seed(4817)
+  out <- survival_adapt(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    cutpoints = 0,
+    N_total = 200,
+    lambda = 20,
+    lambda_time = 0,
+    interim_look = NULL,
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    block = 2,
+    rand_ratio = c(1, 1),
+    prop_loss = 0,
+    alternative = "two.sided",
+    h0 = 0,
+    Fn = NULL,
+    Sn = NULL,
+    prob_ha = 0.975,
+    N_impute = 2,
+    N_mcmc = 2,
+    method = "logrank")
+
+  expect_s3_class(out, "data.frame")
+  expect_equal(out$N_enrolled, 200)
+  expect_equal(out$stop_futility, 0)
+  expect_equal(out$stop_expected_success, 0)
+  expect_true(is.na(out$ppp_success))
+})
+
 test_that("error-prob-thresholds-length_v2", {
   expect_error(
     out <- survival_adapt(
