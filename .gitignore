@@ -30,3 +30,5 @@ vignettes/*.pdf
 .Renviron
 inst/doc
 .gitconfig
+.positai/
+README.html
