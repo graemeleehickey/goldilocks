@@ -86,7 +86,7 @@ enrollment <- function(lambda = 1, N_total, lambda_time = 0) {
     # lambda_time
     while (length(output) < N_total) {
       count <- count + 1
-      index <- min(c(which(lambda_time[-1] >= (count - 1)), length(lambda)))
+      index <- min(c(which(lambda_time[-1] > (count - 1)), length(lambda)))
       output <- c(output, rep(count, rpois(1, lambda[index])))
     }
   }

@@ -55,6 +55,21 @@ test_that("enrollment errors when lambda_time does not start at 0", {
   )
 })
 
+test_that("enrollment uses correct rate at changepoint boundaries", {
+  # Use very different rates so the boundary behavior is detectable:
+  # rate 1 before time 50, rate 100 after time 50.
+  # With the old >= bug, time 50 would still use rate 1.
+  set.seed(6739)
+  out <- enrollment(
+    lambda = c(1, 100),
+    N_total = 500,
+    lambda_time = c(0, 50)
+  )
+  # Most subjects should enroll at or after the changepoint since the
+  # rate jumps 100x. Check that the median enrollment time is near 50.
+  expect_true(median(out) >= 45)
+})
+
 test_that("enrollment errors on NULL lambda_time", {
   expect_error(
     enrollment(lambda = 1, N_total = 50, lambda_time = NULL),
