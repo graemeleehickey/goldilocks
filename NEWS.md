@@ -10,6 +10,7 @@
 
 * `survival_adapt()` no longer errors when called without interim looks (`interim_look = NULL`). The final analysis previously relied on an undefined loop index variable, which has been replaced with `stage_trial_stopped`.
 * `impute_data()` no longer uses hard-coded positional column subsetting (`[, 1:10]`). Temporary columns are now dropped by name, making the function robust to upstream changes in the data frame structure (#26).
+* `randomization()` no longer produces `NA` for `next_block` when the loop exhausts all elements of a multi-element `block` vector. The index now wraps around cyclically (#31).
 
 ## Housekeeping
 

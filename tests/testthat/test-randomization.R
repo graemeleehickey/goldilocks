@@ -52,6 +52,15 @@ test_that("randomization errors when N_total < block", {
   )
 })
 
+test_that("randomization works with multiple block sizes needing remainder fill", {
+  set.seed(7238)
+  # sum(block) = 18, N_total = 25 forces the loop to exhaust all block elements
+  # and then fill a remainder using next_block
+  out <- randomization(N_total = 25, block = c(6, 6, 6), allocation = c(1, 2))
+  expect_length(out, 25)
+  expect_true(all(out %in% c(0, 1)))
+})
+
 test_that("randomization errors on non-integer allocation", {
   expect_error(
     randomization(N_total = 100, block = 2, allocation = c(0.5, 0.5)),

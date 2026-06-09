@@ -63,7 +63,7 @@ randomization <- function(N_total, block = 2, allocation = c(1, 1)) {
   for (k in 1:length(block)) {
     if ((sum(blocking) + block[k]) < N_total) {
       blocking <- c(blocking, block[k])
-      next_block <- block[k + 1]
+      next_block <- block[(k %% length(block)) + 1]
     } else {
       break
     }
