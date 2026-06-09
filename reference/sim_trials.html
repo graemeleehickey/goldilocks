@@ -141,14 +141,18 @@ event status. Each LTFU subject's observed time is drawn from a
 <code>Uniform(0, t)</code> distribution, where <code>t</code> is their potential
 event or censoring time. Since the LTFU time is always less than
 <code>t</code>, the event has not yet occurred at dropout and the subject is
-right-censored.
-Defaults to zero.</p></dd>
+right-censored. Defaults to zero.</p></dd>
 
 
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
 <dd><p>character. The string specifying the alternative
 hypothesis, must be one of <code>"greater"</code> (default), <code>"less"</code> or
-<code>"two.sided"</code>.</p></dd>
+<code>"two.sided"</code>. All three options are supported for <code>method =
+  "bayes"</code>, <code>"logrank"</code>, and <code>"cox"</code>. The chi-square test
+(<code>method = "chisq"</code>) only supports <code>"two.sided"</code>. For survival
+outcomes, <code>"less"</code> corresponds to the treatment group having a lower
+cumulative incidence (i.e., treatment is beneficial), and <code>"greater"</code>
+corresponds to the treatment group having a higher cumulative incidence.</p></dd>
 
 
 <dt id="arg-h-">h0<a class="anchor" aria-label="anchor" href="#arg-h-"></a></dt>

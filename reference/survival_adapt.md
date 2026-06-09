@@ -110,7 +110,13 @@ survival_adapt(
 - alternative:
 
   character. The string specifying the alternative hypothesis, must be
-  one of `"greater"` (default), `"less"` or `"two.sided"`.
+  one of `"greater"` (default), `"less"` or `"two.sided"`. All three
+  options are supported for `method = "bayes"`, `"logrank"`, and
+  `"cox"`. The chi-square test (`method = "chisq"`) only supports
+  `"two.sided"`. For survival outcomes, `"less"` corresponds to the
+  treatment group having a lower cumulative incidence (i.e., treatment
+  is beneficial), and `"greater"` corresponds to the treatment group
+  having a higher cumulative incidence.
 
 - h0:
 
@@ -258,14 +264,16 @@ At each interim (and final) analysis methods as:
   contrasted in the same manner. For example, if the success threshold
   is \\P \< 0.05\\, then one requires `post_prob_ha` \\\> 0.95\\. The
   reason for this is to enable simple switching between Bayesian and
-  frequentist paradigms for analysis.
+  frequentist paradigms for analysis. When `alternative = "less"` or
+  `"greater"`, a one-sided *P*-value is computed from the log-rank
+  z-statistic.
 
 - Cox proportional hazards regression Wald test (`method = "cox"`).
-  Similar to the log-rank test, a *P*-value is calculated based on a
-  two-sided test. However, for consistency, \\1 - P\\, which is reported
-  in `post_prob_ha`. Whilst not a posterior probability, it can be
-  contrasted in the same manner. For example, if the success threshold
-  is \\P \< 0.05\\, then one requires `post_prob_ha` \\\> 0.95\\.
+  Similar to the log-rank test, a *P*-value is calculated and \\1 - P\\
+  is reported in `post_prob_ha`. When `alternative = "two.sided"`, the
+  standard two-sided Wald *P*-value is used. When `alternative = "less"`
+  or `"greater"`, a one-sided *P*-value is derived from the Wald
+  z-statistic. The treatment effect (log hazard ratio) is also reported.
 
 - Bayesian absolute difference (`method = "bayes"`). Each imputed
   dataset is used to update the conjugate Gamma prior (defined by

@@ -112,7 +112,13 @@ sim_trials(
 - alternative:
 
   character. The string specifying the alternative hypothesis, must be
-  one of `"greater"` (default), `"less"` or `"two.sided"`.
+  one of `"greater"` (default), `"less"` or `"two.sided"`. All three
+  options are supported for `method = "bayes"`, `"logrank"`, and
+  `"cox"`. The chi-square test (`method = "chisq"`) only supports
+  `"two.sided"`. For survival outcomes, `"less"` corresponds to the
+  treatment group having a lower cumulative incidence (i.e., treatment
+  is beneficial), and `"greater"` corresponds to the treatment group
+  having a higher cumulative incidence.
 
 - h0:
 

@@ -36,7 +36,9 @@
 <h2 class="pkg-version" data-toc-text="0.4.0.9000" id="goldilocks-0409000">goldilocks 0.4.0.9000<a class="anchor" aria-label="anchor" href="#goldilocks-0409000"></a></h2>
 <div class="section level3">
 <h3 id="improvements-0-4-0-9000">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-4-0-9000"></a></h3>
-<ul><li>Removed unused C++ global variables and dead threading code inherited from the deprecated <code>fastlogranktest</code> package.</li>
+<ul><li>
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> now supports one-sided tests (<code>alternative = "greater"</code> or <code>"less"</code>) for <code>method = "cox"</code> and <code>method = "logrank"</code>. The chi-square test remains two-sided only (<a href="https://github.com/graemeleehickey/goldilocks/issues/20" class="external-link">#20</a>).</li>
+<li>Removed unused C++ global variables and dead threading code inherited from the deprecated <code>fastlogranktest</code> package.</li>
 <li>Replaced all uses of the magrittr pipe (<code>%&gt;%</code>) with the base pipe (<code>|&gt;</code>) in <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> and <code>posterior()</code>, and removed the <code>dplyr::%&gt;%</code> re-export from the NAMESPACE.</li>
 <li>
 <code>posterior()</code> now warns when a piecewise interval has zero subjects and data is propagated from an adjacent interval.</li>

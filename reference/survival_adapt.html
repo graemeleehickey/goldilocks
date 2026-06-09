@@ -139,14 +139,18 @@ event status. Each LTFU subject's observed time is drawn from a
 <code>Uniform(0, t)</code> distribution, where <code>t</code> is their potential
 event or censoring time. Since the LTFU time is always less than
 <code>t</code>, the event has not yet occurred at dropout and the subject is
-right-censored.
-Defaults to zero.</p></dd>
+right-censored. Defaults to zero.</p></dd>
 
 
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
 <dd><p>character. The string specifying the alternative
 hypothesis, must be one of <code>"greater"</code> (default), <code>"less"</code> or
-<code>"two.sided"</code>.</p></dd>
+<code>"two.sided"</code>. All three options are supported for <code>method =
+  "bayes"</code>, <code>"logrank"</code>, and <code>"cox"</code>. The chi-square test
+(<code>method = "chisq"</code>) only supports <code>"two.sided"</code>. For survival
+outcomes, <code>"less"</code> corresponds to the treatment group having a lower
+cumulative incidence (i.e., treatment is beneficial), and <code>"greater"</code>
+corresponds to the treatment group having a higher cumulative incidence.</p></dd>
 
 
 <dt id="arg-h-">h0<a class="anchor" aria-label="anchor" href="#arg-h-"></a></dt>
@@ -280,14 +284,15 @@ probability, it can be contrasted in the same manner. For example, if
 the success threshold is \(P &lt; 0.05\), then one requires
 <code>post_prob_ha</code> \(&gt; 0.95\). The reason for this is to enable
 simple switching between Bayesian and frequentist paradigms for
-analysis.</p></li>
+analysis. When <code>alternative = "less"</code> or <code>"greater"</code>, a
+one-sided <em>P</em>-value is computed from the log-rank z-statistic.</p></li>
 <li><p>Cox proportional hazards regression Wald test (<code>method = "cox"</code>).
-Similar to the log-rank test, a <em>P</em>-value is calculated based on a
-two-sided test. However, for consistency, \(1 - P\), which is
-reported in <code>post_prob_ha</code>. Whilst not a posterior probability, it
-can be contrasted in the same manner. For example, if the success
-threshold is \(P &lt; 0.05\), then one requires <code>post_prob_ha</code>
-\(&gt; 0.95\).</p></li>
+Similar to the log-rank test, a <em>P</em>-value is calculated and
+\(1 - P\) is reported in <code>post_prob_ha</code>. When
+<code>alternative = "two.sided"</code>, the standard two-sided Wald
+<em>P</em>-value is used. When <code>alternative = "less"</code> or
+<code>"greater"</code>, a one-sided <em>P</em>-value is derived from the Wald
+z-statistic. The treatment effect (log hazard ratio) is also reported.</p></li>
 <li><p>Bayesian absolute difference (<code>method = "bayes"</code>).
 Each imputed dataset is used to update the conjugate Gamma prior
 (defined by <code>prior</code>), yielding a posterior distribution for the
