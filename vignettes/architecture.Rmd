@@ -1,0 +1,122 @@
+---
+title: "Package Architecture"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Package Architecture}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Overview
+
+The `goldilocks` package implements the Goldilocks adaptive trial design
+described in Broglio et al. (2014). This vignette provides a visual overview
+of how the package functions are interconnected.
+
+## Function dependency diagram
+
+The diagram below shows the call graph from the top-level simulation
+function (`sim_trials()`) down through the core engine
+(`survival_adapt()`) and into the internal analysis pipeline.
+
+**Exported functions** are shown in blue. **Internal functions** are shown
+in grey.
+
+```{r, echo = FALSE, fig.width = 8, fig.height = 8, fig.alt = "Diagram showing the function call dependencies in the goldilocks package."}
+DiagrammeR::grViz("
+digraph goldilocks {
+
+  graph [rankdir = TB, fontsize = 12, nodesep = 0.4, ranksep = 0.6]
+
+  node [shape = box, style = 'filled, rounded', fontname = Helvetica, fontsize = 10]
+
+  # Exported functions (blue)
+  sim_trials       [label = 'sim_trials()',       fillcolor = '#dae8fc', color = '#6c8ebf']
+  survival_adapt   [label = 'survival_adapt()',   fillcolor = '#dae8fc', color = '#6c8ebf']
+  summarise_sims   [label = 'summarise_sims()',   fillcolor = '#dae8fc', color = '#6c8ebf']
+  sim_comp_data    [label = 'sim_comp_data()',    fillcolor = '#dae8fc', color = '#6c8ebf']
+  enrollment       [label = 'enrollment()',       fillcolor = '#dae8fc', color = '#6c8ebf']
+  randomization    [label = 'randomization()',    fillcolor = '#dae8fc', color = '#6c8ebf']
+  pwe_sim          [label = 'pwe_sim()',          fillcolor = '#dae8fc', color = '#6c8ebf']
+  pwe_impute       [label = 'pwe_impute()',       fillcolor = '#dae8fc', color = '#6c8ebf']
+  ppwe             [label = 'ppwe()',             fillcolor = '#dae8fc', color = '#6c8ebf']
+
+  # Internal functions (grey)
+  test_stop_success [label = 'test_stop_success()', fillcolor = '#f5f5f5', color = '#999999']
+  test_final        [label = 'test_final()',         fillcolor = '#f5f5f5', color = '#999999']
+  analyse_data      [label = 'analyse_data()',       fillcolor = '#f5f5f5', color = '#999999']
+  impute_data       [label = 'impute_data()',        fillcolor = '#f5f5f5', color = '#999999']
+  posterior          [label = 'posterior()',           fillcolor = '#f5f5f5', color = '#999999']
+  haz_to_prop       [label = 'haz_to_prop()',        fillcolor = '#f5f5f5', color = '#999999']
+  logrank_test      [label = 'logrank_test()',        fillcolor = '#f5f5f5', color = '#999999']
+
+  # Edges
+  sim_trials      -> survival_adapt
+  sim_trials      -> summarise_sims  [style = dashed, label = 'output list']
+
+  survival_adapt  -> sim_comp_data
+  survival_adapt  -> posterior
+  survival_adapt  -> test_stop_success
+  survival_adapt  -> test_final
+
+  sim_comp_data   -> enrollment
+  sim_comp_data   -> randomization
+  sim_comp_data   -> pwe_sim
+
+  test_stop_success -> impute_data
+  test_stop_success -> analyse_data
+
+  test_final      -> posterior
+  test_final      -> impute_data
+  test_final      -> analyse_data
+
+  analyse_data    -> posterior
+  analyse_data    -> haz_to_prop
+  analyse_data    -> logrank_test
+
+  haz_to_prop     -> ppwe
+
+  impute_data     -> pwe_impute
+  impute_data     -> pwe_sim
+}
+")
+```
+
+## Function roles
+
+The functions fall into three layers:
+
+### Simulation layer
+
+- **`sim_trials()`**: Top-level entry point. Runs `survival_adapt()`
+  across multiple trials (optionally in parallel) and collates results.
+- **`summarise_sims()`**: Summarizes the output of `sim_trials()`,
+  computing operating characteristics such as power, expected sample
+  size, and stopping probabilities.
+
+### Trial engine
+
+- **`survival_adapt()`**: Simulates a single adaptive trial. Generates
+  data via `sim_comp_data()`, conducts interim analyses using
+  `posterior()` and `test_stop_success()`, and performs the final
+  analysis via `test_final()`.
+
+### Data generation and analysis utilities
+
+- **`sim_comp_data()`**: Generates a complete trial dataset by calling
+  `enrollment()`, `randomization()`, and `pwe_sim()`.
+- **`posterior()`**: Estimates the posterior distribution of piecewise
+  exponential hazard rates using a conjugate Gamma model.
+- **`analyse_data()`**: Applies the chosen analysis method (`logrank`,
+  `cox`, `bayes`, or `chisq`) to an (imputed) dataset.
+- **`impute_data()`**: Imputes missing event times for censored subjects
+  using `pwe_impute()` or `pwe_sim()`.
+- **`haz_to_prop()`**: Converts posterior hazard rate draws to
+  cumulative incidence proportions via `ppwe()`.

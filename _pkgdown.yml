@@ -49,3 +49,6 @@ articles:
   - title: Getting started
     contents:
       - broglio
+  - title: Developer
+    contents:
+      - architecture
