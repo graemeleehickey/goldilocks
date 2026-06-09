@@ -111,7 +111,8 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoints, type,
                        data_noimpute)
   data_impute$time  <- data_impute$time_impute
   data_impute$event <- data_impute$event_impute
-  data_impute <- data_impute[, 1:10]
+  data_impute$time_impute  <- NULL
+  data_impute$event_impute <- NULL
 
   # Check: imputed data should have same number of subjects as
   #        the interim data
