@@ -134,6 +134,12 @@ to treatment. Integer values mapping the size of the block. See
 
 <dt id="arg-prop-loss">prop_loss<a class="anchor" aria-label="anchor" href="#arg-prop-loss"></a></dt>
 <dd><p>scalar. Overall proportion of subjects lost to follow-up.
+Subjects are selected at random for LTFU regardless of treatment arm or
+event status. Each LTFU subject's observed time is drawn from a
+<code>Uniform(0, t)</code> distribution, where <code>t</code> is their potential
+event or censoring time. Since the LTFU time is always less than
+<code>t</code>, the event has not yet occurred at dropout and the subject is
+right-censored.
 Defaults to zero.</p></dd>
 
 

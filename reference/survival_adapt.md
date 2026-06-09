@@ -99,8 +99,13 @@ survival_adapt(
 
 - prop_loss:
 
-  scalar. Overall proportion of subjects lost to follow-up. Defaults to
-  zero.
+  scalar. Overall proportion of subjects lost to follow-up. Subjects are
+  selected at random for LTFU regardless of treatment arm or event
+  status. Each LTFU subject's observed time is drawn from a
+  `Uniform(0, t)` distribution, where `t` is their potential event or
+  censoring time. Since the LTFU time is always less than `t`, the event
+  has not yet occurred at dropout and the subject is right-censored.
+  Defaults to zero.
 
 - alternative:
 
