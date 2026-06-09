@@ -145,6 +145,14 @@
 #'   \code{"cox"}, \code{"chisq"}), the second stage uses a standard test
 #'   rather than a posterior, so this feedback loop does not arise.
 #'
+#'   At each interim look, follow-up times are masked (censored) to reflect
+#'   the calendar time of the analysis. Subjects enrolled at the exact interim
+#'   boundary have zero follow-up time, which is incompatible with
+#'   \code{\link[survival]{survSplit}}. These times are clamped to
+#'   \code{.Machine$double.eps} (approximately \eqn{2.2 \times 10^{-16}}) so
+#'   that they contribute negligible but non-zero exposure. This affects at
+#'   most one subject per interim look.
+#'
 #' @return A data frame containing some input parameters (arguments) as well as
 #'   statistics from the analysis, including:
 #'
@@ -370,8 +378,12 @@ survival_adapt <- function(
       })
 
       # Mask the data at time of look
+      # Note: subjects at the exact interim boundary have
+      # time_from_rand_at_look = 0, yielding time = 0 after masking.
+      # survival::survSplit() requires all times > 0, so we clamp to
+      # .Machine$double.eps.
       data_interim <- within(data_interim, {
-        time  = pmin(time, time_from_rand_at_look) + sd(time) / 1e4
+        time  = pmax(pmin(time, time_from_rand_at_look), .Machine$double.eps)
         event = ifelse(subject_impute_success, 0, event)
       })
 

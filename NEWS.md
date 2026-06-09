@@ -13,6 +13,7 @@
 * `randomization()` no longer produces `NA` for `next_block` when the loop exhausts all elements of a multi-element `block` vector. The index now wraps around cyclically (#31).
 * `analyse_data()` now uses explicit row/column indexing when extracting Cox model results, preventing silent errors if the summary matrix structure changes (#29).
 * `enrollment()` now correctly selects the enrollment rate at piecewise changepoints. Previously, the rate at exact changepoint boundaries could use the rate from the prior interval (#28).
+* `survival_adapt()` no longer adds a systematic perturbation (`sd(time) / 1e4`) to all survival times at interim looks. Instead, only the boundary subject with zero follow-up time is clamped to `.Machine$double.eps` to satisfy `survSplit()` requirements (#24).
 
 ## Documentation
 
