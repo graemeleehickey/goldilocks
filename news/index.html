@@ -45,6 +45,8 @@
 <h3 id="bug-fixes-0-4-0-9000">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-4-0-9000"></a></h3>
 <ul><li>
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> no longer errors when called without interim looks (<code>interim_look = NULL</code>). The final analysis previously relied on an undefined loop index variable, which has been replaced with <code>stage_trial_stopped</code>.</li>
+<li>
+<code>impute_data()</code> no longer uses hard-coded positional column subsetting (<code>[, 1:10]</code>). Temporary columns are now dropped by name, making the function robust to upstream changes in the data frame structure (<a href="https://github.com/graemeleehickey/goldilocks/issues/26" class="external-link">#26</a>).</li>
 </ul></div>
 <div class="section level3">
 <h3 id="housekeeping-0-4-0-9000">Housekeeping<a class="anchor" aria-label="anchor" href="#housekeeping-0-4-0-9000"></a></h3>

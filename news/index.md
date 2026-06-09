@@ -21,6 +21,10 @@
   (`interim_look = NULL`). The final analysis previously relied on an
   undefined loop index variable, which has been replaced with
   `stage_trial_stopped`.
+- `impute_data()` no longer uses hard-coded positional column subsetting
+  (`[, 1:10]`). Temporary columns are now dropped by name, making the
+  function robust to upstream changes in the data frame structure
+  ([\#26](https://github.com/graemeleehickey/goldilocks/issues/26)).
 
 ### Housekeeping
 
