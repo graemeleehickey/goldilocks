@@ -53,6 +53,8 @@
 <code>analyse_data()</code> now uses explicit row/column indexing when extracting Cox model results, preventing silent errors if the summary matrix structure changes (<a href="https://github.com/graemeleehickey/goldilocks/issues/29" class="external-link">#29</a>).</li>
 <li>
 <code><a href="../reference/enrollment.html">enrollment()</a></code> now correctly selects the enrollment rate at piecewise changepoints. Previously, the rate at exact changepoint boundaries could use the rate from the prior interval (<a href="https://github.com/graemeleehickey/goldilocks/issues/28" class="external-link">#28</a>).</li>
+<li>
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> no longer adds a systematic perturbation (<code>sd(time) / 1e4</code>) to all survival times at interim looks. Instead, only the boundary subject with zero follow-up time is clamped to <code>.Machine$double.eps</code> to satisfy <code><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit()</a></code> requirements (<a href="https://github.com/graemeleehickey/goldilocks/issues/24" class="external-link">#24</a>).</li>
 </ul></div>
 <div class="section level3">
 <h3 id="documentation-0-4-0-9000">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-4-0-9000"></a></h3>

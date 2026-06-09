@@ -327,6 +327,13 @@ should be aware that the imputation model's posterior influences the
 analysis posterior. For frequentist methods (<code>"logrank"</code>,
 <code>"cox"</code>, <code>"chisq"</code>), the second stage uses a standard test
 rather than a posterior, so this feedback loop does not arise.</p>
+<p>At each interim look, follow-up times are masked (censored) to reflect
+the calendar time of the analysis. Subjects enrolled at the exact interim
+boundary have zero follow-up time, which is incompatible with
+<code><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit</a></code>. These times are clamped to
+<code>.Machine$double.eps</code> (approximately \(2.2 \times 10^{-16}\)) so
+that they contribute negligible but non-zero exposure. This affects at
+most one subject per interim look.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

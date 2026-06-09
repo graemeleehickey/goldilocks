@@ -39,6 +39,14 @@
   Previously, the rate at exact changepoint boundaries could use the
   rate from the prior interval
   ([\#28](https://github.com/graemeleehickey/goldilocks/issues/28)).
+- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  no longer adds a systematic perturbation (`sd(time) / 1e4`) to all
+  survival times at interim looks. Instead, only the boundary subject
+  with zero follow-up time is clamped to `.Machine$double.eps` to
+  satisfy
+  [`survSplit()`](https://rdrr.io/pkg/survival/man/survSplit.html)
+  requirements
+  ([\#24](https://github.com/graemeleehickey/goldilocks/issues/24)).
 
 ### Documentation
 

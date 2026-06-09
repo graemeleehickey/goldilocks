@@ -309,6 +309,14 @@ frequentist methods (`"logrank"`, `"cox"`, `"chisq"`), the second stage
 uses a standard test rather than a posterior, so this feedback loop does
 not arise.
 
+At each interim look, follow-up times are masked (censored) to reflect
+the calendar time of the analysis. Subjects enrolled at the exact
+interim boundary have zero follow-up time, which is incompatible with
+[`survSplit`](https://rdrr.io/pkg/survival/man/survSplit.html). These
+times are clamped to `.Machine$double.eps` (approximately \\2.2 \times
+10^{-16}\\) so that they contribute negligible but non-zero exposure.
+This affects at most one subject per interim look.
+
 ## References
 
 Broglio KR, Connor JT, Berry SM. Not too big, not too small: a
