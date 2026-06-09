@@ -22,13 +22,13 @@ Source:
 [`DESCRIPTION`](https://github.com/graemeleehickey/goldilocks/blob/main/DESCRIPTION)
 
 Hickey G, Wan Y, Chandereng T (2026). *goldilocks: Goldilocks Adaptive
-Trial Designs for Time-to-Event Endpoints*. R package version 0.4.1,
-<https://graemeleehickey.github.io/goldilocks/>.
+Trial Designs for Time-to-Event Endpoints*. R package version
+0.4.0.9000, <https://graemeleehickey.github.io/goldilocks/>.
 
     @Manual{,
       title = {goldilocks: Goldilocks Adaptive Trial Designs for Time-to-Event Endpoints},
       author = {Graeme L. Hickey and Ying Wan and Thevaa Chandereng},
       year = {2026},
-      note = {R package version 0.4.1},
+      note = {R package version 0.4.0.9000},
       url = {https://graemeleehickey.github.io/goldilocks/},
     }

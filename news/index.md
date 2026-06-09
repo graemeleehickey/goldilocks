@@ -1,6 +1,6 @@
 # Changelog
 
-## goldilocks 0.4.1
+## goldilocks 0.4.0.9000
 
 ### Improvements
 

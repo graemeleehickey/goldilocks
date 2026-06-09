@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,21 +33,21 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.4.1" id="goldilocks-041">goldilocks 0.4.1<a class="anchor" aria-label="anchor" href="#goldilocks-041"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.4.0.9000" id="goldilocks-0409000">goldilocks 0.4.0.9000<a class="anchor" aria-label="anchor" href="#goldilocks-0409000"></a></h2>
 <div class="section level3">
-<h3 id="improvements-0-4-1">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-4-1"></a></h3>
+<h3 id="improvements-0-4-0-9000">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-4-0-9000"></a></h3>
 <ul><li>Removed unused C++ global variables and dead threading code inherited from the deprecated <code>fastlogranktest</code> package.</li>
 <li>Replaced all uses of the magrittr pipe (<code>%&gt;%</code>) with the base pipe (<code>|&gt;</code>) in <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> and <code>posterior()</code>, and removed the <code>dplyr::%&gt;%</code> re-export from the NAMESPACE.</li>
 <li>
 <code>posterior()</code> now warns when a piecewise interval has zero subjects and data is propagated from an adjacent interval.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-0-4-1">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-4-1"></a></h3>
+<h3 id="bug-fixes-0-4-0-9000">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-4-0-9000"></a></h3>
 <ul><li>
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> no longer errors when called without interim looks (<code>interim_look = NULL</code>). The final analysis previously relied on an undefined loop index variable, which has been replaced with <code>stage_trial_stopped</code>.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="housekeeping-0-4-1">Housekeeping<a class="anchor" aria-label="anchor" href="#housekeeping-0-4-1"></a></h3>
+<h3 id="housekeeping-0-4-0-9000">Housekeeping<a class="anchor" aria-label="anchor" href="#housekeeping-0-4-0-9000"></a></h3>
 <ul><li>Added unit tests for <code><a href="../reference/enrollment.html">enrollment()</a></code>, <code><a href="../reference/randomization.html">randomization()</a></code>, <code><a href="../reference/pwe_sim.html">pwe_sim()</a></code>, <code><a href="../reference/pwe_impute.html">pwe_impute()</a></code>, <code><a href="../reference/ppwe.html">ppwe()</a></code>, <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code>, <code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code>, and <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code>.</li>
 <li>Added <code>_pkgdown.yml</code> configuration for a documentation website.</li>
 <li>Added GitHub Actions workflow for pkgdown site deployment.</li>
