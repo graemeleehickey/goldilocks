@@ -16,6 +16,8 @@ Useful links:
 
 - <https://github.com/graemeleehickey/goldilocks>
 
+- <https://CRAN.R-project.org/package=goldilocks>
+
 - Report bugs at <https://github.com/graemeleehickey/goldilocks/issues>
 
 ## Author
