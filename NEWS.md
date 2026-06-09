@@ -20,10 +20,12 @@
 ## Documentation
 
 * Documented the two-stage posterior procedure used when `method = "bayes"` with imputation, clarifying that the imputation model's posterior influences the analysis posterior (#27).
+* Clarified `prop_loss` parameter documentation, explaining that LTFU times are drawn from `Uniform(0, t)` and that the event has not yet occurred at the dropout time (#25).
 
 ## Housekeeping
 
-* Added unit tests for `enrollment()`, `randomization()`, `pwe_sim()`, `pwe_impute()`, `ppwe()`, `prop_to_haz()`, `sim_comp_data()`, and `summarise_sims()`.
+* Added unit tests for `enrollment()`, `randomization()`, `pwe_sim()`, `pwe_impute()`, `ppwe()`, `prop_to_haz()`, `sim_comp_data()`, `summarise_sims()`, `analyse_data()`, and `posterior()`.
+* Added a package architecture vignette with a function dependency diagram.
 * Added `_pkgdown.yml` configuration for a documentation website.
 * Added GitHub Actions workflow for pkgdown site deployment.
 * Updated GitHub Actions (`actions/checkout`, `actions/upload-artifact`) from v4 to v5 for Node.js 24 compatibility.
