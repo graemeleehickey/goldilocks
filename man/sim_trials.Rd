@@ -77,12 +77,16 @@ event status. Each LTFU subject's observed time is drawn from a
 \code{Uniform(0, t)} distribution, where \code{t} is their potential
 event or censoring time. Since the LTFU time is always less than
 \code{t}, the event has not yet occurred at dropout and the subject is
-right-censored.
-Defaults to zero.}
+right-censored. Defaults to zero.}
 
 \item{alternative}{character. The string specifying the alternative
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
-\code{"two.sided"}.}
+\code{"two.sided"}. All three options are supported for \code{method =
+  "bayes"}, \code{"logrank"}, and \code{"cox"}. The chi-square test
+(\code{method = "chisq"}) only supports \code{"two.sided"}. For survival
+outcomes, \code{"less"} corresponds to the treatment group having a lower
+cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
+corresponds to the treatment group having a higher cumulative incidence.}
 
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
   p_\textrm{control}} when \code{method = "bayes"}. Default is \code{h0 = 0}.

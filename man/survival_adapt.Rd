@@ -75,12 +75,16 @@ event status. Each LTFU subject's observed time is drawn from a
 \code{Uniform(0, t)} distribution, where \code{t} is their potential
 event or censoring time. Since the LTFU time is always less than
 \code{t}, the event has not yet occurred at dropout and the subject is
-right-censored.
-Defaults to zero.}
+right-censored. Defaults to zero.}
 
 \item{alternative}{character. The string specifying the alternative
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
-\code{"two.sided"}.}
+\code{"two.sided"}. All three options are supported for \code{method =
+  "bayes"}, \code{"logrank"}, and \code{"cox"}. The chi-square test
+(\code{method = "chisq"}) only supports \code{"two.sided"}. For survival
+outcomes, \code{"less"} corresponds to the treatment group having a lower
+cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
+corresponds to the treatment group having a higher cumulative incidence.}
 
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
   p_\textrm{control}} when \code{method = "bayes"}. Default is \code{h0 = 0}.
@@ -204,14 +208,15 @@ probability, it can be contrasted in the same manner. For example, if
 the success threshold is \eqn{P < 0.05}, then one requires
 \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to enable
 simple switching between Bayesian and frequentist paradigms for
-analysis.
+analysis. When \code{alternative = "less"} or \code{"greater"}, a
+one-sided \emph{P}-value is computed from the log-rank z-statistic.
 \item Cox proportional hazards regression Wald test (\code{method = "cox"}).
-Similar to the log-rank test, a \emph{P}-value is calculated based on a
-two-sided test. However, for consistency, \eqn{1 - P}, which is
-reported in \code{post_prob_ha}. Whilst not a posterior probability, it
-can be contrasted in the same manner. For example, if the success
-threshold is \eqn{P < 0.05}, then one requires \code{post_prob_ha}
-\eqn{> 0.95}.
+Similar to the log-rank test, a \emph{P}-value is calculated and
+\eqn{1 - P} is reported in \code{post_prob_ha}. When
+\code{alternative = "two.sided"}, the standard two-sided Wald
+\emph{P}-value is used. When \code{alternative = "less"} or
+\code{"greater"}, a one-sided \emph{P}-value is derived from the Wald
+z-statistic. The treatment effect (log hazard ratio) is also reported.
 \item Bayesian absolute difference (\code{method = "bayes"}).
 Each imputed dataset is used to update the conjugate Gamma prior
 (defined by \code{prior}), yielding a posterior distribution for the

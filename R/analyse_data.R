@@ -71,10 +71,21 @@ analyse_data <- function(
     t1 <- data$time[data$treatment == 1]
     e0 <- data$event[data$treatment == 0]
     e1 <- data$event[data$treatment == 1]
-    p  <- logrank_test(t0, t1, e0, e1)[3]
-    # lrt <- survdiff(Surv(time, event) ~ treatment, data = data)
-    # p <- pchisq(lrt$chisq, 1, lower.tail = FALSE)
-    success <- 1 - p
+    lr <- logrank_test(t0, t1, e0, e1)
+    if (alternative == "two.sided") {
+      success <- 1 - lr[3]
+    } else {
+      # Logrank z > 0 when control has excess events (treatment beneficial).
+      # This is opposite to the Cox convention.
+      # "less" => treatment beneficial => large success when z >> 0
+      # "greater" => treatment harmful => large success when z << 0
+      z <- lr[2]
+      if (alternative == "less") {
+        success <- pnorm(z)
+      } else if (alternative == "greater") {
+        success <- 1 - pnorm(z)
+      }
+    }
     effect <- NA
   }
 
@@ -85,7 +96,19 @@ analyse_data <- function(
   if (method == "cox") {
     fit_cox <- coxph(Surv(time, event) ~ treatment, data = data)
     fit_res <- coef(summary(fit_cox))
-    success <- 1 - fit_res[1, 5]
+    if (alternative == "two.sided") {
+      success <- 1 - fit_res[1, 5]
+    } else {
+      # Cox z < 0 when treatment reduces hazard (beneficial).
+      # "less" => treatment beneficial => large success when z << 0
+      # "greater" => treatment harmful => large success when z >> 0
+      z <- fit_res[1, 4]
+      if (alternative == "less") {
+        success <- 1 - pnorm(z)
+      } else if (alternative == "greater") {
+        success <- pnorm(z)
+      }
+    }
     effect <- fit_res[1, 1]
   }
 

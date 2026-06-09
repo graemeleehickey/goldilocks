@@ -14,7 +14,12 @@
 #'   0.1)}.
 #' @param alternative character. The string specifying the alternative
 #'   hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
-#'   \code{"two.sided"}.
+#'   \code{"two.sided"}. All three options are supported for \code{method =
+#'   "bayes"}, \code{"logrank"}, and \code{"cox"}. The chi-square test
+#'   (\code{method = "chisq"}) only supports \code{"two.sided"}. For survival
+#'   outcomes, \code{"less"} corresponds to the treatment group having a lower
+#'   cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
+#'   corresponds to the treatment group having a higher cumulative incidence.
 #' @param h0 scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
 #'   p_\textrm{control}} when \code{method = "bayes"}. Default is \code{h0 = 0}.
 #'   The argument is ignored when \code{method = "logrank"} or \code{= "cox"};
@@ -86,15 +91,16 @@
 #'      the success threshold is \eqn{P < 0.05}, then one requires
 #'      \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to enable
 #'      simple switching between Bayesian and frequentist paradigms for
-#'      analysis.
+#'      analysis. When \code{alternative = "less"} or \code{"greater"}, a
+#'      one-sided \emph{P}-value is computed from the log-rank z-statistic.
 #'
 #'   * Cox proportional hazards regression Wald test (\code{method = "cox"}).
-#'      Similar to the log-rank test, a \emph{P}-value is calculated based on a
-#'      two-sided test. However, for consistency, \eqn{1 - P}, which is
-#'      reported in \code{post_prob_ha}. Whilst not a posterior probability, it
-#'      can be contrasted in the same manner. For example, if the success
-#'      threshold is \eqn{P < 0.05}, then one requires \code{post_prob_ha}
-#'      \eqn{> 0.95}.
+#'      Similar to the log-rank test, a \emph{P}-value is calculated and
+#'      \eqn{1 - P} is reported in \code{post_prob_ha}. When
+#'      \code{alternative = "two.sided"}, the standard two-sided Wald
+#'      \emph{P}-value is used. When \code{alternative = "less"} or
+#'      \code{"greater"}, a one-sided \emph{P}-value is derived from the Wald
+#'      z-statistic. The treatment effect (log hazard ratio) is also reported.
 #'
 #'   * Bayesian absolute difference (\code{method = "bayes"}).
 #'      Each imputed dataset is used to update the conjugate Gamma prior
@@ -290,9 +296,9 @@ survival_adapt <- function(
     stop("The Bayes test can only be used with alternative equal to 'greater' or 'less'")
   }
 
-  # Check: frequentist tests (currently) only available as two.sided tests
-  if (alternative != "two.sided" & method %in% c("logrank", "cox", "chisq")) {
-    stop("The selected method can only be applied as a two-sided test")
+  # Check: chi-square test only available as two-sided
+  if (alternative != "two.sided" & method == "chisq") {
+    stop("The chi-square test can only be applied as a two-sided test")
   }
 
   # Check: frequentist tests only available for two-armed trials
