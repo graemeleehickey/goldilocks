@@ -32,9 +32,7 @@
 
 ## Main updates
 
-* Because `fastlogranktest` is no longer available on CRAN, a copy of the C++ 
-code and wrapper from the CRAN archive have been included directly into the 
-source code of this package.
+* Because `fastlogranktest` is no longer available on CRAN, a copy of the C++ code and wrapper from the CRAN archive have been included directly into the source code of this package.
 
 ## Housekeeping
 
