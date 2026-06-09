@@ -14,7 +14,8 @@
       "*": "allow",
       "git add *": "allow",
       "git commit *": "allow",
-      "git push *": "allow"
+      "git push *": "allow",
+      "gh issue create *": "allow"
     },
     "edit": {
       "*.R": "allow",
