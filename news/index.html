@@ -49,6 +49,8 @@
 <code>impute_data()</code> no longer uses hard-coded positional column subsetting (<code>[, 1:10]</code>). Temporary columns are now dropped by name, making the function robust to upstream changes in the data frame structure (<a href="https://github.com/graemeleehickey/goldilocks/issues/26" class="external-link">#26</a>).</li>
 <li>
 <code><a href="../reference/randomization.html">randomization()</a></code> no longer produces <code>NA</code> for <code>next_block</code> when the loop exhausts all elements of a multi-element <code>block</code> vector. The index now wraps around cyclically (<a href="https://github.com/graemeleehickey/goldilocks/issues/31" class="external-link">#31</a>).</li>
+<li>
+<code>analyse_data()</code> now uses explicit row/column indexing when extracting Cox model results, preventing silent errors if the summary matrix structure changes (<a href="https://github.com/graemeleehickey/goldilocks/issues/29" class="external-link">#29</a>).</li>
 </ul></div>
 <div class="section level3">
 <h3 id="housekeeping-0-4-0-9000">Housekeeping<a class="anchor" aria-label="anchor" href="#housekeeping-0-4-0-9000"></a></h3>

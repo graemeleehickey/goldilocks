@@ -30,6 +30,10 @@
   elements of a multi-element `block` vector. The index now wraps around
   cyclically
   ([\#31](https://github.com/graemeleehickey/goldilocks/issues/31)).
+- `analyse_data()` now uses explicit row/column indexing when extracting
+  Cox model results, preventing silent errors if the summary matrix
+  structure changes
+  ([\#29](https://github.com/graemeleehickey/goldilocks/issues/29)).
 
 ### Housekeeping
 
