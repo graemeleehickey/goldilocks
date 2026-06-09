@@ -64,6 +64,10 @@
   `method = "bayes"` with imputation, clarifying that the imputation
   model’s posterior influences the analysis posterior
   ([\#27](https://github.com/graemeleehickey/goldilocks/issues/27)).
+- Clarified `prop_loss` parameter documentation, explaining that LTFU
+  times are drawn from `Uniform(0, t)` and that the event has not yet
+  occurred at the dropout time
+  ([\#25](https://github.com/graemeleehickey/goldilocks/issues/25)).
 
 ### Housekeeping
 
@@ -75,8 +79,10 @@
   [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md),
   [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md),
   [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md),
-  and
-  [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md).
+  [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md),
+  `analyse_data()`, and `posterior()`.
+- Added a package architecture vignette with a function dependency
+  diagram.
 - Added `_pkgdown.yml` configuration for a documentation website.
 - Added GitHub Actions workflow for pkgdown site deployment.
 - Updated GitHub Actions (`actions/checkout`, `actions/upload-artifact`)
