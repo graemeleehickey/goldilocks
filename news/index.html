@@ -51,6 +51,8 @@
 <code><a href="../reference/randomization.html">randomization()</a></code> no longer produces <code>NA</code> for <code>next_block</code> when the loop exhausts all elements of a multi-element <code>block</code> vector. The index now wraps around cyclically (<a href="https://github.com/graemeleehickey/goldilocks/issues/31" class="external-link">#31</a>).</li>
 <li>
 <code>analyse_data()</code> now uses explicit row/column indexing when extracting Cox model results, preventing silent errors if the summary matrix structure changes (<a href="https://github.com/graemeleehickey/goldilocks/issues/29" class="external-link">#29</a>).</li>
+<li>
+<code><a href="../reference/enrollment.html">enrollment()</a></code> now correctly selects the enrollment rate at piecewise changepoints. Previously, the rate at exact changepoint boundaries could use the rate from the prior interval (<a href="https://github.com/graemeleehickey/goldilocks/issues/28" class="external-link">#28</a>).</li>
 </ul></div>
 <div class="section level3">
 <h3 id="documentation-0-4-0-9000">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-4-0-9000"></a></h3>

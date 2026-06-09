@@ -50,15 +50,15 @@ from the PWE distribution.
 
 ``` r
 pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = c(0, 12))
-#>        time event
-#> 1  29.11672     1
-#> 2 127.75272     1
-#> 3 123.05719     1
+#>       time event
+#> 1 86.24953     1
+#> 2 89.54323     1
+#> 3 20.68446     1
 pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = c(0, 12),
            maxtime = 36)
 #>       time event
 #> 1 36.00000     0
-#> 2 32.24291     1
+#> 2 29.31672     1
 #> 3 36.00000     0
 pwe_impute(time = 19.621870008, hazard = c(2.585924e-02, 3.685254e-09),
            cutpoints = c(0, 12), maxtime = 36)

@@ -34,6 +34,11 @@
   Cox model results, preventing silent errors if the summary matrix
   structure changes
   ([\#29](https://github.com/graemeleehickey/goldilocks/issues/29)).
+- [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
+  now correctly selects the enrollment rate at piecewise changepoints.
+  Previously, the rate at exact changepoint boundaries could use the
+  rate from the prior interval
+  ([\#28](https://github.com/graemeleehickey/goldilocks/issues/28)).
 
 ### Documentation
 
