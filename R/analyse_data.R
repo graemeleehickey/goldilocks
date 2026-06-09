@@ -85,8 +85,8 @@ analyse_data <- function(
   if (method == "cox") {
     fit_cox <- coxph(Surv(time, event) ~ treatment, data = data)
     fit_res <- coef(summary(fit_cox))
-    success <- 1 - fit_res[5]
-    effect <- fit_res[1]
+    success <- 1 - fit_res[1, 5]
+    effect <- fit_res[1, 1]
   }
 
   ####################################################
