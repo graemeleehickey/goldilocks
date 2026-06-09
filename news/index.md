@@ -25,6 +25,11 @@
   (`[, 1:10]`). Temporary columns are now dropped by name, making the
   function robust to upstream changes in the data frame structure
   ([\#26](https://github.com/graemeleehickey/goldilocks/issues/26)).
+- [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
+  no longer produces `NA` for `next_block` when the loop exhausts all
+  elements of a multi-element `block` vector. The index now wraps around
+  cyclically
+  ([\#31](https://github.com/graemeleehickey/goldilocks/issues/31)).
 
 ### Housekeeping
 
