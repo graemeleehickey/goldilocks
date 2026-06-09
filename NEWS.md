@@ -13,6 +13,10 @@
 * `randomization()` no longer produces `NA` for `next_block` when the loop exhausts all elements of a multi-element `block` vector. The index now wraps around cyclically (#31).
 * `analyse_data()` now uses explicit row/column indexing when extracting Cox model results, preventing silent errors if the summary matrix structure changes (#29).
 
+## Documentation
+
+* Documented the two-stage posterior procedure used when `method = "bayes"` with imputation, clarifying that the imputation model's posterior influences the analysis posterior (#27).
+
 ## Housekeeping
 
 * Added unit tests for `enrollment()`, `randomization()`, `pwe_sim()`, `pwe_impute()`, `ppwe()`, `prop_to_haz()`, `sim_comp_data()`, and `summarise_sims()`.
