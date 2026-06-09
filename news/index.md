@@ -9,6 +9,11 @@
   for `method = "cox"` and `method = "logrank"`. The chi-square test
   remains two-sided only
   ([\#20](https://github.com/graemeleehickey/goldilocks/issues/20)).
+- When `method = "chisq"` and `imputed_final = FALSE`, subjects lost to
+  follow-up are now excluded from the final analysis. Previously, LTFU
+  subjects were counted as non-events, which diluted the event rate and
+  biased the chi-square test
+  ([\#22](https://github.com/graemeleehickey/goldilocks/issues/22)).
 - Removed unused C++ global variables and dead threading code inherited
   from the deprecated `fastlogranktest` package.
 - Replaced all uses of the magrittr pipe (`%>%`) with the base pipe

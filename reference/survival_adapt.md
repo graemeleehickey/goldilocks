@@ -296,7 +296,11 @@ At each interim (and final) analysis methods as:
   contrasted in the same manner. For example, if the success threshold
   is \\P \< 0.05\\, then one requires `post_prob_ha` \\\> 0.95\\. The
   reason for this is to enable simple switching between Bayesian and
-  frequentist paradigms for analysis.
+  frequentist paradigms for analysis. Because the chi-square test cannot
+  handle right-censored observations, subjects lost to follow-up are
+  excluded from the final analysis when `imputed_final = FALSE`. When
+  `imputed_final = TRUE`, LTFU subjects are imputed before the test is
+  applied, so all subjects are included.
 
 - Imputed final analysis (`imputed_final`). The overall final analysis
   conducted after accrual is suspended and follow-up is complete can be
