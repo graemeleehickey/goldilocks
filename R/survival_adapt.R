@@ -3,7 +3,11 @@
 #'
 #' @inheritParams sim_comp_data
 #' @param interim_look vector. Sample size for each interim look. Note: the
-#'   maximum sample size should not be included.
+#'   maximum sample size should not be included. For two-arm designs, each
+#'   interim look must be at least the (largest) block size (see \code{block}),
+#'   ensuring both treatment arms are present at every interim analysis; a
+#'   smaller look could enrol subjects from a single arm only, leaving the
+#'   interim posterior undefined for the missing arm.
 #' @param prior vector. The prior distributions for the piecewise hazard rate
 #'   parameters are each \eqn{Gamma(a_0, b_0)}, where \eqn{a_0} is the shape
 #'   parameter and \eqn{b_0} is the rate parameter (i.e., the inverse of the
@@ -173,10 +177,6 @@
 #'     \item{\code{N_control:}}{
 #'       integer. The number of patients enrolled in the control arm for
 #'       each simulation.}
-#'     \item{\code{est_interim:}}{
-#'       scalar. The treatment effect that was estimated at the time of the
-#'       interim analysis. Note this is not actually used in the final
-#'       analysis.}
 #'     \item{\code{est_final:}}{
 #'       scalar. The treatment effect that was estimated at the final analysis.
 #'       Final analysis occurs when either the maximum sample size is reached
@@ -288,6 +288,23 @@ survival_adapt <- function(
   # Check: 'interim_look' bounded by maximum sample size
   if (!is.null(interim_look)) {
     stopifnot(all(N_total > interim_look))
+
+    # Check: each interim look is large enough to (with block randomization)
+    # guarantee both arms are represented. A look smaller than one full block
+    # can enrol subjects from a single arm only, which would make the interim
+    # posterior undefined for the missing arm. For two-arm designs we require
+    # each look to be at least the (largest) block size.
+    if (!single_arm) {
+      min_look <- max(block)
+      if (any(interim_look < min_look)) {
+        stop(
+          "Each 'interim_look' must be at least the block size (",
+          min_look, ") so that both treatment arms are present at every ",
+          "interim analysis. Smallest 'interim_look' given: ",
+          min(interim_look), "."
+        )
+      }
+    }
   }
 
   # Check: 'alternative' is correctly specified
@@ -372,8 +389,6 @@ survival_adapt <- function(
       # - time_from_rand_at_look:  time from randomization to sample size look
       #                            e.g. if patient enrolled month 3, but look occurs month 7,
       #                            then patient could potentially be observed for 4 months
-
-      loss_to_fu <- NA
 
       data_interim <- within(data_total, {
         subject_enrolled = (id <= analysis_at_enrollnumber[i])

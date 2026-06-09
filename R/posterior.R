@@ -27,6 +27,18 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
 
   n_intervals <- length(cutpoints)
 
+  # Verify the expected treatment arms are actually present. This is checked on
+  # the incoming data (not the post-survSplit summary) so it works regardless of
+  # whether `treatment` is numeric or a factor: when `treatment` is numeric, an
+  # absent arm yields no summary row at all, which would otherwise silently
+  # produce an all-NA posterior for that arm via rgamma(N_mcmc, ..., NA).
+  if (sum(data$treatment == 1) == 0) {
+    stop("No subjects in the treatment arm")
+  }
+  if (!single_arm && sum(data$treatment == 0) == 0) {
+    stop("No subjects in the control arm")
+  }
+
   ik <- cutpoints[-1] # Note: survSplit() doesn't like cuts at 0, so ik = inner knots
   if (length(ik) == 0) {
     ik <- max(data$time)
@@ -52,20 +64,43 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
   # If a time-interval has zero subjects at a given interim analysis, it will
   # mean that there is zero exposure time and events for that stratum. To avoid
   # unrealistic hazard parameter estimates, we propagate the exposure time and
-  # event counts from the last non-zero stratum. This is equivalent to
-  # independent draws from Gamma posterior from the last non-zero stratum.
+  # event counts from the nearest non-zero stratum *within the same treatment
+  # arm*. This is equivalent to independent draws from the Gamma posterior of
+  # that stratum. Propagation is done per arm because data_summ stacks the arms
+  # (all control intervals, then all treatment intervals); propagating across
+  # the flat row order would otherwise leak one arm's data into the other.
   if (any(data_summ$n == 0)) {
-    get_i <- which(data_summ$n == 0)
-    for (i in get_i) {
-      if (i == 1) {
-        stop("No subjects in first strata")
+    for (arm in unique(data_summ$treatment)) {
+      arm_rows <- which(data_summ$treatment == arm)
+      arm_summ <- data_summ[arm_rows, ]
+
+      if (all(arm_summ$n == 0)) {
+        # Defensive: with the top-level arm-presence check above this should be
+        # unreachable, but guard against an arm that appears only as empty
+        # factor levels.
+        stop("No subjects in arm ", arm)
       }
-      warning(
-        "Interval ", i, " has zero subjects; propagating data from ",
-        "interval ", i - 1, " for posterior estimation.",
-        call. = FALSE
-      )
-      data_summ[i, c("tot_time", "tot_events")] <- data_summ[(i - 1), c("tot_time", "tot_events")]
+
+      # Walk the intervals in order; for an empty interval, carry forward the
+      # last non-empty interval's data. If the first interval(s) are empty,
+      # back-fill from the first non-empty interval instead.
+      first_nonzero <- which(arm_summ$n > 0)[1]
+      for (k in seq_len(nrow(arm_summ))) {
+        if (arm_summ$n[k] == 0) {
+          source_k <- if (k > first_nonzero) k - 1 else first_nonzero
+          warning(
+            "Treatment arm ", arm, ", interval ", k,
+            " has zero subjects; propagating data from interval ", source_k,
+            " for posterior estimation.",
+            call. = FALSE
+          )
+          arm_summ[k, c("tot_time", "tot_events")] <-
+            arm_summ[source_k, c("tot_time", "tot_events")]
+        }
+      }
+
+      data_summ[arm_rows, c("tot_time", "tot_events")] <-
+        arm_summ[, c("tot_time", "tot_events")]
     }
   }
 

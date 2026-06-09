@@ -8,7 +8,7 @@ under GPL-3 license.
 
 ## Test environments
 
-* local macOS (Sonoma 14.6.1) install, R 4.4.2
+* local macOS (Tahoe 26.5) install, R 4.5.3
 * ubuntu (via GitHub actions, release + devel)
 * macOS (via GitHub actions, release)
 * windows (via appveyor CI, release)
@@ -20,6 +20,11 @@ under GPL-3 license.
 0 errors | 0 warnings | 1 notes
 
 Win-Builder NOTE: "checking CRAN incoming feasibility ... NOTE"
+
+Local NOTE: "checking for future file timestamps ... NOTE: unable to verify
+current time". This is an environment artifact caused by the check being unable
+to reach an external time server during the local run; it is unrelated to the
+package contents.
 
 ## Reverse dependencies
 

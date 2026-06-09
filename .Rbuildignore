@@ -4,10 +4,11 @@
 ^codecov\.yml$
 ^\.travis\.yml$
 ^\.github$
-^appveyor\.yml$
 data-raw
 ^cran-comments\.md$
 ^CRAN-RELEASE$
 ^LICENSE
 ^CRAN-SUBMISSION$
 ^\.positai$
+^_pkgdown\.yml$
+^docs$

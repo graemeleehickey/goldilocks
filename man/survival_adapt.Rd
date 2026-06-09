@@ -49,7 +49,11 @@ change. Must be same length as lambda. See \code{\link{enrollment}} for
 more details.}
 
 \item{interim_look}{vector. Sample size for each interim look. Note: the
-maximum sample size should not be included.}
+maximum sample size should not be included. For two-arm designs, each
+interim look must be at least the (largest) block size (see \code{block}),
+ensuring both treatment arms are present at every interim analysis; a
+smaller look could enrol subjects from a single arm only, leaving the
+interim posterior undefined for the missing arm.}
 
 \item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
 will be evaluated.}
@@ -137,10 +141,6 @@ each simulation.}
 \item{\code{N_control:}}{
 integer. The number of patients enrolled in the control arm for
 each simulation.}
-\item{\code{est_interim:}}{
-scalar. The treatment effect that was estimated at the time of the
-interim analysis. Note this is not actually used in the final
-analysis.}
 \item{\code{est_final:}}{
 scalar. The treatment effect that was estimated at the final analysis.
 Final analysis occurs when either the maximum sample size is reached

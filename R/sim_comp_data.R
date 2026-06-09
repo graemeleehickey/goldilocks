@@ -25,8 +25,7 @@
 #'   \code{Uniform(0, t)} distribution, where \code{t} is their potential
 #'   event or censoring time. Since the LTFU time is always less than
 #'   \code{t}, the event has not yet occurred at dropout and the subject is
-#'   right-censored.
-#'   Defaults to zero.
+#'   right-censored. Defaults to zero.
 #'
 #' @return A data frame with 1 row per subject and columns:
 #' \describe{

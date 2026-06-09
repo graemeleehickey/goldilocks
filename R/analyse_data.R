@@ -19,7 +19,7 @@
 #'        \code{NULL}.}
 #' }
 #'
-#' @importFrom stats pchisq
+#' @importFrom stats pchisq pnorm
 #' @import survival
 #'
 #' @noRd
