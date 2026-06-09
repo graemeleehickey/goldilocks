@@ -315,7 +315,19 @@ conduct the trial in the same manner, especially if loss to follow-up
 rates are appreciable. Note, this only applies to subjects who are
 right-censored due to loss to follow-up, which we assume is a
 non-informative process. This can be used with any <code>method</code>.</p></li>
-</ul></div>
+</ul><p>When <code>method = "bayes"</code> and imputation is involved (either at interim
+analyses or via <code>imputed_final = TRUE</code>), a two-stage posterior
+procedure is used. First, the posterior distribution of the piecewise
+hazard rates is estimated from the <em>observed</em> data and used to draw
+imputed event times for censored subjects. Second, a <em>new</em> posterior
+is estimated from the combined observed and imputed data, and this
+posterior is used for inference. This is consistent with the predictive
+probability framework described in Broglio et al. (2014), but users
+should be aware that the imputation model's posterior influences the
+analysis posterior. For frequentist methods (<code>"logrank"</code>,
+<code>"cox"</code>, <code>"chisq"</code>), the second stage uses a standard test
+rather than a posterior, so this feedback loop does not arise.</p>
+    </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks

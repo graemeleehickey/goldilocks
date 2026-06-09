@@ -53,6 +53,10 @@
 <code>analyse_data()</code> now uses explicit row/column indexing when extracting Cox model results, preventing silent errors if the summary matrix structure changes (<a href="https://github.com/graemeleehickey/goldilocks/issues/29" class="external-link">#29</a>).</li>
 </ul></div>
 <div class="section level3">
+<h3 id="documentation-0-4-0-9000">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-4-0-9000"></a></h3>
+<ul><li>Documented the two-stage posterior procedure used when <code>method = "bayes"</code> with imputation, clarifying that the imputation model’s posterior influences the analysis posterior (<a href="https://github.com/graemeleehickey/goldilocks/issues/27" class="external-link">#27</a>).</li>
+</ul></div>
+<div class="section level3">
 <h3 id="housekeeping-0-4-0-9000">Housekeeping<a class="anchor" aria-label="anchor" href="#housekeeping-0-4-0-9000"></a></h3>
 <ul><li>Added unit tests for <code><a href="../reference/enrollment.html">enrollment()</a></code>, <code><a href="../reference/randomization.html">randomization()</a></code>, <code><a href="../reference/pwe_sim.html">pwe_sim()</a></code>, <code><a href="../reference/pwe_impute.html">pwe_impute()</a></code>, <code><a href="../reference/ppwe.html">ppwe()</a></code>, <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code>, <code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code>, and <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code>.</li>
 <li>Added <code>_pkgdown.yml</code> configuration for a documentation website.</li>

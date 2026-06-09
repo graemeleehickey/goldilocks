@@ -296,6 +296,19 @@ At each interim (and final) analysis methods as:
   to follow-up, which we assume is a non-informative process. This can
   be used with any `method`.
 
+When `method = "bayes"` and imputation is involved (either at interim
+analyses or via `imputed_final = TRUE`), a two-stage posterior procedure
+is used. First, the posterior distribution of the piecewise hazard rates
+is estimated from the *observed* data and used to draw imputed event
+times for censored subjects. Second, a *new* posterior is estimated from
+the combined observed and imputed data, and this posterior is used for
+inference. This is consistent with the predictive probability framework
+described in Broglio et al. (2014), but users should be aware that the
+imputation model's posterior influences the analysis posterior. For
+frequentist methods (`"logrank"`, `"cox"`, `"chisq"`), the second stage
+uses a standard test rather than a posterior, so this feedback loop does
+not arise.
+
 ## References
 
 Broglio KR, Connor JT, Berry SM. Not too big, not too small: a

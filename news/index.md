@@ -35,6 +35,13 @@
   structure changes
   ([\#29](https://github.com/graemeleehickey/goldilocks/issues/29)).
 
+### Documentation
+
+- Documented the two-stage posterior procedure used when
+  `method = "bayes"` with imputation, clarifying that the imputation
+  model’s posterior influences the analysis posterior
+  ([\#27](https://github.com/graemeleehickey/goldilocks/issues/27)).
+
 ### Housekeeping
 
 - Added unit tests for
