@@ -26,7 +26,10 @@
 #'   If \code{imputed_final = FALSE} then intuitively, we might expect to see a
 #'   marginal increase in the proportion of studies that stop for expected
 #'   success, but which then go on to fail. We have not verified this aspect,
-#'   but it should be noted.
+#'   but it should be noted. When \code{method = "chisq"} and
+#'   \code{imputed_final = FALSE}, subjects lost to follow-up are excluded
+#'   from the analysis because the chi-square test cannot handle
+#'   right-censored observations.
 #'
 #' @return Vector with 1) posterior probability (or P-value equivalent) for
 #'   alternative hypothesis, and 2) mean posterior treatment effect.
@@ -85,6 +88,10 @@ test_final <- function(data_in, cutpoints, prior, N_mcmc, single_arm,
     est_final <- mean(effect_final_mat)
   } else {
     # Apply primary analysis to final data (without imputation)
+    # Chi-square test cannot handle censored (LTFU) subjects, so exclude them
+    if (method == "chisq" && "loss_to_fu" %in% names(data_in)) {
+      data_in <- data_in[!data_in$loss_to_fu, ]
+    }
     success <- analyse_data(data         = data_in,
                             cutpoints    = cutpoints,
                             end_of_study = end_of_study,

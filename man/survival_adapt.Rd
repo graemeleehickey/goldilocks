@@ -239,7 +239,11 @@ not a posterior probability, it can be contrasted in the same manner.
 For example, if the success threshold is \eqn{P < 0.05}, then one
 requires \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to
 enable simple switching between Bayesian and frequentist paradigms for
-analysis.
+analysis. Because the chi-square test cannot handle right-censored
+observations, subjects lost to follow-up are excluded from the final
+analysis when \code{imputed_final = FALSE}. When
+\code{imputed_final = TRUE}, LTFU subjects are imputed before the
+test is applied, so all subjects are included.
 \item Imputed final analysis (\code{imputed_final}).
 The overall final analysis conducted after accrual is suspended and
 follow-up is complete can be analyzed on imputed datasets (default) or

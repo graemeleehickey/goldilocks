@@ -3,6 +3,7 @@
 ## Improvements
 
 * `survival_adapt()` now supports one-sided tests (`alternative = "greater"` or `"less"`) for `method = "cox"` and `method = "logrank"`. The chi-square test remains two-sided only (#20).
+* When `method = "chisq"` and `imputed_final = FALSE`, subjects lost to follow-up are now excluded from the final analysis. Previously, LTFU subjects were counted as non-events, which diluted the event rate and biased the chi-square test (#22).
 * Removed unused C++ global variables and dead threading code inherited from the deprecated `fastlogranktest` package.
 * Replaced all uses of the magrittr pipe (`%>%`) with the base pipe (`|>`) in `summarise_sims()` and `posterior()`, and removed the `dplyr::%>%` re-export from the NAMESPACE.
 * `posterior()` now warns when a piecewise interval has zero subjects and data is propagated from an adjacent interval.
