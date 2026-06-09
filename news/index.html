@@ -43,25 +43,25 @@
 <li>Replaced all uses of the magrittr pipe (<code>%&gt;%</code>) with the base pipe (<code>|&gt;</code>) in <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> and <code>posterior()</code>, and removed the <code>dplyr::%&gt;%</code> re-export from the NAMESPACE.</li>
 <li>
 <code>posterior()</code> now warns when a piecewise interval has zero subjects and data is propagated from an adjacent interval.</li>
+<li>
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> now validates that each <code>interim_look</code> in a two-arm design is at least the block size, so an interim look that could enrol a single treatment arm only is rejected as an input error rather than producing an undefined interim posterior.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-0-4-0-9000">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-4-0-9000"></a></h3>
-<ul><li>
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> no longer errors when called without interim looks (<code>interim_look = NULL</code>). The final analysis previously relied on an undefined loop index variable, which has been replaced with <code>stage_trial_stopped</code>.</li>
-<li>
-<code>impute_data()</code> no longer uses hard-coded positional column subsetting (<code>[, 1:10]</code>). Temporary columns are now dropped by name, making the function robust to upstream changes in the data frame structure (<a href="https://github.com/graemeleehickey/goldilocks/issues/26" class="external-link">#26</a>).</li>
-<li>
-<code><a href="../reference/randomization.html">randomization()</a></code> no longer produces <code>NA</code> for <code>next_block</code> when the loop exhausts all elements of a multi-element <code>block</code> vector. The index now wraps around cyclically (<a href="https://github.com/graemeleehickey/goldilocks/issues/31" class="external-link">#31</a>).</li>
-<li>
-<code>analyse_data()</code> now uses explicit row/column indexing when extracting Cox model results, preventing silent errors if the summary matrix structure changes (<a href="https://github.com/graemeleehickey/goldilocks/issues/29" class="external-link">#29</a>).</li>
-<li>
-<code><a href="../reference/enrollment.html">enrollment()</a></code> now correctly selects the enrollment rate at piecewise changepoints. Previously, the rate at exact changepoint boundaries could use the rate from the prior interval (<a href="https://github.com/graemeleehickey/goldilocks/issues/28" class="external-link">#28</a>).</li>
-<li>
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> no longer adds a systematic perturbation (<code>sd(time) / 1e4</code>) to all survival times at interim looks. Instead, only the boundary subject with zero follow-up time is clamped to <code>.Machine$double.eps</code> to satisfy <code><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit()</a></code> requirements (<a href="https://github.com/graemeleehickey/goldilocks/issues/24" class="external-link">#24</a>).</li>
+<ul><li><p><code>posterior()</code> now propagates data for zero-exposure piecewise intervals <em>within</em> each treatment arm. Previously, propagation walked the flat row order of the per-arm summary, so an empty leading interval in the treatment arm (e.g. a look where the treatment arm has no subjects) could copy the control arm’s data into the treatment posterior, contaminating the estimate across arms. <code>posterior()</code> also now checks up front that the expected treatment arms are present in the supplied data, erroring with an informative message instead of silently returning an all-<code>NA</code> posterior slice for an absent arm (which could occur at a small interim look where one arm has no enrolled subjects yet).</p></li>
+<li><p><code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> no longer errors when called without interim looks (<code>interim_look = NULL</code>). The final analysis previously relied on an undefined loop index variable, which has been replaced with <code>stage_trial_stopped</code>.</p></li>
+<li><p><code>impute_data()</code> no longer uses hard-coded positional column subsetting (<code>[, 1:10]</code>). Temporary columns are now dropped by name, making the function robust to upstream changes in the data frame structure (<a href="https://github.com/graemeleehickey/goldilocks/issues/26" class="external-link">#26</a>).</p></li>
+<li><p><code><a href="../reference/randomization.html">randomization()</a></code> no longer produces <code>NA</code> for <code>next_block</code> when the loop exhausts all elements of a multi-element <code>block</code> vector. The index now wraps around cyclically (<a href="https://github.com/graemeleehickey/goldilocks/issues/31" class="external-link">#31</a>).</p></li>
+<li><p><code>analyse_data()</code> now uses explicit row/column indexing when extracting Cox model results, preventing silent errors if the summary matrix structure changes (<a href="https://github.com/graemeleehickey/goldilocks/issues/29" class="external-link">#29</a>).</p></li>
+<li><p><code>analyse_data()</code> now imports <code><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">stats::pnorm</a></code>, which is used to compute one-sided <code>p</code>-values for the Cox and log-rank tests. Previously this relied on <code>stats</code> being attached.</p></li>
+<li><p>Removed a dead <code>loss_to_fu &lt;- NA</code> assignment in <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> that was shadowed by the <code>loss_to_fu</code> column inside <code><a href="https://rdrr.io/r/base/with.html" class="external-link">within()</a></code> and never used.</p></li>
+<li><p><code><a href="../reference/enrollment.html">enrollment()</a></code> now correctly selects the enrollment rate at piecewise changepoints. Previously, the rate at exact changepoint boundaries could use the rate from the prior interval (<a href="https://github.com/graemeleehickey/goldilocks/issues/28" class="external-link">#28</a>).</p></li>
+<li><p><code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> no longer adds a systematic perturbation (<code>sd(time) / 1e4</code>) to all survival times at interim looks. Instead, only the boundary subject with zero follow-up time is clamped to <code>.Machine$double.eps</code> to satisfy <code><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit()</a></code> requirements (<a href="https://github.com/graemeleehickey/goldilocks/issues/24" class="external-link">#24</a>).</p></li>
 </ul></div>
 <div class="section level3">
 <h3 id="documentation-0-4-0-9000">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-4-0-9000"></a></h3>
-<ul><li>Documented the two-stage posterior procedure used when <code>method = "bayes"</code> with imputation, clarifying that the imputation model’s posterior influences the analysis posterior (<a href="https://github.com/graemeleehickey/goldilocks/issues/27" class="external-link">#27</a>).</li>
+<ul><li>Removed the <code>est_interim</code> element from the <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> return-value documentation. This field was documented but never computed or returned.</li>
+<li>Documented the two-stage posterior procedure used when <code>method = "bayes"</code> with imputation, clarifying that the imputation model’s posterior influences the analysis posterior (<a href="https://github.com/graemeleehickey/goldilocks/issues/27" class="external-link">#27</a>).</li>
 <li>Clarified <code>prop_loss</code> parameter documentation, explaining that LTFU times are drawn from <code>Uniform(0, t)</code> and that the event has not yet occurred at the dropout time (<a href="https://github.com/graemeleehickey/goldilocks/issues/25" class="external-link">#25</a>).</li>
 </ul></div>
 <div class="section level3">
@@ -71,7 +71,8 @@
 <li>Added <code>_pkgdown.yml</code> configuration for a documentation website.</li>
 <li>Added GitHub Actions workflow for pkgdown site deployment.</li>
 <li>Updated GitHub Actions (<code>actions/checkout</code>, <code>actions/upload-artifact</code>) from v4 to v5 for Node.js 24 compatibility.</li>
-<li>Added <code>.positai</code> to <code>.Rbuildignore</code> to suppress <code>R CMD check</code> NOTE.</li>
+<li>Added <code>.positai</code>, <code>_pkgdown.yml</code>, and <code>docs</code> to <code>.Rbuildignore</code> to suppress <code>R CMD check</code> NOTEs.</li>
+<li>Removed the unused <code>appveyor.yml</code> CI configuration file and its stale <code>.Rbuildignore</code> entry.</li>
 <li>Updated README to clarify that the C++ log-rank code was ported from the now-deprecated <code>fastlogranktest</code> package.</li>
 <li>Clarified <code>prior</code> parameter documentation to explicitly state the Gamma rate parameterization and that the same prior is shared across all piecewise intervals and treatment arms.</li>
 </ul></div>

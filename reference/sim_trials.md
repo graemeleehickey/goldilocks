@@ -69,7 +69,11 @@ sim_trials(
 - interim_look:
 
   vector. Sample size for each interim look. Note: the maximum sample
-  size should not be included.
+  size should not be included. For two-arm designs, each interim look
+  must be at least the (largest) block size (see `block`), ensuring both
+  treatment arms are present at every interim analysis; a smaller look
+  could enrol subjects from a single arm only, leaving the interim
+  posterior undefined for the missing arm.
 
 - end_of_study:
 

@@ -103,7 +103,11 @@ more details.</p></dd>
 
 <dt id="arg-interim-look">interim_look<a class="anchor" aria-label="anchor" href="#arg-interim-look"></a></dt>
 <dd><p>vector. Sample size for each interim look. Note: the
-maximum sample size should not be included.</p></dd>
+maximum sample size should not be included. For two-arm designs, each
+interim look must be at least the (largest) block size (see <code>block</code>),
+ensuring both treatment arms are present at every interim analysis; a
+smaller look could enrol subjects from a single arm only, leaving the
+interim posterior undefined for the missing arm.</p></dd>
 
 
 <dt id="arg-end-of-study">end_of_study<a class="anchor" aria-label="anchor" href="#arg-end-of-study"></a></dt>
@@ -220,11 +224,6 @@ each simulation.</p></dd>
 <dt><code>N_control:</code></dt>
 <dd><p>integer. The number of patients enrolled in the control arm for
 each simulation.</p></dd>
-
-<dt><code>est_interim:</code></dt>
-<dd><p>scalar. The treatment effect that was estimated at the time of the
-interim analysis. Note this is not actually used in the final
-analysis.</p></dd>
 
 <dt><code>est_final:</code></dt>
 <dd><p>scalar. The treatment effect that was estimated at the final analysis.
