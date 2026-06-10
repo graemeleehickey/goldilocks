@@ -1,17 +1,18 @@
-## Other notes
+## Submission notes
 
-Due to the `fastlogranktest` package--a strong dependency for my package--being 
-removed from CRAN and the authors not fixing after many months, I have embedded
-the C++ code and R wrapper directly into here. I have attributed this to the
-original author in the DESCRIPTION file. Note: `fastlogranktest` was distributed
-under GPL-3 license.
+This is a minor release (0.5.0). It contains several bug fixes -- including a
+cross-arm contamination bug in the Bayesian posterior at interim looks, a
+silent NA-arm posterior when one treatment arm is absent at an interim look,
+a missing `stats::pnorm` import, and corrections to `randomization()` and
+`enrollment()` -- and adds support for one-sided Cox and log-rank tests. The
+local test suite (156 tests) passes, and `R CMD check` is clean apart from
+the environmental NOTEs noted below. Two new vignettes have been added.
 
 ## Test environments
 
 * local macOS (Tahoe 26.5) install, R 4.5.3
 * ubuntu (via GitHub actions, release + devel)
 * macOS (via GitHub actions, release)
-* windows (via appveyor CI, release)
 * windows (via GitHub actions, release)
 * windows (via win-builder, old + release + devel)
 

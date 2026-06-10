@@ -1,4 +1,4 @@
-# goldilocks 0.4.0.9000
+# goldilocks 0.5.0
 
 ## Improvements
 
