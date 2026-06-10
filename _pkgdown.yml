@@ -51,6 +51,7 @@ articles:
     contents:
       - broglio
       - bayes-piecewise
+      - single-arm
   - title: Developer
     contents:
       - architecture
