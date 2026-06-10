@@ -5,7 +5,8 @@ articles:
   architecture: architecture.html
   bayes-piecewise: bayes-piecewise.html
   broglio: broglio.html
-last_built: 2026-06-10T04:45Z
+  single-arm: single-arm.html
+last_built: 2026-06-10T04:59Z
 urls:
   reference: https://graemeleehickey.github.io/goldilocks/reference
   article: https://graemeleehickey.github.io/goldilocks/articles

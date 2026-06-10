@@ -122,6 +122,11 @@
   the Gamma-prior / posterior decision rule on the
   cumulative-failure-probability scale, and a worked single-trial
   example.
+- Added a new vignette, “Single-arm trials”, documenting the
+  `hazard_control = NULL` mode (Bayesian-only), the role of `h0` as a
+  benchmark failure rate, the success rule
+  `Pr(p_treatment < h0) > prob_ha`, and a worked single-trial example
+  with operating-characteristics templates.
 
 ### Housekeeping
 
