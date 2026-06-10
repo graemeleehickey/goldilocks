@@ -24,7 +24,7 @@ From this information, we have:
 - Equal randomization: `block = 2` and `rand_ratio = c(1, 1)` (default parameters)
 - Primary endpoint is at 12-months: `end_of_study = 12`
 - 12-month event rate for control arm: `hazard_control = prop_to_haz(1 - 0.30, endtime = 12)` (note that the input argument is the failure proportion, not the survival proportion)
-- No change points in hazard: `cutpoint = 0` (default parameter)
+- No change points in hazard: `cutpoints = 0` (default parameter)
 - Maximum sample size: `N_total = 300`
 - No attrition: `prop_loss = 0`
 
@@ -48,6 +48,31 @@ From this information, we have:
 
 Note that `prob_ha` is set as $1 - 0.05$. This allows us to interchange between test, including Bayesian tests (`method = "bayes"`), which requires an analogous posterior probability threshold. The parameter `h0` is ignored when using a log-rank test, as it is not meaningful to have success margins.
 
+### One-sided tests
+
+The example above uses a two-sided test. When the trial is designed to detect a benefit in one direction only -- here, longer survival on the treatment arm -- a one-sided test is often more appropriate and more powerful. The `cox` and `logrank` methods support all three alternatives via the `alternative` argument. For these methods the direction is defined on the hazard scale:
+
+- `alternative = "less"` declares success when the treatment arm has a *lower* hazard (longer survival) than control.
+- `alternative = "greater"` declares success when the treatment arm has a *higher* hazard.
+
+For instance, to run the same design as a one-sided log-rank test at the 0.025 level, we would set:
+
+```{r one_sided_example, eval=FALSE}
+out_power_1sided <- update(
+  out_power,
+  alternative = "less",
+  prob_ha = 0.975
+)
+```
+
+The chi-square test (`method = "chisq"`) supports `"two.sided"` only. The Bayesian test (`method = "bayes"`) is the opposite: it *requires* a one-sided alternative (`"less"` or `"greater"`), and `"two.sided"` raises an error. For the Bayesian test the effect is measured on the cumulative-failure-probability scale, $p_\textrm{treatment} - p_\textrm{control}$ at `end_of_study`, compared against the margin `h0` (default `0`):
+
+- `alternative = "less"` declares success when the posterior probability that $p_\textrm{treatment} - p_\textrm{control} <$ `h0` exceeds the threshold `prob_ha` -- i.e. the treatment arm has a *lower* failure probability (longer survival).
+- `alternative = "greater"` declares success when the posterior probability that $p_\textrm{treatment} - p_\textrm{control} >$ `h0` exceeds `prob_ha`.
+
+In all methods, `alternative = "less"` therefore corresponds to a beneficial treatment effect (longer survival) in this example.
+
+
 The operating characteristics will be determined using 500 simulated trials. At each interim analysis, we will use 100 imputations and assume independent weakly-informative Gamma(0.1, 0.1) prior distributions for the treatment and control arm event time hazard rate parameters. As this is computationally expensive overall, we will exploit the option to parallelize the simulations over multiple cores.
 
 - Number of simulated trials: `N_trials = 500`
@@ -70,7 +95,7 @@ ht <- prop_to_haz(0.5, endtime = 12)
 out_power <- sim_trials(
   hazard_treatment = ht,
   hazard_control = hc,
-  cutpoint = 0,
+  cutpoints = 0,
   N_total = 300,
   lambda = 5,
   lambda_time = 0,
@@ -99,10 +124,14 @@ out_t1error <- update(out_power, hazard_treatment = hc)
 ```
 
 ```{r summarise_sims}
-summarise_sims(list(out_power$sims, out_t1error$sims))
+knitr::kable(
+  summarise_sims(list(out_power$sims, out_t1error$sims)),
+  digits = 3,
+  caption = "Operating characteristics with a two-sided log-rank test at the 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is the null (treatment OS 30%)."
+)
 ```
 
-The type I error under this design is slightly too large to be considered acceptable. This was to be expected, since we kept the $P$-value threshold as 0.05 despite having multiple interim looks. However, we note that only simulated `N_trials = 500` trials, meaning if the type I error was truly 0.05, then values in the interval (`0.05 + c(-1, 1) * 1.96 * sqrt(0.05 * (1 - 0.05) / 500)`) would be consistent with this.
+The type I error under this design (scenario 2, `power` column) is slightly too large to be considered acceptable. This was to be expected, since we kept the $P$-value threshold as 0.05 despite having multiple interim looks. However, we note that only simulated `N_trials = 500` trials, meaning if the type I error was truly 0.05, then values in the interval (`0.05 + c(-1, 1) * 1.96 * sqrt(0.05 * (1 - 0.05) / 500)`) would be consistent with this.
 
 In practice, we need to use a more stringent threshold in order to control the overall type I error. This can be achieved by trial and error. For example, if we use $P < 0.04$ (applied using the argument `prob_ha = 0.96`), we find the operating characteristics are more acceptable.
 
@@ -112,7 +141,11 @@ out_t1error2 <- update(out_power2, hazard_treatment = hc)
 ```
 
 ```{r summarise_sims_p0.04}
-summarise_sims(list(out_power2$sims, out_t1error2$sims))
+knitr::kable(
+  summarise_sims(list(out_power2$sims, out_t1error2$sims)),
+  digits = 3,
+  caption = "Operating characteristics with the more stringent P < 0.04 threshold (`prob_ha = 0.96`)."
+)
 ```
 
 Assuming the treatment arm has an OS rate of 50% at 12-months, the trial would be expected to stop early 89% of time, with an average sample size of 175. Overall, the power is 92%. Conversely, if the treatment arm OS rate is the same as the control arm, 87% of the trials stopped early for expected futility.
