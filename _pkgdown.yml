@@ -50,6 +50,7 @@ articles:
   - title: Getting started
     contents:
       - broglio
+      - bayes-piecewise
   - title: Developer
     contents:
       - architecture
