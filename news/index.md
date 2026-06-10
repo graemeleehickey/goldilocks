@@ -104,6 +104,17 @@
   times are drawn from `Uniform(0, t)` and that the event has not yet
   occurred at the dropout time
   ([\#25](https://github.com/graemeleehickey/goldilocks/issues/25)).
+- Documented the minimum `interim_look` requirement (at least the block
+  size for two-arm designs) in the
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  `interim_look` parameter.
+- Improved the “Example: Two-armed RCT” vignette: the
+  [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
+  operating characteristics are now rendered as captioned tables, a
+  section documents one-sided tests (including that `method = "bayes"`
+  requires a one-sided alternative and measures the effect on the
+  cumulative-failure-probability scale `p_treatment - p_control` against
+  `h0`), and the `cutpoint` argument name was corrected to `cutpoints`.
 
 ### Housekeeping
 
@@ -127,6 +138,12 @@
   suppress `R CMD check` NOTEs.
 - Removed the unused `appveyor.yml` CI configuration file and its stale
   `.Rbuildignore` entry.
+- Added `docs/` to `.gitignore`, since the pkgdown site is built and
+  deployed to the `gh-pages` branch by GitHub Actions rather than
+  committed to the main branch.
+- Added an `aria-label` to the pkgdown navbar GitHub icon and alt-text
+  to the README hex logo and downloads badge to address pkgdown
+  accessibility warnings.
 - Updated README to clarify that the C++ log-rank code was ported from
   the now-deprecated `fastlogranktest` package.
 - Clarified `prior` parameter documentation to explicitly state the

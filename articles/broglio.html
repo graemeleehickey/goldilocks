@@ -36,7 +36,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/graemeleehickey/goldilocks"><span class="fa fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/graemeleehickey/goldilocks" aria-label="GitHub repository"><span class="fa fa-github"></span></a></li>
       </ul>
 </div>
 
@@ -86,7 +86,7 @@ subject has completed 12-months of follow-up.</p>
 <code>hazard_control = prop_to_haz(1 - 0.30, endtime = 12)</code> (note
 that the input argument is the failure proportion, not the survival
 proportion)</li>
-<li>No change points in hazard: <code>cutpoint = 0</code> (default
+<li>No change points in hazard: <code>cutpoints = 0</code> (default
 parameter)</li>
 <li>Maximum sample size: <code>N_total = 300</code>
 </li>
@@ -143,6 +143,56 @@ This allows us to interchange between test, including Bayesian tests
 probability threshold. The parameter <code>h0</code> is ignored when
 using a log-rank test, as it is not meaningful to have success
 margins.</p>
+<div class="section level3">
+<h3 id="one-sided-tests">One-sided tests<a class="anchor" aria-label="anchor" href="#one-sided-tests"></a>
+</h3>
+<p>The example above uses a two-sided test. When the trial is designed
+to detect a benefit in one direction only – here, longer survival on the
+treatment arm – a one-sided test is often more appropriate and more
+powerful. The <code>cox</code> and <code>logrank</code> methods support
+all three alternatives via the <code>alternative</code> argument. For
+these methods the direction is defined on the hazard scale:</p>
+<ul>
+<li>
+<code>alternative = "less"</code> declares success when the
+treatment arm has a <em>lower</em> hazard (longer survival) than
+control.</li>
+<li>
+<code>alternative = "greater"</code> declares success when the
+treatment arm has a <em>higher</em> hazard.</li>
+</ul>
+<p>For instance, to run the same design as a one-sided log-rank test at
+the 0.025 level, we would set:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">out_power_1sided</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span></span>
+<span>  <span class="va">out_power</span>,</span>
+<span>  alternative <span class="op">=</span> <span class="st">"less"</span>,</span>
+<span>  prob_ha <span class="op">=</span> <span class="fl">0.975</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>The chi-square test (<code>method = "chisq"</code>) supports
+<code>"two.sided"</code> only. The Bayesian test
+(<code>method = "bayes"</code>) is the opposite: it <em>requires</em> a
+one-sided alternative (<code>"less"</code> or <code>"greater"</code>),
+and <code>"two.sided"</code> raises an error. For the Bayesian test the
+effect is measured on the cumulative-failure-probability scale,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub></mrow><annotation encoding="application/x-tex">p_\textrm{treatment} - p_\textrm{control}</annotation></semantics></math>
+at <code>end_of_study</code>, compared against the margin
+<code>h0</code> (default <code>0</code>):</p>
+<ul>
+<li>
+<code>alternative = "less"</code> declares success when the
+posterior probability that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub><mo>&lt;</mo></mrow><annotation encoding="application/x-tex">p_\textrm{treatment} - p_\textrm{control} &lt;</annotation></semantics></math><code>h0</code> exceeds the threshold <code>prob_ha</code> – i.e. the
+treatment arm has a <em>lower</em> failure probability (longer
+survival).</li>
+<li>
+<code>alternative = "greater"</code> declares success when the
+posterior probability that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub><mo>&gt;</mo></mrow><annotation encoding="application/x-tex">p_\textrm{treatment} - p_\textrm{control} &gt;</annotation></semantics></math><code>h0</code> exceeds <code>prob_ha</code>.</li>
+</ul>
+<p>In all methods, <code>alternative = "less"</code> therefore
+corresponds to a beneficial treatment effect (longer survival) in this
+example.</p>
 <p>The operating characteristics will be determined using 500 simulated
 trials. At each interim analysis, we will use 100 imputations and assume
 independent weakly-informative Gamma(0.1, 0.1) prior distributions for
@@ -171,17 +221,17 @@ to impute the final analysis dataset, we could change this to
 <p>Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is
 50%.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://graemeleehickey.github.io/goldilocks/">goldilocks</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: survival</span></span></code></pre></div>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.7</span>, endtime <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
 <span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.5</span>, endtime <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">out_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">hc</span>,</span>
-<span>  cutpoint <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="fl">300</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -207,18 +257,64 @@ design. The only change required is to set the
 <code>hazard_control</code> argument (i.e. the null case). We can make
 use of the <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> function to avoid having to type
 everything else over again.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">out_t1error</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power</span><span class="op">$</span><span class="va">sims</span>, <span class="va">out_t1error</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 8</span></span></span>
-<span><span class="co">#&gt;   scenario power stop_success stop_futility stop_max_N mean_N  sd_N</span></span>
-<span><span class="co">#&gt;      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>        1 0.934        0.916         0.04      0.044<span style="text-decoration: underline;">0</span>   171.  53.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>        2 0.068        0.056         0.846     0.098    210.  47.6</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: stop_and_fail &lt;dbl&gt;</span></span></span></code></pre></div>
-<p>The type I error under this design is slightly too large to be
-considered acceptable. This was to be expected, since we kept the
+<code class="sourceCode R"><span><span class="va">out_t1error</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power</span><span class="op">$</span><span class="va">sims</span>, <span class="va">out_t1error</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  caption <span class="op">=</span> <span class="st">"Operating characteristics with a two-sided log-rank test at the 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is the null (treatment OS 30%)."</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<caption>Operating characteristics with a two-sided log-rank test at the
+0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2
+is the null (treatment OS 30%).</caption>
+<colgroup>
+<col width="11%">
+<col width="7%">
+<col width="16%">
+<col width="17%">
+<col width="13%">
+<col width="8%">
+<col width="8%">
+<col width="17%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">scenario</th>
+<th align="right">power</th>
+<th align="right">stop_success</th>
+<th align="right">stop_futility</th>
+<th align="right">stop_max_N</th>
+<th align="right">mean_N</th>
+<th align="right">sd_N</th>
+<th align="right">stop_and_fail</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">0.934</td>
+<td align="right">0.916</td>
+<td align="right">0.040</td>
+<td align="right">0.044</td>
+<td align="right">171.4</td>
+<td align="right">53.294</td>
+<td align="right">0.016</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.068</td>
+<td align="right">0.056</td>
+<td align="right">0.846</td>
+<td align="right">0.098</td>
+<td align="right">209.8</td>
+<td align="right">47.602</td>
+<td align="right">0.008</td>
+</tr>
+</tbody>
+</table>
+<p>The type I error under this design (scenario 2, <code>power</code>
+column) is slightly too large to be considered acceptable. This was to
+be expected, since we kept the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>-value
 threshold as 0.05 despite having multiple interim looks. However, we
 note that only simulated <code>N_trials = 500</code> trials, meaning if
@@ -231,17 +327,61 @@ error. For example, if we use
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>&lt;</mo><mn>0.04</mn></mrow><annotation encoding="application/x-tex">P &lt; 0.04</annotation></semantics></math>
 (applied using the argument <code>prob_ha = 0.96</code>), we find the
 operating characteristics are more acceptable.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_power2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, prob_ha <span class="op">=</span> <span class="fl">0.96</span><span class="op">)</span></span>
 <span><span class="va">out_t1error2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power2</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power2</span><span class="op">$</span><span class="va">sims</span>, <span class="va">out_t1error2</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 8</span></span></span>
-<span><span class="co">#&gt;   scenario power stop_success stop_futility stop_max_N mean_N  sd_N</span></span>
-<span><span class="co">#&gt;      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>        1 0.92         0.89          0.044      0.066   175.  56.2</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>        2 0.048        0.042         0.868      0.09    203.  46.8</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: stop_and_fail &lt;dbl&gt;</span></span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power2</span><span class="op">$</span><span class="va">sims</span>, <span class="va">out_t1error2</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  caption <span class="op">=</span> <span class="st">"Operating characteristics with the more stringent P &lt; 0.04 threshold (`prob_ha = 0.96`)."</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<caption>Operating characteristics with the more stringent P &lt; 0.04
+threshold (<code>prob_ha = 0.96</code>).</caption>
+<colgroup>
+<col width="11%">
+<col width="7%">
+<col width="16%">
+<col width="17%">
+<col width="13%">
+<col width="8%">
+<col width="8%">
+<col width="17%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">scenario</th>
+<th align="right">power</th>
+<th align="right">stop_success</th>
+<th align="right">stop_futility</th>
+<th align="right">stop_max_N</th>
+<th align="right">mean_N</th>
+<th align="right">sd_N</th>
+<th align="right">stop_and_fail</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">0.920</td>
+<td align="right">0.890</td>
+<td align="right">0.044</td>
+<td align="right">0.066</td>
+<td align="right">175.35</td>
+<td align="right">56.213</td>
+<td align="right">0.02</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.048</td>
+<td align="right">0.042</td>
+<td align="right">0.868</td>
+<td align="right">0.090</td>
+<td align="right">202.80</td>
+<td align="right">46.760</td>
+<td align="right">0.01</td>
+</tr>
+</tbody>
+</table>
 <p>Assuming the treatment arm has an OS rate of 50% at 12-months, the
 trial would be expected to stop early 89% of time, with an average
 sample size of 175. Overall, the power is 92%. Conversely, if the
@@ -250,6 +390,7 @@ stopped early for expected futility.</p>
 <p>Once we have identified a suitable design, we would typically re-run
 the simulations using a larger number of simulations and, perhaps,
 imputations.</p>
+</div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
@@ -258,7 +399,8 @@ Goldilocks approach to sample size selection. <em>Journal of
 Biopharmaceutical Statistics</em>, 2014; <strong>24(3)</strong>:
 685–705.</p>
 </div>
-  </main>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

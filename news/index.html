@@ -19,7 +19,7 @@
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/graemeleehickey/goldilocks"><span class="fa fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/graemeleehickey/goldilocks" aria-label="GitHub repository"><span class="fa fa-github"></span></a></li>
       </ul></div>
 
 
@@ -63,6 +63,8 @@
 <ul><li>Removed the <code>est_interim</code> element from the <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> return-value documentation. This field was documented but never computed or returned.</li>
 <li>Documented the two-stage posterior procedure used when <code>method = "bayes"</code> with imputation, clarifying that the imputation model’s posterior influences the analysis posterior (<a href="https://github.com/graemeleehickey/goldilocks/issues/27" class="external-link">#27</a>).</li>
 <li>Clarified <code>prop_loss</code> parameter documentation, explaining that LTFU times are drawn from <code>Uniform(0, t)</code> and that the event has not yet occurred at the dropout time (<a href="https://github.com/graemeleehickey/goldilocks/issues/25" class="external-link">#25</a>).</li>
+<li>Documented the minimum <code>interim_look</code> requirement (at least the block size for two-arm designs) in the <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> <code>interim_look</code> parameter.</li>
+<li>Improved the “Example: Two-armed RCT” vignette: the <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> operating characteristics are now rendered as captioned tables, a section documents one-sided tests (including that <code>method = "bayes"</code> requires a one-sided alternative and measures the effect on the cumulative-failure-probability scale <code>p_treatment - p_control</code> against <code>h0</code>), and the <code>cutpoint</code> argument name was corrected to <code>cutpoints</code>.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="housekeeping-0-4-0-9000">Housekeeping<a class="anchor" aria-label="anchor" href="#housekeeping-0-4-0-9000"></a></h3>
@@ -73,6 +75,8 @@
 <li>Updated GitHub Actions (<code>actions/checkout</code>, <code>actions/upload-artifact</code>) from v4 to v5 for Node.js 24 compatibility.</li>
 <li>Added <code>.positai</code>, <code>_pkgdown.yml</code>, and <code>docs</code> to <code>.Rbuildignore</code> to suppress <code>R CMD check</code> NOTEs.</li>
 <li>Removed the unused <code>appveyor.yml</code> CI configuration file and its stale <code>.Rbuildignore</code> entry.</li>
+<li>Added <code>docs/</code> to <code>.gitignore</code>, since the pkgdown site is built and deployed to the <code>gh-pages</code> branch by GitHub Actions rather than committed to the main branch.</li>
+<li>Added an <code>aria-label</code> to the pkgdown navbar GitHub icon and alt-text to the README hex logo and downloads badge to address pkgdown accessibility warnings.</li>
 <li>Updated README to clarify that the C++ log-rank code was ported from the now-deprecated <code>fastlogranktest</code> package.</li>
 <li>Clarified <code>prior</code> parameter documentation to explicitly state the Gamma rate parameterization and that the same prior is shared across all piecewise intervals and treatment arms.</li>
 </ul></div>

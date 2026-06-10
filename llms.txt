@@ -1,4 +1,4 @@
-# goldilocks ![](reference/figures/hex.png)
+# goldilocks ![goldilocks package hex sticker logo](reference/figures/hex.png)
 
 The goal of `goldilocks` is to implement the Goldilocks Bayesian
 adaptive design proposed by Broglio et al. (2014) for time-to-event
