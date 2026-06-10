@@ -115,6 +115,13 @@
   requires a one-sided alternative and measures the effect on the
   cumulative-failure-probability scale `p_treatment - p_control` against
   `h0`), and the `cutpoint` argument name was corrected to `cutpoints`.
+- Added a new vignette, “Bayesian decisions with piecewise-exponential
+  hazards”, demonstrating `method = "bayes"` with a piecewise hazard via
+  `cutpoints` and
+  [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md),
+  the Gamma-prior / posterior decision rule on the
+  cumulative-failure-probability scale, and a worked single-trial
+  example.
 
 ### Housekeeping
 
