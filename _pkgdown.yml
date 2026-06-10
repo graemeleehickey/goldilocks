@@ -11,6 +11,7 @@ navbar:
     github:
       icon: fa-github
       href: https://github.com/graemeleehickey/goldilocks
+      aria-label: GitHub repository
 
 reference:
   - title: Package

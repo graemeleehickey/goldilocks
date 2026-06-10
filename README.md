@@ -1,13 +1,14 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# goldilocks <img src="man/figures/hex.png" width="175" height="200" align="right"/>
+# goldilocks <img src="man/figures/hex.png" width="175" height="200" align="right" alt="goldilocks package hex sticker logo"/>
 
 <!-- badges: start -->
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
-[![](https://cranlogs.r-pkg.org/badges/grand-total/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
+[![CRAN total
+downloads](https://cranlogs.r-pkg.org/badges/grand-total/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
 [![Codecov test
 coverage](https://codecov.io/gh/graemeleehickey/goldilocks/graph/badge.svg)](https://app.codecov.io/gh/graemeleehickey/goldilocks)
 [![R-CMD-check](https://github.com/graemeleehickey/goldilocks/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/graemeleehickey/goldilocks/actions/workflows/R-CMD-check.yaml)
