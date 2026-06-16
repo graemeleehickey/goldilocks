@@ -13,3 +13,5 @@
 
 - [Package
   Architecture](https://graemeleehickey.github.io/goldilocks/articles/architecture.md):
+- [Technical details of the Goldilocks
+  design](https://graemeleehickey.github.io/goldilocks/articles/technical-methods.md):
