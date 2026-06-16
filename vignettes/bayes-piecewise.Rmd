@@ -1,8 +1,8 @@
 ---
-title: "Bayesian decisions with piecewise-exponential hazards"
+title: "Bayesian piecewise-exponential designs"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Bayesian decisions with piecewise-exponential hazards}
+  %\VignetteIndexEntry{Bayesian piecewise-exponential designs}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -19,7 +19,7 @@ set.seed(7194)
 library(goldilocks)
 ```
 
-The "Example: Two-armed RCT" vignette uses `method = "logrank"` and a single constant hazard per arm. That is convenient when the proportional-hazards assumption is reasonable and the underlying event rate is well-approximated by an exponential distribution. In practice, neither assumption always holds. This vignette shows how to set up a Goldilocks design with:
+The "Two-arm randomized trials" vignette uses `method = "logrank"` and a single constant hazard per arm. That is convenient when the proportional-hazards assumption is reasonable and the underlying event rate is well-approximated by an exponential distribution. In practice, neither assumption always holds. This vignette shows how to set up a Goldilocks design with:
 
 - a **piecewise-exponential** hazard, in which the constant hazard rate changes at one or more cut-points; and
 - a **Bayesian decision rule** (`method = "bayes"`) using a posterior probability threshold on the cumulative-failure-probability scale.
@@ -32,7 +32,7 @@ Survival in many settings -- post-surgical mortality, transplant outcomes, oncol
 
 The package handles piecewise hazards through two related arguments:
 
-- `cutpoints`: the times at which the hazard changes. The first element must be `0` and represents the start of the first interval; subsequent elements are the *internal* cut-points. With `J` intervals there are `J` elements in `cutpoints` and `J` hazard pieces per arm. (So `cutpoints = c(0, 6)` produces *two* intervals, `[0, 6)` and `[6, \infty)`, in contrast to the default `cutpoints = 0` used in the "Two-armed RCT" vignette, which produces a single interval and a non-piecewise exponential.)
+- `cutpoints`: the times at which the hazard changes. The first element must be `0` and represents the start of the first interval; subsequent elements are the *internal* cut-points. With `J` intervals there are `J` elements in `cutpoints` and `J` hazard pieces per arm. (So `cutpoints = c(0, 6)` produces *two* intervals, `[0, 6)` and `[6, \infty)`, in contrast to the default `cutpoints = 0` used in the "Two-arm randomized trials" vignette, which produces a single interval and a non-piecewise exponential.)
 - `hazard_treatment` and `hazard_control`: vectors of length `J` giving the constant hazard for each interval.
 
 The helper `prop_to_haz()` maps cumulative event probabilities at given times into the corresponding piecewise hazards.
@@ -173,6 +173,6 @@ Note that this changes both the simulated data-generating process *and* the anal
 
 ## See also
 
-- The "Example: Two-armed RCT" vignette covers the same design machinery using a single exponential hazard and a log-rank decision rule.
+- The "Two-arm randomized trials" vignette covers the same design machinery using a single exponential hazard and a log-rank decision rule.
 - `?survival_adapt` documents all arguments, including the requirement that each `interim_look` in a two-arm design be at least the block size.
 - `?prop_to_haz` and `?ppwe` document the conversion between event proportions and piecewise hazards.

@@ -1,8 +1,8 @@
 ---
-title: "Package Architecture"
+title: "Package architecture"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Package Architecture}
+  %\VignetteIndexEntry{Package architecture}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

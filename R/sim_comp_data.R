@@ -41,8 +41,9 @@
 #'       and \code{=0L} if right-censored).
 #'     }
 #'     \item{\code{enrollment:}}{
-#'       numeric. Time of patient enrollment relative to time trial enrolled
-#'       first patient.
+#'       numeric. Time of patient enrollment relative to the time the trial
+#'       enrolled the first patient. The package treats enrollment and
+#'       randomization as occurring at the same time.
 #'     }
 #'     \item{\code{id:}}{
 #'       integer. Identification number for each patient.
@@ -81,7 +82,7 @@ sim_comp_data <- function(
   single_arm <- is.null(hazard_control)
 
   ##############################################################################
-  ### Simulate enrollment + assignment
+  ### Simulate enrollment/randomization + assignment
   ##############################################################################
 
   # Simulate enrollment times
@@ -108,7 +109,8 @@ sim_comp_data <- function(
   event <- rep(NA, length = N_total)
 
   # Simulate TTE outcome
-  # - Note: time = time *from* enrollment
+  # - Note: time = time *from* enrollment/randomization. In this package these
+  #   are treated as the same time point.
   if (!single_arm) {
     sim_control <- pwe_sim(hazard     = hazard_control,
                            n          = sum(!group),

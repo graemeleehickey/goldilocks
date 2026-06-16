@@ -69,8 +69,9 @@ integer. Indicator of whether event occurred (\code{=1L} if occurred
 and \code{=0L} if right-censored).
 }
 \item{\code{enrollment:}}{
-numeric. Time of patient enrollment relative to time trial enrolled
-first patient.
+numeric. Time of patient enrollment relative to the time the trial
+enrolled the first patient. The package treats enrollment and
+randomization as occurring at the same time.
 }
 \item{\code{id:}}{
 integer. Identification number for each patient.

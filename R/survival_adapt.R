@@ -26,8 +26,11 @@
 #'   corresponds to the treatment group having a higher cumulative incidence.
 #' @param h0 scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
 #'   p_\textrm{control}} when \code{method = "bayes"}. Default is \code{h0 = 0}.
-#'   The argument is ignored when \code{method = "logrank"} or \code{= "cox"};
-#'   in those cases the usual test of non-equal hazards is assumed.
+#'   In a single-arm design, \code{h0} is the external benchmark event
+#'   probability, often referred to as a performance goal (PG) or objective
+#'   performance criterion (OPC). The argument is ignored for non-Bayesian
+#'   analysis methods; in those cases the usual method-specific null hypothesis
+#'   is used.
 #' @param Fn vector of \code{[0, 1]} values. Each element is the probability
 #'   threshold to stop at the \eqn{i}-th look early for futility. If there are
 #'   no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
@@ -160,8 +163,9 @@
 #'   rather than a posterior, so this feedback loop does not arise.
 #'
 #'   At each interim look, follow-up times are masked (censored) to reflect
-#'   the calendar time of the analysis. Subjects enrolled at the exact interim
-#'   boundary have zero follow-up time, which is incompatible with
+#'   the calendar time of the analysis. The package treats enrollment and
+#'   randomization as occurring at the same time. Subjects enrolled at the exact
+#'   interim boundary have zero follow-up time, which is incompatible with
 #'   \code{\link[survival]{survSplit}}. These times are clamped to
 #'   \code{.Machine$double.eps} (approximately \eqn{2.2 \times 10^{-16}}) so
 #'   that they contribute negligible but non-zero exposure. This affects at
@@ -386,7 +390,7 @@ survival_adapt <- function(
       #                            needs imputation
       # - subject_impute_futility: subject has no data present in the current look;
       #                            needs imputation
-      # - time_from_rand_at_look:  time from randomization to sample size look
+      # - time_from_rand_at_look:  time from enrollment/randomization to sample size look
       #                            e.g. if patient enrolled month 3, but look occurs month 7,
       #                            then patient could potentially be observed for 4 months
 
