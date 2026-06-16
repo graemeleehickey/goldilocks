@@ -2,6 +2,8 @@
 
 ## goldilocks 0.5.0
 
+CRAN release: 2026-06-10
+
 ### Improvements
 
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
