@@ -1,3 +1,9 @@
+# goldilocks 0.5.0.9000
+
+## Documentation
+
+* Added a new vignette, "Technical details of the Goldilocks design", documenting the design notation, piecewise-exponential event-time model, Gamma posterior updating, posterior predictive imputation, interim decision rules, final analysis options, and simulation-based calibration.
+
 # goldilocks 0.5.0
 
 ## Improvements
