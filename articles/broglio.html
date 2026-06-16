@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Example: Two-armed RCT • goldilocks</title>
+<title>Two-arm randomized trials • goldilocks</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Example: Two-armed RCT">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Two-arm randomized trials">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -50,7 +50,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Example: Two-armed RCT</h1>
+      <h1>Two-arm randomized trials</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/graemeleehickey/goldilocks/blob/main/vignettes/broglio.Rmd" class="external-link"><code>vignettes/broglio.Rmd</code></a></small>
@@ -64,17 +64,20 @@ We will use a similar setup for this example, and break up the pieces to
 make clear the argument choices for the package.</p>
 <p>The setting is a two-arm randomized trial where patients are equally
 randomized to either a control or a treatment arm. The primary endpoint
-is overall survival (OS) measured from the date of randomization to the
-date of death from any cause or last follow-up. The expected OS rate at
-12-months for the control arm is 30%. The minimum sample size is 100 and
-the maximum sample size is 300. For simplicity, it is assumed that there
-is no attrition. The maximum follow-up period for each subject is
-12-months. (Note: this is slightly different from Broglio et al. (2014),
-as they assumed a follow-up period of 12-months on all subjects after
-accrual is complete.) Thus, if accrual is stopped early for predicted
-success or the trial continues accrual to the maximum sample size of 300
-patients, the primary analysis of OS will be conducted after each
-subject has completed 12-months of follow-up.</p>
+is overall survival (OS) measured from enrollment to death from any
+cause or last follow-up. In <code>goldilocks</code>, enrollment time and
+randomization time are treated as the same time point; in practice they
+can differ, but that distinction is not represented in the package
+simulator. The expected OS rate at 12-months for the control arm is 30%.
+The minimum sample size is 100 and the maximum sample size is 300. For
+simplicity, it is assumed that there is no attrition. The maximum
+follow-up period for each subject is 12-months. (Note: this is slightly
+different from Broglio et al. (2014), as they assumed a follow-up period
+of 12-months on all subjects after accrual is complete.) Thus, if
+accrual is stopped early for predicted success or the trial continues
+accrual to the maximum sample size of 300 patients, the primary analysis
+of OS will be conducted after each subject has completed 12-months of
+follow-up.</p>
 <p>From this information, we have:</p>
 <ul>
 <li>Equal randomization: <code>block = 2</code> and

@@ -160,8 +160,11 @@ corresponds to the treatment group having a higher cumulative incidence.</p></dd
 <dt id="arg-h-">h0<a class="anchor" aria-label="anchor" href="#arg-h-"></a></dt>
 <dd><p>scalar. Null hypothesis value of \(p_\textrm{treatment} -
   p_\textrm{control}\) when <code>method = "bayes"</code>. Default is <code>h0 = 0</code>.
-The argument is ignored when <code>method = "logrank"</code> or <code>= "cox"</code>;
-in those cases the usual test of non-equal hazards is assumed.</p></dd>
+In a single-arm design, <code>h0</code> is the external benchmark event
+probability, often referred to as a performance goal (PG) or objective
+performance criterion (OPC). The argument is ignored for non-Bayesian
+analysis methods; in those cases the usual method-specific null hypothesis
+is used.</p></dd>
 
 
 <dt id="arg-fn">Fn<a class="anchor" aria-label="anchor" href="#arg-fn"></a></dt>
@@ -342,8 +345,9 @@ analysis posterior. For frequentist methods (<code>"logrank"</code>,
 <code>"cox"</code>, <code>"chisq"</code>), the second stage uses a standard test
 rather than a posterior, so this feedback loop does not arise.</p>
 <p>At each interim look, follow-up times are masked (censored) to reflect
-the calendar time of the analysis. Subjects enrolled at the exact interim
-boundary have zero follow-up time, which is incompatible with
+the calendar time of the analysis. The package treats enrollment and
+randomization as occurring at the same time. Subjects enrolled at the exact
+interim boundary have zero follow-up time, which is incompatible with
 <code><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit</a></code>. These times are clamped to
 <code>.Machine$double.eps</code> (approximately \(2.2 \times 10^{-16}\)) so
 that they contribute negligible but non-zero exposure. This affects at

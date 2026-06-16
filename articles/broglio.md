@@ -1,4 +1,4 @@
-# Example: Two-armed RCT
+# Two-arm randomized trials
 
 Broglio et al. (2014) presented an example from a hypothetical trial. We
 will use a similar setup for this example, and break up the pieces to
@@ -6,17 +6,20 @@ make clear the argument choices for the package.
 
 The setting is a two-arm randomized trial where patients are equally
 randomized to either a control or a treatment arm. The primary endpoint
-is overall survival (OS) measured from the date of randomization to the
-date of death from any cause or last follow-up. The expected OS rate at
-12-months for the control arm is 30%. The minimum sample size is 100 and
-the maximum sample size is 300. For simplicity, it is assumed that there
-is no attrition. The maximum follow-up period for each subject is
-12-months. (Note: this is slightly different from Broglio et al. (2014),
-as they assumed a follow-up period of 12-months on all subjects after
-accrual is complete.) Thus, if accrual is stopped early for predicted
-success or the trial continues accrual to the maximum sample size of 300
-patients, the primary analysis of OS will be conducted after each
-subject has completed 12-months of follow-up.
+is overall survival (OS) measured from enrollment to death from any
+cause or last follow-up. In `goldilocks`, enrollment time and
+randomization time are treated as the same time point; in practice they
+can differ, but that distinction is not represented in the package
+simulator. The expected OS rate at 12-months for the control arm is 30%.
+The minimum sample size is 100 and the maximum sample size is 300. For
+simplicity, it is assumed that there is no attrition. The maximum
+follow-up period for each subject is 12-months. (Note: this is slightly
+different from Broglio et al. (2014), as they assumed a follow-up period
+of 12-months on all subjects after accrual is complete.) Thus, if
+accrual is stopped early for predicted success or the trial continues
+accrual to the maximum sample size of 300 patients, the primary analysis
+of OS will be conducted after each subject has completed 12-months of
+follow-up.
 
 From this information, we have:
 

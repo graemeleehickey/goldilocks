@@ -1,4 +1,4 @@
-# Single-arm trials
+# Single-arm designs with a performance goal
 
 ``` r
 
@@ -7,9 +7,10 @@ library(goldilocks)
 
 The other vignettes describe two-arm randomised designs. Single-arm
 trials – in which every subject receives the experimental therapy and
-the comparator is an external benchmark – are common in early-phase
-oncology, rare-disease, and proof-of-concept studies. This vignette
-shows how to set up a Goldilocks single-arm design with
+the comparator is an external benchmark, often called a performance goal
+(PG) or objective performance criterion (OPC) – are common in
+early-phase oncology, rare-disease, and proof-of-concept studies. This
+vignette shows how to set up a Goldilocks single-arm design with
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
 
 Two practical constraints on single-arm designs in this package:
@@ -30,8 +31,10 @@ $`\text{effect} \;=\; p_{\text{treatment}} \;=\; \Pr(\text{event by end\_of\_stu
 The argument `h0` plays the role of a benchmark on this scale: a target
 failure probability (or, equivalently, $`1 - h_0`$ is a target survival
 probability) drawn from external evidence such as a published rate,
-registry, or historical cohort. With `alternative = "less"` and
-`prob_ha`, the trial declares success when
+registry, or historical cohort. In clinical-trial terminology this
+benchmark may be referred to as a performance goal (PG) or objective
+performance criterion (OPC). With `alternative = "less"` and `prob_ha`,
+the trial declares success when
 
 ``` math
 \Pr(p_{\text{treatment}} < h_0 \mid \text{data}) \;>\; \texttt{prob\_ha},
@@ -159,7 +162,7 @@ out_power <- sim_trials(
   N_mcmc           = 2000,
   method           = "bayes")
 
-# Type I error: simulate under the null (true rate = benchmark = 0.30)
+# Type I error: simulate under the null (true rate = benchmark/PG/OPC = 0.30)
 ht_null <- prop_to_haz(probs = benchmark, endtime = end_of_study)
 out_t1error <- sim_trials(
   N_trials         = 1000,
@@ -195,13 +198,14 @@ the desired level, raise `prob_ha`; if power is too low, increase
 ## A practical caveat on benchmarks
 
 The validity of a single-arm Goldilocks trial rests entirely on the
-benchmark `h0` being a fair representation of the population the trial
-is enrolling. Drift in standard of care, differences in patient mix, and
-unmeasured confounding all bias the comparison in a way that
-randomisation would otherwise neutralise. A Bayesian framework can
-incorporate uncertainty about the benchmark itself – e.g. by replacing a
-fixed `h0` with a prior distribution informed by historical data – but
-this is outside the scope of the simple `h0` scalar that
+benchmark `h0` (the PG or OPC) being a fair representation of the
+population the trial is enrolling. Drift in standard of care,
+differences in patient mix, and unmeasured confounding all bias the
+comparison in a way that randomisation would otherwise neutralise. A
+Bayesian framework can incorporate uncertainty about the benchmark
+itself – e.g. by replacing a fixed `h0` with a prior distribution
+informed by historical data – but this is outside the scope of the
+simple `h0` scalar that
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
 exposes, and would require a custom analysis. When in doubt, simulating
 the design under several plausible values of the true rate (including
@@ -210,11 +214,11 @@ sensitivity.
 
 ## See also
 
-- The “Example: Two-armed RCT” vignette covers the corresponding two-arm
-  randomised design with a log-rank decision rule.
-- The “Bayesian decisions with piecewise-exponential hazards” vignette
-  covers the same decision rule used here, but in a two-arm setting and
-  with non-constant hazards. The piecewise machinery applies directly to
+- The “Two-arm randomized trials” vignette covers the corresponding
+  two-arm randomised design with a log-rank decision rule.
+- The “Bayesian piecewise-exponential designs” vignette covers the same
+  decision rule used here, but in a two-arm setting and with
+  non-constant hazards. The piecewise machinery applies directly to
   single-arm trials too (just keep `hazard_control = NULL` and pass a
   per-interval `hazard_treatment` vector).
 - [`?survival_adapt`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)

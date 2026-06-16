@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Single-arm trials • goldilocks</title>
+<title>Single-arm designs with a performance goal • goldilocks</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Single-arm trials">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Single-arm designs with a performance goal">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -50,7 +50,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Single-arm trials</h1>
+      <h1>Single-arm designs with a performance goal</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/graemeleehickey/goldilocks/blob/main/vignettes/single-arm.Rmd" class="external-link"><code>vignettes/single-arm.Rmd</code></a></small>
@@ -63,9 +63,10 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://graemeleehickey.github.io/goldilocks/">goldilocks</a></span><span class="op">)</span></span></code></pre></div>
 <p>The other vignettes describe two-arm randomised designs. Single-arm
 trials – in which every subject receives the experimental therapy and
-the comparator is an external benchmark – are common in early-phase
-oncology, rare-disease, and proof-of-concept studies. This vignette
-shows how to set up a Goldilocks single-arm design with
+the comparator is an external benchmark, often called a performance goal
+(PG) or objective performance criterion (OPC) – are common in
+early-phase oncology, rare-disease, and proof-of-concept studies. This
+vignette shows how to set up a Goldilocks single-arm design with
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>.</p>
 <p>Two practical constraints on single-arm designs in this package:</p>
 <ul>
@@ -87,7 +88,9 @@ the treatment arm itself:</p>
 scale: a target failure probability (or, equivalently,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">1 - h_0</annotation></semantics></math>
 is a target survival probability) drawn from external evidence such as a
-published rate, registry, or historical cohort. With
+published rate, registry, or historical cohort. In clinical-trial
+terminology this benchmark may be referred to as a performance goal (PG)
+or objective performance criterion (OPC). With
 <code>alternative = "less"</code> and <code>prob_ha</code>, the trial
 declares success when</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mtext mathvariant="normal">data</mtext><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>&gt;</mo><mspace width="0.278em"></mspace><mtext mathvariant="monospace">𝚙𝚛𝚘𝚋_𝚑𝚊</mtext><mo>,</mo></mrow><annotation encoding="application/x-tex">\Pr(p_{\text{treatment}} &lt; h_0 \mid \text{data}) \;&gt;\; \texttt{prob\_ha},</annotation></semantics></math></p>
@@ -213,7 +216,7 @@ workflow:</p>
 <span>  N_mcmc           <span class="op">=</span> <span class="fl">2000</span>,</span>
 <span>  method           <span class="op">=</span> <span class="st">"bayes"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Type I error: simulate under the null (true rate = benchmark = 0.30)</span></span>
+<span><span class="co"># Type I error: simulate under the null (true rate = benchmark/PG/OPC = 0.30)</span></span>
 <span><span class="va">ht_null</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="va">benchmark</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
 <span><span class="va">out_t1error</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  N_trials         <span class="op">=</span> <span class="fl">1000</span>,</span>
@@ -249,27 +252,28 @@ low, increase <code>N_total</code> or relax the
 <h2 id="a-practical-caveat-on-benchmarks">A practical caveat on benchmarks<a class="anchor" aria-label="anchor" href="#a-practical-caveat-on-benchmarks"></a>
 </h2>
 <p>The validity of a single-arm Goldilocks trial rests entirely on the
-benchmark <code>h0</code> being a fair representation of the population
-the trial is enrolling. Drift in standard of care, differences in
-patient mix, and unmeasured confounding all bias the comparison in a way
-that randomisation would otherwise neutralise. A Bayesian framework can
-incorporate uncertainty about the benchmark itself – e.g. by replacing a
-fixed <code>h0</code> with a prior distribution informed by historical
-data – but this is outside the scope of the simple <code>h0</code>
-scalar that <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> exposes, and would require a
-custom analysis. When in doubt, simulating the design under several
-plausible values of the true rate (including ones near the benchmark) is
-a useful way to characterise its sensitivity.</p>
+benchmark <code>h0</code> (the PG or OPC) being a fair representation of
+the population the trial is enrolling. Drift in standard of care,
+differences in patient mix, and unmeasured confounding all bias the
+comparison in a way that randomisation would otherwise neutralise. A
+Bayesian framework can incorporate uncertainty about the benchmark
+itself – e.g. by replacing a fixed <code>h0</code> with a prior
+distribution informed by historical data – but this is outside the scope
+of the simple <code>h0</code> scalar that <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>
+exposes, and would require a custom analysis. When in doubt, simulating
+the design under several plausible values of the true rate (including
+ones near the benchmark) is a useful way to characterise its
+sensitivity.</p>
 </div>
 <div class="section level2">
 <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>
 <ul>
-<li>The “Example: Two-armed RCT” vignette covers the corresponding
+<li>The “Two-arm randomized trials” vignette covers the corresponding
 two-arm randomised design with a log-rank decision rule.</li>
-<li>The “Bayesian decisions with piecewise-exponential hazards” vignette
-covers the same decision rule used here, but in a two-arm setting and
-with non-constant hazards. The piecewise machinery applies directly to
+<li>The “Bayesian piecewise-exponential designs” vignette covers the
+same decision rule used here, but in a two-arm setting and with
+non-constant hazards. The piecewise machinery applies directly to
 single-arm trials too (just keep <code>hazard_control = NULL</code> and
 pass a per-interval <code>hazard_treatment</code> vector).</li>
 <li>

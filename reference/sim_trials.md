@@ -127,9 +127,12 @@ sim_trials(
 - h0:
 
   scalar. Null hypothesis value of \\p\_\textrm{treatment} -
-  p\_\textrm{control}\\ when `method = "bayes"`. Default is `h0 = 0`.
-  The argument is ignored when `method = "logrank"` or `= "cox"`; in
-  those cases the usual test of non-equal hazards is assumed.
+  p\_\textrm{control}\\ when `method = "bayes"`. Default is `h0 = 0`. In
+  a single-arm design, `h0` is the external benchmark event probability,
+  often referred to as a performance goal (PG) or objective performance
+  criterion (OPC). The argument is ignored for non-Bayesian analysis
+  methods; in those cases the usual method-specific null hypothesis is
+  used.
 
 - Fn:
 

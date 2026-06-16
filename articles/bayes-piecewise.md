@@ -1,11 +1,11 @@
-# Bayesian decisions with piecewise-exponential hazards
+# Bayesian piecewise-exponential designs
 
 ``` r
 
 library(goldilocks)
 ```
 
-The “Example: Two-armed RCT” vignette uses `method = "logrank"` and a
+The “Two-arm randomized trials” vignette uses `method = "logrank"` and a
 single constant hazard per arm. That is convenient when the
 proportional-hazards assumption is reasonable and the underlying event
 rate is well-approximated by an exponential distribution. In practice,
@@ -40,8 +40,8 @@ The package handles piecewise hazards through two related arguments:
   `J` elements in `cutpoints` and `J` hazard pieces per arm. (So
   `cutpoints = c(0, 6)` produces *two* intervals, `[0, 6)` and
   `[6, \infty)`, in contrast to the default `cutpoints = 0` used in the
-  “Two-armed RCT” vignette, which produces a single interval and a
-  non-piecewise exponential.)
+  “Two-arm randomized trials” vignette, which produces a single interval
+  and a non-piecewise exponential.)
 - `hazard_treatment` and `hazard_control`: vectors of length `J` giving
   the constant hazard for each interval.
 
@@ -275,8 +275,9 @@ rather than “how robust is my analysis cut-point?”.
 
 ## See also
 
-- The “Example: Two-armed RCT” vignette covers the same design machinery
-  using a single exponential hazard and a log-rank decision rule.
+- The “Two-arm randomized trials” vignette covers the same design
+  machinery using a single exponential hazard and a log-rank decision
+  rule.
 - [`?survival_adapt`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
   documents all arguments, including the requirement that each
   `interim_look` in a two-arm design be at least the block size.

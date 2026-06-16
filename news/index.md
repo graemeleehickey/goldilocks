@@ -6,9 +6,21 @@
 
 - Added a new vignette, “Technical details of the Goldilocks design”,
   documenting the design notation, piecewise-exponential event-time
-  model, Gamma posterior updating, posterior predictive imputation,
+  model, Gamma posterior updating, posterior predictive probabilities,
   interim decision rules, final analysis options, and simulation-based
   calibration.
+- Renamed vignettes for consistency: “Two-arm randomized trials”,
+  “Bayesian piecewise-exponential designs”, “Single-arm designs with a
+  performance goal”, and “Package architecture”.
+- Clarified that `goldilocks` treats enrollment time and randomization
+  time as the same time point in its time-to-event simulations.
+- Clarified that the single-arm external benchmark `h0` is often
+  referred to as a performance goal (PG) or objective performance
+  criterion (OPC).
+- Expanded technical documentation for the Goldilocks
+  predictive-probability algorithm, including notation for final
+  analysis quantities, operating characteristics, and method-specific
+  decision rules.
 
 ## goldilocks 0.5.0
 

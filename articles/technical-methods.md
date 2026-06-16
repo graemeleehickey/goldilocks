@@ -6,11 +6,11 @@ The `goldilocks` package implements the Goldilocks adaptive sample-size
 design of Broglio, Connor, and Berry (2014) for time-to-event endpoints.
 This vignette outlines the technical details of the design, including
 notation, the piecewise-exponential event-time model, Gamma posterior
-updating, posterior predictive imputation, interim decision rules, final
-analysis options, and simulation-based calibration. The package
-vignettes “Example: Two-armed RCT”, “Bayesian decisions with
-piecewise-exponential hazards”, and “Single-arm trials” provide more
-application-focused examples in R.
+updating, posterior **predictive probabilities**, interim decision
+rules, final analysis options, and simulation-based calibration. The
+package vignettes “Two-arm randomized trials”, “Bayesian
+piecewise-exponential designs”, and “Single-arm designs with a
+performance goal” provide more application-focused examples in R.
 
 ## 1. Design and notation
 
@@ -28,9 +28,12 @@ $`(n_1,\ldots,n_L)`$.
 Let $`A_i \in \{0,1\}`$ denote treatment assignment for subject $`i`$,
 with $`A_i = 1`$ for the experimental arm and $`A_i = 0`$ for control.
 In a single-arm design, all $`A_i = 1`$ and there is no concurrent
-control. Let $`E_i`$ denote enrollment time from first patient in,
-$`T_i^*`$ the true event time from randomization, $`C_i`$ the
-administrative or loss-to-follow-up censoring time, and
+control. The package assumes that randomization occurs at enrollment; in
+practice those times can differ, but the distinction is not represented
+in the simulation model. We therefore use enrollment time throughout.
+Let $`E_i`$ denote enrollment time from first patient in, $`T_i^*`$ the
+true event time from enrollment, $`C_i`$ the administrative or
+loss-to-follow-up censoring time, and
 
 ``` math
 T_i = \min(T_i^*, C_i), \qquad
@@ -54,11 +57,11 @@ the maximum-sample-size prediction.
 At each interim analysis the design estimates two predictive
 probabilities:
 
-- $`P_{n_\ell}`$, the probability of final success if accrual stops at
-  the current enrolled sample size and all enrolled subjects complete
-  follow-up;
-- $`P_{\max,\ell}`$, the probability of final success if the trial
-  continues to $`N_{\max}`$.
+1.  $`P_{n_\ell}`$, the probability of final success if accrual stops at
+    the current enrolled sample size and all enrolled subjects complete
+    follow-up;
+2.  $`P_{\max,\ell}`$, the probability of final success if the trial
+    continues to $`N_{\max}`$.
 
 These are compared with thresholds $`S_\ell`$ and $`F_\ell`$,
 corresponding to the package arguments `Sn` and `Fn`.
@@ -78,8 +81,9 @@ intervals
 [s_0, s_1), [s_1, s_2), \ldots, [s_{J-1}, \infty).
 ```
 
-Within interval $`j`$, arm $`a`$ has constant hazard $`\lambda_{aj}`$.
-The subject-level hazard is therefore
+For arm $`a \in \{0,1\}`$, where $`a = 1`$ denotes the experimental arm
+and $`a = 0`$ denotes the control arm, interval $`j`$ has constant
+hazard $`\lambda_{aj}`$. The subject-level hazard is therefore
 
 ``` math
 h_a(t) = \lambda_{aj}, \qquad s_{j-1} \le t < s_j,
@@ -157,7 +161,10 @@ independent Gamma prior
 where $`\alpha_0`$ is the shape and $`\beta_0`$ is the rate. This
 follows the [`stats::rgamma()`](https://rdrr.io/r/stats/GammaDist.html)
 parameterization. The argument `prior = c(alpha0, beta0)` sets these two
-hyperparameters, with default `prior = c(0.1, 0.1)`.
+hyperparameters, with default `prior = c(0.1, 0.1)`. The same prior is
+applied to every arm and every piecewise interval. Separate priors by
+arm or interval cannot currently be specified through the package
+interface.
 
 At an analysis, let $`d_{aj}`$ be the number of observed events in arm
 $`a`$, interval $`j`$, and let $`y_{aj}`$ be the total observed exposure
@@ -194,9 +201,9 @@ conditioning on a single plug-in hazard estimate.
 
 At an interim analysis, subjects can be separated into three sets:
 
-- enrolled subjects with complete endpoint information;
-- enrolled subjects with partial follow-up; and
-- future subjects not yet enrolled.
+1.  enrolled subjects with complete endpoint information;
+2.  enrolled subjects with partial follow-up; and
+3.  future subjects not yet enrolled.
 
 The first set contributes observed events and exposure to the posterior.
 The second and third sets require prediction.
@@ -219,17 +226,18 @@ T = F^{-1}\{F(u) + U[1 - F(u)]\}.
 
 This is implemented by
 [`pwe_impute()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.md).
-For future subjects,
+For future subjects in the maximum-sample-size calculation,
 [`pwe_sim()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_sim.md)
 draws unconditional event times from the same piecewise-exponential
-model. Future enrollment times are simulated under the accrual process
-specified by `lambda` and `lambda_time`.
+model. In the package implementation, these future event-time
+imputations do not require explicitly simulating future enrollment times
+at the interim look; the number of future subjects is determined by
+$`N_{\max} - n_\ell`$.
 
 Let $`\mathcal{D}_{\ell}^{\mathrm{obs}}`$ denote the data observed at
 look $`\ell`$, and let $`\mathcal{D}^{\mathrm{mis}}`$ denote unobserved
-event times, future censoring indicators, and, for the
-maximum-sample-size calculation, future enrollment times. The posterior
-predictive density is
+event times and future censoring indicators. The posterior predictive
+density is
 
 ``` math
 p(\mathcal{D}^{\mathrm{mis}} \mid \mathcal{D}_{\ell}^{\mathrm{obs}})
@@ -240,7 +248,12 @@ p(\mathcal{D}^{\mathrm{mis}} \mid \mathcal{D}_{\ell}^{\mathrm{obs}})
   d\boldsymbol{\lambda}.
 ```
 
-`goldilocks` approximates this integral by Monte Carlo simulation.
+This density is the mathematical target, not an object that the package
+evaluates in closed form. In the implementation, `posterior()` draws
+$`\boldsymbol{\lambda}`$, `impute_data()` draws completed outcomes
+conditional on those hazards, and `test_stop_success()` repeats the
+impute-and-analyze cycle to approximate the predictive probability by
+Monte Carlo simulation.
 
 ## 5. Interim decision algorithm
 
@@ -258,21 +271,33 @@ analysis dataset:
 ```
 
 where $`Q(\mathcal{D})`$ is the final analysis quantity and $`c`$ is the
-success threshold. For Bayesian analyses, $`Q(\mathcal{D})`$ is a
-posterior probability. For frequentist analyses,
-$`Q(\mathcal{D}) = 1-p(\mathcal{D})`$. In package notation,
-$`c =`$`prob_ha`.
+success threshold. In package notation, $`c =`$`prob_ha`. The final
+analysis quantity $`Q(\mathcal{D})`$ depends on the analysis method:
+
+| Design setting | `method` | $`Q(\mathcal{D})`$ | Supported alternatives |
+|----|----|----|----|
+| Two-arm randomized trial | `logrank` | $`1-p(\mathcal{D})`$, where $`p(\mathcal{D})`$ is the traditional log-rank test P-value, with one-sided variants defined in Section 6.1 | `"less"`, `"greater"`, `"two.sided"` |
+| Two-arm randomized trial | `cox` | $`1-p(\mathcal{D})`$, where $`p(\mathcal{D})`$ is the traditional Wald-test P-value, with one-sided variants defined in Section 6.1 | `"less"`, `"greater"`, `"two.sided"` |
+| Two-arm randomized trial | `chisq` | $`1-p(\mathcal{D})`$, where $`p(\mathcal{D})`$ is the traditional chi-square test P-value | `"two.sided"` |
+| Two-arm randomized trial | `bayes` | $`\Pr(\Delta < h_0 \mid \mathcal{D})`$ or $`\Pr(\Delta > h_0 \mid \mathcal{D})`$ | `"less"`, `"greater"` |
+| Single-arm trial | `bayes` | $`\Pr(p_1(\tau) < h_0 \mid \mathcal{D})`$ or $`\Pr(p_1(\tau) > h_0 \mid \mathcal{D})`$ | `"less"`, `"greater"` |
+
+For frequentist analyses, `prob_ha` is therefore a transformed P-value
+threshold. For example, `prob_ha = 0.975` corresponds to a one-sided
+$`\alpha = 0.025`$ rule. The value should be chosen during design
+calibration to control the desired type I error rate across relevant
+null scenarios.
 
 ### 5.1 Predictive probability at the current sample size
 
 The current-sample-size predictive probability $`P_{n_\ell}`$ is
 estimated by:
 
-1.  drawing one set of hazard parameters from the interim posterior;
-2.  imputing remaining endpoint outcomes for enrolled subjects only;
-3.  applying the prespecified final analysis rule to the completed data;
+1.  draw one set of hazard parameters from the interim posterior;
+2.  impute remaining endpoint outcomes for enrolled subjects only;
+3.  apply the prespecified final analysis rule to the completed data;
     and
-4.  recording whether that completed trial is successful.
+4.  record whether that completed trial is successful.
 
 Formally,
 
@@ -300,14 +325,15 @@ P_{n_\ell}
   d\mathcal{D}_{n_\ell}^{\mathrm{mis}}.
 ```
 
-Repeating this procedure `N_impute` times gives
+Repeating the four-step procedure above for Monte Carlo replicate
+$`m = 1,\ldots,M`$, where $`M =`$`N_impute`, gives
 
 ``` math
 \widehat{P}_{n_\ell}
-  = \frac{1}{M}\sum_{m=1}^{M} I\{\textrm{success in replicate } m\},
+  = \frac{1}{M}\sum_{m=1}^{M} I\{\textrm{success in replicate } m\}.
 ```
 
-where $`M =`$`N_impute`. If
+If
 
 ``` math
 \widehat{P}_{n_\ell} > S_\ell,
@@ -321,9 +347,8 @@ followed to the planned final analysis time.
 The maximum-sample-size predictive probability $`P_{\max,\ell}`$ is
 estimated similarly, except that the completed trial includes both
 currently enrolled subjects and future subjects required to reach
-$`N_{\max}`$. For each replicate, future enrollment times and future
-event times are simulated, the completed dataset is analyzed, and
-success is recorded:
+$`N_{\max}`$. For each replicate, event times are imputed for the future
+subjects, the completed dataset is analyzed, and success is recorded:
 
 ``` math
 P_{\max,\ell}
@@ -394,23 +419,10 @@ corresponds to `prob_ha = 0.975`.
 
 For the log-rank option, let $`Z_{\mathrm{LR}}`$ denote the signed
 log-rank statistic, with positive values corresponding to excess events
-in the control arm under the package convention. With
-`alternative = "less"`, where lower treatment hazard is beneficial,
-
-``` math
-Q(\mathcal{D}) = \Phi(Z_{\mathrm{LR}}).
-```
-
-With `alternative = "greater"`,
-
-``` math
-Q(\mathcal{D}) = 1 - \Phi(Z_{\mathrm{LR}}).
-```
-
-For `alternative = "two.sided"`, $`Q(\mathcal{D}) = 1-p_{\mathrm{LR}}`$.
-
-For the Cox option, let $`\widehat{\eta}`$ be the estimated log hazard
-ratio for treatment versus control and let
+in the control arm under the package convention. Let $`p_{\mathrm{LR}}`$
+denote the traditional two-sided log-rank test P-value. For the Cox
+option, let $`\widehat{\eta}`$ be the estimated log hazard ratio for
+treatment versus control and let
 
 ``` math
 Z_{\mathrm{Cox}} = \frac{\widehat{\eta}}
@@ -418,17 +430,23 @@ Z_{\mathrm{Cox}} = \frac{\widehat{\eta}}
 ```
 
 Here, lower treatment hazard corresponds to $`Z_{\mathrm{Cox}} < 0`$.
-Therefore with `alternative = "less"`,
+Let $`p_{\mathrm{Cox}}`$ denote the traditional two-sided Wald-test
+P-value from the Cox model. The package uses the following
+method-specific definitions of $`Q(\mathcal{D})`$:
 
-``` math
-Q(\mathcal{D}) = 1 - \Phi(Z_{\mathrm{Cox}}),
-```
+| Method    | Alternative   | $`Q(\mathcal{D})`$             |
+|-----------|---------------|--------------------------------|
+| `logrank` | `"less"`      | $`\Phi(Z_{\mathrm{LR}})`$      |
+| `logrank` | `"greater"`   | $`1 - \Phi(Z_{\mathrm{LR}})`$  |
+| `logrank` | `"two.sided"` | $`1 - p_{\mathrm{LR}}`$        |
+| `cox`     | `"less"`      | $`1 - \Phi(Z_{\mathrm{Cox}})`$ |
+| `cox`     | `"greater"`   | $`\Phi(Z_{\mathrm{Cox}})`$     |
+| `cox`     | `"two.sided"` | $`1 - p_{\mathrm{Cox}}`$       |
+| `chisq`   | `"two.sided"` | $`1 - p_{\chi^2}`$             |
 
-and with `alternative = "greater"`,
-
-``` math
-Q(\mathcal{D}) = \Phi(Z_{\mathrm{Cox}}).
-```
+Here $`p_{\chi^2}`$ is the traditional chi-square test P-value. The
+one-sided directions differ between the log-rank and Cox rows because of
+the sign convention of the package’s log-rank statistic.
 
 For `method = "chisq"`, the final event indicator is compared between
 arms using a chi-square test. This discards event-time information and
@@ -490,6 +508,8 @@ The Bayesian final test is one-sided in the package;
 
 In a single-arm design there is no $`p_0(\tau)`$. The estimand becomes
 $`p_1(\tau)`$, and $`h_0`$ is an external benchmark event probability.
+In clinical-trial terminology this benchmark is often called a
+performance goal (PG) or objective performance criterion (OPC).
 Consequently, single-arm designs in `goldilocks` require
 `method = "bayes"`.
 
@@ -500,8 +520,11 @@ analysis, `imputed_final` controls whether subjects lost to follow-up
 are also imputed.
 
 If `imputed_final = TRUE`, the final analysis mirrors the interim
-predictive framework and averages the final result over imputed
-completed datasets. If `imputed_final = FALSE`, the final analysis uses
+predictive framework: each imputed completed dataset is analyzed,
+yielding a value of the success probability scale $`Q(\mathcal{D})`$
+(posterior probability for `method = "bayes"` or transformed P-value for
+frequentist methods), and `post_prob_ha` is the average of those values
+across imputations. If `imputed_final = FALSE`, the final analysis uses
 observed right-censored data for methods that can handle censoring
 (`logrank`, `cox`, and `bayes`). For `chisq`, lost-to-follow-up subjects
 are excluded when `imputed_final = FALSE` because the chi-square test
@@ -536,10 +559,21 @@ estimates:
 Let $`R = 1,\ldots,R_{\max}`$ index simulated trials under a scenario
 $`\theta`$, where $`\theta`$ denotes the data-generating parameters such
 as control hazard, treatment hazard, accrual rate, loss-to-follow-up
-rate, and follow-up duration. Let $`N_R`$ be the enrolled sample size,
-$`E_R`$ the indicator for stopping accrual for expected success, $`F_R`$
-the indicator for stopping for futility, and $`Z_R`$ the final success
-indicator. The main operating characteristics are
+rate, and follow-up duration. The trial-level random variables are:
+
+| Symbol  | Meaning                                                         |
+|---------|-----------------------------------------------------------------|
+| $`N_R`$ | enrolled sample size in simulated trial $`R`$                   |
+| $`E_R`$ | indicator that trial $`R`$ stopped accrual for expected success |
+| $`F_R`$ | indicator that trial $`R`$ stopped for futility                 |
+| $`Z_R`$ | final success indicator in trial $`R`$                          |
+
+Let $`\Theta_0`$ denote the null parameter space, i.e. the set of
+data-generating scenarios in which the treatment does not satisfy the
+alternative hypothesis. For a two-arm superiority trial this includes
+scenarios with no beneficial treatment effect; in practice, it should be
+explored across plausible nuisance parameters such as control event
+rates and accrual rates. The main operating characteristics are
 
 ``` math
 \operatorname{Power}(\theta)
@@ -664,10 +698,11 @@ additional interval adds parameters and can make interim posteriors more
 diffuse.
 
 The package also supports single-arm Bayesian Goldilocks designs by
-replacing the concurrent control with an external benchmark $`h_0`$.
-This is convenient for early-phase, rare-disease, or proof-of-concept
-settings, but validity then depends on the benchmark being transportable
-to the enrolled population.
+replacing the concurrent control with an external benchmark $`h_0`$,
+often referred to as a performance goal (PG) or objective performance
+criterion (OPC). This is convenient for early-phase, rare-disease, or
+proof-of-concept settings, but validity then depends on the benchmark
+being transportable to the enrolled population.
 
 ## References
 

@@ -125,9 +125,12 @@ survival_adapt(
 - h0:
 
   scalar. Null hypothesis value of \\p\_\textrm{treatment} -
-  p\_\textrm{control}\\ when `method = "bayes"`. Default is `h0 = 0`.
-  The argument is ignored when `method = "logrank"` or `= "cox"`; in
-  those cases the usual test of non-equal hazards is assumed.
+  p\_\textrm{control}\\ when `method = "bayes"`. Default is `h0 = 0`. In
+  a single-arm design, `h0` is the external benchmark event probability,
+  often referred to as a performance goal (PG) or objective performance
+  criterion (OPC). The argument is ignored for non-Bayesian analysis
+  methods; in those cases the usual method-specific null hypothesis is
+  used.
 
 - Fn:
 
@@ -325,12 +328,13 @@ uses a standard test rather than a posterior, so this feedback loop does
 not arise.
 
 At each interim look, follow-up times are masked (censored) to reflect
-the calendar time of the analysis. Subjects enrolled at the exact
-interim boundary have zero follow-up time, which is incompatible with
-[`survSplit`](https://rdrr.io/pkg/survival/man/survSplit.html). These
-times are clamped to `.Machine$double.eps` (approximately \\2.2 \times
-10^{-16}\\) so that they contribute negligible but non-zero exposure.
-This affects at most one subject per interim look.
+the calendar time of the analysis. The package treats enrollment and
+randomization as occurring at the same time. Subjects enrolled at the
+exact interim boundary have zero follow-up time, which is incompatible
+with [`survSplit`](https://rdrr.io/pkg/survival/man/survSplit.html).
+These times are clamped to `.Machine$double.eps` (approximately \\2.2
+\times 10^{-16}\\) so that they contribute negligible but non-zero
+exposure. This affects at most one subject per interim look.
 
 ## References
 

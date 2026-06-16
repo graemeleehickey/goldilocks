@@ -1,4 +1,4 @@
-# Package Architecture
+# Package architecture
 
 ## Overview
 

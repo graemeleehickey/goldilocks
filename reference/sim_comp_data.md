@@ -99,8 +99,9 @@ A data frame with 1 row per subject and columns:
 
 - `enrollment:`:
 
-  numeric. Time of patient enrollment relative to time trial enrolled
-  first patient.
+  numeric. Time of patient enrollment relative to the time the trial
+  enrolled the first patient. The package treats enrollment and
+  randomization as occurring at the same time.
 
 - `id:`:
 
