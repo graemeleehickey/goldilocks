@@ -330,11 +330,10 @@ not arise.
 At each interim look, follow-up times are masked (censored) to reflect
 the calendar time of the analysis. The package treats enrollment and
 randomization as occurring at the same time. Subjects enrolled at the
-exact interim boundary have zero follow-up time, which is incompatible
-with [`survSplit`](https://rdrr.io/pkg/survival/man/survSplit.html).
-These times are clamped to `.Machine$double.eps` (approximately \\2.2
-\times 10^{-16}\\) so that they contribute negligible but non-zero
-exposure. This affects at most one subject per interim look.
+exact interim boundary have zero follow-up time. These times are clamped
+to `.Machine$double.eps` (approximately \\2.2 \times 10^{-16}\\) so that
+they contribute negligible but non-zero exposure to the interim
+posterior. This affects at most one subject per interim look.
 
 ## References
 

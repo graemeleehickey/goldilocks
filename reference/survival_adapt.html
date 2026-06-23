@@ -9,7 +9,7 @@ time-to-event endpoint"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -347,11 +347,10 @@ rather than a posterior, so this feedback loop does not arise.</p>
 <p>At each interim look, follow-up times are masked (censored) to reflect
 the calendar time of the analysis. The package treats enrollment and
 randomization as occurring at the same time. Subjects enrolled at the exact
-interim boundary have zero follow-up time, which is incompatible with
-<code><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit</a></code>. These times are clamped to
+interim boundary have zero follow-up time. These times are clamped to
 <code>.Machine$double.eps</code> (approximately \(2.2 \times 10^{-16}\)) so
-that they contribute negligible but non-zero exposure. This affects at
-most one subject per interim look.</p>
+that they contribute negligible but non-zero exposure to the interim
+posterior. This affects at most one subject per interim look.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
