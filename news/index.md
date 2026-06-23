@@ -1,6 +1,13 @@
 # Changelog
 
-## goldilocks 0.5.0.9000
+## goldilocks 0.5.1.9000
+
+### Improvements
+
+- `posterior()` now computes piecewise-exponential sufficient statistics
+  directly, avoiding
+  [`survSplit()`](https://rdrr.io/pkg/survival/man/survSplit.html) and
+  grouped `dplyr` summarisation in a simulation hot path.
 
 ### Documentation
 
