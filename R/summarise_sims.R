@@ -13,6 +13,9 @@
 #'   standard deviation) are also recorded. The proportion of trials that
 #'   stopped early for expected success, yet went to ultimately fail are also
 #'   reported.
+#'
+#' @importFrom dplyr group_by summarise
+#' @importFrom rlang .data
 #' @export
 summarise_sims <- function(data) {
 

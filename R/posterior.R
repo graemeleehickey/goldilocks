@@ -18,20 +18,16 @@
 #'   second slice including posterior samples from \code{post_control}.
 #'
 #' @importFrom stats rgamma
-#' @importFrom dplyr summarise group_by ungroup
-#' @importFrom rlang .data
-#' @import survival
 #'
 #' @noRd
 posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
 
   n_intervals <- length(cutpoints)
 
-  # Verify the expected treatment arms are actually present. This is checked on
-  # the incoming data (not the post-survSplit summary) so it works regardless of
-  # whether `treatment` is numeric or a factor: when `treatment` is numeric, an
-  # absent arm yields no summary row at all, which would otherwise silently
-  # produce an all-NA posterior for that arm via rgamma(N_mcmc, ..., NA).
+  # Verify the expected treatment arms are actually present before summarising;
+  # when `treatment` is numeric, an absent arm yields no summary row at all,
+  # which would otherwise silently produce an all-NA posterior for that arm via
+  # rgamma(N_mcmc, ..., NA).
   if (sum(data$treatment == 1) == 0) {
     stop("No subjects in the treatment arm")
   }
@@ -39,27 +35,7 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
     stop("No subjects in the control arm")
   }
 
-  ik <- cutpoints[-1] # Note: survSplit() doesn't like cuts at 0, so ik = inner knots
-  if (length(ik) == 0) {
-    ik <- max(data$time)
-  }
-
-  data_survsplit <- survSplit(
-    Surv(time, event) ~ .,
-    data = data,
-    cut = ik,
-    episode = "interval")
-
-  # In case interim data doesn't span all intervals possible
-  data_survsplit$interval <- factor(data_survsplit$interval,
-                                    levels = 1:n_intervals)
-
-  data_summ <- data_survsplit |>
-    group_by(.data$treatment, .data$interval, .drop = FALSE) |>
-    summarise(n = length(.data$time),
-              tot_time = sum(.data$time - .data$tstart),
-              tot_events = sum(.data$event)) |>
-    ungroup()
+  data_summ <- posterior_sufficient_stats(data, cutpoints, single_arm)
 
   # If a time-interval has zero subjects at a given interim analysis, it will
   # mean that there is zero exposure time and events for that stratum. To avoid
@@ -125,4 +101,44 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
 
   return(post)
 
+}
+
+posterior_sufficient_stats <- function(data, cutpoints, single_arm) {
+  n_intervals <- length(cutpoints)
+  interval_upper <- c(cutpoints[-1], Inf)
+  arms <- if (single_arm) 1 else c(0, 1)
+
+  data_summ <- expand.grid(
+    interval = seq_len(n_intervals),
+    treatment = arms
+  )
+  data_summ <- data_summ[c("treatment", "interval")]
+  data_summ$n <- 0L
+  data_summ$tot_time <- 0
+  data_summ$tot_events <- 0
+
+  for (arm in arms) {
+    arm_data <- data[data$treatment == arm, , drop = FALSE]
+    if (nrow(arm_data) == 0) {
+      next
+    }
+
+    for (j in seq_len(n_intervals)) {
+      lower <- cutpoints[j]
+      upper <- interval_upper[j]
+      exposure <- pmax(0, pmin(arm_data$time, upper) - lower)
+      row <- data_summ$treatment == arm & data_summ$interval == j
+
+      data_summ$n[row] <- sum(exposure > 0)
+      data_summ$tot_time[row] <- sum(exposure)
+      data_summ$tot_events[row] <- sum(
+        arm_data$event == 1 &
+          arm_data$time > lower &
+          arm_data$time <= upper
+      )
+    }
+  }
+
+  data_summ$interval <- factor(data_summ$interval, levels = seq_len(n_intervals))
+  data_summ
 }

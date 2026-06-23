@@ -165,11 +165,10 @@
 #'   At each interim look, follow-up times are masked (censored) to reflect
 #'   the calendar time of the analysis. The package treats enrollment and
 #'   randomization as occurring at the same time. Subjects enrolled at the exact
-#'   interim boundary have zero follow-up time, which is incompatible with
-#'   \code{\link[survival]{survSplit}}. These times are clamped to
+#'   interim boundary have zero follow-up time. These times are clamped to
 #'   \code{.Machine$double.eps} (approximately \eqn{2.2 \times 10^{-16}}) so
-#'   that they contribute negligible but non-zero exposure. This affects at
-#'   most one subject per interim look.
+#'   that they contribute negligible but non-zero exposure to the interim
+#'   posterior. This affects at most one subject per interim look.
 #'
 #' @return A data frame containing some input parameters (arguments) as well as
 #'   statistics from the analysis, including:
@@ -409,8 +408,8 @@ survival_adapt <- function(
       # Mask the data at time of look
       # Note: subjects at the exact interim boundary have
       # time_from_rand_at_look = 0, yielding time = 0 after masking.
-      # survival::survSplit() requires all times > 0, so we clamp to
-      # .Machine$double.eps.
+      # Clamp to .Machine$double.eps so the boundary subject contributes
+      # negligible but non-zero exposure to the interim posterior.
       data_interim <- within(data_interim, {
         time  = pmax(pmin(time, time_from_rand_at_look), .Machine$double.eps)
         event = ifelse(subject_impute_success, 0, event)
