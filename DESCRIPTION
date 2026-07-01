@@ -43,6 +43,7 @@ Imports:
     rlang,
     stats
 Suggests: 
+    bench,
     covr,
     DiagrammeR,
     testthat (>= 3.0.0),

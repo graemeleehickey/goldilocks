@@ -12,3 +12,4 @@ data-raw
 ^\.positai$
 ^_pkgdown\.yml$
 ^docs$
+^benchmarks$
