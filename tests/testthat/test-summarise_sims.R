@@ -29,6 +29,22 @@ test_that("summarise_sims works with a named list of data frames", {
   out <- summarise_sims(data_list)
   expect_s3_class(out, "data.frame")
   expect_equal(nrow(out), 2)
+  expect_setequal(out$scenario, c("null", "alt"))
+})
+
+test_that("summarise_sims labels unnamed list scenarios by position", {
+  make_df <- function(n) {
+    data.frame(
+      stop_futility = rep(FALSE, n),
+      post_prob_ha = rep(0.99, n),
+      prob_threshold = rep(0.95, n),
+      stop_expected_success = rep(FALSE, n),
+      N_enrolled = seq_len(n)
+    )
+  }
+  out <- summarise_sims(list(make_df(3), make_df(4)))
+  expect_s3_class(out, "data.frame")
+  expect_equal(out$scenario, c("1", "2"))
 })
 
 test_that("summarise_sims computes power correctly", {

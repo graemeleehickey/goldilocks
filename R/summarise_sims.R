@@ -14,7 +14,7 @@
 #'   stopped early for expected success, yet went to ultimately fail are also
 #'   reported.
 #'
-#' @importFrom dplyr group_by summarise
+#' @importFrom dplyr bind_rows group_by summarise
 #' @importFrom rlang .data
 #' @export
 summarise_sims <- function(data) {
@@ -24,11 +24,8 @@ summarise_sims <- function(data) {
     if (is.null(fnames)) {
       fnames <- 1:length(data)
     }
-    for (i in 1:length(data)) {
-      data[[i]]$scenario <- fnames[i]
-      data[[i]]
-    }
-    data <- do.call("rbind", data)
+    names(data) <- fnames
+    data <- bind_rows(data, .id = "scenario")
   } else {
     data$scenario <- 1
   }

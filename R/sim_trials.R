@@ -153,7 +153,7 @@ sim_trials <- function(
 
   sims <- pbmclapply(1:N_trials, survival_adapt_wrapper, mc.cores = ncores)
 
-  sims <- do.call("rbind", sims)
+  sims <- bind_rows(sims)
   out <- list(sims = sims, call = Call)
 
   return(out)
