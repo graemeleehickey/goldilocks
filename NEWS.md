@@ -1,4 +1,4 @@
-# goldilocks 0.5.1.9000
+# goldilocks 0.5.0.9000
 
 ## Improvements
 
@@ -11,6 +11,8 @@
 * Clarified that `goldilocks` treats enrollment time and randomization time as the same time point in its time-to-event simulations.
 * Clarified that the single-arm external benchmark `h0` is often referred to as a performance goal (PG) or objective performance criterion (OPC).
 * Expanded technical documentation for the Goldilocks predictive-probability algorithm, including notation for final analysis quantities, operating characteristics, and method-specific decision rules.
+* Added a pkgdown light switch so the documentation site supports light, dark, and automatic colour modes.
+* Added CRAN checks, CRAN monthly downloads, and GPL-3 license badges to the README, and reordered the badge block.
 
 # goldilocks 0.5.0
 

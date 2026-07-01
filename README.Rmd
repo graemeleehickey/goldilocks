@@ -22,11 +22,16 @@ knitr::opts_chunk$set(
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
-[![CRAN total downloads](https://cranlogs.r-pkg.org/badges/grand-total/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
-[![Codecov test
-coverage](https://codecov.io/gh/graemeleehickey/goldilocks/graph/badge.svg)](https://app.codecov.io/gh/graemeleehickey/goldilocks)
 [![R-CMD-check](https://github.com/graemeleehickey/goldilocks/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/graemeleehickey/goldilocks/actions/workflows/R-CMD-check.yaml)
 [![pkgdown](https://github.com/graemeleehickey/goldilocks/actions/workflows/pkgdown.yaml/badge.svg)](https://graemeleehickey.github.io/goldilocks/)
+[![Codecov test
+coverage](https://codecov.io/gh/graemeleehickey/goldilocks/graph/badge.svg)](https://app.codecov.io/gh/graemeleehickey/goldilocks)
+[![CRAN
+checks](https://badges.cranchecks.info/worst/goldilocks.svg)](https://cran.r-project.org/web/checks/check_results_goldilocks.html)
+[![CRAN monthly downloads](https://cranlogs.r-pkg.org/badges/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
+[![CRAN total downloads](https://cranlogs.r-pkg.org/badges/grand-total/goldilocks)](https://CRAN.R-project.org/package=goldilocks)
+[![License: GPL
+v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 <!-- badges: end -->
 

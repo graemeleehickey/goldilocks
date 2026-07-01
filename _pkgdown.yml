@@ -2,11 +2,14 @@ url: https://graemeleehickey.github.io/goldilocks/
 
 template:
   bootstrap: 5
+  light-switch: true
+  theme: github-light
+  theme-dark: github-dark
 
 navbar:
   structure:
     left: [intro, reference, articles]
-    right: [search, github]
+    right: [search, github, lightswitch]
   components:
     github:
       icon: fa-github
