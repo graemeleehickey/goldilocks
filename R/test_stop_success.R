@@ -1,4 +1,4 @@
-#' @title Run test for whether we should stop enrolment at the interim analysis
+#' @title Run test for whether we should stop enrollment at the interim analysis
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data

@@ -2,9 +2,10 @@
 
 ## Improvements
 
+* Harmonized treatment-assignment terminology in internal simulation helpers and documentation: data use `treatment = 1` for treatment and `treatment = 0` for control, while posterior/imputation array indexing is now described separately as hazard slices (#35).
 * `sim_trials()` now accepts a `seed` argument that creates independent per-trial `"L'Ecuyer-CMRG"` random-number streams for reproducible simulations, including when using multiple cores (#41).
 * `ppwe()` now computes piecewise-exponential cumulative event probabilities directly from the cumulative hazard, avoiding row-wise calls to `PWEALL::pwe()` in Bayesian posterior summaries (#34).
-* `posterior()` now computes piecewise-exponential sufficient statistics directly, avoiding `survSplit()` and grouped `dplyr` summarisation in a simulation hot path.
+* `posterior()` now computes piecewise-exponential sufficient statistics directly, avoiding `survSplit()` and grouped `dplyr` summarization in a simulation hot path.
 * `enrollment()` and `randomization()` no longer grow vectors repeatedly inside their simulation loops (#44).
 * `sim_trials()` and `summarise_sims()` now use `dplyr::bind_rows()` for faster binding of simulation result data frames (#43).
 
@@ -20,7 +21,7 @@
 * Clarified that the single-arm external benchmark `h0` is often referred to as a performance goal (PG) or objective performance criterion (OPC).
 * Expanded technical documentation for the Goldilocks predictive-probability algorithm, including notation for final analysis quantities, operating characteristics, and method-specific decision rules.
 * Clarified the `Fn` documentation to state that `Fn = 0` disables futility monitoring.
-* Added a pkgdown light switch so the documentation site supports light, dark, and automatic colour modes.
+* Added a pkgdown light switch so the documentation site supports light, dark, and automatic color modes.
 * Added CRAN checks, CRAN monthly downloads, and GPL-3 license badges to the README, and reordered the badge block.
 
 # goldilocks 0.5.0

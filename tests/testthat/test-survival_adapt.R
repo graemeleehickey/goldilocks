@@ -225,9 +225,9 @@ test_that("error-interim-looks", {
 })
 
 test_that("error-interim-look-below-block-size", {
-  # A two-arm interim look smaller than the block size can enrol a single arm
-  # only, leaving the interim posterior undefined for the missing arm. This
-  # should be caught as an input error before any simulation runs.
+  # A two-arm interim look smaller than the block size can enroll one treatment
+  # group only, leaving the interim posterior undefined for the missing group.
+  # This should be caught as an input error before any simulation runs.
   expect_error(
     out <- survival_adapt(
       hazard_treatment = -log(0.85) / 36,

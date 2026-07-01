@@ -10,15 +10,16 @@
 #' @inheritParams sim_comp_data
 #' @inheritParams haz_to_prop
 #' @param data_in data frame. The time-to-event data that requires imputation,
-#'   with columns for treatment arm (\code{treatment}, which can be all 1s if
-#'   single-arm), event time (\code{time}), event indicator (\code{event}),
-#'   indicator of whether the subject requires imputation for expected success
+#'   with columns for treatment assignment (\code{treatment}, coded \code{1}
+#'   for treatment and \code{0} for control; single-arm designs use all 1s),
+#'   event time (\code{time}), event indicator (\code{event}), and indicators
+#'   of whether the subject requires imputation for expected success
 #'   (\code{subject_impute_success}) or futility
 #'   (\code{subject_impute_futility}).
 #' @param hazard array. Hazard parameters for the piecewise exponential
 #'   distribution. This should be a single sample from a posterior distribution.
 #'   The single slice must have dimensions 1 (rows), \eqn{J} (columns), and 2
-#'   (third dimension, in order of treatment and control).
+#'   (third dimension, in order of treatment and control hazard slices).
 #' @param type character. Whether imputation is for \code{success} or
 #'   \code{futility}.
 #'
@@ -35,84 +36,48 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoints, type,
 
   stopifnot(dim(hazard)[1] == 1) # otherwise, need to use vectorized ppwe()
 
-  ## Expected success
+  # Start from the original data and update only the rows that need imputation.
+  # This keeps the incoming row order and avoids rebuilding the full data frame.
+  data_impute <- data_in
+
+  # Pick the imputation flag and simulator for the requested analysis. Success
+  # imputations condition on observed follow-up; futility imputations simulate
+  # complete outcomes for not-yet-enrolled subjects.
   if (type == "success") {
-
-    # Imputing for treatment group
-    treatment_impute <- subset(data_in,
-                               treatment == 1 & subject_impute_success)
-
-    impute_treatment <- pwe_impute(time      = treatment_impute$time,
-                                   hazard    = hazard[1, , 1],
-                                   maxtime   = end_of_study,
-                                   cutpoints = cutpoints)
-
-    # Imputing for control group
-    if (!single_arm) {
-      control_impute <- subset(data_in,
-                               treatment == 0 & subject_impute_success)
-
-      # Impute PWE event times conditional on current observed time
-      impute_control <- pwe_impute(time      = control_impute$time,
-                                   hazard    = hazard[1, , 2],
-                                   maxtime   = end_of_study,
-                                   cutpoints = cutpoints)
+    subject_requires_imputation <- data_in$subject_impute_success
+    impute <- function(idx, hazard_slice) {
+      pwe_impute(time      = data_in$time[idx],
+                 hazard    = hazard[1, , hazard_slice],
+                 maxtime   = end_of_study,
+                 cutpoints = cutpoints)
     }
-    ## Futility
   } else if (type == "futility") {
-
-    # Imputing for treatment group
-    treatment_impute <- subset(data_in,
-                               treatment == 1 & subject_impute_futility)
-
-    impute_treatment <- pwe_sim(n         = nrow(treatment_impute),
-                                hazard    = hazard[1, , 1],
-                                maxtime   = end_of_study,
-                                cutpoints = cutpoints)
-
-    # Imputing for control group
-    if (!single_arm) {
-      control_impute <- subset(data_in,
-                               treatment == 0 & subject_impute_futility)
-
-      # Impute PWE event times conditional on current observed time
-      impute_control <- pwe_sim(n         = nrow(control_impute),
-                                hazard    = hazard[1, , 2],
-                                maxtime   = end_of_study,
-                                cutpoints = cutpoints)
+    subject_requires_imputation <- data_in$subject_impute_futility
+    impute <- function(idx, hazard_slice) {
+      pwe_sim(n         = sum(idx),
+              hazard    = hazard[1, , hazard_slice],
+              maxtime   = end_of_study,
+              cutpoints = cutpoints)
     }
-  }
-
-  data_treatment_impute <- cbind(treatment_impute,
-                                 "time_impute"  = impute_treatment$time,
-                                 "event_impute" = impute_treatment$event)
-
-  if (!single_arm) {
-    data_control_impute <- cbind(control_impute,
-                                 "time_impute"  = impute_control$time,
-                                 "event_impute" = impute_control$event)
   } else {
-    data_control_impute <- NULL
+    stop("'type' must be either 'success' or 'futility'")
   }
 
-  # Non-imputed data
-  data_noimpute              <- data_in
-  data_noimpute$time_impute  <- data_noimpute$time
-  data_noimpute$event_impute <- data_noimpute$event
-  if (type == "success") {
-    data_noimpute <- subset(data_noimpute, !subject_impute_success)
-  } else if (type == "futility") {
-    data_noimpute <- subset(data_noimpute, !subject_impute_futility)
-  }
+  # Preserve the old RNG order: treatment rows are imputed before control rows.
+  # The data column uses treatment = 1 for treatment and treatment = 0 for
+  # control; the hazard array uses slice 1 for treatment and slice 2 for control.
+  treatment_idx <- data_in$treatment == 1 & subject_requires_imputation
+  impute_treatment <- impute(treatment_idx, hazard_slice = 1)
+  data_impute$time[treatment_idx] <- impute_treatment$time
+  data_impute$event[treatment_idx] <- impute_treatment$event
 
-  # Combine imputed and non-imputed data
-  data_impute <- rbind(data_control_impute,
-                       data_treatment_impute,
-                       data_noimpute)
-  data_impute$time  <- data_impute$time_impute
-  data_impute$event <- data_impute$event_impute
-  data_impute$time_impute  <- NULL
-  data_impute$event_impute <- NULL
+  # Two-arm studies use the second hazard slice for control-arm imputations.
+  if (!single_arm) {
+    control_idx <- data_in$treatment == 0 & subject_requires_imputation
+    impute_control <- impute(control_idx, hazard_slice = 2)
+    data_impute$time[control_idx] <- impute_control$time
+    data_impute$event[control_idx] <- impute_control$event
+  }
 
   # Check: imputed data should have same number of subjects as
   #        the interim data

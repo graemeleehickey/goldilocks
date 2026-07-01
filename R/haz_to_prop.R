@@ -15,8 +15,8 @@
 #'   column for each hazard piece), and the third dimension is of length 2, with
 #'   the first slice including posterior samples from \code{post_treatment}, and
 #'   the second slice including posterior samples from \code{post_control}.
-#' @param single_arm logical. If \code{TRUE}, trial is single arm. Else, if
-#'   \code{FALSE}, it is a randomized two-arm trial.
+#' @param single_arm logical. If \code{TRUE}, the trial is single-arm. If
+#'   \code{FALSE}, the trial is a randomized two-arm trial.
 #'
 #' @return A data frame with 3 columns of posterior samples:
 #'

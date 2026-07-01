@@ -7,9 +7,10 @@
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
 #' @param data_in data frame. The time-to-event data that requires imputation,
-#'   with columns for treatment arm (\code{treatment}, which can be all 1s if
-#'   single-arm), event time (\code{time}), event indicator (\code{event}),
-#'   indicator of whether the subject requires imputation for expected success
+#'   with columns for treatment assignment (\code{treatment}, coded \code{1}
+#'   for treatment and \code{0} for control; single-arm designs use all 1s),
+#'   event time (\code{time}), event indicator (\code{event}), and indicator of
+#'   whether the subject requires imputation for expected success
 #'   (\code{subject_impute_success}).
 #'
 #' @details If \code{prop_loss} is $>0$, then there is drop-out (loss to

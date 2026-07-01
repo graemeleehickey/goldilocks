@@ -1,7 +1,8 @@
 #' @title Randomization allocation
 #'
-#' @description Implements a randomization allocation for control and treatment
-#'   arms with different randomization ratios and block sizes.
+#' @description Generates a randomized treatment assignment sequence for
+#'   control and treatment arms with different randomization ratios and block
+#'   sizes.
 #'
 #' @param N_total integer. Total sample size for randomization allocation.
 #' @param block vector. Block size for randomization. Note that it needs to be a
@@ -10,15 +11,16 @@
 #'   \code{c(control, treatment)}.
 #'
 #' @details Complete randomization may not always be ideal due to the chance of
-#'   drawing a large block of a single treatment arm, potentially impacting the
-#'   time to enrollment completion. Therefore, a block randomization allocation
-#'   may be preferable. The block randomization allocation specification allows
-#'   for different randomization ratios, but they must be given in integer form.
-#'   Additionally, the block size should be an integer that is divisible by the
-#'   sum of the randomization allocation; see the examples.
+#'   drawing a large block assigned to one treatment group, potentially
+#'   impacting the time to enrollment completion. Therefore, a block
+#'   randomization allocation may be preferable. The block randomization
+#'   allocation specification allows for different randomization ratios, but
+#'   they must be given in integer form. Additionally, the block size should be
+#'   an integer that is divisible by the sum of the randomization allocation;
+#'   see the examples.
 #'
-#' @return The randomization allocation with 0, 1 for control and treatment,
-#'   respectively.
+#' @return An integer treatment assignment vector, coded \code{0} for control
+#'   and \code{1} for treatment.
 #'
 #' @export
 #'

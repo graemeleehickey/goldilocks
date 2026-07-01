@@ -20,7 +20,7 @@
 #'   to treatment. Integer values mapping the size of the block. See
 #'   \code{\link{randomization}} for more details.
 #' @param prop_loss scalar. Overall proportion of subjects lost to follow-up.
-#'   Subjects are selected at random for LTFU regardless of treatment arm or
+#'   Subjects are selected at random for LTFU regardless of treatment assignment or
 #'   event status. Each LTFU subject's observed time is drawn from a
 #'   \code{Uniform(0, t)} distribution, where \code{t} is their potential
 #'   event or censoring time. Since the LTFU time is always less than
@@ -33,8 +33,9 @@
 #'       numeric. Time of event or censoring time.
 #'     }
 #'     \item{\code{treatment:}}{
-#'       integer. Treatment arm with values \code{1L} for experimental arm, and
-#'       \code{0L} for control arm (only if \code{hazard_control} is given).
+#'       integer. Treatment assignment, coded \code{1L} for the treatment arm
+#'       and \code{0L} for the control arm. Single-arm designs have
+#'       \code{treatment = 1L} for every subject.
 #'     }
 #'     \item{\code{event:}}{
 #'       integer. Indicator of whether event occurred (\code{=1L} if occurred
@@ -82,7 +83,7 @@ sim_comp_data <- function(
   single_arm <- is.null(hazard_control)
 
   ##############################################################################
-  ### Simulate enrollment/randomization + assignment
+  ### Simulate enrollment/randomization + treatment assignment
   ##############################################################################
 
   # Simulate enrollment times
@@ -92,13 +93,14 @@ sim_comp_data <- function(
   enrollment <- enrollment + runif(length(enrollment))
   enrollment <- sort(enrollment)
 
-  # Simulate treatment arm assignment
+  # Simulate treatment assignment. The data convention is treatment = 1 for the
+  # treatment arm and treatment = 0 for the control arm.
   if (!single_arm) {
-    group <- randomization(N_total    = N_total,
-                           block      = block,
-                           allocation = rand_ratio)
+    treatment <- randomization(N_total    = N_total,
+                               block      = block,
+                               allocation = rand_ratio)
   } else {
-    group <- rep(1, N_total)
+    treatment <- rep(1, N_total)
   }
 
   ##############################################################################
@@ -113,19 +115,19 @@ sim_comp_data <- function(
   #   are treated as the same time point.
   if (!single_arm) {
     sim_control <- pwe_sim(hazard     = hazard_control,
-                           n          = sum(!group),
+                           n          = sum(treatment == 0),
                            maxtime    = end_of_study,
                            cutpoints  = cutpoints)
-    time[group == 0]  <- sim_control$time
-    event[group == 0] <- sim_control$event
+    time[treatment == 0]  <- sim_control$time
+    event[treatment == 0] <- sim_control$event
   }
 
   sim_treatment <- pwe_sim(hazard    = hazard_treatment,
-                           n         = sum(group),
+                           n         = sum(treatment == 1),
                            maxtime   = end_of_study,
                            cutpoints = cutpoints)
-  time[group == 1]  <- sim_treatment$time
-  event[group == 1] <- sim_treatment$event
+  time[treatment == 1]  <- sim_treatment$time
+  event[treatment == 1] <- sim_treatment$event
 
   # Simulate loss to follow-up
   loss_to_fu <- rep(FALSE, N_total)
@@ -137,7 +139,7 @@ sim_comp_data <- function(
   # Creating a new data.frame for all the variables
   data_total <- data.frame(
     time       = time,
-    treatment  = group,
+    treatment  = treatment,
     event      = event,
     enrollment = enrollment,
     id         = 1:N_total,

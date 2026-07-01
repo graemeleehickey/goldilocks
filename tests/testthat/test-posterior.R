@@ -57,10 +57,10 @@ test_that("posterior warns on zero-exposure interval", {
   )
 })
 
-test_that("posterior propagates zero-exposure intervals within the correct arm", {
-  # Only the control arm has follow-up reaching interval 3; the treatment arm's
-  # interval 3 is empty. The empty treatment interval must be back-filled from
-  # the treatment arm's own data, not from the control arm (cross-arm leak).
+test_that("posterior propagates zero-exposure intervals within treatment group", {
+  # Only the control group has follow-up reaching interval 3; the treatment
+  # group's interval 3 is empty. The empty treatment interval must be
+  # back-filled from the treatment group's own data, not from control data.
   data <- data.frame(
     time      = c(2, 25, 3, 4),
     event     = c(1, 1, 1, 0),
@@ -76,13 +76,13 @@ test_that("posterior propagates zero-exposure intervals within the correct arm",
   trt_int3 <- mean(res[, 3, 1])
   ctrl_int3 <- mean(res[, 3, 2])
 
-  # Back-filled treatment interval is closer to its own arm than to control.
+  # Back-filled treatment interval is closer to its own group than to control.
   expect_lt(abs(trt_int3 - trt_int2), abs(trt_int3 - ctrl_int3))
 })
 
-test_that("posterior errors when the treatment arm has no subjects (factor)", {
-  # Two-arm analysis but the treatment arm has no enrolled subjects in this look,
-  # encoded as a factor with both levels present.
+test_that("posterior errors when the treatment group has no subjects (factor)", {
+  # Two-arm analysis but the treatment group has no enrolled subjects in this
+  # look, encoded as a factor with both levels present.
   data <- data.frame(
     time      = c(2, 3, 4, 5),
     event     = c(1, 1, 0, 1),
@@ -97,11 +97,11 @@ test_that("posterior errors when the treatment arm has no subjects (factor)", {
 
 test_that("posterior errors on single-arm interim data with numeric treatment", {
   # This mirrors what survival_adapt() actually passes: `treatment` is a numeric
-  # column, and at a small interim look an entire arm can be absent. Previously
-  # the absent arm produced no summary row and posterior() silently returned an
-  # all-NA slice for that arm via rgamma(N_mcmc, ..., NA). It must now error.
+  # column, and at a small interim look an entire treatment group can be absent.
+  # Previously the absent group produced no summary row and posterior() silently
+  # returned an all-NA slice via rgamma(N_mcmc, ..., NA). It must now error.
 
-  # Treatment arm absent (all control), two-arm analysis.
+  # Treatment group absent (all control), two-arm analysis.
   data_no_trt <- data.frame(
     time      = c(0.5, 1.2),
     event     = c(0, 0),
@@ -113,7 +113,7 @@ test_that("posterior errors on single-arm interim data with numeric treatment", 
     "No subjects in the treatment arm"
   )
 
-  # Control arm absent (all treatment), two-arm analysis.
+  # Control group absent (all treatment), two-arm analysis.
   data_no_ctrl <- data.frame(
     time      = c(0.5, 1.2),
     event     = c(0, 1),
