@@ -3,6 +3,7 @@
 ## Improvements
 
 * `sim_trials()` now accepts a `seed` argument that creates independent per-trial `"L'Ecuyer-CMRG"` random-number streams for reproducible simulations, including when using multiple cores (#41).
+* `ppwe()` now computes piecewise-exponential cumulative event probabilities directly from the cumulative hazard, avoiding row-wise calls to `PWEALL::pwe()` in Bayesian posterior summaries (#34).
 * `posterior()` now computes piecewise-exponential sufficient statistics directly, avoiding `survSplit()` and grouped `dplyr` summarisation in a simulation hot path.
 * `enrollment()` and `randomization()` no longer grow vectors repeatedly inside their simulation loops (#44).
 * `sim_trials()` and `summarise_sims()` now use `dplyr::bind_rows()` for faster binding of simulation result data frames (#43).

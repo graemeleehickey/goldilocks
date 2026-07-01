@@ -176,15 +176,8 @@ ppwe <- function(hazard, end_of_study, cutpoints) {
     stop("The length of the hazard rates and cutpoints do not match")
   }
 
-  ppwe_scalar <- function(x, end_of_study, cutpoints) {
-    PWEALL::pwe(
-      t       = end_of_study,
-      rate    = x,
-      tchange = cutpoints)$dist
-  }
-
-  apply(hazard, 1, ppwe_scalar,
-        end_of_study = end_of_study,
-        cutpoints = cutpoints)
+  interval_upper <- c(cutpoints[-1], Inf)
+  duration <- pmax(0, pmin(end_of_study, interval_upper) - cutpoints)
+  1 - exp(-drop(hazard %*% duration))
 
 }
