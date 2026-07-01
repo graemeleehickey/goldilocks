@@ -54,19 +54,29 @@ randomization <- function(N_total, block = 2, allocation = c(1, 1)) {
     stop("All values of 'allocation' must be integer values")
   }
 
-  sampling <- NULL
   next_block <- NULL
 
   # Creating different block sizes for multiple blocks
   blocking <- rep(block, N_total %/% sum(block))
+  n_blocking <- length(blocking)
+  extra_blocks <- vector(mode = typeof(block), length = length(block))
+  n_extra_blocks <- 0
+  blocking_total <- sum(blocking)
 
   for (k in 1:length(block)) {
-    if ((sum(blocking) + block[k]) < N_total) {
-      blocking <- c(blocking, block[k])
+    if ((blocking_total + block[k]) < N_total) {
+      n_extra_blocks <- n_extra_blocks + 1
+      extra_blocks[n_extra_blocks] <- block[k]
+      blocking_total <- blocking_total + block[k]
       next_block <- block[(k %% length(block)) + 1]
     } else {
       break
     }
+  }
+
+  if (n_extra_blocks > 0) {
+    blocking <- c(blocking, extra_blocks[seq_len(n_extra_blocks)])
+    n_blocking <- length(blocking)
   }
 
   # Making sure the next block is assigned
@@ -75,18 +85,21 @@ randomization <- function(N_total, block = 2, allocation = c(1, 1)) {
   }
 
   # Within each block, randomize with the correct allocation
-  for (m in 1:length(blocking)) {
+  sampling <- integer(N_total)
+  start <- 1
+  for (m in seq_len(n_blocking)) {
     item <- rep(rep(0:1, times = allocation),
                 each = blocking[m] / sum(allocation))
-    sampling <- c(sampling, sample(item))
+    end <- start + blocking[m] - 1
+    sampling[start:end] <- sample(item)
+    start <- end + 1
   }
 
   # Fill up the remainder of the allocation using next block
-  if (N_total > length(sampling)) {
+  if (N_total >= start) {
     item <- rep(rep(0:1, times = allocation),
                 each = next_block / sum(allocation))
-    sampling <- c(sampling,
-                  sample(item, size = (N_total - length(sampling))))
+    sampling[start:N_total] <- sample(item, size = N_total - start + 1)
   }
 
   return(sampling)

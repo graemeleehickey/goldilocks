@@ -73,25 +73,38 @@ enrollment <- function(lambda = 1, N_total, lambda_time = 0) {
     stop("The first cutpoint should always 0")
   }
 
-  output <- NULL
+  chunks <- list()
+  n_enrolled <- 0
+  n_chunks <- 0
   count <- 0
   # For constant lambda in Poisson distribution
   if (length(lambda) == 1) {
-    while (length(output) < N_total) {
+    while (n_enrolled < N_total) {
       count <- count + 1
-      output <- c(output, rep(count, rpois(1, lambda)))
+      n_new <- rpois(1, lambda)
+      if (n_new > 0) {
+        n_chunks <- n_chunks + 1
+        chunks[[n_chunks]] <- rep(count, n_new)
+        n_enrolled <- n_enrolled + n_new
+      }
     }
   } else {
     # For different lambda values in Poisson distribution as a function of
     # lambda_time
-    while (length(output) < N_total) {
+    while (n_enrolled < N_total) {
       count <- count + 1
       index <- min(c(which(lambda_time[-1] > (count - 1)), length(lambda)))
-      output <- c(output, rep(count, rpois(1, lambda[index])))
+      n_new <- rpois(1, lambda[index])
+      if (n_new > 0) {
+        n_chunks <- n_chunks + 1
+        chunks[[n_chunks]] <- rep(count, n_new)
+        n_enrolled <- n_enrolled + n_new
+      }
     }
   }
 
   # Adjusting trial and outputs
+  output <- unlist(chunks, use.names = FALSE)
   output <- output[1:N_total]
   output <- output - output[1]
   return(output)

@@ -3,6 +3,7 @@
 ## Improvements
 
 * `posterior()` now computes piecewise-exponential sufficient statistics directly, avoiding `survSplit()` and grouped `dplyr` summarisation in a simulation hot path.
+* `enrollment()` and `randomization()` no longer grow vectors repeatedly inside their simulation loops (#44).
 
 ## Bug fixes
 

@@ -61,6 +61,19 @@ test_that("randomization works with multiple block sizes needing remainder fill"
   expect_true(all(out %in% c(0, 1)))
 })
 
+test_that("randomization preserves allocation in final partial block setup", {
+  set.seed(2894)
+  out <- randomization(N_total = 25, block = c(6, 9, 3),
+                       allocation = c(1, 2))
+  complete_blocks <- split(out[1:24], rep(seq_len(4), c(6, 9, 3, 6)))
+
+  expect_equal(unname(vapply(complete_blocks, length, integer(1))),
+               c(6, 9, 3, 6))
+  expect_equal(unname(vapply(complete_blocks, sum, integer(1))),
+               c(4, 6, 2, 4))
+  expect_true(out[25] %in% c(0, 1))
+})
+
 test_that("randomization errors on non-integer allocation", {
   expect_error(
     randomization(N_total = 100, block = 2, allocation = c(0.5, 0.5)),
