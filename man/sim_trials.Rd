@@ -28,7 +28,8 @@ sim_trials(
   N_trials = 10,
   method = "logrank",
   imputed_final = FALSE,
-  ncores = 1L
+  ncores = 1L,
+  seed = NULL
 )
 }
 \arguments{
@@ -138,6 +139,11 @@ subjects who were LTFU (i.e. right-censored with time
 means that the final analysis would incorporate right-censoring.}
 
 \item{ncores}{integer. Number of cores to use for parallel processing.}
+
+\item{seed}{optional integer. Seed used to generate independent per-trial
+\code{"L'Ecuyer-CMRG"} random-number streams. The default, \code{NULL},
+does not reset the global RNG state, preserving the usual unseeded
+simulation behavior.}
 }
 \value{
 Data frame with 1 row per simulated trial and columns for key summary
@@ -158,6 +164,13 @@ To use will multiple cores (where available), the argument \code{ncores}
 can be increased from the default of 1. Note: on Windows machines, it is
 not possible to use the \code{\link[parallel]{mclapply}} function with
 \code{ncores} \eqn{>1}.
+
+Set \code{seed} to make \code{sim_trials()} reproducible. When a seed is
+supplied, \code{sim_trials()} first generates one independent
+\code{"L'Ecuyer-CMRG"} stream for each simulated trial, then each call to
+\code{survival_adapt()} runs with its own per-trial stream. This avoids
+reusing the same random-number stream across workers when \code{ncores > 1}.
+With \code{seed = NULL}, the function uses R's current global RNG state.
 }
 \examples{
 hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
@@ -185,5 +198,6 @@ out <- sim_trials(
   N_mcmc = 5,
   method = "logrank",
   N_trials = 2,
-  ncores = 1)
+  ncores = 1,
+  seed = 123)
 }

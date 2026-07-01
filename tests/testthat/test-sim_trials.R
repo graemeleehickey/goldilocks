@@ -98,3 +98,106 @@ test_that("sim_trials-zero_cores", {
       ncores = NULL)
   )
 })
+
+test_that("sim_trials is reproducible with seed and ncores = 1", {
+  hc <- -log(0.7) / 36
+  ht <- -log(0.85) / 36
+
+  run_once <- function() {
+    sim_trials(
+      hazard_treatment = ht,
+      hazard_control = hc,
+      cutpoints = 0,
+      N_total = 200,
+      lambda = 20,
+      lambda_time = 0,
+      interim_look = 100,
+      end_of_study = 36,
+      prior = c(0.1, 0.1),
+      block = 2,
+      rand_ratio = c(1, 1),
+      prop_loss = 0.30,
+      alternative = "two.sided",
+      h0 = 0,
+      Fn = 0.05,
+      Sn = 0.9,
+      prob_ha = 0.975,
+      N_impute = 2,
+      N_mcmc = 2,
+      N_trials = 2,
+      method = "logrank",
+      ncores = 1,
+      seed = 4101)
+  }
+
+  expect_equal(run_once()$sims, run_once()$sims)
+})
+
+test_that("sim_trials uses reproducible per-trial streams in parallel", {
+  skip_on_os("windows")
+
+  hc <- -log(0.7) / 36
+  ht <- -log(0.85) / 36
+
+  run_with_cores <- function(ncores) {
+    sim_trials(
+      hazard_treatment = ht,
+      hazard_control = hc,
+      cutpoints = 0,
+      N_total = 200,
+      lambda = 20,
+      lambda_time = 0,
+      interim_look = 100,
+      end_of_study = 36,
+      prior = c(0.1, 0.1),
+      block = 2,
+      rand_ratio = c(1, 1),
+      prop_loss = 0.30,
+      alternative = "two.sided",
+      h0 = 0,
+      Fn = 0.05,
+      Sn = 0.9,
+      prob_ha = 0.975,
+      N_impute = 2,
+      N_mcmc = 2,
+      N_trials = 2,
+      method = "logrank",
+      ncores = ncores,
+      seed = 4101)
+  }
+
+  expect_equal(run_with_cores(1)$sims, run_with_cores(2)$sims)
+})
+
+test_that("sim_trials validates seed", {
+  hc <- -log(0.7) / 36
+  ht <- -log(0.85) / 36
+
+  expect_error(
+    sim_trials(
+      hazard_treatment = ht,
+      hazard_control = hc,
+      cutpoints = 0,
+      N_total = 200,
+      lambda = 20,
+      lambda_time = 0,
+      interim_look = 100,
+      end_of_study = 36,
+      prior = c(0.1, 0.1),
+      block = 2,
+      rand_ratio = c(1, 1),
+      prop_loss = 0.30,
+      alternative = "two.sided",
+      h0 = 0,
+      Fn = 0.05,
+      Sn = 0.9,
+      prob_ha = 0.975,
+      N_impute = 2,
+      N_mcmc = 2,
+      N_trials = 2,
+      method = "logrank",
+      ncores = 1,
+      seed = c(1, 2)),
+    "single integer"
+  )
+})

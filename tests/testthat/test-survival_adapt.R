@@ -51,6 +51,7 @@ test_that("survival_adapt-logrank", {
 })
 
 test_that("survival_adapt-cox", {
+  set.seed(1)
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,

@@ -8,6 +8,10 @@
 #' @inheritParams sim_comp_data
 #' @param N_trials integer. Number of trials to simulate.
 #' @param ncores integer. Number of cores to use for parallel processing.
+#' @param seed optional integer. Seed used to generate independent per-trial
+#'   \code{"L'Ecuyer-CMRG"} random-number streams. The default, \code{NULL},
+#'   does not reset the global RNG state, preserving the usual unseeded
+#'   simulation behavior.
 #'
 #' @details This is basically a wrapper function for
 #'   \code{\link{survival_adapt}}, whereby we repeatedly run the function for a
@@ -18,6 +22,14 @@
 #'   can be increased from the default of 1. Note: on Windows machines, it is
 #'   not possible to use the \code{\link[parallel]{mclapply}} function with
 #'   \code{ncores} \eqn{>1}.
+#'
+#'   Set \code{seed} to make \code{sim_trials()} reproducible. When a seed is
+#'   supplied, \code{sim_trials()} first generates one independent
+#'   \code{"L'Ecuyer-CMRG"} stream for each simulated trial, then each call to
+#'   \code{survival_adapt()} runs with its own per-trial stream. This avoids
+#'   reusing the same random-number stream across workers when
+#'   \code{ncores > 1}. With \code{seed = NULL}, the function uses R's current
+#'   global RNG state.
 #'
 #' @return Data frame with 1 row per simulated trial and columns for key summary
 #'   statistics. See \code{\link{survival_adapt}} for details of what is
@@ -53,7 +65,8 @@
 #'   N_mcmc = 5,
 #'   method = "logrank",
 #'   N_trials = 2,
-#'   ncores = 1)
+#'   ncores = 1,
+#'   seed = 123)
 
 sim_trials <- function(
   hazard_treatment,
@@ -78,7 +91,8 @@ sim_trials <- function(
   N_trials          = 10,
   method            = "logrank",
   imputed_final     = FALSE,
-  ncores            = 1L
+  ncores            = 1L,
+  seed              = NULL
 ) {
 
   Call <- match.call()
@@ -99,7 +113,20 @@ sim_trials <- function(
     ncores <- 1
   }
 
+  if (!is.null(seed)) {
+    if (length(seed) != 1 || !is.numeric(seed) || is.na(seed) ||
+        !is.finite(seed) || seed != floor(seed)) {
+      stop("'seed' must be NULL or a single integer value")
+    }
+    trial_streams <- make_rng_streams(seed, N_trials)
+  } else {
+    trial_streams <- NULL
+  }
+
   survival_adapt_wrapper <- function(x) {
+    if (!is.null(trial_streams)) {
+      assign(".Random.seed", trial_streams[[x]], envir = .GlobalEnv)
+    }
     survival_adapt(
       hazard_treatment = hazard_treatment,
       hazard_control   = hazard_control,
@@ -131,4 +158,32 @@ sim_trials <- function(
 
   return(out)
 
+}
+
+make_rng_streams <- function(seed, n) {
+  old_kind <- RNGkind()
+  old_seed_exists <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  if (old_seed_exists) {
+    old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  }
+
+  on.exit({
+    do.call(RNGkind, as.list(old_kind))
+    if (old_seed_exists) {
+      assign(".Random.seed", old_seed, envir = .GlobalEnv)
+    } else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+      rm(".Random.seed", envir = .GlobalEnv)
+    }
+  })
+
+  RNGkind("L'Ecuyer-CMRG")
+  set.seed(seed)
+
+  streams <- vector("list", n)
+  streams[[1]] <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  for (i in seq_len(n - 1) + 1L) {
+    streams[[i]] <- parallel::nextRNGStream(streams[[i - 1L]])
+  }
+
+  streams
 }

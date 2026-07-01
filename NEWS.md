@@ -2,6 +2,7 @@
 
 ## Improvements
 
+* `sim_trials()` now accepts a `seed` argument that creates independent per-trial `"L'Ecuyer-CMRG"` random-number streams for reproducible simulations, including when using multiple cores (#41).
 * `posterior()` now computes piecewise-exponential sufficient statistics directly, avoiding `survSplit()` and grouped `dplyr` summarisation in a simulation hot path.
 * `enrollment()` and `randomization()` no longer grow vectors repeatedly inside their simulation loops (#44).
 
