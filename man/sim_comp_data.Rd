@@ -47,7 +47,7 @@ to treatment. Integer values mapping the size of the block. See
 \code{\link{randomization}} for more details.}
 
 \item{prop_loss}{scalar. Overall proportion of subjects lost to follow-up.
-Subjects are selected at random for LTFU regardless of treatment arm or
+Subjects are selected at random for LTFU regardless of treatment assignment or
 event status. Each LTFU subject's observed time is drawn from a
 \code{Uniform(0, t)} distribution, where \code{t} is their potential
 event or censoring time. Since the LTFU time is always less than
@@ -61,8 +61,9 @@ A data frame with 1 row per subject and columns:
 numeric. Time of event or censoring time.
 }
 \item{\code{treatment:}}{
-integer. Treatment arm with values \code{1L} for experimental arm, and
-\code{0L} for control arm (only if \code{hazard_control} is given).
+integer. Treatment assignment, coded \code{1L} for the treatment arm
+and \code{0L} for the control arm. Single-arm designs have
+\code{treatment = 1L} for every subject.
 }
 \item{\code{event:}}{
 integer. Indicator of whether event occurred (\code{=1L} if occurred

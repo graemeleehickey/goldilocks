@@ -51,9 +51,9 @@ more details.}
 \item{interim_look}{vector. Sample size for each interim look. Note: the
 maximum sample size should not be included. For two-arm designs, each
 interim look must be at least the (largest) block size (see \code{block}),
-ensuring both treatment arms are present at every interim analysis; a
-smaller look could enrol subjects from a single arm only, leaving the
-interim posterior undefined for the missing arm.}
+ensuring both treatment groups are present at every interim analysis; a
+smaller look could enroll subjects from one treatment group only, leaving
+the interim posterior undefined for the missing group.}
 
 \item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
 will be evaluated.}
@@ -63,7 +63,7 @@ parameters are each \eqn{Gamma(a_0, b_0)}, where \eqn{a_0} is the shape
 parameter and \eqn{b_0} is the rate parameter (i.e., the inverse of the
 scale). This follows R's \code{\link[stats]{rgamma}} parameterization. The
 same prior is applied to all piecewise intervals and to both treatment
-arms. The default non-informative prior distribution used is
+groups. The default non-informative prior distribution used is
 \code{Gamma(0.1, 0.1)}, which is specified by setting \code{prior = c(0.1,
   0.1)}.}
 
@@ -74,7 +74,7 @@ to treatment. Integer values mapping the size of the block. See
 \code{\link{randomization}} for more details.}
 
 \item{prop_loss}{scalar. Overall proportion of subjects lost to follow-up.
-Subjects are selected at random for LTFU regardless of treatment arm or
+Subjects are selected at random for LTFU regardless of treatment assignment or
 event status. Each LTFU subject's observed time is drawn from a
 \code{Uniform(0, t)} distribution, where \code{t} is their potential
 event or censoring time. Since the LTFU time is always less than
@@ -86,9 +86,9 @@ hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \code{"two.sided"}. All three options are supported for \code{method =
   "bayes"}, \code{"logrank"}, and \code{"cox"}. The chi-square test
 (\code{method = "chisq"}) only supports \code{"two.sided"}. For survival
-outcomes, \code{"less"} corresponds to the treatment group having a lower
+outcomes, \code{"less"} corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
-corresponds to the treatment group having a higher cumulative incidence.}
+corresponds to the treatment arm having a higher cumulative incidence.}
 
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
   p_\textrm{control}} when \code{method = "bayes"}. Default is \code{h0 = 0}.
@@ -227,7 +227,7 @@ Each imputed dataset is used to update the conjugate Gamma prior
 piecewise exponential rate parameters. In turn, the posterior
 distribution of the cumulative incidence function (\eqn{1 - S(t)}, where
 \eqn{S(t)} is the survival function) evaluated at time
-\code{end_of_study} is calculated. If a single arm study, then this
+\code{end_of_study} is calculated. If a single-arm study, then this
 summarizes the treatment effect, else, if a two-armed study, the
 independent posteriors are used to estimate the posterior distribution
 of the difference. A posterior probability is calculated according to

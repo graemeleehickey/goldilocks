@@ -54,9 +54,9 @@ more details.}
 \item{interim_look}{vector. Sample size for each interim look. Note: the
 maximum sample size should not be included. For two-arm designs, each
 interim look must be at least the (largest) block size (see \code{block}),
-ensuring both treatment arms are present at every interim analysis; a
-smaller look could enrol subjects from a single arm only, leaving the
-interim posterior undefined for the missing arm.}
+ensuring both treatment groups are present at every interim analysis; a
+smaller look could enroll subjects from one treatment group only, leaving
+the interim posterior undefined for the missing group.}
 
 \item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
 will be evaluated.}
@@ -66,7 +66,7 @@ parameters are each \eqn{Gamma(a_0, b_0)}, where \eqn{a_0} is the shape
 parameter and \eqn{b_0} is the rate parameter (i.e., the inverse of the
 scale). This follows R's \code{\link[stats]{rgamma}} parameterization. The
 same prior is applied to all piecewise intervals and to both treatment
-arms. The default non-informative prior distribution used is
+groups. The default non-informative prior distribution used is
 \code{Gamma(0.1, 0.1)}, which is specified by setting \code{prior = c(0.1,
   0.1)}.}
 
@@ -77,7 +77,7 @@ to treatment. Integer values mapping the size of the block. See
 \code{\link{randomization}} for more details.}
 
 \item{prop_loss}{scalar. Overall proportion of subjects lost to follow-up.
-Subjects are selected at random for LTFU regardless of treatment arm or
+Subjects are selected at random for LTFU regardless of treatment assignment or
 event status. Each LTFU subject's observed time is drawn from a
 \code{Uniform(0, t)} distribution, where \code{t} is their potential
 event or censoring time. Since the LTFU time is always less than
@@ -89,9 +89,9 @@ hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \code{"two.sided"}. All three options are supported for \code{method =
   "bayes"}, \code{"logrank"}, and \code{"cox"}. The chi-square test
 (\code{method = "chisq"}) only supports \code{"two.sided"}. For survival
-outcomes, \code{"less"} corresponds to the treatment group having a lower
+outcomes, \code{"less"} corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
-corresponds to the treatment group having a higher cumulative incidence.}
+corresponds to the treatment arm having a higher cumulative incidence.}
 
 \item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
   p_\textrm{control}} when \code{method = "bayes"}. Default is \code{h0 = 0}.
@@ -104,8 +104,9 @@ is used.}
 \item{Fn}{vector of \code{[0, 1]} values. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for futility. If there are
 no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
-used in the simulations or analysis. The length of \code{Fn} should be the
-same as \code{interim_look}, else the values are recycled.}
+used in the simulations or analysis. Set \code{Fn = 0} to disable futility
+monitoring. The length of \code{Fn} should be the same as
+\code{interim_look}, else the values are recycled.}
 
 \item{Sn}{vector of \code{[0, 1]} values. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for expected success. If
@@ -169,8 +170,9 @@ Set \code{seed} to make \code{sim_trials()} reproducible. When a seed is
 supplied, \code{sim_trials()} first generates one independent
 \code{"L'Ecuyer-CMRG"} stream for each simulated trial, then each call to
 \code{survival_adapt()} runs with its own per-trial stream. This avoids
-reusing the same random-number stream across workers when \code{ncores > 1}.
-With \code{seed = NULL}, the function uses R's current global RNG state.
+reusing the same random-number stream across workers when
+\code{ncores > 1}. With \code{seed = NULL}, the function uses R's current
+global RNG state.
 }
 \examples{
 hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
