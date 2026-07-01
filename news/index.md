@@ -18,6 +18,13 @@
   [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
   no longer grow vectors repeatedly inside their simulation loops
   ([\#44](https://github.com/graemeleehickey/goldilocks/issues/44)).
+- [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  and
+  [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
+  now use
+  [`dplyr::bind_rows()`](https://dplyr.tidyverse.org/reference/bind_rows.html)
+  for faster binding of simulation result data frames
+  ([\#43](https://github.com/graemeleehickey/goldilocks/issues/43)).
 
 ### Bug fixes
 

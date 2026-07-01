@@ -48,6 +48,8 @@
 <code>posterior()</code> now computes piecewise-exponential sufficient statistics directly, avoiding <code><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit()</a></code> and grouped <code>dplyr</code> summarisation in a simulation hot path.</li>
 <li>
 <code><a href="../reference/enrollment.html">enrollment()</a></code> and <code><a href="../reference/randomization.html">randomization()</a></code> no longer grow vectors repeatedly inside their simulation loops (<a href="https://github.com/graemeleehickey/goldilocks/issues/44" class="external-link">#44</a>).</li>
+<li>
+<code><a href="../reference/sim_trials.html">sim_trials()</a></code> and <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> now use <code><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">dplyr::bind_rows()</a></code> for faster binding of simulation result data frames (<a href="https://github.com/graemeleehickey/goldilocks/issues/43" class="external-link">#43</a>).</li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-0-5-0-9000">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-0-9000"></a></h3>
