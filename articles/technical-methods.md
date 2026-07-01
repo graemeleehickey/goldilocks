@@ -25,15 +25,16 @@ subjects have been enrolled. The package argument `N_total` corresponds
 to $`N_{\max}`$, `end_of_study` to $`\tau`$, and `interim_look` to
 $`(n_1,\ldots,n_L)`$.
 
-Let $`A_i \in \{0,1\}`$ denote treatment assignment for subject $`i`$,
-with $`A_i = 1`$ for the experimental arm and $`A_i = 0`$ for control.
-In a single-arm design, all $`A_i = 1`$ and there is no concurrent
-control. The package assumes that randomization occurs at enrollment; in
-practice those times can differ, but the distinction is not represented
-in the simulation model. We therefore use enrollment time throughout.
-Let $`E_i`$ denote enrollment time from first patient in, $`T_i^*`$ the
-true event time from enrollment, $`C_i`$ the administrative or
-loss-to-follow-up censoring time, and
+Let $`Z_i \in \{0,1\}`$ denote treatment assignment for subject $`i`$,
+matching the package data column `treatment`: $`Z_i = 1`$ for the
+treatment arm and $`Z_i = 0`$ for the control arm. In a single-arm
+design, all $`Z_i = 1`$ and there is no concurrent control. The package
+assumes that randomization occurs at enrollment; in practice those times
+can differ, but the distinction is not represented in the simulation
+model. We therefore use enrollment time throughout. Let $`E_i`$ denote
+enrollment time from first patient in, $`T_i^*`$ the true event time
+from enrollment, $`C_i`$ the administrative or loss-to-follow-up
+censoring time, and
 
 ``` math
 T_i = \min(T_i^*, C_i), \qquad
@@ -81,24 +82,24 @@ intervals
 [s_0, s_1), [s_1, s_2), \ldots, [s_{J-1}, \infty).
 ```
 
-For arm $`a \in \{0,1\}`$, where $`a = 1`$ denotes the experimental arm
-and $`a = 0`$ denotes the control arm, interval $`j`$ has constant
-hazard $`\lambda_{aj}`$. The subject-level hazard is therefore
+For treatment value $`z \in \{0,1\}`$, where $`z = 1`$ denotes the
+treatment arm and $`z = 0`$ denotes the control arm, interval $`j`$ has
+constant hazard $`\lambda_{zj}`$. The subject-level hazard is therefore
 
 ``` math
-h_a(t) = \lambda_{aj}, \qquad s_{j-1} \le t < s_j,
+h_z(t) = \lambda_{zj}, \qquad s_{j-1} \le t < s_j,
 ```
 
 where the last interval has no finite upper endpoint. With
 `cutpoints = 0`, $`J = 1`$ and the model reduces to an ordinary
 exponential model.
 
-The cumulative hazard for arm $`a`$ at time $`t`$ is
+The cumulative hazard for treatment value $`z`$ at time $`t`$ is
 
 ``` math
-H_a(t) =
+H_z(t) =
   \sum_{j=1}^{J}
-  \lambda_{aj}
+  \lambda_{zj}
   \{ \min(t, s_j) - s_{j-1} \}_+,
 ```
 
@@ -106,8 +107,8 @@ where $`s_J = \infty`$ and $`\{x\}_+ = \max(x,0)`$. The corresponding
 survival and cumulative event probability are
 
 ``` math
-S_a(t) = \exp\{-H_a(t)\}, \qquad
-  p_a(t) = 1 - S_a(t).
+S_z(t) = \exp\{-H_z(t)\}, \qquad
+  p_z(t) = 1 - S_z(t).
 ```
 
 The helper
@@ -116,81 +117,83 @@ solves the inverse problem used in simulation planning: given event
 probabilities at one or more time points, it returns the piecewise
 hazards that imply those probabilities. The helper
 [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
-evaluates $`p_a(\tau)`$, and `haz_to_prop()` applies this transformation
+evaluates $`p_z(\tau)`$, and `haz_to_prop()` applies this transformation
 to posterior hazard draws.
 
-For observed follow-up $`(T_i, \delta_i, A_i)`$, the
+For observed follow-up $`(T_i, \delta_i, Z_i)`$, the
 piecewise-exponential likelihood can be written in terms of
 interval-specific event counts and exposure times. Define
 
 ``` math
-d_{aj} = \sum_i I(A_i = a)\delta_i I(T_i \in [s_{j-1}, s_j)),
+d_{zj} = \sum_i I(Z_i = z)\delta_i I(T_i \in [s_{j-1}, s_j)),
 ```
 
 and
 
 ``` math
-y_{aj} =
-  \sum_i I(A_i = a)
+y_{zj} =
+  \sum_i I(Z_i = z)
   \{ \min(T_i, s_j) - s_{j-1} \}_+ I(T_i > s_{j-1}).
 ```
 
-Up to factors not involving $`\lambda_{aj}`$, the likelihood
-contribution for arm $`a`$ is
+Up to factors not involving $`\lambda_{zj}`$, the likelihood
+contribution for treatment value $`z`$ is
 
 ``` math
-L_a(\boldsymbol{\lambda}_a; \mathcal{D})
+L_z(\boldsymbol{\lambda}_z; \mathcal{D})
   \propto
   \prod_{j=1}^{J}
-  \lambda_{aj}^{d_{aj}} \exp(-\lambda_{aj}y_{aj}),
+  \lambda_{zj}^{d_{zj}} \exp(-\lambda_{zj}y_{zj}),
 ```
 
-where $`\boldsymbol{\lambda}_a =
-(\lambda_{a1},\ldots,\lambda_{aJ})^\top`$. This sufficient-statistic
+where $`\boldsymbol{\lambda}_z =
+(\lambda_{z1},\ldots,\lambda_{zJ})^\top`$. This sufficient-statistic
 form is what makes the Gamma posterior update available in closed form.
 
 ## 3. Posterior distribution of hazards
 
-For each arm $`a`$ and interval $`j`$, `goldilocks` assumes an
-independent Gamma prior
+For each treatment value $`z`$ and interval $`j`$, `goldilocks` assumes
+an independent Gamma prior
 
 ``` math
-\lambda_{aj} \sim \operatorname{Gamma}(\alpha_0, \beta_0),
+\lambda_{zj} \sim \operatorname{Gamma}(\alpha_0, \beta_0),
 ```
 
 where $`\alpha_0`$ is the shape and $`\beta_0`$ is the rate. This
 follows the [`stats::rgamma()`](https://rdrr.io/r/stats/GammaDist.html)
 parameterization. The argument `prior = c(alpha0, beta0)` sets these two
 hyperparameters, with default `prior = c(0.1, 0.1)`. The same prior is
-applied to every arm and every piecewise interval. Separate priors by
-arm or interval cannot currently be specified through the package
-interface.
+applied to every treatment group and every piecewise interval. Separate
+priors by treatment group or interval cannot currently be specified
+through the package interface.
 
-At an analysis, let $`d_{aj}`$ be the number of observed events in arm
-$`a`$, interval $`j`$, and let $`y_{aj}`$ be the total observed exposure
-time in that arm and interval. Gamma-exponential conjugacy gives
+At an analysis, let $`d_{zj}`$ be the number of observed events for
+treatment value $`z`$, interval $`j`$, and let $`y_{zj}`$ be the total
+observed exposure time for that treatment value and interval.
+Gamma-exponential conjugacy gives
 
 ``` math
-\lambda_{aj} \mid \mathcal{D}
-  \sim \operatorname{Gamma}(\alpha_0 + d_{aj}, \beta_0 + y_{aj}).
+\lambda_{zj} \mid \mathcal{D}
+  \sim \operatorname{Gamma}(\alpha_0 + d_{zj}, \beta_0 + y_{zj}).
 ```
 
-The package obtains $`(d_{aj}, y_{aj})`$ by splitting each subject’s
+The package obtains $`(d_{zj}, y_{zj})`$ by splitting each subject’s
 observed follow-up over the cut-point intervals. Posterior draws are
-generated independently for each arm and interval. In early interim
-analyses, later piecewise intervals may have no exposure. In that case,
-the package propagates exposure and event counts from the nearest
-non-empty interval within the same arm and emits a warning. This
-prevents undefined posterior draws, but it should be interpreted as a
-computational fallback rather than evidence about that later interval.
+generated independently for each treatment group and interval. In early
+interim analyses, later piecewise intervals may have no exposure. In
+that case, the package propagates exposure and event counts from the
+nearest non-empty interval within the same treatment group and emits a
+warning. This prevents undefined posterior draws, but it should be
+interpreted as a computational fallback rather than evidence about that
+later interval.
 
 The posterior density factorizes as
 
 ``` math
 \pi(\boldsymbol{\lambda} \mid \mathcal{D})
   =
-  \prod_a \prod_{j=1}^{J}
-  \pi(\lambda_{aj} \mid d_{aj}, y_{aj}),
+  \prod_z \prod_{j=1}^{J}
+  \pi(\lambda_{zj} \mid d_{zj}, y_{zj}),
 ```
 
 where each marginal factor is the Gamma distribution above. Posterior
@@ -462,7 +465,7 @@ effect is
 \Delta = p_1(\tau) - p_0(\tau),
 ```
 
-where $`p_1(\tau)`$ is the experimental-arm event probability and
+where $`p_1(\tau)`$ is the treatment-arm event probability and
 $`p_0(\tau)`$ is the control-arm event probability. The effect is on the
 event scale, not the survival scale. For an adverse event, benefit
 usually means $`\Delta < 0`$.

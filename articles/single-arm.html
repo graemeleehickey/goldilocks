@@ -69,7 +69,7 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://graemeleehickey.github.io/goldilocks/">goldilocks</a></span><span class="op">)</span></span></code></pre></div>
-<p>The other vignettes describe two-arm randomised designs. Single-arm
+<p>The other vignettes describe two-arm randomized designs. Single-arm
 trials – in which every subject receives the experimental therapy and
 the comparator is an external benchmark, often called a performance goal
 (PG) or objective performance criterion (OPC) – are common in
@@ -78,7 +78,7 @@ vignette shows how to set up a Goldilocks single-arm design with
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>.</p>
 <p>Two practical constraints on single-arm designs in this package:</p>
 <ul>
-<li>A single-arm trial is signalled by setting
+<li>A single-arm trial is signaled by setting
 <code>hazard_control = NULL</code>.</li>
 <li>Only <code>method = "bayes"</code> is supported for single-arm
 trials. The frequentist tests (<code>logrank</code>, <code>cox</code>,
@@ -137,7 +137,7 @@ to 20%. We use an interim look at 50 of 80 enrolled subjects:</p>
 <span>  hazard_control   <span class="op">=</span> <span class="cn">NULL</span>,              <span class="co"># single-arm</span></span>
 <span>  cutpoints        <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  N_total          <span class="op">=</span> <span class="fl">80</span>,</span>
-<span>  lambda           <span class="op">=</span> <span class="fl">5</span>,                 <span class="co"># enrolments per month (constant)</span></span>
+<span>  lambda           <span class="op">=</span> <span class="fl">5</span>,                 <span class="co"># enrollments per month (constant)</span></span>
 <span>  lambda_time      <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  interim_look     <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  end_of_study     <span class="op">=</span> <span class="va">end_of_study</span>,</span>
@@ -263,14 +263,14 @@ low, increase <code>N_total</code> or relax the
 benchmark <code>h0</code> (the PG or OPC) being a fair representation of
 the population the trial is enrolling. Drift in standard of care,
 differences in patient mix, and unmeasured confounding all bias the
-comparison in a way that randomisation would otherwise neutralise. A
+comparison in a way that randomization would otherwise neutralize. A
 Bayesian framework can incorporate uncertainty about the benchmark
 itself – e.g. by replacing a fixed <code>h0</code> with a prior
 distribution informed by historical data – but this is outside the scope
 of the simple <code>h0</code> scalar that <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>
 exposes, and would require a custom analysis. When in doubt, simulating
 the design under several plausible values of the true rate (including
-ones near the benchmark) is a useful way to characterise its
+ones near the benchmark) is a useful way to characterize its
 sensitivity.</p>
 </div>
 <div class="section level2">
@@ -278,7 +278,7 @@ sensitivity.</p>
 </h2>
 <ul>
 <li>The “Two-arm randomized trials” vignette covers the corresponding
-two-arm randomised design with a log-rank decision rule.</li>
+two-arm randomized design with a log-rank decision rule.</li>
 <li>The “Bayesian piecewise-exponential designs” vignette covers the
 same decision rule used here, but in a two-arm setting and with
 non-constant hazards. The piecewise machinery applies directly to

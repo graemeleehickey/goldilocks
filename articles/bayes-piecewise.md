@@ -6,11 +6,11 @@ library(goldilocks)
 ```
 
 The “Two-arm randomized trials” vignette uses `method = "logrank"` and a
-single constant hazard per arm. That is convenient when the
-proportional-hazards assumption is reasonable and the underlying event
-rate is well-approximated by an exponential distribution. In practice,
-neither assumption always holds. This vignette shows how to set up a
-Goldilocks design with:
+single constant hazard for each treatment group. That is convenient when
+the proportional-hazards assumption is reasonable and the underlying
+event rate is well-approximated by an exponential distribution. In
+practice, neither assumption always holds. This vignette shows how to
+set up a Goldilocks design with:
 
 - a **piecewise-exponential** hazard, in which the constant hazard rate
   changes at one or more cut-points; and
@@ -37,11 +37,11 @@ The package handles piecewise hazards through two related arguments:
 - `cutpoints`: the times at which the hazard changes. The first element
   must be `0` and represents the start of the first interval; subsequent
   elements are the *internal* cut-points. With `J` intervals there are
-  `J` elements in `cutpoints` and `J` hazard pieces per arm. (So
-  `cutpoints = c(0, 6)` produces *two* intervals, `[0, 6)` and
-  `[6, \infty)`, in contrast to the default `cutpoints = 0` used in the
-  “Two-arm randomized trials” vignette, which produces a single interval
-  and a non-piecewise exponential.)
+  `J` elements in `cutpoints` and `J` hazard pieces for each treatment
+  group. (So `cutpoints = c(0, 6)` produces *two* intervals, `[0, 6)`
+  and `[6, \infty)`, in contrast to the default `cutpoints = 0` used in
+  the “Two-arm randomized trials” vignette, which produces a single
+  interval and a non-piecewise exponential.)
 - `hazard_treatment` and `hazard_control`: vectors of length `J` giving
   the constant hazard for each interval.
 
@@ -107,12 +107,12 @@ These should be 0.50 and 0.40 respectively (modulo rounding).
 With `method = "bayes"`,
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
 puts independent Gamma$`(\alpha, \beta)`$ priors on each piecewise
-hazard rate (one per interval, per arm) and combines them with the
-observed exposure time and event counts to obtain a closed-form Gamma
-posterior on each $`\lambda_j`$. Posterior draws of $`\lambda_j`$ are
-pushed through the piecewise-exponential cumulative incidence function
-to obtain posterior draws of the cumulative-failure probability $`p`$ at
-`end_of_study` for each arm.
+hazard rate (one per interval, per treatment group) and combines them
+with the observed exposure time and event counts to obtain a closed-form
+Gamma posterior on each $`\lambda_j`$. Posterior draws of $`\lambda_j`$
+are pushed through the piecewise-exponential cumulative incidence
+function to obtain posterior draws of the cumulative-failure probability
+$`p`$ at `end_of_study` for the treatment and control groups.
 
 The decision rule is one-sided. The treatment effect is defined as
 
@@ -155,7 +155,7 @@ prior <- c(0.1, 0.1)   # shape and rate of the Gamma prior on each lambda_j
 
 We will run one trial under the alternative hypothesis to illustrate the
 mechanics. We choose `interim_look = 60` (the minimum required is
-`max(block) = 4`) and a constant accrual rate of 5 enrolments per month
+`max(block) = 4`) and a constant accrual rate of 5 enrollments per month
 (`lambda_time = 0` keeps the rate constant; piecewise accrual is also
 supported).
 
@@ -166,7 +166,7 @@ out <- survival_adapt(
   hazard_control   = hc,
   cutpoints        = cutpoints,
   N_total          = 100,
-  lambda           = 5,                # enrolments per month
+  lambda           = 5,                # enrollments per month
   lambda_time      = 0,                # constant accrual rate
   interim_look     = 60,
   end_of_study     = end_of_study,
@@ -203,20 +203,21 @@ Two practical considerations are worth flagging:
 1.  **Empty intervals at interim looks.** Early interim looks may have
     no subjects with follow-up reaching the later piecewise intervals.
     The package handles this by propagating exposure time and event
-    counts from the nearest non-empty interval *within the same arm*,
-    and emits a warning when it does so. This supplies a placeholder
-    Gamma posterior for an interval with no information; it is a
-    fallback when an interim look has not yet generated follow-up in
-    later intervals, not a substantive estimate of those intervals’
-    hazards. By the final analysis, all intervals will typically be
-    populated.
+    counts from the nearest non-empty interval *within the same
+    treatment group*, and emits a warning when it does so. This supplies
+    a placeholder Gamma posterior for an interval with no information;
+    it is a fallback when an interim look has not yet generated
+    follow-up in later intervals, not a substantive estimate of those
+    intervals’ hazards. By the final analysis, all intervals will
+    typically be populated.
 
 2.  **Number of cut-points.** Each additional cut-point adds two hazard
-    parameters to estimate (one per arm). With limited interim data this
-    can make individual interval posteriors diffuse. In our experience,
-    one or two well-motivated cut-points (e.g. tied to a clinical
-    milestone) is usually sufficient; finer partitions tend to add
-    variance without commensurate bias reduction.
+    parameters to estimate in a two-arm design (one per treatment
+    group). With limited interim data this can make individual interval
+    posteriors diffuse. In our experience, one or two well-motivated
+    cut-points (e.g. tied to a clinical milestone) is usually
+    sufficient; finer partitions tend to add variance without
+    commensurate bias reduction.
 
 ## Sensitivity to the cut-point specification
 
@@ -236,8 +237,8 @@ they differ markedly, the cut-point becomes a design decision worth
 justifying in the protocol.
 
 A simpler – but very different – comparison is the equivalent design
-that is *both* simulated and analysed under a single constant hazard per
-arm matched to the overall 24-month proportions:
+that is *both* simulated and analyzed under a single constant hazard for
+each treatment group matched to the overall 24-month proportions:
 
 ``` r
 

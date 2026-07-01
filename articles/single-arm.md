@@ -5,7 +5,7 @@
 library(goldilocks)
 ```
 
-The other vignettes describe two-arm randomised designs. Single-arm
+The other vignettes describe two-arm randomized designs. Single-arm
 trials – in which every subject receives the experimental therapy and
 the comparator is an external benchmark, often called a performance goal
 (PG) or objective performance criterion (OPC) – are common in
@@ -15,7 +15,7 @@ vignette shows how to set up a Goldilocks single-arm design with
 
 Two practical constraints on single-arm designs in this package:
 
-- A single-arm trial is signalled by setting `hazard_control = NULL`.
+- A single-arm trial is signaled by setting `hazard_control = NULL`.
 - Only `method = "bayes"` is supported for single-arm trials. The
   frequentist tests (`logrank`, `cox`, `chisq`) require two arms and
   will raise an error if used in this mode.
@@ -80,7 +80,7 @@ out <- survival_adapt(
   hazard_control   = NULL,              # single-arm
   cutpoints        = 0,
   N_total          = 80,
-  lambda           = 5,                 # enrolments per month (constant)
+  lambda           = 5,                 # enrollments per month (constant)
   lambda_time      = 0,
   interim_look     = 50,
   end_of_study     = end_of_study,
@@ -201,7 +201,7 @@ The validity of a single-arm Goldilocks trial rests entirely on the
 benchmark `h0` (the PG or OPC) being a fair representation of the
 population the trial is enrolling. Drift in standard of care,
 differences in patient mix, and unmeasured confounding all bias the
-comparison in a way that randomisation would otherwise neutralise. A
+comparison in a way that randomization would otherwise neutralize. A
 Bayesian framework can incorporate uncertainty about the benchmark
 itself – e.g. by replacing a fixed `h0` with a prior distribution
 informed by historical data – but this is outside the scope of the
@@ -209,13 +209,13 @@ simple `h0` scalar that
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
 exposes, and would require a custom analysis. When in doubt, simulating
 the design under several plausible values of the true rate (including
-ones near the benchmark) is a useful way to characterise its
+ones near the benchmark) is a useful way to characterize its
 sensitivity.
 
 ## See also
 
 - The “Two-arm randomized trials” vignette covers the corresponding
-  two-arm randomised design with a log-rank decision rule.
+  two-arm randomized design with a log-rank decision rule.
 - The “Bayesian piecewise-exponential designs” vignette covers the same
   decision rule used here, but in a two-arm setting and with
   non-constant hazards. The piecewise machinery applies directly to

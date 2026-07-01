@@ -69,9 +69,9 @@ survival_adapt(
   vector. Sample size for each interim look. Note: the maximum sample
   size should not be included. For two-arm designs, each interim look
   must be at least the (largest) block size (see `block`), ensuring both
-  treatment arms are present at every interim analysis; a smaller look
-  could enrol subjects from a single arm only, leaving the interim
-  posterior undefined for the missing arm.
+  treatment groups are present at every interim analysis; a smaller look
+  could enroll subjects from one treatment group only, leaving the
+  interim posterior undefined for the missing group.
 
 - end_of_study:
 
@@ -86,8 +86,8 @@ survival_adapt(
   scale). This follows R's
   [`rgamma`](https://rdrr.io/r/stats/GammaDist.html) parameterization.
   The same prior is applied to all piecewise intervals and to both
-  treatment arms. The default non-informative prior distribution used is
-  `Gamma(0.1, 0.1)`, which is specified by setting
+  treatment groups. The default non-informative prior distribution used
+  is `Gamma(0.1, 0.1)`, which is specified by setting
   `prior = c(0.1, 0.1)`.
 
 - block:
@@ -104,8 +104,8 @@ survival_adapt(
 - prop_loss:
 
   scalar. Overall proportion of subjects lost to follow-up. Subjects are
-  selected at random for LTFU regardless of treatment arm or event
-  status. Each LTFU subject's observed time is drawn from a
+  selected at random for LTFU regardless of treatment assignment or
+  event status. Each LTFU subject's observed time is drawn from a
   `Uniform(0, t)` distribution, where `t` is their potential event or
   censoring time. Since the LTFU time is always less than `t`, the event
   has not yet occurred at dropout and the subject is right-censored.
@@ -118,9 +118,9 @@ survival_adapt(
   options are supported for `method = "bayes"`, `"logrank"`, and
   `"cox"`. The chi-square test (`method = "chisq"`) only supports
   `"two.sided"`. For survival outcomes, `"less"` corresponds to the
-  treatment group having a lower cumulative incidence (i.e., treatment
-  is beneficial), and `"greater"` corresponds to the treatment group
-  having a higher cumulative incidence.
+  treatment arm having a lower cumulative incidence (i.e., treatment is
+  beneficial), and `"greater"` corresponds to the treatment arm having a
+  higher cumulative incidence.
 
 - h0:
 
@@ -283,7 +283,7 @@ At each interim (and final) analysis methods as:
   exponential rate parameters. In turn, the posterior distribution of
   the cumulative incidence function (\\1 - S(t)\\, where \\S(t)\\ is the
   survival function) evaluated at time `end_of_study` is calculated. If
-  a single arm study, then this summarizes the treatment effect, else,
+  a single-arm study, then this summarizes the treatment effect, else,
   if a two-armed study, the independent posteriors are used to estimate
   the posterior distribution of the difference. A posterior probability
   is calculated according to the specification of the test type

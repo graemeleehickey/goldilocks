@@ -111,9 +111,9 @@ more details.</p></dd>
 <dd><p>vector. Sample size for each interim look. Note: the
 maximum sample size should not be included. For two-arm designs, each
 interim look must be at least the (largest) block size (see <code>block</code>),
-ensuring both treatment arms are present at every interim analysis; a
-smaller look could enrol subjects from a single arm only, leaving the
-interim posterior undefined for the missing arm.</p></dd>
+ensuring both treatment groups are present at every interim analysis; a
+smaller look could enroll subjects from one treatment group only, leaving
+the interim posterior undefined for the missing group.</p></dd>
 
 
 <dt id="arg-end-of-study">end_of_study<a class="anchor" aria-label="anchor" href="#arg-end-of-study"></a></dt>
@@ -127,7 +127,7 @@ parameters are each \(Gamma(a_0, b_0)\), where \(a_0\) is the shape
 parameter and \(b_0\) is the rate parameter (i.e., the inverse of the
 scale). This follows R's <code><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">rgamma</a></code> parameterization. The
 same prior is applied to all piecewise intervals and to both treatment
-arms. The default non-informative prior distribution used is
+groups. The default non-informative prior distribution used is
 <code>Gamma(0.1, 0.1)</code>, which is specified by setting <code>prior = c(0.1,
   0.1)</code>.</p></dd>
 
@@ -144,7 +144,7 @@ to treatment. Integer values mapping the size of the block. See
 
 <dt id="arg-prop-loss">prop_loss<a class="anchor" aria-label="anchor" href="#arg-prop-loss"></a></dt>
 <dd><p>scalar. Overall proportion of subjects lost to follow-up.
-Subjects are selected at random for LTFU regardless of treatment arm or
+Subjects are selected at random for LTFU regardless of treatment assignment or
 event status. Each LTFU subject's observed time is drawn from a
 <code>Uniform(0, t)</code> distribution, where <code>t</code> is their potential
 event or censoring time. Since the LTFU time is always less than
@@ -158,9 +158,9 @@ hypothesis, must be one of <code>"greater"</code> (default), <code>"less"</code>
 <code>"two.sided"</code>. All three options are supported for <code>method =
   "bayes"</code>, <code>"logrank"</code>, and <code>"cox"</code>. The chi-square test
 (<code>method = "chisq"</code>) only supports <code>"two.sided"</code>. For survival
-outcomes, <code>"less"</code> corresponds to the treatment group having a lower
+outcomes, <code>"less"</code> corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and <code>"greater"</code>
-corresponds to the treatment group having a higher cumulative incidence.</p></dd>
+corresponds to the treatment arm having a higher cumulative incidence.</p></dd>
 
 
 <dt id="arg-h-">h0<a class="anchor" aria-label="anchor" href="#arg-h-"></a></dt>
@@ -308,7 +308,7 @@ Each imputed dataset is used to update the conjugate Gamma prior
 piecewise exponential rate parameters. In turn, the posterior
 distribution of the cumulative incidence function (\(1 - S(t)\), where
 \(S(t)\) is the survival function) evaluated at time
-<code>end_of_study</code> is calculated. If a single arm study, then this
+<code>end_of_study</code> is calculated. If a single-arm study, then this
 summarizes the treatment effect, else, if a two-armed study, the
 independent posteriors are used to estimate the posterior distribution
 of the difference. A posterior probability is calculated according to

@@ -1,7 +1,7 @@
 # Randomization allocation
 
-Implements a randomization allocation for control and treatment arms
-with different randomization ratios and block sizes.
+Generates a randomized treatment assignment sequence for control and
+treatment arms with different randomization ratios and block sizes.
 
 ## Usage
 
@@ -27,19 +27,19 @@ randomization(N_total, block = 2, allocation = c(1, 1))
 
 ## Value
 
-The randomization allocation with 0, 1 for control and treatment,
-respectively.
+An integer treatment assignment vector, coded `0` for control and `1`
+for treatment.
 
 ## Details
 
 Complete randomization may not always be ideal due to the chance of
-drawing a large block of a single treatment arm, potentially impacting
-the time to enrollment completion. Therefore, a block randomization
-allocation may be preferable. The block randomization allocation
-specification allows for different randomization ratios, but they must
-be given in integer form. Additionally, the block size should be an
-integer that is divisible by the sum of the randomization allocation;
-see the examples.
+drawing a large block assigned to one treatment group, potentially
+impacting the time to enrollment completion. Therefore, a block
+randomization allocation may be preferable. The block randomization
+allocation specification allows for different randomization ratios, but
+they must be given in integer form. Additionally, the block size should
+be an integer that is divisible by the sum of the randomization
+allocation; see the examples.
 
 ## Examples
 

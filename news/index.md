@@ -4,6 +4,11 @@
 
 ### Improvements
 
+- Harmonized treatment-assignment terminology in internal simulation
+  helpers and documentation: data use `treatment = 1` for treatment and
+  `treatment = 0` for control, while posterior/imputation array indexing
+  is now described separately as hazard slices
+  ([\#35](https://github.com/graemeleehickey/goldilocks/issues/35)).
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   now accepts a `seed` argument that creates independent per-trial
   `"L'Ecuyer-CMRG"` random-number streams for reproducible simulations,
@@ -18,7 +23,7 @@
 - `posterior()` now computes piecewise-exponential sufficient statistics
   directly, avoiding
   [`survSplit()`](https://rdrr.io/pkg/survival/man/survSplit.html) and
-  grouped `dplyr` summarisation in a simulation hot path.
+  grouped `dplyr` summarization in a simulation hot path.
 - [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
   and
   [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
@@ -61,7 +66,7 @@
 - Clarified the `Fn` documentation to state that `Fn = 0` disables
   futility monitoring.
 - Added a pkgdown light switch so the documentation site supports light,
-  dark, and automatic colour modes.
+  dark, and automatic color modes.
 - Added CRAN checks, CRAN monthly downloads, and GPL-3 license badges to
   the README, and reordered the badge block.
 

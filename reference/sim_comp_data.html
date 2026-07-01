@@ -113,7 +113,7 @@ to treatment. Integer values mapping the size of the block. See
 
 <dt id="arg-prop-loss">prop_loss<a class="anchor" aria-label="anchor" href="#arg-prop-loss"></a></dt>
 <dd><p>scalar. Overall proportion of subjects lost to follow-up.
-Subjects are selected at random for LTFU regardless of treatment arm or
+Subjects are selected at random for LTFU regardless of treatment assignment or
 event status. Each LTFU subject's observed time is drawn from a
 <code>Uniform(0, t)</code> distribution, where <code>t</code> is their potential
 event or censoring time. Since the LTFU time is always less than
@@ -127,8 +127,9 @@ right-censored. Defaults to zero.</p></dd>
 <dd><p>numeric. Time of event or censoring time.</p></dd>
 
 <dt><code>treatment:</code></dt>
-<dd><p>integer. Treatment arm with values <code>1L</code> for experimental arm, and
-<code>0L</code> for control arm (only if <code>hazard_control</code> is given).</p></dd>
+<dd><p>integer. Treatment assignment, coded <code>1L</code> for the treatment arm
+and <code>0L</code> for the control arm. Single-arm designs have
+<code>treatment = 1L</code> for every subject.</p></dd>
 
 <dt><code>event:</code></dt>
 <dd><p>integer. Indicator of whether event occurred (<code>=1L</code> if occurred

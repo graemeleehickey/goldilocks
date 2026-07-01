@@ -72,8 +72,8 @@ sim_comp_data(
 - prop_loss:
 
   scalar. Overall proportion of subjects lost to follow-up. Subjects are
-  selected at random for LTFU regardless of treatment arm or event
-  status. Each LTFU subject's observed time is drawn from a
+  selected at random for LTFU regardless of treatment assignment or
+  event status. Each LTFU subject's observed time is drawn from a
   `Uniform(0, t)` distribution, where `t` is their potential event or
   censoring time. Since the LTFU time is always less than `t`, the event
   has not yet occurred at dropout and the subject is right-censored.
@@ -89,8 +89,9 @@ A data frame with 1 row per subject and columns:
 
 - `treatment:`:
 
-  integer. Treatment arm with values `1L` for experimental arm, and `0L`
-  for control arm (only if `hazard_control` is given).
+  integer. Treatment assignment, coded `1L` for the treatment arm and
+  `0L` for the control arm. Single-arm designs have `treatment = 1L` for
+  every subject.
 
 - `event:`:
 

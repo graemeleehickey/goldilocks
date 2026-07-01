@@ -70,11 +70,12 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://graemeleehickey.github.io/goldilocks/">goldilocks</a></span><span class="op">)</span></span></code></pre></div>
 <p>The “Two-arm randomized trials” vignette uses
-<code>method = "logrank"</code> and a single constant hazard per arm.
-That is convenient when the proportional-hazards assumption is
-reasonable and the underlying event rate is well-approximated by an
-exponential distribution. In practice, neither assumption always holds.
-This vignette shows how to set up a Goldilocks design with:</p>
+<code>method = "logrank"</code> and a single constant hazard for each
+treatment group. That is convenient when the proportional-hazards
+assumption is reasonable and the underlying event rate is
+well-approximated by an exponential distribution. In practice, neither
+assumption always holds. This vignette shows how to set up a Goldilocks
+design with:</p>
 <ul>
 <li>a <strong>piecewise-exponential</strong> hazard, in which the
 constant hazard rate changes at one or more cut-points; and</li>
@@ -103,12 +104,13 @@ arguments:</p>
 first element must be <code>0</code> and represents the start of the
 first interval; subsequent elements are the <em>internal</em>
 cut-points. With <code>J</code> intervals there are <code>J</code>
-elements in <code>cutpoints</code> and <code>J</code> hazard pieces per
-arm. (So <code>cutpoints = c(0, 6)</code> produces <em>two</em>
-intervals, <code>[0, 6)</code> and <code>[6, \infty)</code>, in contrast
-to the default <code>cutpoints = 0</code> used in the “Two-arm
-randomized trials” vignette, which produces a single interval and a
-non-piecewise exponential.)</li>
+elements in <code>cutpoints</code> and <code>J</code> hazard pieces for
+each treatment group. (So <code>cutpoints = c(0, 6)</code> produces
+<em>two</em> intervals, <code>[0, 6)</code> and
+<code>[6, \infty)</code>, in contrast to the default
+<code>cutpoints = 0</code> used in the “Two-arm randomized trials”
+vignette, which produces a single interval and a non-piecewise
+exponential.)</li>
 <li>
 <code>hazard_treatment</code> and <code>hazard_control</code>:
 vectors of length <code>J</code> giving the constant hazard for each
@@ -169,16 +171,16 @@ the cumulative incidence computation back through
 <p>With <code>method = "bayes"</code>, <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>
 puts independent
 Gamma<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\alpha, \beta)</annotation></semantics></math>
-priors on each piecewise hazard rate (one per interval, per arm) and
-combines them with the observed exposure time and event counts to obtain
-a closed-form Gamma posterior on each
+priors on each piecewise hazard rate (one per interval, per treatment
+group) and combines them with the observed exposure time and event
+counts to obtain a closed-form Gamma posterior on each
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\lambda_j</annotation></semantics></math>.
 Posterior draws of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\lambda_j</annotation></semantics></math>
 are pushed through the piecewise-exponential cumulative incidence
 function to obtain posterior draws of the cumulative-failure probability
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
-at <code>end_of_study</code> for each arm.</p>
+at <code>end_of_study</code> for the treatment and control groups.</p>
 <p>The decision rule is one-sided. The treatment effect is defined
 as</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mo>=</mo><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\Delta = p_{\text{treatment}} - p_{\text{control}},</annotation></semantics></math></p>
@@ -217,7 +219,7 @@ prior on every hazard component:</p>
 <p>We will run one trial under the alternative hypothesis to illustrate
 the mechanics. We choose <code>interim_look = 60</code> (the minimum
 required is <code>max(block) = 4</code>) and a constant accrual rate of
-5 enrolments per month (<code>lambda_time = 0</code> keeps the rate
+5 enrollments per month (<code>lambda_time = 0</code> keeps the rate
 constant; piecewise accrual is also supported).</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
@@ -225,7 +227,7 @@ constant; piecewise accrual is also supported).</p>
 <span>  hazard_control   <span class="op">=</span> <span class="va">hc</span>,</span>
 <span>  cutpoints        <span class="op">=</span> <span class="va">cutpoints</span>,</span>
 <span>  N_total          <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>  lambda           <span class="op">=</span> <span class="fl">5</span>,                <span class="co"># enrolments per month</span></span>
+<span>  lambda           <span class="op">=</span> <span class="fl">5</span>,                <span class="co"># enrollments per month</span></span>
 <span>  lambda_time      <span class="op">=</span> <span class="fl">0</span>,                <span class="co"># constant accrual rate</span></span>
 <span>  interim_look     <span class="op">=</span> <span class="fl">60</span>,</span>
 <span>  end_of_study     <span class="op">=</span> <span class="va">end_of_study</span>,</span>
@@ -263,17 +265,18 @@ early for futility or expected success.</p>
 looks may have no subjects with follow-up reaching the later piecewise
 intervals. The package handles this by propagating exposure time and
 event counts from the nearest non-empty interval <em>within the same
-arm</em>, and emits a warning when it does so. This supplies a
-placeholder Gamma posterior for an interval with no information; it is a
-fallback when an interim look has not yet generated follow-up in later
+treatment group</em>, and emits a warning when it does so. This supplies
+a placeholder Gamma posterior for an interval with no information; it is
+a fallback when an interim look has not yet generated follow-up in later
 intervals, not a substantive estimate of those intervals’ hazards. By
 the final analysis, all intervals will typically be populated.</p></li>
 <li><p><strong>Number of cut-points.</strong> Each additional cut-point
-adds two hazard parameters to estimate (one per arm). With limited
-interim data this can make individual interval posteriors diffuse. In
-our experience, one or two well-motivated cut-points (e.g. tied to a
-clinical milestone) is usually sufficient; finer partitions tend to add
-variance without commensurate bias reduction.</p></li>
+adds two hazard parameters to estimate in a two-arm design (one per
+treatment group). With limited interim data this can make individual
+interval posteriors diffuse. In our experience, one or two
+well-motivated cut-points (e.g. tied to a clinical milestone) is usually
+sufficient; finer partitions tend to add variance without commensurate
+bias reduction.</p></li>
 </ol>
 </div>
 <div class="section level2">
@@ -293,8 +296,9 @@ characteristics are similar across choices, the design is robust to the
 cut-point specification. If they differ markedly, the cut-point becomes
 a design decision worth justifying in the protocol.</p>
 <p>A simpler – but very different – comparison is the equivalent design
-that is <em>both</em> simulated and analysed under a single constant
-hazard per arm matched to the overall 24-month proportions:</p>
+that is <em>both</em> simulated and analyzed under a single constant
+hazard for each treatment group matched to the overall 24-month
+proportions:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hc_flat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.50</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span>   <span class="co"># control, single hazard</span></span>
 <span><span class="va">ht_flat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.40</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span>   <span class="co"># treatment, single hazard</span></span>

@@ -42,12 +42,13 @@
 <h2 class="pkg-version" data-toc-text="0.5.0.9000" id="goldilocks-0509000">goldilocks 0.5.0.9000<a class="anchor" aria-label="anchor" href="#goldilocks-0509000"></a></h2>
 <div class="section level3">
 <h3 id="improvements-0-5-0-9000">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-5-0-9000"></a></h3>
-<ul><li>
+<ul><li>Harmonized treatment-assignment terminology in internal simulation helpers and documentation: data use <code>treatment = 1</code> for treatment and <code>treatment = 0</code> for control, while posterior/imputation array indexing is now described separately as hazard slices (<a href="https://github.com/graemeleehickey/goldilocks/issues/35" class="external-link">#35</a>).</li>
+<li>
 <code><a href="../reference/sim_trials.html">sim_trials()</a></code> now accepts a <code>seed</code> argument that creates independent per-trial <code>"L'Ecuyer-CMRG"</code> random-number streams for reproducible simulations, including when using multiple cores (<a href="https://github.com/graemeleehickey/goldilocks/issues/41" class="external-link">#41</a>).</li>
 <li>
 <code><a href="../reference/ppwe.html">ppwe()</a></code> now computes piecewise-exponential cumulative event probabilities directly from the cumulative hazard, avoiding row-wise calls to <code><a href="https://rdrr.io/pkg/PWEALL/man/pwe.html" class="external-link">PWEALL::pwe()</a></code> in Bayesian posterior summaries (<a href="https://github.com/graemeleehickey/goldilocks/issues/34" class="external-link">#34</a>).</li>
 <li>
-<code>posterior()</code> now computes piecewise-exponential sufficient statistics directly, avoiding <code><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit()</a></code> and grouped <code>dplyr</code> summarisation in a simulation hot path.</li>
+<code>posterior()</code> now computes piecewise-exponential sufficient statistics directly, avoiding <code><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit()</a></code> and grouped <code>dplyr</code> summarization in a simulation hot path.</li>
 <li>
 <code><a href="../reference/enrollment.html">enrollment()</a></code> and <code><a href="../reference/randomization.html">randomization()</a></code> no longer grow vectors repeatedly inside their simulation loops (<a href="https://github.com/graemeleehickey/goldilocks/issues/44" class="external-link">#44</a>).</li>
 <li>
@@ -66,7 +67,7 @@
 <li>Clarified that the single-arm external benchmark <code>h0</code> is often referred to as a performance goal (PG) or objective performance criterion (OPC).</li>
 <li>Expanded technical documentation for the Goldilocks predictive-probability algorithm, including notation for final analysis quantities, operating characteristics, and method-specific decision rules.</li>
 <li>Clarified the <code>Fn</code> documentation to state that <code>Fn = 0</code> disables futility monitoring.</li>
-<li>Added a pkgdown light switch so the documentation site supports light, dark, and automatic colour modes.</li>
+<li>Added a pkgdown light switch so the documentation site supports light, dark, and automatic color modes.</li>
 <li>Added CRAN checks, CRAN monthly downloads, and GPL-3 license badges to the README, and reordered the badge block.</li>
 </ul></div>
 </div>

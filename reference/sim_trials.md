@@ -72,9 +72,9 @@ sim_trials(
   vector. Sample size for each interim look. Note: the maximum sample
   size should not be included. For two-arm designs, each interim look
   must be at least the (largest) block size (see `block`), ensuring both
-  treatment arms are present at every interim analysis; a smaller look
-  could enrol subjects from a single arm only, leaving the interim
-  posterior undefined for the missing arm.
+  treatment groups are present at every interim analysis; a smaller look
+  could enroll subjects from one treatment group only, leaving the
+  interim posterior undefined for the missing group.
 
 - end_of_study:
 
@@ -89,8 +89,8 @@ sim_trials(
   scale). This follows R's
   [`rgamma`](https://rdrr.io/r/stats/GammaDist.html) parameterization.
   The same prior is applied to all piecewise intervals and to both
-  treatment arms. The default non-informative prior distribution used is
-  `Gamma(0.1, 0.1)`, which is specified by setting
+  treatment groups. The default non-informative prior distribution used
+  is `Gamma(0.1, 0.1)`, which is specified by setting
   `prior = c(0.1, 0.1)`.
 
 - block:
@@ -107,8 +107,8 @@ sim_trials(
 - prop_loss:
 
   scalar. Overall proportion of subjects lost to follow-up. Subjects are
-  selected at random for LTFU regardless of treatment arm or event
-  status. Each LTFU subject's observed time is drawn from a
+  selected at random for LTFU regardless of treatment assignment or
+  event status. Each LTFU subject's observed time is drawn from a
   `Uniform(0, t)` distribution, where `t` is their potential event or
   censoring time. Since the LTFU time is always less than `t`, the event
   has not yet occurred at dropout and the subject is right-censored.
@@ -121,9 +121,9 @@ sim_trials(
   options are supported for `method = "bayes"`, `"logrank"`, and
   `"cox"`. The chi-square test (`method = "chisq"`) only supports
   `"two.sided"`. For survival outcomes, `"less"` corresponds to the
-  treatment group having a lower cumulative incidence (i.e., treatment
-  is beneficial), and `"greater"` corresponds to the treatment group
-  having a higher cumulative incidence.
+  treatment arm having a lower cumulative incidence (i.e., treatment is
+  beneficial), and `"greater"` corresponds to the treatment arm having a
+  higher cumulative incidence.
 
 - h0:
 
@@ -140,8 +140,9 @@ sim_trials(
   vector of `[0, 1]` values. Each element is the probability threshold
   to stop at the \\i\\-th look early for futility. If there are no
   interim looks (i.e. `interim_look = NULL`), then `Fn` is not used in
-  the simulations or analysis. The length of `Fn` should be the same as
-  `interim_look`, else the values are recycled.
+  the simulations or analysis. Set `Fn = 0` to disable futility
+  monitoring. The length of `Fn` should be the same as `interim_look`,
+  else the values are recycled.
 
 - Sn:
 
