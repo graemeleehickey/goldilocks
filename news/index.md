@@ -4,6 +4,11 @@
 
 ### Improvements
 
+- [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  now accepts a `seed` argument that creates independent per-trial
+  `"L'Ecuyer-CMRG"` random-number streams for reproducible simulations,
+  including when using multiple cores
+  ([\#41](https://github.com/graemeleehickey/goldilocks/issues/41)).
 - `posterior()` now computes piecewise-exponential sufficient statistics
   directly, avoiding
   [`survSplit()`](https://rdrr.io/pkg/survival/man/survSplit.html) and

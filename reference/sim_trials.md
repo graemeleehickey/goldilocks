@@ -29,7 +29,8 @@ sim_trials(
   N_trials = 10,
   method = "logrank",
   imputed_final = FALSE,
-  ncores = 1L
+  ncores = 1L,
+  seed = NULL
 )
 ```
 
@@ -189,6 +190,13 @@ sim_trials(
 
   integer. Number of cores to use for parallel processing.
 
+- seed:
+
+  optional integer. Seed used to generate independent per-trial
+  `"L'Ecuyer-CMRG"` random-number streams. The default, `NULL`, does not
+  reset the global RNG state, preserving the usual unseeded simulation
+  behavior.
+
 ## Value
 
 Data frame with 1 row per simulated trial and columns for key summary
@@ -208,6 +216,14 @@ be increased from the default of 1. Note: on Windows machines, it is not
 possible to use the
 [`mclapply`](https://rdrr.io/r/parallel/mclapply.html) function with
 `ncores` \\\>1\\.
+
+Set `seed` to make `sim_trials()` reproducible. When a seed is supplied,
+`sim_trials()` first generates one independent `"L'Ecuyer-CMRG"` stream
+for each simulated trial, then each call to
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+runs with its own per-trial stream. This avoids reusing the same
+random-number stream across workers when `ncores > 1`. With
+`seed = NULL`, the function uses R's current global RNG state.
 
 ## Examples
 
@@ -237,5 +253,6 @@ out <- sim_trials(
   N_mcmc = 5,
   method = "logrank",
   N_trials = 2,
-  ncores = 1)
+  ncores = 1,
+  seed = 123)
 ```
