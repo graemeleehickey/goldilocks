@@ -4,6 +4,10 @@
 
 * `posterior()` now computes piecewise-exponential sufficient statistics directly, avoiding `survSplit()` and grouped `dplyr` summarisation in a simulation hot path.
 
+## Bug fixes
+
+* `survival_adapt()` no longer dereferences the disabled futility result when `Fn = 0`, so futility counters remain inert when futility monitoring is turned off (#33).
+
 ## Documentation
 
 * Added a new vignette, "Technical details of the Goldilocks design", documenting the design notation, piecewise-exponential event-time model, Gamma posterior updating, posterior predictive probabilities, interim decision rules, final analysis options, and simulation-based calibration.
@@ -11,6 +15,7 @@
 * Clarified that `goldilocks` treats enrollment time and randomization time as the same time point in its time-to-event simulations.
 * Clarified that the single-arm external benchmark `h0` is often referred to as a performance goal (PG) or objective performance criterion (OPC).
 * Expanded technical documentation for the Goldilocks predictive-probability algorithm, including notation for final analysis quantities, operating characteristics, and method-specific decision rules.
+* Clarified the `Fn` documentation to state that `Fn = 0` disables futility monitoring.
 * Added a pkgdown light switch so the documentation site supports light, dark, and automatic colour modes.
 * Added CRAN checks, CRAN monthly downloads, and GPL-3 license badges to the README, and reordered the badge block.
 

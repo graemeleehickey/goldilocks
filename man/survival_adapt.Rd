@@ -101,8 +101,9 @@ is used.}
 \item{Fn}{vector of \code{[0, 1]} values. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for futility. If there are
 no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
-used in the simulations or analysis. The length of \code{Fn} should be the
-same as \code{interim_look}, else the values are recycled.}
+used in the simulations or analysis. Set \code{Fn = 0} to disable futility
+monitoring. The length of \code{Fn} should be the same as
+\code{interim_look}, else the values are recycled.}
 
 \item{Sn}{vector of \code{[0, 1]} values. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for expected success. If

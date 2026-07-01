@@ -42,9 +42,11 @@ test_that("posterior returns correct dimensions (single-arm)", {
 
 test_that("posterior warns on zero-exposure interval", {
   set.seed(2913)
-  # All event times < 10, so interval 2 (>= 10) has zero exposure
+  # Treatment event times are all < 10, so treatment interval 2 (>= 10) has
+  # zero exposure. Control contributes exposure in interval 2, so only the
+  # expected treatment warning is emitted.
   data <- data.frame(
-    time      = runif(60, 0, 9),
+    time      = c(runif(30, 12, 18), runif(30, 0, 9)),
     event     = sample(0:1, 60, replace = TRUE),
     treatment = rep(0:1, each = 30)
   )
