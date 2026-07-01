@@ -4,6 +4,12 @@
 
 ### Improvements
 
+- Added maintainer performance benchmarks for simulation hot paths,
+  including posterior probability conversion, posterior sampling,
+  imputation, and representative
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  runs
+  ([\#42](https://github.com/graemeleehickey/goldilocks/issues/42)).
 - Harmonized treatment-assignment terminology in internal simulation
   helpers and documentation: data use `treatment = 1` for treatment and
   `treatment = 0` for control, while posterior/imputation array indexing

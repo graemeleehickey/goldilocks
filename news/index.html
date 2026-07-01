@@ -42,7 +42,8 @@
 <h2 class="pkg-version" data-toc-text="0.5.0.9000" id="goldilocks-0509000">goldilocks 0.5.0.9000<a class="anchor" aria-label="anchor" href="#goldilocks-0509000"></a></h2>
 <div class="section level3">
 <h3 id="improvements-0-5-0-9000">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-5-0-9000"></a></h3>
-<ul><li>Harmonized treatment-assignment terminology in internal simulation helpers and documentation: data use <code>treatment = 1</code> for treatment and <code>treatment = 0</code> for control, while posterior/imputation array indexing is now described separately as hazard slices (<a href="https://github.com/graemeleehickey/goldilocks/issues/35" class="external-link">#35</a>).</li>
+<ul><li>Added maintainer performance benchmarks for simulation hot paths, including posterior probability conversion, posterior sampling, imputation, and representative <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> runs (<a href="https://github.com/graemeleehickey/goldilocks/issues/42" class="external-link">#42</a>).</li>
+<li>Harmonized treatment-assignment terminology in internal simulation helpers and documentation: data use <code>treatment = 1</code> for treatment and <code>treatment = 0</code> for control, while posterior/imputation array indexing is now described separately as hazard slices (<a href="https://github.com/graemeleehickey/goldilocks/issues/35" class="external-link">#35</a>).</li>
 <li>
 <code><a href="../reference/sim_trials.html">sim_trials()</a></code> now accepts a <code>seed</code> argument that creates independent per-trial <code>"L'Ecuyer-CMRG"</code> random-number streams for reproducible simulations, including when using multiple cores (<a href="https://github.com/graemeleehickey/goldilocks/issues/41" class="external-link">#41</a>).</li>
 <li>
