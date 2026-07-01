@@ -137,8 +137,9 @@ survival_adapt(
   vector of `[0, 1]` values. Each element is the probability threshold
   to stop at the \\i\\-th look early for futility. If there are no
   interim looks (i.e. `interim_look = NULL`), then `Fn` is not used in
-  the simulations or analysis. The length of `Fn` should be the same as
-  `interim_look`, else the values are recycled.
+  the simulations or analysis. Set `Fn = 0` to disable futility
+  monitoring. The length of `Fn` should be the same as `interim_look`,
+  else the values are recycled.
 
 - Sn:
 

@@ -1,6 +1,6 @@
 # Changelog
 
-## goldilocks 0.5.1.9000
+## goldilocks 0.5.0.9000
 
 ### Improvements
 
@@ -8,6 +8,18 @@
   directly, avoiding
   [`survSplit()`](https://rdrr.io/pkg/survival/man/survSplit.html) and
   grouped `dplyr` summarisation in a simulation hot path.
+- [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
+  and
+  [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
+  no longer grow vectors repeatedly inside their simulation loops
+  ([\#44](https://github.com/graemeleehickey/goldilocks/issues/44)).
+
+### Bug fixes
+
+- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  no longer dereferences the disabled futility result when `Fn = 0`, so
+  futility counters remain inert when futility monitoring is turned off
+  ([\#33](https://github.com/graemeleehickey/goldilocks/issues/33)).
 
 ### Documentation
 
@@ -28,6 +40,12 @@
   predictive-probability algorithm, including notation for final
   analysis quantities, operating characteristics, and method-specific
   decision rules.
+- Clarified the `Fn` documentation to state that `Fn = 0` disables
+  futility monitoring.
+- Added a pkgdown light switch so the documentation site supports light,
+  dark, and automatic colour modes.
+- Added CRAN checks, CRAN monthly downloads, and GPL-3 license badges to
+  the README, and reordered the badge block.
 
 ## goldilocks 0.5.0
 
