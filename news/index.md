@@ -9,6 +9,12 @@
   `"L'Ecuyer-CMRG"` random-number streams for reproducible simulations,
   including when using multiple cores
   ([\#41](https://github.com/graemeleehickey/goldilocks/issues/41)).
+- [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
+  now computes piecewise-exponential cumulative event probabilities
+  directly from the cumulative hazard, avoiding row-wise calls to
+  [`PWEALL::pwe()`](https://rdrr.io/pkg/PWEALL/man/pwe.html) in Bayesian
+  posterior summaries
+  ([\#34](https://github.com/graemeleehickey/goldilocks/issues/34)).
 - `posterior()` now computes piecewise-exponential sufficient statistics
   directly, avoiding
   [`survSplit()`](https://rdrr.io/pkg/survival/man/survSplit.html) and

@@ -45,6 +45,8 @@
 <ul><li>
 <code><a href="../reference/sim_trials.html">sim_trials()</a></code> now accepts a <code>seed</code> argument that creates independent per-trial <code>"L'Ecuyer-CMRG"</code> random-number streams for reproducible simulations, including when using multiple cores (<a href="https://github.com/graemeleehickey/goldilocks/issues/41" class="external-link">#41</a>).</li>
 <li>
+<code><a href="../reference/ppwe.html">ppwe()</a></code> now computes piecewise-exponential cumulative event probabilities directly from the cumulative hazard, avoiding row-wise calls to <code><a href="https://rdrr.io/pkg/PWEALL/man/pwe.html" class="external-link">PWEALL::pwe()</a></code> in Bayesian posterior summaries (<a href="https://github.com/graemeleehickey/goldilocks/issues/34" class="external-link">#34</a>).</li>
+<li>
 <code>posterior()</code> now computes piecewise-exponential sufficient statistics directly, avoiding <code><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit()</a></code> and grouped <code>dplyr</code> summarisation in a simulation hot path.</li>
 <li>
 <code><a href="../reference/enrollment.html">enrollment()</a></code> and <code><a href="../reference/randomization.html">randomization()</a></code> no longer grow vectors repeatedly inside their simulation loops (<a href="https://github.com/graemeleehickey/goldilocks/issues/44" class="external-link">#44</a>).</li>
