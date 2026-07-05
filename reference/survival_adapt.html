@@ -230,7 +230,22 @@ means that the final analysis would incorporate right-censoring.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A data frame containing some input parameters (arguments) as well as
-statistics from the analysis, including:</p><table class="table table"><tr><td>Column</td><td>Description</td></tr><tr><td><code>N_treatment</code></td><td>Number of patients enrolled in the treatment arm.</td></tr><tr><td><code>N_control</code></td><td>Number of patients enrolled in the control arm.</td></tr><tr><td><code>est_final</code></td><td>Treatment effect estimated at the final analysis. The final analysis occurs when either the maximum sample size is reached and follow-up is complete, or the interim analysis triggered early stopping of enrollment/accrual and follow-up for those subjects is complete.</td></tr><tr><td><code>post_prob_ha</code></td><td>Posterior probability from the final analysis. If <code>imputed_final</code> is <code>TRUE</code>, this is calculated for each imputed final-analysis dataset and averaged over <code>N_impute</code> imputations. If <code>method = "logrank"</code>, the value represents \(1 - P\), where \(P\) is the frequentist <em>P</em>-value.</td></tr><tr><td><code>stop_futility</code></td><td>Logical indicator of whether the trial stopped early for futility.</td></tr><tr><td><code>stop_expected_success</code></td><td>Logical indicator of whether the trial stopped early for expected success.</td></tr></table></div>
+statistics from the analysis, including:</p><ul><li><p><code>N_treatment</code>: Number of patients enrolled in the treatment arm.</p></li>
+<li><p><code>N_control</code>: Number of patients enrolled in the control arm.</p></li>
+<li><p><code>est_final</code>: Treatment effect estimated at the final analysis. The final
+analysis occurs when either the maximum sample size is reached and
+follow-up is complete, or the interim analysis triggered early stopping
+of enrollment/accrual and follow-up for those subjects is complete.</p></li>
+<li><p><code>post_prob_ha</code>: Posterior probability from the final analysis. If
+<code>imputed_final</code> is <code>TRUE</code>, this is calculated for each imputed
+final-analysis dataset and averaged over <code>N_impute</code> imputations. If
+<code>method = "logrank"</code>, the value represents \(1 - P\), where \(P\)
+is the frequentist <em>P</em>-value.</p></li>
+<li><p><code>stop_futility</code>: Logical indicator of whether the trial stopped early for
+futility.</p></li>
+<li><p><code>stop_expected_success</code>: Logical indicator of whether the trial stopped
+early for expected success.</p></li>
+</ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Implements the Goldilocks design method described in Broglio et al.

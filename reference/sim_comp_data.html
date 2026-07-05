@@ -123,7 +123,19 @@ right-censored. Defaults to zero.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data frame with 1 row per subject and columns:</p><table class="table table"><tr><td>Column</td><td>Description</td></tr><tr><td><code>time</code></td><td>Time of event or censoring time.</td></tr><tr><td><code>treatment</code></td><td>Treatment assignment, coded <code>1L</code> for the treatment arm and <code>0L</code> for the control arm. Single-arm designs have <code>treatment = 1L</code> for every subject.</td></tr><tr><td><code>event</code></td><td>Indicator of whether event occurred (<code>1L</code> if occurred and <code>0L</code> if right-censored).</td></tr><tr><td><code>enrollment</code></td><td>Time of patient enrollment relative to the time the trial enrolled the first patient. The package treats enrollment and randomization as occurring at the same time.</td></tr><tr><td><code>id</code></td><td>Identification number for each patient.</td></tr><tr><td><code>loss_to_fu</code></td><td>Indicator of whether the patient was lost to follow-up during observation.</td></tr></table></div>
+    <p>A data frame with 1 row per subject and columns:</p><ul><li><p><code>time</code>: Time of event or censoring time.</p></li>
+<li><p><code>treatment</code>: Treatment assignment, coded <code>1L</code> for the treatment arm and
+<code>0L</code> for the control arm. Single-arm designs have <code>treatment = 1L</code> for
+every subject.</p></li>
+<li><p><code>event</code>: Indicator of whether event occurred (<code>1L</code> if occurred and <code>0L</code>
+if right-censored).</p></li>
+<li><p><code>enrollment</code>: Time of patient enrollment relative to the time the trial
+enrolled the first patient. The package treats enrollment and
+randomization as occurring at the same time.</p></li>
+<li><p><code>id</code>: Identification number for each patient.</p></li>
+<li><p><code>loss_to_fu</code>: Indicator of whether the patient was lost to follow-up
+during observation.</p></li>
+</ul></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

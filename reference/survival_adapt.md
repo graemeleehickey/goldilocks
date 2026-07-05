@@ -196,15 +196,27 @@ survival_adapt(
 A data frame containing some input parameters (arguments) as well as
 statistics from the analysis, including:
 
-|  |  |
-|----|----|
-| Column | Description |
-| `N_treatment` | Number of patients enrolled in the treatment arm. |
-| `N_control` | Number of patients enrolled in the control arm. |
-| `est_final` | Treatment effect estimated at the final analysis. The final analysis occurs when either the maximum sample size is reached and follow-up is complete, or the interim analysis triggered early stopping of enrollment/accrual and follow-up for those subjects is complete. |
-| `post_prob_ha` | Posterior probability from the final analysis. If `imputed_final` is `TRUE`, this is calculated for each imputed final-analysis dataset and averaged over `N_impute` imputations. If `method = "logrank"`, the value represents \\1 - P\\, where \\P\\ is the frequentist *P*-value. |
-| `stop_futility` | Logical indicator of whether the trial stopped early for futility. |
-| `stop_expected_success` | Logical indicator of whether the trial stopped early for expected success. |
+- `N_treatment`: Number of patients enrolled in the treatment arm.
+
+- `N_control`: Number of patients enrolled in the control arm.
+
+- `est_final`: Treatment effect estimated at the final analysis. The
+  final analysis occurs when either the maximum sample size is reached
+  and follow-up is complete, or the interim analysis triggered early
+  stopping of enrollment/accrual and follow-up for those subjects is
+  complete.
+
+- `post_prob_ha`: Posterior probability from the final analysis. If
+  `imputed_final` is `TRUE`, this is calculated for each imputed
+  final-analysis dataset and averaged over `N_impute` imputations. If
+  `method = "logrank"`, the value represents \\1 - P\\, where \\P\\ is
+  the frequentist *P*-value.
+
+- `stop_futility`: Logical indicator of whether the trial stopped early
+  for futility.
+
+- `stop_expected_success`: Logical indicator of whether the trial
+  stopped early for expected success.
 
 ## Details
 
