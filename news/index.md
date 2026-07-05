@@ -60,9 +60,41 @@
 - Chi-square analyses now error if censored subjects have not been
   followed to `end_of_study` or imputed before analysis.
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  now works with the documented default success and futility thresholds
+  when `interim_look = NULL`; thresholds are ignored when there are no
+  interim looks.
+- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md),
+  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md),
+  and
+  [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  now validate probability, prior, and positive-integer count arguments
+  up front, avoiding invalid simulations or low-level downstream errors.
+- [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  now falls back to `ncores = 1L` when the available core count cannot
+  be detected.
+- Log-rank and Cox analyses now fail with clear non-estimable-analysis
+  errors when the test statistic cannot be computed reliably, rather
+  than allowing `NA` or `NaN` values to break adaptive decision logic.
+- [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
+  now requires a two-element positive integer allocation vector,
+  preventing invalid two-arm allocation schedules such as `c(0, 1)`.
+- [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
+  now rejects invalid cumulative event probabilities, including
+  non-finite values, values outside `[0, 1)`, and values that decrease
+  over time.
+- [`pwe_impute()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.md)
+  now errors if `maxtime` is earlier than the observed conditioning
+  time, preventing imputed records from moving backward in time.
+- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
   no longer dereferences the disabled futility result when `Fn = 0`, so
   futility counters remain inert when futility monitoring is turned off
   ([\#33](https://github.com/graemeleehickey/goldilocks/issues/33)).
+- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  and
+  [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  now expose an `empty_interval` policy for Bayesian
+  piecewise-exponential posterior calculations, allowing empty intervals
+  to use legacy propagation, prior-only updating, or strict errors.
 
 ### Documentation
 

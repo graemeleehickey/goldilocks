@@ -203,14 +203,19 @@ Two practical considerations are worth flagging:
 
 1.  **Empty intervals at interim looks.** Early interim looks may have
     no subjects with follow-up reaching the later piecewise intervals.
-    The package handles this by propagating exposure time and event
+    The `empty_interval` argument controls how these intervals are
+    handled. The default, `empty_interval = "propagate"`, preserves
+    historical package behavior by propagating exposure time and event
     counts from the nearest non-empty interval *within the same
     treatment group*, and emits a warning when it does so. This supplies
     a placeholder Gamma posterior for an interval with no information;
     it is a fallback when an interim look has not yet generated
     follow-up in later intervals, not a substantive estimate of those
-    intervals’ hazards. By the final analysis, all intervals will
-    typically be populated.
+    intervals’ hazards. Use `empty_interval = "prior"` to leave such
+    intervals at zero exposure and zero events, making their posteriors
+    prior-driven, or `empty_interval = "error"` to stop the analysis
+    whenever an empty interval is encountered. By the final analysis,
+    all intervals will typically be populated.
 
 2.  **Number of cut-points.** Each additional cut-point adds two hazard
     parameters to estimate in a two-arm design (one per treatment

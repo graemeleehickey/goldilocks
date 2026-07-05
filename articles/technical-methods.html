@@ -263,11 +263,27 @@ interval. Gamma-exponential conjugacy gives</p>
 by splitting each subject’s observed follow-up over the cut-point
 intervals. Posterior draws are generated independently for each
 treatment group and interval. In early interim analyses, later piecewise
-intervals may have no exposure. In that case, the package propagates
-exposure and event counts from the nearest non-empty interval within the
-same treatment group and emits a warning. This prevents undefined
-posterior draws, but it should be interpreted as a computational
-fallback rather than evidence about that later interval.</p>
+intervals may have no exposure. The <code>empty_interval</code> argument
+controls the policy for these intervals:</p>
+<ul>
+<li>
+<code>empty_interval = "propagate"</code> is the default and
+preserves historical package behavior. It propagates exposure and event
+counts from the nearest non-empty interval within the same treatment
+group and emits a warning. This prevents undefined posterior draws, but
+it should be interpreted as a computational fallback rather than
+evidence about that later interval.</li>
+<li>
+<code>empty_interval = "prior"</code> leaves the interval with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">d_{zj} = 0</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y_{zj} = 0</annotation></semantics></math>,
+so the posterior for that interval is exactly the specified Gamma
+prior.</li>
+<li>
+<code>empty_interval = "error"</code> stops the analysis when any
+treatment-arm interval has no exposed subjects.</li>
+</ul>
 <p>The posterior density factorizes as</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mi>𝛌</mi><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munder><mo>∏</mo><mi>z</mi></munder><munderover><mo>∏</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>J</mi></munderover><mi>π</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>∣</mo><msub><mi>d</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>,</mo><msub><mi>y</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\pi(\boldsymbol{\lambda} \mid \mathcal{D})
   =

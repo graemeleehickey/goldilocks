@@ -180,12 +180,20 @@ Gamma-exponential conjugacy gives
 The package obtains $`(d_{zj}, y_{zj})`$ by splitting each subject’s
 observed follow-up over the cut-point intervals. Posterior draws are
 generated independently for each treatment group and interval. In early
-interim analyses, later piecewise intervals may have no exposure. In
-that case, the package propagates exposure and event counts from the
-nearest non-empty interval within the same treatment group and emits a
-warning. This prevents undefined posterior draws, but it should be
-interpreted as a computational fallback rather than evidence about that
-later interval.
+interim analyses, later piecewise intervals may have no exposure. The
+`empty_interval` argument controls the policy for these intervals:
+
+- `empty_interval = "propagate"` is the default and preserves historical
+  package behavior. It propagates exposure and event counts from the
+  nearest non-empty interval within the same treatment group and emits a
+  warning. This prevents undefined posterior draws, but it should be
+  interpreted as a computational fallback rather than evidence about
+  that later interval.
+- `empty_interval = "prior"` leaves the interval with $`d_{zj} = 0`$ and
+  $`y_{zj} = 0`$, so the posterior for that interval is exactly the
+  specified Gamma prior.
+- `empty_interval = "error"` stops the analysis when any treatment-arm
+  interval has no exposed subjects.
 
 The posterior density factorizes as
 

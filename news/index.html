@@ -64,7 +64,22 @@
 <h3 id="bug-fixes-0-5-0-9000">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-0-9000"></a></h3>
 <ul><li>Chi-square analyses now error if censored subjects have not been followed to <code>end_of_study</code> or imputed before analysis.</li>
 <li>
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> now works with the documented default success and futility thresholds when <code>interim_look = NULL</code>; thresholds are ignored when there are no interim looks.</li>
+<li>
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>, <code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code>, and <code><a href="../reference/sim_trials.html">sim_trials()</a></code> now validate probability, prior, and positive-integer count arguments up front, avoiding invalid simulations or low-level downstream errors.</li>
+<li>
+<code><a href="../reference/sim_trials.html">sim_trials()</a></code> now falls back to <code>ncores = 1L</code> when the available core count cannot be detected.</li>
+<li>Log-rank and Cox analyses now fail with clear non-estimable-analysis errors when the test statistic cannot be computed reliably, rather than allowing <code>NA</code> or <code>NaN</code> values to break adaptive decision logic.</li>
+<li>
+<code><a href="../reference/randomization.html">randomization()</a></code> now requires a two-element positive integer allocation vector, preventing invalid two-arm allocation schedules such as <code>c(0, 1)</code>.</li>
+<li>
+<code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> now rejects invalid cumulative event probabilities, including non-finite values, values outside <code>[0, 1)</code>, and values that decrease over time.</li>
+<li>
+<code><a href="../reference/pwe_impute.html">pwe_impute()</a></code> now errors if <code>maxtime</code> is earlier than the observed conditioning time, preventing imputed records from moving backward in time.</li>
+<li>
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> no longer dereferences the disabled futility result when <code>Fn = 0</code>, so futility counters remain inert when futility monitoring is turned off (<a href="https://github.com/graemeleehickey/goldilocks/issues/33" class="external-link">#33</a>).</li>
+<li>
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> and <code><a href="../reference/sim_trials.html">sim_trials()</a></code> now expose an <code>empty_interval</code> policy for Bayesian piecewise-exponential posterior calculations, allowing empty intervals to use legacy propagation, prior-only updating, or strict errors.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="documentation-0-5-0-9000">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-5-0-9000"></a></h3>

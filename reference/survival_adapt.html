@@ -71,6 +71,7 @@ time-to-event endpoint</p>
 <span>  prob_ha <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  N_impute <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  N_mcmc <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  empty_interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"propagate"</span>, <span class="st">"prior"</span>, <span class="st">"error"</span><span class="op">)</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"logrank"</span>,</span>
 <span>  imputed_final <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -236,6 +237,17 @@ missing data.</p></dd>
 distribution when using a Bayesian test (<code>method = "bayes-surv"</code>).</p></dd>
 
 
+<dt id="arg-empty-interval">empty_interval<a class="anchor" aria-label="anchor" href="#arg-empty-interval"></a></dt>
+<dd><p>character. Policy for empty piecewise-exponential
+intervals in <code>method = "bayes-surv"</code> posterior calculations. An empty
+interval is an interval with no exposed subjects in a treatment arm at the
+analysis time. <code>"propagate"</code> (the default, matching earlier package
+behavior) copies exposure time and event counts from the nearest non-empty
+interval in the same treatment arm and emits a warning. <code>"prior"</code> leaves
+the interval at zero exposure time and zero events, so its posterior is
+driven only by <code>prior</code>. <code>"error"</code> stops when any empty interval is found.</p></dd>
+
+
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
 <dd><p>character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
@@ -327,7 +339,19 @@ summarizes the treatment effect, else, if a two-armed study, the
 independent posteriors are used to estimate the posterior distribution
 of the difference. A posterior probability is calculated according to the
 specification of the test type (<code>alternative</code>) and the value of the null
-hypothesis (<code>h0</code>).</p></li>
+hypothesis (<code>h0</code>).</p>
+<p>For piecewise-exponential analyses, an interim or final dataset may
+contain intervals with no exposed subjects in one treatment arm,
+especially when later cutpoints occur after the available follow-up at
+early looks. The <code>empty_interval</code> argument controls this case.
+The default, <code>"propagate"</code>, preserves historical package behavior by
+borrowing sufficient statistics from the nearest non-empty interval
+within the same treatment arm. This is operationally stable but
+statistically consequential because the empty interval's posterior is
+informed by adjacent observed data. <code>"prior"</code> instead leaves the empty
+interval prior-driven, making the absence of interval data explicit.
+<code>"error"</code> is strict and stops the simulation or analysis when an empty
+interval is encountered.</p></li>
 <li><p>Bayesian beta-binomial analysis (<code>method = "bayes-bin"</code>).
 Each complete or imputed dataset is reduced to binary event outcomes at
 <code>end_of_study</code>. A conjugate <code>Beta(a, b)</code> prior, specified with

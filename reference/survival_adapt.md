@@ -29,6 +29,7 @@ survival_adapt(
   prob_ha = 0.95,
   N_impute = 10,
   N_mcmc = 10,
+  empty_interval = c("propagate", "prior", "error"),
   method = "logrank",
   imputed_final = FALSE
 )
@@ -201,6 +202,18 @@ survival_adapt(
   integer. Number of samples to draw from the posterior distribution
   when using a Bayesian test (`method = "bayes-surv"`).
 
+- empty_interval:
+
+  character. Policy for empty piecewise-exponential intervals in
+  `method = "bayes-surv"` posterior calculations. An empty interval is
+  an interval with no exposed subjects in a treatment arm at the
+  analysis time. `"propagate"` (the default, matching earlier package
+  behavior) copies exposure time and event counts from the nearest
+  non-empty interval in the same treatment arm and emits a warning.
+  `"prior"` leaves the interval at zero exposure time and zero events,
+  so its posterior is driven only by `prior`. `"error"` stops when any
+  empty interval is found.
+
 - method:
 
   character. For an imputed data set (or the final data set after
@@ -312,6 +325,19 @@ At each interim (and final) analysis methods as:
   the posterior distribution of the difference. A posterior probability
   is calculated according to the specification of the test type
   (`alternative`) and the value of the null hypothesis (`h0`).
+
+  For piecewise-exponential analyses, an interim or final dataset may
+  contain intervals with no exposed subjects in one treatment arm,
+  especially when later cutpoints occur after the available follow-up at
+  early looks. The `empty_interval` argument controls this case. The
+  default, `"propagate"`, preserves historical package behavior by
+  borrowing sufficient statistics from the nearest non-empty interval
+  within the same treatment arm. This is operationally stable but
+  statistically consequential because the empty interval's posterior is
+  informed by adjacent observed data. `"prior"` instead leaves the empty
+  interval prior-driven, making the absence of interval data explicit.
+  `"error"` is strict and stops the simulation or analysis when an empty
+  interval is encountered.
 
 - Bayesian beta-binomial analysis (`method = "bayes-bin"`). Each
   complete or imputed dataset is reduced to binary event outcomes at

@@ -32,6 +32,7 @@ sim_trials(
   N_trials = 10,
   method = "logrank",
   imputed_final = FALSE,
+  empty_interval = c("propagate", "prior", "error"),
   ncores = 1L,
   seed = NULL
 )
@@ -225,6 +226,18 @@ sim_trials(
   subjects who were LTFU (i.e. right-censored with time less than
   `end_of_study`)? Default is `TRUE`. Setting to `FALSE` means that the
   final analysis would incorporate right-censoring.
+
+- empty_interval:
+
+  character. Policy for empty piecewise-exponential intervals in
+  `method = "bayes-surv"` posterior calculations. An empty interval is
+  an interval with no exposed subjects in a treatment arm at the
+  analysis time. `"propagate"` (the default, matching earlier package
+  behavior) copies exposure time and event counts from the nearest
+  non-empty interval in the same treatment arm and emits a warning.
+  `"prior"` leaves the interval at zero exposure time and zero events,
+  so its posterior is driven only by `prior`. `"error"` stops when any
+  empty interval is found.
 
 - ncores:
 
