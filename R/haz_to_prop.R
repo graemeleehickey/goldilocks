@@ -20,11 +20,10 @@
 #'
 #' @return A data frame with 3 columns of posterior samples:
 #'
-#' | Column | Description |
-#' | --- | --- |
-#' | `p_treatment` | Posterior probabilities of the event for the treatment arm. |
-#' | `p_control` | Posterior probabilities of the event for the control arm. |
-#' | `effect` | Posterior distribution of the treatment effect. |
+#'   - `p_treatment`: Posterior probabilities of the event for the treatment
+#'     arm.
+#'   - `p_control`: Posterior probabilities of the event for the control arm.
+#'   - `effect`: Posterior distribution of the treatment effect.
 #'
 #' @noRd
 haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {

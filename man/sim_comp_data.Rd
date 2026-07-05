@@ -55,14 +55,20 @@ event or censoring time. Since the LTFU time is always less than
 right-censored. Defaults to zero.}
 }
 \value{
-A data frame with 1 row per subject and columns:\tabular{ll}{
-   Column \tab Description \cr
-   \code{time} \tab Time of event or censoring time. \cr
-   \code{treatment} \tab Treatment assignment, coded \code{1L} for the treatment arm and \code{0L} for the control arm. Single-arm designs have \code{treatment = 1L} for every subject. \cr
-   \code{event} \tab Indicator of whether event occurred (\code{1L} if occurred and \code{0L} if right-censored). \cr
-   \code{enrollment} \tab Time of patient enrollment relative to the time the trial enrolled the first patient. The package treats enrollment and randomization as occurring at the same time. \cr
-   \code{id} \tab Identification number for each patient. \cr
-   \code{loss_to_fu} \tab Indicator of whether the patient was lost to follow-up during observation. \cr
+A data frame with 1 row per subject and columns:
+\itemize{
+\item \code{time}: Time of event or censoring time.
+\item \code{treatment}: Treatment assignment, coded \code{1L} for the treatment arm and
+\code{0L} for the control arm. Single-arm designs have \code{treatment = 1L} for
+every subject.
+\item \code{event}: Indicator of whether event occurred (\code{1L} if occurred and \code{0L}
+if right-censored).
+\item \code{enrollment}: Time of patient enrollment relative to the time the trial
+enrolled the first patient. The package treats enrollment and
+randomization as occurring at the same time.
+\item \code{id}: Identification number for each patient.
+\item \code{loss_to_fu}: Indicator of whether the patient was lost to follow-up
+during observation.
 }
 }
 \description{

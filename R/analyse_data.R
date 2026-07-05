@@ -9,10 +9,11 @@
 #'
 #' @return A list with 2 elements:
 #'
-#' | Element | Description |
-#' | --- | --- |
-#' | `success` | Mean posterior probability of effect, or 1 minus the conventional *P*-value if `method = "logrank"`, `method = "cox"`, or `method = "chisq"`. |
-#' | `effect` | Sample vector from the posterior distribution of the effect size. If `method = "logrank"`, this is `NULL`. |
+#'   - `success`: Mean posterior probability of effect, or 1 minus the
+#'     conventional *P*-value if `method = "logrank"`, `method = "cox"`, or
+#'     `method = "chisq"`.
+#'   - `effect`: Sample vector from the posterior distribution of the effect
+#'     size. If `method = "logrank"`, this is `NULL`.
 #'
 #' @importFrom stats pchisq pnorm
 #' @import survival

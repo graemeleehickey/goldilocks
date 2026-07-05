@@ -142,14 +142,23 @@ means that the final analysis would incorporate right-censoring.}
 }
 \value{
 A data frame containing some input parameters (arguments) as well as
-statistics from the analysis, including:\tabular{ll}{
-   Column \tab Description \cr
-   \code{N_treatment} \tab Number of patients enrolled in the treatment arm. \cr
-   \code{N_control} \tab Number of patients enrolled in the control arm. \cr
-   \code{est_final} \tab Treatment effect estimated at the final analysis. The final analysis occurs when either the maximum sample size is reached and follow-up is complete, or the interim analysis triggered early stopping of enrollment/accrual and follow-up for those subjects is complete. \cr
-   \code{post_prob_ha} \tab Posterior probability from the final analysis. If \code{imputed_final} is \code{TRUE}, this is calculated for each imputed final-analysis dataset and averaged over \code{N_impute} imputations. If \code{method = "logrank"}, the value represents \eqn{1 - P}, where \eqn{P} is the frequentist \emph{P}-value. \cr
-   \code{stop_futility} \tab Logical indicator of whether the trial stopped early for futility. \cr
-   \code{stop_expected_success} \tab Logical indicator of whether the trial stopped early for expected success. \cr
+statistics from the analysis, including:
+\itemize{
+\item \code{N_treatment}: Number of patients enrolled in the treatment arm.
+\item \code{N_control}: Number of patients enrolled in the control arm.
+\item \code{est_final}: Treatment effect estimated at the final analysis. The final
+analysis occurs when either the maximum sample size is reached and
+follow-up is complete, or the interim analysis triggered early stopping
+of enrollment/accrual and follow-up for those subjects is complete.
+\item \code{post_prob_ha}: Posterior probability from the final analysis. If
+\code{imputed_final} is \code{TRUE}, this is calculated for each imputed
+final-analysis dataset and averaged over \code{N_impute} imputations. If
+\code{method = "logrank"}, the value represents \eqn{1 - P}, where \eqn{P}
+is the frequentist \emph{P}-value.
+\item \code{stop_futility}: Logical indicator of whether the trial stopped early for
+futility.
+\item \code{stop_expected_success}: Logical indicator of whether the trial stopped
+early for expected success.
 }
 }
 \description{

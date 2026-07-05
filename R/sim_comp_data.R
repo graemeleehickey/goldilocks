@@ -29,14 +29,18 @@
 #'
 #' @return A data frame with 1 row per subject and columns:
 #'
-#' | Column | Description |
-#' | --- | --- |
-#' | `time` | Time of event or censoring time. |
-#' | `treatment` | Treatment assignment, coded `1L` for the treatment arm and `0L` for the control arm. Single-arm designs have `treatment = 1L` for every subject. |
-#' | `event` | Indicator of whether event occurred (`1L` if occurred and `0L` if right-censored). |
-#' | `enrollment` | Time of patient enrollment relative to the time the trial enrolled the first patient. The package treats enrollment and randomization as occurring at the same time. |
-#' | `id` | Identification number for each patient. |
-#' | `loss_to_fu` | Indicator of whether the patient was lost to follow-up during observation. |
+#'   - `time`: Time of event or censoring time.
+#'   - `treatment`: Treatment assignment, coded `1L` for the treatment arm and
+#'     `0L` for the control arm. Single-arm designs have `treatment = 1L` for
+#'     every subject.
+#'   - `event`: Indicator of whether event occurred (`1L` if occurred and `0L`
+#'     if right-censored).
+#'   - `enrollment`: Time of patient enrollment relative to the time the trial
+#'     enrolled the first patient. The package treats enrollment and
+#'     randomization as occurring at the same time.
+#'   - `id`: Identification number for each patient.
+#'   - `loss_to_fu`: Indicator of whether the patient was lost to follow-up
+#'     during observation.
 #'
 #' @importFrom stats runif sd
 #' @export
