@@ -46,7 +46,7 @@ From this information, we have:
 - Two-sided log-rank test used: `alternative = "two.sided"` and `method = "logrank"`
 - $\alpha = 0.05$ level used to declare success: `prob_ha = 0.95`
 
-Note that `prob_ha` is set as $1 - 0.05$. This allows us to interchange between test, including Bayesian tests (`method = "bayes"`), which requires an analogous posterior probability threshold. The parameter `h0` is ignored when using a log-rank test, as it is not meaningful to have success margins.
+Note that `prob_ha` is set as $1 - 0.05$. This allows us to interchange between test, including Bayesian tests (`method = "bayes-surv"`), which requires an analogous posterior probability threshold. The parameter `h0` is ignored when using a log-rank test, as it is not meaningful to have success margins.
 
 ### One-sided tests
 
@@ -65,7 +65,7 @@ out_power_1sided <- update(
 )
 ```
 
-The chi-square test (`method = "chisq"`) supports `"two.sided"` only. The Bayesian test (`method = "bayes"`) is the opposite: it *requires* a one-sided alternative (`"less"` or `"greater"`), and `"two.sided"` raises an error. For the Bayesian test the effect is measured on the cumulative-failure-probability scale, $p_\textrm{treatment} - p_\textrm{control}$ at `end_of_study`, compared against the margin `h0` (default `0`):
+The chi-square test (`method = "chisq"`) supports `"two.sided"` only. The Bayesian test (`method = "bayes-surv"`) is the opposite: it *requires* a one-sided alternative (`"less"` or `"greater"`), and `"two.sided"` raises an error. For the Bayesian test the effect is measured on the cumulative-failure-probability scale, $p_\textrm{treatment} - p_\textrm{control}$ at `end_of_study`, compared against the margin `h0` (default `0`):
 
 - `alternative = "less"` declares success when the posterior probability that $p_\textrm{treatment} - p_\textrm{control} <$ `h0` exceeds the threshold `prob_ha` -- i.e. the treatment arm has a *lower* failure probability (longer survival).
 - `alternative = "greater"` declares success when the posterior probability that $p_\textrm{treatment} - p_\textrm{control} >$ `h0` exceeds `prob_ha`.

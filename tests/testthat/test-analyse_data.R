@@ -61,7 +61,7 @@ test_that("cox_wald_test matches coxph treatment estimate and standard error", {
   expect_equal(fast_fit$std_error, sqrt(unname(survival_fit$var[1, 1])))
 })
 
-test_that("analyse_data works with method = 'bayes' (two-arm)", {
+test_that("analyse_data works with method = 'bayes-surv' (two-arm)", {
   set.seed(8415)
   data <- data.frame(
     time = rexp(100, 0.02),
@@ -75,7 +75,7 @@ test_that("analyse_data works with method = 'bayes' (two-arm)", {
     prior = c(0.1, 0.1),
     N_mcmc = 100,
     single_arm = FALSE,
-    method = "bayes",
+    method = "bayes-surv",
     alternative = "greater",
     h0 = 0
   )
@@ -85,7 +85,7 @@ test_that("analyse_data works with method = 'bayes' (two-arm)", {
   expect_length(res$effect, 100)
 })
 
-test_that("analyse_data works with method = 'bayes' and alternative = 'less'", {
+test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less'", {
   set.seed(5091)
   data <- data.frame(
     time = rexp(100, 0.02),
@@ -99,7 +99,7 @@ test_that("analyse_data works with method = 'bayes' and alternative = 'less'", {
     prior = c(0.1, 0.1),
     N_mcmc = 500,
     single_arm = FALSE,
-    method = "bayes",
+    method = "bayes-surv",
     alternative = "greater",
     h0 = 0
   )
@@ -110,7 +110,7 @@ test_that("analyse_data works with method = 'bayes' and alternative = 'less'", {
     prior = c(0.1, 0.1),
     N_mcmc = 500,
     single_arm = FALSE,
-    method = "bayes",
+    method = "bayes-surv",
     alternative = "less",
     h0 = 0
   )
@@ -310,7 +310,7 @@ test_that("analyse_data method = 'bayes-bin' rejects incomplete censored outcome
   )
 })
 
-test_that("analyse_data works with method = 'bayes' (single-arm)", {
+test_that("analyse_data works with method = 'bayes-surv' (single-arm)", {
   set.seed(9473)
   data <- data.frame(
     time = rexp(50, 0.02),
@@ -324,7 +324,7 @@ test_that("analyse_data works with method = 'bayes' (single-arm)", {
     prior = c(0.1, 0.1),
     N_mcmc = 100,
     single_arm = TRUE,
-    method = "bayes",
+    method = "bayes-surv",
     alternative = "greater",
     h0 = 0
   )
@@ -347,7 +347,7 @@ test_that("analyse_data works with piecewise cutpoints", {
     prior = c(0.1, 0.1),
     N_mcmc = 100,
     single_arm = FALSE,
-    method = "bayes",
+    method = "bayes-surv",
     alternative = "greater",
     h0 = 0
   )

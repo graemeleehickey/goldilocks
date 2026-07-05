@@ -22,7 +22,7 @@ library(goldilocks)
 The "Two-arm randomized trials" vignette uses `method = "logrank"` and a single constant hazard for each treatment group. That is convenient when the proportional-hazards assumption is reasonable and the underlying event rate is well-approximated by an exponential distribution. In practice, neither assumption always holds. This vignette shows how to set up a Goldilocks design with:
 
 - a **piecewise-exponential** hazard, in which the constant hazard rate changes at one or more cut-points; and
-- a **Bayesian decision rule** (`method = "bayes"`) using a posterior probability threshold on the cumulative-failure-probability scale.
+- a **Bayesian decision rule** (`method = "bayes-surv"`) using a posterior probability threshold on the cumulative-failure-probability scale.
 
 We use a small example so that the simulation can be run while reading the vignette; the live `survival_adapt()` chunk takes around 10--20 seconds and is cached on first knit.
 
@@ -76,7 +76,7 @@ These should be 0.50 and 0.40 respectively (modulo rounding).
 
 ## The Bayesian decision rule
 
-With `method = "bayes"`, `survival_adapt()` puts independent Gamma$(\alpha, \beta)$ priors on each piecewise hazard rate (one per interval, per treatment group) and combines them with the observed exposure time and event counts to obtain a closed-form Gamma posterior on each $\lambda_j$. Posterior draws of $\lambda_j$ are pushed through the piecewise-exponential cumulative incidence function to obtain posterior draws of the cumulative-failure probability $p$ at `end_of_study` for the treatment and control groups.
+With `method = "bayes-surv"`, `survival_adapt()` puts independent Gamma$(\alpha, \beta)$ priors on each piecewise hazard rate (one per interval, per treatment group) and combines them with the observed exposure time and event counts to obtain a closed-form Gamma posterior on each $\lambda_j$. Posterior draws of $\lambda_j$ are pushed through the piecewise-exponential cumulative incidence function to obtain posterior draws of the cumulative-failure probability $p$ at `end_of_study` for the treatment and control groups.
 
 The decision rule is one-sided. The treatment effect is defined as
 
@@ -86,7 +86,7 @@ i.e. the difference in failure (not survival) probabilities at `end_of_study`. O
 
 $\Pr(\Delta < h_0 \mid \text{data}) \;>\; \texttt{prob\_ha}.$
 
-Because a beneficial treatment has a *lower* failure probability, `alternative = "less"` is the appropriate choice here. (`method = "bayes"` does not allow `alternative = "two.sided"` -- it raises an error.)
+Because a beneficial treatment has a *lower* failure probability, `alternative = "less"` is the appropriate choice here. (`method = "bayes-surv"` does not allow `alternative = "two.sided"` -- it raises an error.)
 
 The same posterior is also used at each interim look to compute the predictive probability of eventual success. Imputed completions are drawn from the posterior predictive distribution of the piecewise-exponential model for subjects still under follow-up, and the analysis is repeated on each imputed dataset. The fraction of imputations that would declare success at the maximum sample size is the predictive probability of success, which drives the futility and expected-success stopping rules through `Fn` and `Sn`.
 
@@ -121,7 +121,7 @@ out <- survival_adapt(
   prob_ha          = 0.975,
   N_impute         = 50,
   N_mcmc           = 2000,
-  method           = "bayes")
+  method           = "bayes-surv")
 
 out
 ```
@@ -166,7 +166,7 @@ out_flat <- survival_adapt(
   prob_ha          = 0.975,
   N_impute         = 50,
   N_mcmc           = 2000,
-  method           = "bayes")
+  method           = "bayes-surv")
 ```
 
 Note that this changes both the simulated data-generating process *and* the analysis model, so any difference in operating characteristics conflates the two effects. It is most useful when the question is "how would the trial behave if the world really were a single exponential?" rather than "how robust is my analysis cut-point?".

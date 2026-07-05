@@ -27,14 +27,14 @@
 #' @param alternative character. The string specifying the alternative
 #'   hypothesis, must be one of `"greater"` (default), `"less"` or
 #'   `"two.sided"`. One-sided alternatives (`"greater"` and `"less"`) are
-#'   supported for `method = "bayes"` and `method = "bayes-bin"`. All three
+#'   supported for `method = "bayes-surv"` and `method = "bayes-bin"`. All three
 #'   options are supported for `method = "logrank"` and `method = "cox"`. The
 #'   chi-square test (`method = "chisq"`) only supports `"two.sided"`. For
 #'   survival outcomes, `"less"` corresponds to the treatment arm having a lower
 #'   cumulative incidence (i.e., treatment is beneficial), and `"greater"`
 #'   corresponds to the treatment arm having a higher cumulative incidence.
 #' @param h0 scalar. Null hypothesis value or margin. Default is `h0 = 0`.
-#'   * When `method = "bayes"`, `h0` is the null value of
+#'   * When `method = "bayes-surv"`, `h0` is the null value of
 #'     \eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
 #'     `h0` is the external benchmark event probability, often referred to
 #'     as a performance goal (PG) or objective performance criterion (OPC).
@@ -66,12 +66,12 @@
 #' @param N_impute integer. Number of imputations for Monte Carlo simulation of
 #'   missing data.
 #' @param N_mcmc integer. Number of samples to draw from the posterior
-#'   distribution when using a Bayesian test (`method = "bayes"`).
+#'   distribution when using a Bayesian test (`method = "bayes-surv"`).
 #' @param method character. For an imputed data set (or the final data set after
 #'   follow-up is complete), whether the analysis should be a log-rank
 #'   (`method = "logrank"`) test, Cox proportional hazards regression model
 #'   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
-#'   analysis (`method = "bayes"`), a Bayesian beta-binomial analysis of
+#'   analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis of
 #'   complete binary outcomes (`method = "bayes-bin"`), or a chi-square test
 #'   (`method = "chisq"`). See Details section.
 #' @param imputed_final logical. Should the final analysis (after all subjects
@@ -132,7 +132,7 @@
 #'      z-statistic relative to `h0`. The treatment effect (log hazard
 #'      ratio) is also reported.
 #'
-#'   * Bayesian absolute difference (`method = "bayes"`).
+#'   * Bayesian absolute difference (`method = "bayes-surv"`).
 #'      Each imputed dataset is used to update the conjugate Gamma prior
 #'      (defined by `prior`), yielding a posterior distribution for the
 #'      piecewise exponential rate parameters. In turn, the posterior
@@ -186,14 +186,14 @@
 #'      right-censored due to loss to follow-up, which we assume is a
 #'      non-informative process. This can be used with any `method`.
 #'
-#'   When `method = "bayes"` or `method = "bayes-bin"` and imputation is
+#'   When `method = "bayes-surv"` or `method = "bayes-bin"` and imputation is
 #'   involved (either at interim
 #'   analyses or via `imputed_final = TRUE`), a two-stage posterior
 #'   procedure is used. First, the posterior distribution of the piecewise
 #'   hazard rates is estimated from the *observed* data and used to draw
 #'   imputed event times for censored subjects. Second, a *new* posterior is
 #'   estimated from the combined observed and imputed data: the
-#'   piecewise-exponential posterior for `method = "bayes"` or the beta
+#'   piecewise-exponential posterior for `method = "bayes-surv"` or the beta
 #'   posterior for `method = "bayes-bin"`. This posterior is used for
 #'   inference. This is consistent with the predictive probability framework
 #'   described in Broglio et al. (2014), but users should be aware that the
@@ -261,7 +261,7 @@
 #'  prob_ha = 0.975,
 #'  N_impute = 10,
 #'  N_mcmc = 10,
-#'  method = "bayes")
+#'  method = "bayes-surv")
 survival_adapt <- function(
   hazard_treatment,
   hazard_control = NULL,
@@ -309,7 +309,7 @@ survival_adapt <- function(
   N_looks <- length(analysis_at_enrollnumber)
 
   # If not using piecewise-exponential Bayesian test, then set N_mcmc = 1
-  if (method != "bayes") {
+  if (method != "bayes-surv") {
     N_mcmc <- 1
   }
 
@@ -347,12 +347,12 @@ survival_adapt <- function(
   }
 
   # Check: 'method' is correctly specified
-  if (!method %in% c("bayes", "bayes-bin", "logrank", "cox", "chisq")) {
+  if (!method %in% c("bayes-surv", "bayes-bin", "logrank", "cox", "chisq")) {
     stop("The input for method is wrong")
   }
 
   # Check: Bayesian test only available as a one-sided test
-  if (alternative == "two.sided" & method %in% c("bayes", "bayes-bin")) {
+  if (alternative == "two.sided" & method %in% c("bayes-surv", "bayes-bin")) {
     stop(
       "Bayesian tests can only be used with alternative equal to 'greater' or 'less'"
     )

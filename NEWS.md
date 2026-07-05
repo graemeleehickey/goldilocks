@@ -2,6 +2,7 @@
 
 ## Improvements
 
+* Renamed the piecewise-exponential Bayesian survival analysis method from `method = "bayes"` to `method = "bayes-surv"` to distinguish it from `method = "bayes-bin"`.
 * Added `method = "bayes-bin"` for Bayesian beta-binomial analysis of complete binary outcomes, with Monte Carlo, normal approximation, and quadrature options for treatment-control differences.
 * Cox model analyses now use a lower-level survival fit for repeated Wald tests, avoiding formula and summary overhead in simulation hot paths.
 * `survival_adapt()` now uses `h0` as the null log hazard ratio for Cox model tests, allowing non-inferiority testing with `h0 = log(margin)`.
@@ -57,11 +58,11 @@
 ## Documentation
 
 * Removed the `est_interim` element from the `survival_adapt()` return-value documentation. This field was documented but never computed or returned.
-* Documented the two-stage posterior procedure used when `method = "bayes"` with imputation, clarifying that the imputation model's posterior influences the analysis posterior (#27).
+* Documented the two-stage posterior procedure used when `method = "bayes-surv"` with imputation, clarifying that the imputation model's posterior influences the analysis posterior (#27).
 * Clarified `prop_loss` parameter documentation, explaining that LTFU times are drawn from `Uniform(0, t)` and that the event has not yet occurred at the dropout time (#25).
 * Documented the minimum `interim_look` requirement (at least the block size for two-arm designs) in the `survival_adapt()` `interim_look` parameter.
-* Improved the "Example: Two-armed RCT" vignette: the `summarise_sims()` operating characteristics are now rendered as captioned tables, a section documents one-sided tests (including that `method = "bayes"` requires a one-sided alternative and measures the effect on the cumulative-failure-probability scale `p_treatment - p_control` against `h0`), and the `cutpoint` argument name was corrected to `cutpoints`.
-* Added a new vignette, "Bayesian decisions with piecewise-exponential hazards", demonstrating `method = "bayes"` with a piecewise hazard via `cutpoints` and `prop_to_haz()`, the Gamma-prior / posterior decision rule on the cumulative-failure-probability scale, and a worked single-trial example.
+* Improved the "Example: Two-armed RCT" vignette: the `summarise_sims()` operating characteristics are now rendered as captioned tables, a section documents one-sided tests (including that `method = "bayes-surv"` requires a one-sided alternative and measures the effect on the cumulative-failure-probability scale `p_treatment - p_control` against `h0`), and the `cutpoint` argument name was corrected to `cutpoints`.
+* Added a new vignette, "Bayesian decisions with piecewise-exponential hazards", demonstrating `method = "bayes-surv"` with a piecewise hazard via `cutpoints` and `prop_to_haz()`, the Gamma-prior / posterior decision rule on the cumulative-failure-probability scale, and a worked single-trial example.
 * Added a new vignette, "Single-arm trials", documenting the `hazard_control = NULL` mode (Bayesian-only), the role of `h0` as a benchmark failure rate, the success rule `Pr(p_treatment < h0) > prob_ha`, and a worked single-trial example with operating-characteristics templates.
 
 ## Housekeeping

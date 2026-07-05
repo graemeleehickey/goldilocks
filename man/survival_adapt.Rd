@@ -98,7 +98,7 @@ right-censored. Defaults to zero.}
 \item{alternative}{character. The string specifying the alternative
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
-supported for \code{method = "bayes"} and \code{method = "bayes-bin"}. All three
+supported for \code{method = "bayes-surv"} and \code{method = "bayes-bin"}. All three
 options are supported for \code{method = "logrank"} and \code{method = "cox"}. The
 chi-square test (\code{method = "chisq"}) only supports \code{"two.sided"}. For
 survival outcomes, \code{"less"} corresponds to the treatment arm having a lower
@@ -107,7 +107,7 @@ corresponds to the treatment arm having a higher cumulative incidence.}
 
 \item{h0}{scalar. Null hypothesis value or margin. Default is \code{h0 = 0}.
 \itemize{
-\item When \code{method = "bayes"}, \code{h0} is the null value of
+\item When \code{method = "bayes-surv"}, \code{h0} is the null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
 \code{h0} is the external benchmark event probability, often referred to
 as a performance goal (PG) or objective performance criterion (OPC).
@@ -145,13 +145,13 @@ hypothesis.}
 missing data.}
 
 \item{N_mcmc}{integer. Number of samples to draw from the posterior
-distribution when using a Bayesian test (\code{method = "bayes"}).}
+distribution when using a Bayesian test (\code{method = "bayes-surv"}).}
 
 \item{method}{character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
 (\code{method = "logrank"}) test, Cox proportional hazards regression model
 Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
-analysis (\code{method = "bayes"}), a Bayesian beta-binomial analysis of
+analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
 complete binary outcomes (\code{method = "bayes-bin"}), or a chi-square test
 (\code{method = "chisq"}). See Details section.}
 
@@ -238,7 +238,7 @@ ratio. When \code{alternative = "less"} or
 \code{"greater"}, a one-sided \emph{P}-value is derived from the Wald
 z-statistic relative to \code{h0}. The treatment effect (log hazard
 ratio) is also reported.
-\item Bayesian absolute difference (\code{method = "bayes"}).
+\item Bayesian absolute difference (\code{method = "bayes-surv"}).
 Each imputed dataset is used to update the conjugate Gamma prior
 (defined by \code{prior}), yielding a posterior distribution for the
 piecewise exponential rate parameters. In turn, the posterior
@@ -290,14 +290,14 @@ right-censored due to loss to follow-up, which we assume is a
 non-informative process. This can be used with any \code{method}.
 }
 
-When \code{method = "bayes"} or \code{method = "bayes-bin"} and imputation is
+When \code{method = "bayes-surv"} or \code{method = "bayes-bin"} and imputation is
 involved (either at interim
 analyses or via \code{imputed_final = TRUE}), a two-stage posterior
 procedure is used. First, the posterior distribution of the piecewise
 hazard rates is estimated from the \emph{observed} data and used to draw
 imputed event times for censored subjects. Second, a \emph{new} posterior is
 estimated from the combined observed and imputed data: the
-piecewise-exponential posterior for \code{method = "bayes"} or the beta
+piecewise-exponential posterior for \code{method = "bayes-surv"} or the beta
 posterior for \code{method = "bayes-bin"}. This posterior is used for
 inference. This is consistent with the predictive probability framework
 described in Broglio et al. (2014), but users should be aware that the
@@ -338,7 +338,7 @@ survival_adapt(
  prob_ha = 0.975,
  N_impute = 10,
  N_mcmc = 10,
- method = "bayes")
+ method = "bayes-surv")
 }
 \references{
 Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks

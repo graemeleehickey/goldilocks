@@ -1,4 +1,4 @@
-test_that("survival_adapt-bayes", {
+test_that("survival_adapt-bayes-surv", {
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
@@ -19,7 +19,7 @@ test_that("survival_adapt-bayes", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "bayes"
+    method = "bayes-surv"
   )
 
   expect_s3_class(out, "data.frame")
@@ -229,7 +229,7 @@ test_that("survival_adapt-complex", {
     prob_ha = 0.95,
     N_impute = 20,
     N_mcmc = 20,
-    method = "bayes",
+    method = "bayes-surv",
     imputed_final = TRUE
   )
 
@@ -288,7 +288,7 @@ test_that("error-interim-look-below-block-size", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      method = "bayes"
+      method = "bayes-surv"
     ),
     "must be at least the block size"
   )
@@ -348,7 +348,7 @@ test_that("error-cutpoint", {
   )
 })
 
-test_that("error-alternative-bayes", {
+test_that("error-alternative-bayes-surv", {
   expect_error(
     out <- survival_adapt(
       hazard_treatment = -log(0.85) / 36,
@@ -370,7 +370,7 @@ test_that("error-alternative-bayes", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      method = "bayes"
+      method = "bayes-surv"
     )
   )
 })

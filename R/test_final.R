@@ -61,7 +61,7 @@ test_final <- function(
       single_arm = single_arm
     )
     # Effect matrix + posterior probability
-    effect_rows <- ifelse(method == "bayes", N_mcmc, 1)
+    effect_rows <- ifelse(method == "bayes-surv", N_mcmc, 1)
     if (method == "bayes-bin" && bin_method == "mc") {
       effect_rows <- bin_N
     }
@@ -102,7 +102,7 @@ test_final <- function(
       )
 
       post_paa[j] <- success$success
-      if (method %in% c("cox", "bayes", "bayes-bin")) {
+      if (method %in% c("cox", "bayes-surv", "bayes-bin")) {
         effect_final_mat[, j] <- success$effect # See Gelman et al. (2004, p. 520)
       }
     }

@@ -34,7 +34,7 @@ test_that("sim_trials-logrank", {
   expect_s3_class(summ_out, "data.frame")
 })
 
-test_that("sim_trials-bayes", {
+test_that("sim_trials-bayes-surv", {
   hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
   ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
 
@@ -59,7 +59,7 @@ test_that("sim_trials-bayes", {
     N_impute = 5,
     N_mcmc = 2,
     N_trials = 2,
-    method = "bayes",
+    method = "bayes-surv",
     ncores = 1
   )
 
@@ -133,7 +133,7 @@ test_that("sim_trials-zero_cores", {
       N_impute = 5,
       N_mcmc = 2,
       N_trials = 2,
-      method = "bayes",
+      method = "bayes-surv",
       ncores = NULL
     )
   )

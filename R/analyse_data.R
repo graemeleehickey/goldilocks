@@ -10,7 +10,7 @@
 #' @return A list with 2 elements:
 #'
 #'   - `success`: Analysis-specific success score:
-#'     - if `method = "bayes"`, the posterior probability that the treatment
+#'     - if `method = "bayes-surv"`, the posterior probability that the treatment
 #'       effect is greater than `h0` when `alternative = "greater"`, or less
 #'       than `h0` when `alternative = "less"`;
 #'     - if `method = "logrank"`, 1 minus the log-rank test *P*-value, using a
@@ -27,7 +27,7 @@
 #'       `alternative = "less"`;
 #'     - if `method = "chisq"`, 1 minus the chi-square test *P*-value.
 #'   - `effect`: Sample vector from the posterior distribution of the effect
-#'     size for `method = "bayes"` and for `method = "bayes-bin"` with
+#'     size for `method = "bayes-surv"` and for `method = "bayes-bin"` with
 #'     `bin_method = "mc"`, the posterior mean effect for `method =
 #'     "bayes-bin"` with `bin_method = "normal"` or `"quadrature"`, the
 #'     estimated log hazard ratio for `method = "cox"`, the chi-square
@@ -59,7 +59,7 @@ analyse_data <- function(
 
   # CIF_trt(T) - CIF_con(T) for two-armed trial
 
-  if (method == "bayes") {
+  if (method == "bayes-surv") {
     # Posterior distribution of lambdas: imputed data
     post_lambda_imp <- posterior(
       data = data,
