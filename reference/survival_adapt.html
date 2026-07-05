@@ -176,7 +176,7 @@ right-censored. Defaults to zero.</p></dd>
 <dd><p>character. The string specifying the alternative
 hypothesis, must be one of <code>"greater"</code> (default), <code>"less"</code> or
 <code>"two.sided"</code>. One-sided alternatives (<code>"greater"</code> and <code>"less"</code>) are
-supported for <code>method = "bayes"</code> and <code>method = "bayes-bin"</code>. All three
+supported for <code>method = "bayes-surv"</code> and <code>method = "bayes-bin"</code>. All three
 options are supported for <code>method = "logrank"</code> and <code>method = "cox"</code>. The
 chi-square test (<code>method = "chisq"</code>) only supports <code>"two.sided"</code>. For
 survival outcomes, <code>"less"</code> corresponds to the treatment arm having a lower
@@ -185,7 +185,7 @@ corresponds to the treatment arm having a higher cumulative incidence.</p></dd>
 
 
 <dt id="arg-h-">h0<a class="anchor" aria-label="anchor" href="#arg-h-"></a></dt>
-<dd><p>scalar. Null hypothesis value or margin. Default is <code>h0 = 0</code>.</p><ul><li><p>When <code>method = "bayes"</code>, <code>h0</code> is the null value of
+<dd><p>scalar. Null hypothesis value or margin. Default is <code>h0 = 0</code>.</p><ul><li><p>When <code>method = "bayes-surv"</code>, <code>h0</code> is the null value of
 \(p_\textrm{treatment} - p_\textrm{control}\). In a single-arm design,
 <code>h0</code> is the external benchmark event probability, often referred to
 as a performance goal (PG) or objective performance criterion (OPC).</p></li>
@@ -233,7 +233,7 @@ missing data.</p></dd>
 
 <dt id="arg-n-mcmc">N_mcmc<a class="anchor" aria-label="anchor" href="#arg-n-mcmc"></a></dt>
 <dd><p>integer. Number of samples to draw from the posterior
-distribution when using a Bayesian test (<code>method = "bayes"</code>).</p></dd>
+distribution when using a Bayesian test (<code>method = "bayes-surv"</code>).</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
@@ -241,7 +241,7 @@ distribution when using a Bayesian test (<code>method = "bayes"</code>).</p></dd
 follow-up is complete), whether the analysis should be a log-rank
 (<code>method = "logrank"</code>) test, Cox proportional hazards regression model
 Wald test (<code>method = "cox"</code>), a fully-Bayesian piecewise-exponential
-analysis (<code>method = "bayes"</code>), a Bayesian beta-binomial analysis of
+analysis (<code>method = "bayes-surv"</code>), a Bayesian beta-binomial analysis of
 complete binary outcomes (<code>method = "bayes-bin"</code>), or a chi-square test
 (<code>method = "chisq"</code>). See Details section.</p></dd>
 
@@ -316,7 +316,7 @@ ratio. When <code>alternative = "less"</code> or
 <code>"greater"</code>, a one-sided <em>P</em>-value is derived from the Wald
 z-statistic relative to <code>h0</code>. The treatment effect (log hazard
 ratio) is also reported.</p></li>
-<li><p>Bayesian absolute difference (<code>method = "bayes"</code>).
+<li><p>Bayesian absolute difference (<code>method = "bayes-surv"</code>).
 Each imputed dataset is used to update the conjugate Gamma prior
 (defined by <code>prior</code>), yielding a posterior distribution for the
 piecewise exponential rate parameters. In turn, the posterior
@@ -366,14 +366,14 @@ conduct the trial in the same manner, especially if loss to follow-up
 rates are appreciable. Note, this only applies to subjects who are
 right-censored due to loss to follow-up, which we assume is a
 non-informative process. This can be used with any <code>method</code>.</p></li>
-</ul><p>When <code>method = "bayes"</code> or <code>method = "bayes-bin"</code> and imputation is
+</ul><p>When <code>method = "bayes-surv"</code> or <code>method = "bayes-bin"</code> and imputation is
 involved (either at interim
 analyses or via <code>imputed_final = TRUE</code>), a two-stage posterior
 procedure is used. First, the posterior distribution of the piecewise
 hazard rates is estimated from the <em>observed</em> data and used to draw
 imputed event times for censored subjects. Second, a <em>new</em> posterior is
 estimated from the combined observed and imputed data: the
-piecewise-exponential posterior for <code>method = "bayes"</code> or the beta
+piecewise-exponential posterior for <code>method = "bayes-surv"</code> or the beta
 posterior for <code>method = "bayes-bin"</code>. This posterior is used for
 inference. This is consistent with the predictive probability framework
 described in Broglio et al. (2014), but users should be aware that the
@@ -421,7 +421,7 @@ approach to sample size selection. <em>Journal of Biopharmaceutical Statistics</
 <span class="r-in"><span> prob_ha <span class="op">=</span> <span class="fl">0.975</span>,</span></span>
 <span class="r-in"><span> N_impute <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span> N_mcmc <span class="op">=</span> <span class="fl">10</span>,</span></span>
-<span class="r-in"><span> method <span class="op">=</span> <span class="st">"bayes"</span><span class="op">)</span></span></span>
+<span class="r-in"><span> method <span class="op">=</span> <span class="st">"bayes-surv"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.975      0        less         300       300        600   600</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success</span>

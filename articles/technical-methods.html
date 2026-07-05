@@ -409,7 +409,7 @@ is the traditional chi-square test P-value</td>
 </tr>
 <tr class="even">
 <td>Two-arm randomized trial</td>
-<td><code>bayes</code></td>
+<td><code>bayes-surv</code></td>
 <td>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(\Delta &lt; h_0 \mid \mathcal{D})</annotation></semantics></math>
 or
@@ -421,7 +421,7 @@ or
 </tr>
 <tr class="odd">
 <td>Single-arm trial</td>
-<td><code>bayes</code></td>
+<td><code>bayes-surv</code></td>
 <td>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(p_1(\tau) &lt; h_0 \mid \mathcal{D})</annotation></semantics></math>
 or
@@ -626,8 +626,8 @@ information and is available only for two-arm designs with
 <div class="section level3">
 <h3 id="bayesian-final-test">6.2 Bayesian final test<a class="anchor" aria-label="anchor" href="#bayesian-final-test"></a>
 </h3>
-<p>For <code>method = "bayes"</code>, posterior hazard draws are mapped
-to cumulative event probabilities at
+<p>For <code>method = "bayes-surv"</code>, posterior hazard draws are
+mapped to cumulative event probabilities at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>.
 In a two-arm design the treatment effect is</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mo>=</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>p</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\Delta = p_1(\tau) - p_0(\tau),</annotation></semantics></math></p>
@@ -674,8 +674,10 @@ and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mn>0</mn></msub><annotation encoding="application/x-tex">h_0</annotation></semantics></math>
 is an external benchmark event probability. In clinical-trial
 terminology this benchmark is often called a performance goal (PG) or
-objective performance criterion (OPC). Consequently, single-arm designs
-in <code>goldilocks</code> require <code>method = "bayes"</code>.</p>
+objective performance criterion (OPC). Consequently, single-arm survival
+designs in <code>goldilocks</code> require
+<code>method = "bayes-surv"</code>; complete binary single-arm designs
+can use <code>method = "bayes-bin"</code>.</p>
 </div>
 <div class="section level3">
 <h3 id="loss-to-follow-up-at-the-final-analysis">6.3 Loss to follow-up at the final analysis<a class="anchor" aria-label="anchor" href="#loss-to-follow-up-at-the-final-analysis"></a>
@@ -687,13 +689,13 @@ lost to follow-up are also imputed.</p>
 interim predictive framework: each imputed completed dataset is
 analyzed, yielding a value of the success probability scale
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(\mathcal{D})</annotation></semantics></math>
-(posterior probability for <code>method = "bayes"</code> or transformed
-P-value for frequentist methods), and <code>post_prob_ha</code> is the
-average of those values across imputations. If
-<code>imputed_final = FALSE</code>, the final analysis uses observed
-right-censored data for methods that can handle censoring
-(<code>logrank</code>, <code>cox</code>, and <code>bayes</code>). For
-<code>chisq</code>, lost-to-follow-up subjects are excluded when
+(posterior probability for <code>method = "bayes-surv"</code> or
+transformed P-value for frequentist methods), and
+<code>post_prob_ha</code> is the average of those values across
+imputations. If <code>imputed_final = FALSE</code>, the final analysis
+uses observed right-censored data for methods that can handle censoring
+(<code>logrank</code>, <code>cox</code>, and <code>bayes-surv</code>).
+For <code>chisq</code>, lost-to-follow-up subjects are excluded when
 <code>imputed_final = FALSE</code> because the chi-square test has no
 mechanism for right-censored observations.</p>
 <p>The loss-to-follow-up mechanism in the simulator is non-informative.

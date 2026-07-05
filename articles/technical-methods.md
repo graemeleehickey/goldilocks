@@ -282,8 +282,8 @@ analysis quantity $`Q(\mathcal{D})`$ depends on the analysis method:
 | Two-arm randomized trial | `logrank` | $`1-p(\mathcal{D})`$, where $`p(\mathcal{D})`$ is the traditional log-rank test P-value, with one-sided variants defined in Section 6.1 | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `cox` | $`1-p(\mathcal{D})`$, where $`p(\mathcal{D})`$ is the traditional Wald-test P-value, with one-sided variants defined in Section 6.1 | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `chisq` | $`1-p(\mathcal{D})`$, where $`p(\mathcal{D})`$ is the traditional chi-square test P-value | `"two.sided"` |
-| Two-arm randomized trial | `bayes` | $`\Pr(\Delta < h_0 \mid \mathcal{D})`$ or $`\Pr(\Delta > h_0 \mid \mathcal{D})`$ | `"less"`, `"greater"` |
-| Single-arm trial | `bayes` | $`\Pr(p_1(\tau) < h_0 \mid \mathcal{D})`$ or $`\Pr(p_1(\tau) > h_0 \mid \mathcal{D})`$ | `"less"`, `"greater"` |
+| Two-arm randomized trial | `bayes-surv` | $`\Pr(\Delta < h_0 \mid \mathcal{D})`$ or $`\Pr(\Delta > h_0 \mid \mathcal{D})`$ | `"less"`, `"greater"` |
+| Single-arm trial | `bayes-surv` | $`\Pr(p_1(\tau) < h_0 \mid \mathcal{D})`$ or $`\Pr(p_1(\tau) > h_0 \mid \mathcal{D})`$ | `"less"`, `"greater"` |
 
 For frequentist analyses, `prob_ha` is therefore a transformed P-value
 threshold. For example, `prob_ha = 0.975` corresponds to a one-sided
@@ -457,9 +457,9 @@ is available only for two-arm designs with `alternative = "two.sided"`.
 
 ### 6.2 Bayesian final test
 
-For `method = "bayes"`, posterior hazard draws are mapped to cumulative
-event probabilities at $`\tau`$. In a two-arm design the treatment
-effect is
+For `method = "bayes-surv"`, posterior hazard draws are mapped to
+cumulative event probabilities at $`\tau`$. In a two-arm design the
+treatment effect is
 
 ``` math
 \Delta = p_1(\tau) - p_0(\tau),
@@ -513,8 +513,9 @@ In a single-arm design there is no $`p_0(\tau)`$. The estimand becomes
 $`p_1(\tau)`$, and $`h_0`$ is an external benchmark event probability.
 In clinical-trial terminology this benchmark is often called a
 performance goal (PG) or objective performance criterion (OPC).
-Consequently, single-arm designs in `goldilocks` require
-`method = "bayes"`.
+Consequently, single-arm survival designs in `goldilocks` require
+`method = "bayes-surv"`; complete binary single-arm designs can use
+`method = "bayes-bin"`.
 
 ### 6.3 Loss to follow-up at the final analysis
 
@@ -525,13 +526,14 @@ are also imputed.
 If `imputed_final = TRUE`, the final analysis mirrors the interim
 predictive framework: each imputed completed dataset is analyzed,
 yielding a value of the success probability scale $`Q(\mathcal{D})`$
-(posterior probability for `method = "bayes"` or transformed P-value for
-frequentist methods), and `post_prob_ha` is the average of those values
-across imputations. If `imputed_final = FALSE`, the final analysis uses
-observed right-censored data for methods that can handle censoring
-(`logrank`, `cox`, and `bayes`). For `chisq`, lost-to-follow-up subjects
-are excluded when `imputed_final = FALSE` because the chi-square test
-has no mechanism for right-censored observations.
+(posterior probability for `method = "bayes-surv"` or transformed
+P-value for frequentist methods), and `post_prob_ha` is the average of
+those values across imputations. If `imputed_final = FALSE`, the final
+analysis uses observed right-censored data for methods that can handle
+censoring (`logrank`, `cox`, and `bayes-surv`). For `chisq`,
+lost-to-follow-up subjects are excluded when `imputed_final = FALSE`
+because the chi-square test has no mechanism for right-censored
+observations.
 
 The loss-to-follow-up mechanism in the simulator is non-informative.
 Designs where dropout may depend on prognosis should be assessed with

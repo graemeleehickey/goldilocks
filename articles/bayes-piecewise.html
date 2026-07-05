@@ -80,8 +80,8 @@ design with:</p>
 <li>a <strong>piecewise-exponential</strong> hazard, in which the
 constant hazard rate changes at one or more cut-points; and</li>
 <li>a <strong>Bayesian decision rule</strong>
-(<code>method = "bayes"</code>) using a posterior probability threshold
-on the cumulative-failure-probability scale.</li>
+(<code>method = "bayes-surv"</code>) using a posterior probability
+threshold on the cumulative-failure-probability scale.</li>
 </ul>
 <p>We use a small example so that the simulation can be run while
 reading the vignette; the live <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> chunk takes
@@ -168,8 +168,8 @@ the cumulative incidence computation back through
 <div class="section level2">
 <h2 id="the-bayesian-decision-rule">The Bayesian decision rule<a class="anchor" aria-label="anchor" href="#the-bayesian-decision-rule"></a>
 </h2>
-<p>With <code>method = "bayes"</code>, <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>
-puts independent
+<p>With <code>method = "bayes-surv"</code>,
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> puts independent
 Gamma<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\alpha, \beta)</annotation></semantics></math>
 priors on each piecewise hazard rate (one per interval, per treatment
 group) and combines them with the observed exposure time and event
@@ -196,7 +196,7 @@ when</p>
 <p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mtext mathvariant="normal">data</mtext><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>&gt;</mo><mspace width="0.278em"></mspace><mtext mathvariant="monospace">𝚙𝚛𝚘𝚋_𝚑𝚊</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">\Pr(\Delta &lt; h_0 \mid \text{data}) \;&gt;\; \texttt{prob\_ha}.</annotation></semantics></math></p>
 <p>Because a beneficial treatment has a <em>lower</em> failure
 probability, <code>alternative = "less"</code> is the appropriate choice
-here. (<code>method = "bayes"</code> does not allow
+here. (<code>method = "bayes-surv"</code> does not allow
 <code>alternative = "two.sided"</code> – it raises an error.)</p>
 <p>The same posterior is also used at each interim look to compute the
 predictive probability of eventual success. Imputed completions are
@@ -242,7 +242,7 @@ constant; piecewise accrual is also supported).</p>
 <span>  prob_ha          <span class="op">=</span> <span class="fl">0.975</span>,</span>
 <span>  N_impute         <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  N_mcmc           <span class="op">=</span> <span class="fl">2000</span>,</span>
-<span>  method           <span class="op">=</span> <span class="st">"bayes"</span><span class="op">)</span></span>
+<span>  method           <span class="op">=</span> <span class="st">"bayes-surv"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">out</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
@@ -323,7 +323,7 @@ proportions:</p>
 <span>  prob_ha          <span class="op">=</span> <span class="fl">0.975</span>,</span>
 <span>  N_impute         <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  N_mcmc           <span class="op">=</span> <span class="fl">2000</span>,</span>
-<span>  method           <span class="op">=</span> <span class="st">"bayes"</span><span class="op">)</span></span></code></pre></div>
+<span>  method           <span class="op">=</span> <span class="st">"bayes-surv"</span><span class="op">)</span></span></code></pre></div>
 <p>Note that this changes both the simulated data-generating process
 <em>and</em> the analysis model, so any difference in operating
 characteristics conflates the two effects. It is most useful when the

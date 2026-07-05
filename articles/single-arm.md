@@ -16,7 +16,9 @@ vignette shows how to set up a Goldilocks single-arm design with
 Two practical constraints on single-arm designs in this package:
 
 - A single-arm trial is signaled by setting `hazard_control = NULL`.
-- Only `method = "bayes"` is supported for single-arm trials. The
+- `method = "bayes-surv"` supports single-arm survival analyses with
+  piecewise-exponential event-time modeling. `method = "bayes-bin"`
+  supports single-arm analyses of complete binary outcomes. The
   frequentist tests (`logrank`, `cox`, `chisq`) require two arms and
   will raise an error if used in this mode.
 
@@ -43,7 +45,7 @@ the trial declares success when
 i.e. when the posterior assigns enough mass to “the experimental therapy
 has a lower failure rate than the benchmark”. Choosing
 `alternative = "greater"` reverses the direction;
-`alternative = "two.sided"` is not allowed for `method = "bayes"`.
+`alternative = "two.sided"` is not allowed for `method = "bayes-surv"`.
 
 The same posterior is used at each interim look to compute the
 predictive probability of eventual success, which drives the futility
@@ -95,7 +97,7 @@ out <- survival_adapt(
   prob_ha          = 0.95,
   N_impute         = 50,
   N_mcmc           = 2000,
-  method           = "bayes")
+  method           = "bayes-surv")
 
 out
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
@@ -160,7 +162,7 @@ out_power <- sim_trials(
   prob_ha          = 0.95,
   N_impute         = 50,
   N_mcmc           = 2000,
-  method           = "bayes")
+  method           = "bayes-surv")
 
 # Type I error: simulate under the null (true rate = benchmark/PG/OPC = 0.30)
 ht_null <- prop_to_haz(probs = benchmark, endtime = end_of_study)
@@ -185,7 +187,7 @@ out_t1error <- sim_trials(
   prob_ha          = 0.95,
   N_impute         = 50,
   N_mcmc           = 2000,
-  method           = "bayes")
+  method           = "bayes-surv")
 
 summarise_sims(list(out_power$sims, out_t1error$sims))
 ```

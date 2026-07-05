@@ -137,8 +137,8 @@ survival_adapt(
   character. The string specifying the alternative hypothesis, must be
   one of `"greater"` (default), `"less"` or `"two.sided"`. One-sided
   alternatives (`"greater"` and `"less"`) are supported for
-  `method = "bayes"` and `method = "bayes-bin"`. All three options are
-  supported for `method = "logrank"` and `method = "cox"`. The
+  `method = "bayes-surv"` and `method = "bayes-bin"`. All three options
+  are supported for `method = "logrank"` and `method = "cox"`. The
   chi-square test (`method = "chisq"`) only supports `"two.sided"`. For
   survival outcomes, `"less"` corresponds to the treatment arm having a
   lower cumulative incidence (i.e., treatment is beneficial), and
@@ -149,7 +149,7 @@ survival_adapt(
 
   scalar. Null hypothesis value or margin. Default is `h0 = 0`.
 
-  - When `method = "bayes"`, `h0` is the null value of
+  - When `method = "bayes-surv"`, `h0` is the null value of
     \\p\_\textrm{treatment} - p\_\textrm{control}\\. In a single-arm
     design, `h0` is the external benchmark event probability, often
     referred to as a performance goal (PG) or objective performance
@@ -199,7 +199,7 @@ survival_adapt(
 - N_mcmc:
 
   integer. Number of samples to draw from the posterior distribution
-  when using a Bayesian test (`method = "bayes"`).
+  when using a Bayesian test (`method = "bayes-surv"`).
 
 - method:
 
@@ -207,8 +207,8 @@ survival_adapt(
   follow-up is complete), whether the analysis should be a log-rank
   (`method = "logrank"`) test, Cox proportional hazards regression model
   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
-  analysis (`method = "bayes"`), a Bayesian beta-binomial analysis of
-  complete binary outcomes (`method = "bayes-bin"`), or a chi-square
+  analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis
+  of complete binary outcomes (`method = "bayes-bin"`), or a chi-square
   test (`method = "chisq"`). See Details section.
 
 - imputed_final:
@@ -301,7 +301,7 @@ At each interim (and final) analysis methods as:
   *P*-value is derived from the Wald z-statistic relative to `h0`. The
   treatment effect (log hazard ratio) is also reported.
 
-- Bayesian absolute difference (`method = "bayes"`). Each imputed
+- Bayesian absolute difference (`method = "bayes-surv"`). Each imputed
   dataset is used to update the conjugate Gamma prior (defined by
   `prior`), yielding a posterior distribution for the piecewise
   exponential rate parameters. In turn, the posterior distribution of
@@ -353,13 +353,13 @@ At each interim (and final) analysis methods as:
   to follow-up, which we assume is a non-informative process. This can
   be used with any `method`.
 
-When `method = "bayes"` or `method = "bayes-bin"` and imputation is
+When `method = "bayes-surv"` or `method = "bayes-bin"` and imputation is
 involved (either at interim analyses or via `imputed_final = TRUE`), a
 two-stage posterior procedure is used. First, the posterior distribution
 of the piecewise hazard rates is estimated from the *observed* data and
 used to draw imputed event times for censored subjects. Second, a *new*
 posterior is estimated from the combined observed and imputed data: the
-piecewise-exponential posterior for `method = "bayes"` or the beta
+piecewise-exponential posterior for `method = "bayes-surv"` or the beta
 posterior for `method = "bayes-bin"`. This posterior is used for
 inference. This is consistent with the predictive probability framework
 described in Broglio et al. (2014), but users should be aware that the
@@ -408,7 +408,7 @@ survival_adapt(
  prob_ha = 0.975,
  N_impute = 10,
  N_mcmc = 10,
- method = "bayes")
+ method = "bayes-surv")
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less         300       300        600   600
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success

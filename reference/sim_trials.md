@@ -140,8 +140,8 @@ sim_trials(
   character. The string specifying the alternative hypothesis, must be
   one of `"greater"` (default), `"less"` or `"two.sided"`. One-sided
   alternatives (`"greater"` and `"less"`) are supported for
-  `method = "bayes"` and `method = "bayes-bin"`. All three options are
-  supported for `method = "logrank"` and `method = "cox"`. The
+  `method = "bayes-surv"` and `method = "bayes-bin"`. All three options
+  are supported for `method = "logrank"` and `method = "cox"`. The
   chi-square test (`method = "chisq"`) only supports `"two.sided"`. For
   survival outcomes, `"less"` corresponds to the treatment arm having a
   lower cumulative incidence (i.e., treatment is beneficial), and
@@ -152,7 +152,7 @@ sim_trials(
 
   scalar. Null hypothesis value or margin. Default is `h0 = 0`.
 
-  - When `method = "bayes"`, `h0` is the null value of
+  - When `method = "bayes-surv"`, `h0` is the null value of
     \\p\_\textrm{treatment} - p\_\textrm{control}\\. In a single-arm
     design, `h0` is the external benchmark event probability, often
     referred to as a performance goal (PG) or objective performance
@@ -202,7 +202,7 @@ sim_trials(
 - N_mcmc:
 
   integer. Number of samples to draw from the posterior distribution
-  when using a Bayesian test (`method = "bayes"`).
+  when using a Bayesian test (`method = "bayes-surv"`).
 
 - N_trials:
 
@@ -214,8 +214,8 @@ sim_trials(
   follow-up is complete), whether the analysis should be a log-rank
   (`method = "logrank"`) test, Cox proportional hazards regression model
   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
-  analysis (`method = "bayes"`), a Bayesian beta-binomial analysis of
-  complete binary outcomes (`method = "bayes-bin"`), or a chi-square
+  analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis
+  of complete binary outcomes (`method = "bayes-bin"`), or a chi-square
   test (`method = "chisq"`). See Details section.
 
 - imputed_final:

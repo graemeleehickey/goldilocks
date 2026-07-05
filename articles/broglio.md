@@ -64,10 +64,10 @@ From this information, we have:
 - $`\alpha = 0.05`$ level used to declare success: `prob_ha = 0.95`
 
 Note that `prob_ha` is set as $`1 - 0.05`$. This allows us to
-interchange between test, including Bayesian tests (`method = "bayes"`),
-which requires an analogous posterior probability threshold. The
-parameter `h0` is ignored when using a log-rank test, as it is not
-meaningful to have success margins.
+interchange between test, including Bayesian tests
+(`method = "bayes-surv"`), which requires an analogous posterior
+probability threshold. The parameter `h0` is ignored when using a
+log-rank test, as it is not meaningful to have success margins.
 
 ### One-sided tests
 
@@ -96,10 +96,10 @@ out_power_1sided <- update(
 ```
 
 The chi-square test (`method = "chisq"`) supports `"two.sided"` only.
-The Bayesian test (`method = "bayes"`) is the opposite: it *requires* a
-one-sided alternative (`"less"` or `"greater"`), and `"two.sided"`
-raises an error. For the Bayesian test the effect is measured on the
-cumulative-failure-probability scale,
+The Bayesian test (`method = "bayes-surv"`) is the opposite: it
+*requires* a one-sided alternative (`"less"` or `"greater"`), and
+`"two.sided"` raises an error. For the Bayesian test the effect is
+measured on the cumulative-failure-probability scale,
 $`p_\textrm{treatment} - p_\textrm{control}`$ at `end_of_study`,
 compared against the margin `h0` (default `0`):
 

@@ -14,8 +14,9 @@ set up a Goldilocks design with:
 
 - a **piecewise-exponential** hazard, in which the constant hazard rate
   changes at one or more cut-points; and
-- a **Bayesian decision rule** (`method = "bayes"`) using a posterior
-  probability threshold on the cumulative-failure-probability scale.
+- a **Bayesian decision rule** (`method = "bayes-surv"`) using a
+  posterior probability threshold on the cumulative-failure-probability
+  scale.
 
 We use a small example so that the simulation can be run while reading
 the vignette; the live
@@ -104,7 +105,7 @@ These should be 0.50 and 0.40 respectively (modulo rounding).
 
 ## The Bayesian decision rule
 
-With `method = "bayes"`,
+With `method = "bayes-surv"`,
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
 puts independent Gamma$`(\alpha, \beta)`$ priors on each piecewise
 hazard rate (one per interval, per treatment group) and combines them
@@ -131,7 +132,7 @@ $`\Pr(\Delta < h_0 \mid \text{data}) \;>\; \texttt{prob\_ha}.`$
 
 Because a beneficial treatment has a *lower* failure probability,
 `alternative = "less"` is the appropriate choice here.
-(`method = "bayes"` does not allow `alternative = "two.sided"` – it
+(`method = "bayes-surv"` does not allow `alternative = "two.sided"` – it
 raises an error.)
 
 The same posterior is also used at each interim look to compute the
@@ -181,7 +182,7 @@ out <- survival_adapt(
   prob_ha          = 0.975,
   N_impute         = 50,
   N_mcmc           = 2000,
-  method           = "bayes")
+  method           = "bayes-surv")
 
 out
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
@@ -265,7 +266,7 @@ out_flat <- survival_adapt(
   prob_ha          = 0.975,
   N_impute         = 50,
   N_mcmc           = 2000,
-  method           = "bayes")
+  method           = "bayes-surv")
 ```
 
 Note that this changes both the simulated data-generating process *and*

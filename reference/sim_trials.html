@@ -179,7 +179,7 @@ right-censored. Defaults to zero.</p></dd>
 <dd><p>character. The string specifying the alternative
 hypothesis, must be one of <code>"greater"</code> (default), <code>"less"</code> or
 <code>"two.sided"</code>. One-sided alternatives (<code>"greater"</code> and <code>"less"</code>) are
-supported for <code>method = "bayes"</code> and <code>method = "bayes-bin"</code>. All three
+supported for <code>method = "bayes-surv"</code> and <code>method = "bayes-bin"</code>. All three
 options are supported for <code>method = "logrank"</code> and <code>method = "cox"</code>. The
 chi-square test (<code>method = "chisq"</code>) only supports <code>"two.sided"</code>. For
 survival outcomes, <code>"less"</code> corresponds to the treatment arm having a lower
@@ -188,7 +188,7 @@ corresponds to the treatment arm having a higher cumulative incidence.</p></dd>
 
 
 <dt id="arg-h-">h0<a class="anchor" aria-label="anchor" href="#arg-h-"></a></dt>
-<dd><p>scalar. Null hypothesis value or margin. Default is <code>h0 = 0</code>.</p><ul><li><p>When <code>method = "bayes"</code>, <code>h0</code> is the null value of
+<dd><p>scalar. Null hypothesis value or margin. Default is <code>h0 = 0</code>.</p><ul><li><p>When <code>method = "bayes-surv"</code>, <code>h0</code> is the null value of
 \(p_\textrm{treatment} - p_\textrm{control}\). In a single-arm design,
 <code>h0</code> is the external benchmark event probability, often referred to
 as a performance goal (PG) or objective performance criterion (OPC).</p></li>
@@ -236,7 +236,7 @@ missing data.</p></dd>
 
 <dt id="arg-n-mcmc">N_mcmc<a class="anchor" aria-label="anchor" href="#arg-n-mcmc"></a></dt>
 <dd><p>integer. Number of samples to draw from the posterior
-distribution when using a Bayesian test (<code>method = "bayes"</code>).</p></dd>
+distribution when using a Bayesian test (<code>method = "bayes-surv"</code>).</p></dd>
 
 
 <dt id="arg-n-trials">N_trials<a class="anchor" aria-label="anchor" href="#arg-n-trials"></a></dt>
@@ -248,7 +248,7 @@ distribution when using a Bayesian test (<code>method = "bayes"</code>).</p></dd
 follow-up is complete), whether the analysis should be a log-rank
 (<code>method = "logrank"</code>) test, Cox proportional hazards regression model
 Wald test (<code>method = "cox"</code>), a fully-Bayesian piecewise-exponential
-analysis (<code>method = "bayes"</code>), a Bayesian beta-binomial analysis of
+analysis (<code>method = "bayes-surv"</code>), a Bayesian beta-binomial analysis of
 complete binary outcomes (<code>method = "bayes-bin"</code>), or a chi-square test
 (<code>method = "chisq"</code>). See Details section.</p></dd>
 

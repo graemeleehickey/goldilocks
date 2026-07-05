@@ -80,10 +80,13 @@ vignette shows how to set up a Goldilocks single-arm design with
 <ul>
 <li>A single-arm trial is signaled by setting
 <code>hazard_control = NULL</code>.</li>
-<li>Only <code>method = "bayes"</code> is supported for single-arm
-trials. The frequentist tests (<code>logrank</code>, <code>cox</code>,
-<code>chisq</code>) require two arms and will raise an error if used in
-this mode.</li>
+<li>
+<code>method = "bayes-surv"</code> supports single-arm survival
+analyses with piecewise-exponential event-time modeling.
+<code>method = "bayes-bin"</code> supports single-arm analyses of
+complete binary outcomes. The frequentist tests (<code>logrank</code>,
+<code>cox</code>, <code>chisq</code>) require two arms and will raise an
+error if used in this mode.</li>
 </ul>
 <div class="section level2">
 <h2 id="the-decision-rule">The decision rule<a class="anchor" aria-label="anchor" href="#the-decision-rule"></a>
@@ -106,7 +109,7 @@ declares success when</p>
 therapy has a lower failure rate than the benchmark”. Choosing
 <code>alternative = "greater"</code> reverses the direction;
 <code>alternative = "two.sided"</code> is not allowed for
-<code>method = "bayes"</code>.</p>
+<code>method = "bayes-surv"</code>.</p>
 <p>The same posterior is used at each interim look to compute the
 predictive probability of eventual success, which drives the futility
 (<code>Fn</code>) and expected-success (<code>Sn</code>) stopping rules.
@@ -152,7 +155,7 @@ to 20%. We use an interim look at 50 of 80 enrolled subjects:</p>
 <span>  prob_ha          <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  N_impute         <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  N_mcmc           <span class="op">=</span> <span class="fl">2000</span>,</span>
-<span>  method           <span class="op">=</span> <span class="st">"bayes"</span><span class="op">)</span></span>
+<span>  method           <span class="op">=</span> <span class="st">"bayes-surv"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">out</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
@@ -222,7 +225,7 @@ workflow:</p>
 <span>  prob_ha          <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  N_impute         <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  N_mcmc           <span class="op">=</span> <span class="fl">2000</span>,</span>
-<span>  method           <span class="op">=</span> <span class="st">"bayes"</span><span class="op">)</span></span>
+<span>  method           <span class="op">=</span> <span class="st">"bayes-surv"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Type I error: simulate under the null (true rate = benchmark/PG/OPC = 0.30)</span></span>
 <span><span class="va">ht_null</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="va">benchmark</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
@@ -247,7 +250,7 @@ workflow:</p>
 <span>  prob_ha          <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  N_impute         <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  N_mcmc           <span class="op">=</span> <span class="fl">2000</span>,</span>
-<span>  method           <span class="op">=</span> <span class="st">"bayes"</span><span class="op">)</span></span>
+<span>  method           <span class="op">=</span> <span class="st">"bayes-surv"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power</span><span class="op">$</span><span class="va">sims</span>, <span class="va">out_t1error</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Calibration proceeds the same way as for two-arm designs: if the type
