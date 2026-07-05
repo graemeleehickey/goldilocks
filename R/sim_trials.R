@@ -162,6 +162,22 @@ sim_trials <- function(
   return(out)
 }
 
+#' Generate independent random-number streams for trial simulations
+#'
+#' @description Creates one `"L'Ecuyer-CMRG"` random-number stream per
+#'   simulated trial, while preserving the caller's existing RNG kind and
+#'   global `.Random.seed`. These streams are assigned inside each
+#'   `survival_adapt()` call so seeded simulations are reproducible across
+#'   serial and parallel execution.
+#'
+#' @param seed Integer seed used to initialize the stream sequence.
+#' @param n Integer number of streams to generate.
+#'
+#' @return A list of length `n`; each element is an integer vector that can be
+#'   assigned to `.Random.seed`.
+#'
+#' @keywords internal
+#' @noRd
 make_rng_streams <- function(seed, n) {
   old_kind <- RNGkind()
   old_seed_exists <- exists(
