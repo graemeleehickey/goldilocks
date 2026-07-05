@@ -4,6 +4,9 @@
 
 ### Improvements
 
+- Cox model analyses now use a lower-level survival fit for repeated
+  Wald tests, avoiding formula and summary overhead in simulation hot
+  paths.
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
   now uses `h0` as the null log hazard ratio for Cox model tests,
   allowing non-inferiority testing with `h0 = log(margin)`.
@@ -48,6 +51,8 @@
 
 ### Bug fixes
 
+- Chi-square analyses now error if censored subjects have not been
+  followed to `end_of_study` or imputed before analysis.
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
   no longer dereferences the disabled futility result when `Fn = 0`, so
   futility counters remain inert when futility monitoring is turned off
