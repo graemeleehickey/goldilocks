@@ -112,7 +112,9 @@ test_final <- function(
   } else {
     # Apply primary analysis to final data (without imputation)
     # Chi-square test cannot handle censored (LTFU) subjects, so exclude them
-    if (method %in% c("chisq", "bayes-bin") && "loss_to_fu" %in% names(data_in)) {
+    if (
+      method %in% c("chisq", "bayes-bin") && "loss_to_fu" %in% names(data_in)
+    ) {
       data_in <- data_in[!data_in$loss_to_fu, ]
     }
     success <- analyse_data(

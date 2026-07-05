@@ -250,9 +250,11 @@ bayes_binomial_test <- function(
 
 #' @noRd
 validate_bayes_binomial_args <- function(bin_prior, bin_method, bin_N) {
-  if (length(bin_prior) != 2 ||
-    any(!is.finite(bin_prior)) ||
-    any(bin_prior <= 0)) {
+  if (
+    length(bin_prior) != 2 ||
+      any(!is.finite(bin_prior)) ||
+      any(bin_prior <= 0)
+  ) {
     stop("'bin_prior' must contain two positive finite values")
   }
   if (!bin_method %in% c("mc", "normal", "quadrature")) {

@@ -54,6 +54,7 @@ articles:
     contents:
       - broglio
       - bayes-piecewise
+      - bayesian-binary
       - single-arm
   - title: Developer
     contents:

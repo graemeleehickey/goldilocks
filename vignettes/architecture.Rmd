@@ -52,6 +52,7 @@ digraph goldilocks {
   test_stop_success [label = 'test_stop_success()', fillcolor = '#f5f5f5', color = '#999999']
   test_final        [label = 'test_final()',         fillcolor = '#f5f5f5', color = '#999999']
   analyse_data      [label = 'analyse_data()',       fillcolor = '#f5f5f5', color = '#999999']
+  bayes_binomial_test [label = 'bayes_binomial_test()', fillcolor = '#f5f5f5', color = '#999999']
   impute_data       [label = 'impute_data()',        fillcolor = '#f5f5f5', color = '#999999']
   posterior          [label = 'posterior()',           fillcolor = '#f5f5f5', color = '#999999']
   haz_to_prop       [label = 'haz_to_prop()',        fillcolor = '#f5f5f5', color = '#999999']
@@ -79,6 +80,7 @@ digraph goldilocks {
 
   analyse_data    -> posterior
   analyse_data    -> haz_to_prop
+  analyse_data    -> bayes_binomial_test
   analyse_data    -> logrank_test
 
   haz_to_prop     -> ppwe

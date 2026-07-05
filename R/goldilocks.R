@@ -21,7 +21,7 @@
 #' approach to sample size selection. *Journal of Biopharmaceutical Statistics*,
 #' 2014; **24(3)**: 685–705.
 #'
-#' @importFrom utils globalVariables
+#' @importFrom utils getFromNamespace globalVariables
 NULL
 
 

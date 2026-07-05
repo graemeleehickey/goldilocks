@@ -124,7 +124,8 @@ out_power <- sim_trials(
   prob_ha          = 0.95,
   N_impute         = 50,
   N_mcmc           = 2000,
-  method           = "bayes-surv")
+  method           = "bayes-surv",
+  seed             = 3082)
 
 # Type I error: simulate under the null (true rate = benchmark/PG/OPC = 0.30)
 ht_null <- prop_to_haz(probs = benchmark, endtime = end_of_study)
@@ -149,7 +150,8 @@ out_t1error <- sim_trials(
   prob_ha          = 0.95,
   N_impute         = 50,
   N_mcmc           = 2000,
-  method           = "bayes-surv")
+  method           = "bayes-surv",
+  seed             = 3083)
 
 summarise_sims(list(out_power$sims, out_t1error$sims))
 ```
