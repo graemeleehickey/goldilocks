@@ -4,6 +4,9 @@
 
 ### Improvements
 
+- Added `method = "bayes-bin"` for Bayesian beta-binomial analysis of
+  complete binary outcomes, with Monte Carlo, normal approximation, and
+  quadrature options for treatment-control differences.
 - Cox model analyses now use a lower-level survival fit for repeated
   Wald tests, avoiding formula and summary overhead in simulation hot
   paths.

@@ -16,6 +16,9 @@ sim_trials(
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
+  bin_prior = c(1, 1),
+  bin_method = "mc",
+  bin_N = 10000,
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss = 0,
@@ -93,6 +96,24 @@ sim_trials(
   distribution used is `Gamma(0.1, 0.1)`, which is specified by setting
   `prior = c(0.1, 0.1)`.
 
+- bin_prior:
+
+  vector. Prior distribution for the event probability when
+  `method = "bayes-bin"`. The two values are the shape parameters of the
+  `Beta(a, b)` prior. The same prior is applied to both treatment arms.
+
+- bin_method:
+
+  character. Method used to calculate the posterior probability for
+  `method = "bayes-bin"`, must be one of `"mc"` (Monte Carlo sampling),
+  `"normal"` (normal approximation), or `"quadrature"` (numerical
+  integration). The default is `"mc"`.
+
+- bin_N:
+
+  integer. Number of Monte Carlo draws from the beta posterior when
+  `method = "bayes-bin"` and `bin_method = "mc"`.
+
 - block:
 
   scalar. Block size for generating the randomization schedule.
@@ -117,13 +138,15 @@ sim_trials(
 - alternative:
 
   character. The string specifying the alternative hypothesis, must be
-  one of `"greater"` (default), `"less"` or `"two.sided"`. All three
-  options are supported for `method = "bayes"`, `"logrank"`, and
-  `"cox"`. The chi-square test (`method = "chisq"`) only supports
-  `"two.sided"`. For survival outcomes, `"less"` corresponds to the
-  treatment arm having a lower cumulative incidence (i.e., treatment is
-  beneficial), and `"greater"` corresponds to the treatment arm having a
-  higher cumulative incidence.
+  one of `"greater"` (default), `"less"` or `"two.sided"`. One-sided
+  alternatives (`"greater"` and `"less"`) are supported for
+  `method = "bayes"` and `method = "bayes-bin"`. All three options are
+  supported for `method = "logrank"` and `method = "cox"`. The
+  chi-square test (`method = "chisq"`) only supports `"two.sided"`. For
+  survival outcomes, `"less"` corresponds to the treatment arm having a
+  lower cumulative incidence (i.e., treatment is beneficial), and
+  `"greater"` corresponds to the treatment arm having a higher
+  cumulative incidence.
 
 - h0:
 
@@ -134,6 +157,10 @@ sim_trials(
     design, `h0` is the external benchmark event probability, often
     referred to as a performance goal (PG) or objective performance
     criterion (OPC).
+
+  - When `method = "bayes-bin"`, `h0` is the null value of
+    \\p\_\textrm{treatment} - p\_\textrm{control}\\ for a two-arm
+    design, or the null event probability for a single-arm design.
 
   - When `method = "cox"`, `h0` is the null log hazard ratio for
     treatment versus control. Use `h0 = 0` for the usual hazard ratio of
@@ -186,9 +213,10 @@ sim_trials(
   character. For an imputed data set (or the final data set after
   follow-up is complete), whether the analysis should be a log-rank
   (`method = "logrank"`) test, Cox proportional hazards regression model
-  Wald test (`method = "cox"`), a fully-Bayesian analysis
-  (`method = "bayes"`), or a chi-square test (`method = "chisq"`). See
-  Details section.
+  Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
+  analysis (`method = "bayes"`), a Bayesian beta-binomial analysis of
+  complete binary outcomes (`method = "bayes-bin"`), or a chi-square
+  test (`method = "chisq"`). See Details section.
 
 - imputed_final:
 

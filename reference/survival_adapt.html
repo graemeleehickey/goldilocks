@@ -58,6 +58,9 @@ time-to-event endpoint</p>
 <span>  interim_look <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">end_of_study</span>,</span>
 <span>  prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>  bin_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  bin_method <span class="op">=</span> <span class="st">"mc"</span>,</span>
+<span>  bin_N <span class="op">=</span> <span class="fl">10000</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  prop_loss <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -131,6 +134,24 @@ groups. The default non-informative prior distribution used is
 <code>Gamma(0.1, 0.1)</code>, which is specified by setting <code>prior = c(0.1, 0.1)</code>.</p></dd>
 
 
+<dt id="arg-bin-prior">bin_prior<a class="anchor" aria-label="anchor" href="#arg-bin-prior"></a></dt>
+<dd><p>vector. Prior distribution for the event probability when
+<code>method = "bayes-bin"</code>. The two values are the shape parameters of the
+<code>Beta(a, b)</code> prior. The same prior is applied to both treatment arms.</p></dd>
+
+
+<dt id="arg-bin-method">bin_method<a class="anchor" aria-label="anchor" href="#arg-bin-method"></a></dt>
+<dd><p>character. Method used to calculate the posterior
+probability for <code>method = "bayes-bin"</code>, must be one of <code>"mc"</code> (Monte Carlo
+sampling), <code>"normal"</code> (normal approximation), or <code>"quadrature"</code> (numerical
+integration). The default is <code>"mc"</code>.</p></dd>
+
+
+<dt id="arg-bin-n">bin_N<a class="anchor" aria-label="anchor" href="#arg-bin-n"></a></dt>
+<dd><p>integer. Number of Monte Carlo draws from the beta posterior
+when <code>method = "bayes-bin"</code> and <code>bin_method = "mc"</code>.</p></dd>
+
+
 <dt id="arg-block">block<a class="anchor" aria-label="anchor" href="#arg-block"></a></dt>
 <dd><p>scalar. Block size for generating the randomization schedule.</p></dd>
 
@@ -154,11 +175,12 @@ right-censored. Defaults to zero.</p></dd>
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
 <dd><p>character. The string specifying the alternative
 hypothesis, must be one of <code>"greater"</code> (default), <code>"less"</code> or
-<code>"two.sided"</code>. All three options are supported for <code>method = "bayes"</code>,
-<code>"logrank"</code>, and <code>"cox"</code>. The chi-square test (<code>method = "chisq"</code>) only
-supports <code>"two.sided"</code>. For survival outcomes, <code>"less"</code> corresponds to the
-treatment arm having a lower cumulative incidence (i.e., treatment is
-beneficial), and <code>"greater"</code>
+<code>"two.sided"</code>. One-sided alternatives (<code>"greater"</code> and <code>"less"</code>) are
+supported for <code>method = "bayes"</code> and <code>method = "bayes-bin"</code>. All three
+options are supported for <code>method = "logrank"</code> and <code>method = "cox"</code>. The
+chi-square test (<code>method = "chisq"</code>) only supports <code>"two.sided"</code>. For
+survival outcomes, <code>"less"</code> corresponds to the treatment arm having a lower
+cumulative incidence (i.e., treatment is beneficial), and <code>"greater"</code>
 corresponds to the treatment arm having a higher cumulative incidence.</p></dd>
 
 
@@ -167,6 +189,9 @@ corresponds to the treatment arm having a higher cumulative incidence.</p></dd>
 \(p_\textrm{treatment} - p_\textrm{control}\). In a single-arm design,
 <code>h0</code> is the external benchmark event probability, often referred to
 as a performance goal (PG) or objective performance criterion (OPC).</p></li>
+<li><p>When <code>method = "bayes-bin"</code>, <code>h0</code> is the null value of
+\(p_\textrm{treatment} - p_\textrm{control}\) for a two-arm design, or
+the null event probability for a single-arm design.</p></li>
 <li><p>When <code>method = "cox"</code>, <code>h0</code> is the null log hazard ratio for
 treatment versus control. Use <code>h0 = 0</code> for the usual hazard ratio
 of 1 null, or <code>h0 = log(margin)</code> for a non-inferiority margin
@@ -215,8 +240,10 @@ distribution when using a Bayesian test (<code>method = "bayes"</code>).</p></dd
 <dd><p>character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
 (<code>method = "logrank"</code>) test, Cox proportional hazards regression model
-Wald test (<code>method = "cox"</code>), a fully-Bayesian analysis (<code>method = "bayes"</code>), or a chi-square test (<code>method = "chisq"</code>). See Details
-section.</p></dd>
+Wald test (<code>method = "cox"</code>), a fully-Bayesian piecewise-exponential
+analysis (<code>method = "bayes"</code>), a Bayesian beta-binomial analysis of
+complete binary outcomes (<code>method = "bayes-bin"</code>), or a chi-square test
+(<code>method = "chisq"</code>). See Details section.</p></dd>
 
 
 <dt id="arg-imputed-final">imputed_final<a class="anchor" aria-label="anchor" href="#arg-imputed-final"></a></dt>
@@ -301,6 +328,19 @@ independent posteriors are used to estimate the posterior distribution
 of the difference. A posterior probability is calculated according to the
 specification of the test type (<code>alternative</code>) and the value of the null
 hypothesis (<code>h0</code>).</p></li>
+<li><p>Bayesian beta-binomial analysis (<code>method = "bayes-bin"</code>).
+Each complete or imputed dataset is reduced to binary event outcomes at
+<code>end_of_study</code>. A conjugate <code>Beta(a, b)</code> prior, specified with
+<code>bin_prior</code>, is updated with the number of events and non-events in
+each arm. In a single-arm study, inference is based on the posterior
+event probability. In a two-arm study, inference is based on
+\(p_\textrm{treatment} - p_\textrm{control}\). This posterior
+probability can be calculated using Monte Carlo beta draws
+(<code>bin_method = "mc"</code>), a normal approximation (<code>"normal"</code>), or numerical
+quadrature (<code>"quadrature"</code>). Like the chi-square test, this method
+requires complete binary outcomes: censored subjects must either be
+followed to <code>end_of_study</code>, imputed, or excluded when
+<code>imputed_final = FALSE</code>.</p></li>
 <li><p>Chi-square test (<code>method = "chisq"</code>).
 Each (imputed) dataset with both treatment and control arms can be
 compared using a standard chi-square test on the final event status,
@@ -326,18 +366,21 @@ conduct the trial in the same manner, especially if loss to follow-up
 rates are appreciable. Note, this only applies to subjects who are
 right-censored due to loss to follow-up, which we assume is a
 non-informative process. This can be used with any <code>method</code>.</p></li>
-</ul><p>When <code>method = "bayes"</code> and imputation is involved (either at interim
+</ul><p>When <code>method = "bayes"</code> or <code>method = "bayes-bin"</code> and imputation is
+involved (either at interim
 analyses or via <code>imputed_final = TRUE</code>), a two-stage posterior
 procedure is used. First, the posterior distribution of the piecewise
 hazard rates is estimated from the <em>observed</em> data and used to draw
-imputed event times for censored subjects. Second, a <em>new</em> posterior
-is estimated from the combined observed and imputed data, and this
-posterior is used for inference. This is consistent with the predictive
-probability framework described in Broglio et al. (2014), but users
-should be aware that the imputation model's posterior influences the
-analysis posterior. For frequentist methods (<code>"logrank"</code>, <code>"cox"</code>,
-<code>"chisq"</code>), the second stage uses a standard test
-rather than a posterior, so this feedback loop does not arise.</p>
+imputed event times for censored subjects. Second, a <em>new</em> posterior is
+estimated from the combined observed and imputed data: the
+piecewise-exponential posterior for <code>method = "bayes"</code> or the beta
+posterior for <code>method = "bayes-bin"</code>. This posterior is used for
+inference. This is consistent with the predictive probability framework
+described in Broglio et al. (2014), but users should be aware that the
+imputation model's posterior influences the analysis posterior. For
+frequentist methods (<code>"logrank"</code>, <code>"cox"</code>, <code>"chisq"</code>), the second stage
+uses a standard test rather than a posterior, so this feedback loop does
+not arise.</p>
 <p>At each interim look, follow-up times are masked (censored) to reflect
 the calendar time of the analysis. The package treats enrollment and
 randomization as occurring at the same time. Subjects enrolled at the exact

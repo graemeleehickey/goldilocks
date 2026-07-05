@@ -16,6 +16,9 @@ survival_adapt(
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
+  bin_prior = c(1, 1),
+  bin_method = "mc",
+  bin_N = 10000,
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss = 0,
@@ -90,6 +93,24 @@ survival_adapt(
   distribution used is `Gamma(0.1, 0.1)`, which is specified by setting
   `prior = c(0.1, 0.1)`.
 
+- bin_prior:
+
+  vector. Prior distribution for the event probability when
+  `method = "bayes-bin"`. The two values are the shape parameters of the
+  `Beta(a, b)` prior. The same prior is applied to both treatment arms.
+
+- bin_method:
+
+  character. Method used to calculate the posterior probability for
+  `method = "bayes-bin"`, must be one of `"mc"` (Monte Carlo sampling),
+  `"normal"` (normal approximation), or `"quadrature"` (numerical
+  integration). The default is `"mc"`.
+
+- bin_N:
+
+  integer. Number of Monte Carlo draws from the beta posterior when
+  `method = "bayes-bin"` and `bin_method = "mc"`.
+
 - block:
 
   scalar. Block size for generating the randomization schedule.
@@ -114,13 +135,15 @@ survival_adapt(
 - alternative:
 
   character. The string specifying the alternative hypothesis, must be
-  one of `"greater"` (default), `"less"` or `"two.sided"`. All three
-  options are supported for `method = "bayes"`, `"logrank"`, and
-  `"cox"`. The chi-square test (`method = "chisq"`) only supports
-  `"two.sided"`. For survival outcomes, `"less"` corresponds to the
-  treatment arm having a lower cumulative incidence (i.e., treatment is
-  beneficial), and `"greater"` corresponds to the treatment arm having a
-  higher cumulative incidence.
+  one of `"greater"` (default), `"less"` or `"two.sided"`. One-sided
+  alternatives (`"greater"` and `"less"`) are supported for
+  `method = "bayes"` and `method = "bayes-bin"`. All three options are
+  supported for `method = "logrank"` and `method = "cox"`. The
+  chi-square test (`method = "chisq"`) only supports `"two.sided"`. For
+  survival outcomes, `"less"` corresponds to the treatment arm having a
+  lower cumulative incidence (i.e., treatment is beneficial), and
+  `"greater"` corresponds to the treatment arm having a higher
+  cumulative incidence.
 
 - h0:
 
@@ -131,6 +154,10 @@ survival_adapt(
     design, `h0` is the external benchmark event probability, often
     referred to as a performance goal (PG) or objective performance
     criterion (OPC).
+
+  - When `method = "bayes-bin"`, `h0` is the null value of
+    \\p\_\textrm{treatment} - p\_\textrm{control}\\ for a two-arm
+    design, or the null event probability for a single-arm design.
 
   - When `method = "cox"`, `h0` is the null log hazard ratio for
     treatment versus control. Use `h0 = 0` for the usual hazard ratio of
@@ -179,9 +206,10 @@ survival_adapt(
   character. For an imputed data set (or the final data set after
   follow-up is complete), whether the analysis should be a log-rank
   (`method = "logrank"`) test, Cox proportional hazards regression model
-  Wald test (`method = "cox"`), a fully-Bayesian analysis
-  (`method = "bayes"`), or a chi-square test (`method = "chisq"`). See
-  Details section.
+  Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
+  analysis (`method = "bayes"`), a Bayesian beta-binomial analysis of
+  complete binary outcomes (`method = "bayes-bin"`), or a chi-square
+  test (`method = "chisq"`). See Details section.
 
 - imputed_final:
 
@@ -285,6 +313,20 @@ At each interim (and final) analysis methods as:
   is calculated according to the specification of the test type
   (`alternative`) and the value of the null hypothesis (`h0`).
 
+- Bayesian beta-binomial analysis (`method = "bayes-bin"`). Each
+  complete or imputed dataset is reduced to binary event outcomes at
+  `end_of_study`. A conjugate `Beta(a, b)` prior, specified with
+  `bin_prior`, is updated with the number of events and non-events in
+  each arm. In a single-arm study, inference is based on the posterior
+  event probability. In a two-arm study, inference is based on
+  \\p\_\textrm{treatment} - p\_\textrm{control}\\. This posterior
+  probability can be calculated using Monte Carlo beta draws
+  (`bin_method = "mc"`), a normal approximation (`"normal"`), or
+  numerical quadrature (`"quadrature"`). Like the chi-square test, this
+  method requires complete binary outcomes: censored subjects must
+  either be followed to `end_of_study`, imputed, or excluded when
+  `imputed_final = FALSE`.
+
 - Chi-square test (`method = "chisq"`). Each (imputed) dataset with both
   treatment and control arms can be compared using a standard chi-square
   test on the final event status, which discards the event time
@@ -311,12 +353,14 @@ At each interim (and final) analysis methods as:
   to follow-up, which we assume is a non-informative process. This can
   be used with any `method`.
 
-When `method = "bayes"` and imputation is involved (either at interim
-analyses or via `imputed_final = TRUE`), a two-stage posterior procedure
-is used. First, the posterior distribution of the piecewise hazard rates
-is estimated from the *observed* data and used to draw imputed event
-times for censored subjects. Second, a *new* posterior is estimated from
-the combined observed and imputed data, and this posterior is used for
+When `method = "bayes"` or `method = "bayes-bin"` and imputation is
+involved (either at interim analyses or via `imputed_final = TRUE`), a
+two-stage posterior procedure is used. First, the posterior distribution
+of the piecewise hazard rates is estimated from the *observed* data and
+used to draw imputed event times for censored subjects. Second, a *new*
+posterior is estimated from the combined observed and imputed data: the
+piecewise-exponential posterior for `method = "bayes"` or the beta
+posterior for `method = "bayes-bin"`. This posterior is used for
 inference. This is consistent with the predictive probability framework
 described in Broglio et al. (2014), but users should be aware that the
 imputation model's posterior influences the analysis posterior. For
