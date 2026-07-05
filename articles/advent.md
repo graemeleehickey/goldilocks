@@ -1,0 +1,722 @@
+# ADVENT: a published Goldilocks design
+
+``` r
+
+library(goldilocks)
+```
+
+The ADVENT trial is a useful published example of a Goldilocks adaptive
+sample size design. ADVENT compared pulsed field ablation (PFA) with
+conventional thermal ablation for patients with drug-resistant
+paroxysmal atrial fibrillation. It was registered as
+[NCT04612244](https://clinicaltrials.gov/study/NCT04612244), its design
+was published in *Heart Rhythm O2*, and its primary results were
+published in *The New England Journal of Medicine*.
+
+The design paper states that the randomized sample size was determined
+adaptively using a Goldilocks design, citing Broglio, Connor, and Berry
+(2014). The possible randomized sample sizes were 350, 450, 550, 650,
+and 750. At each enrollment milestone, the trial calculated the
+predictive probability that the trial would eventually show
+noninferiority for both primary endpoints. The trial could then stop
+enrollment for predicted success, stop for futility, or continue to the
+next milestone.
+
+This vignette uses ADVENT as a worked example for `goldilocks`. It
+focuses on how the published design maps to package arguments. The goal
+is not to recreate the sponsor’s full statistical analysis plan exactly.
+Some details, including site-stratified randomization, the exact
+composite-event data-generating process, and the joint co-primary
+endpoint stopping rule, are simplified here.
+
+## Trial overview
+
+ADVENT was a multicenter, prospective, single-blind, randomized
+controlled noninferiority trial. Randomized subjects were assigned 1:1
+to PFA or standard-of-care thermal ablation, where the thermal arm used
+either radiofrequency ablation or cryoballoon ablation depending on
+site. The first 1 to 3 subjects at each site were nonrandomized roll-in
+subjects and are not part of the randomized comparison modeled below.
+
+``` r
+
+trial_summary <- data.frame(
+  Feature = c(
+    "Population",
+    "Treatment arm",
+    "Control arm",
+    "Randomization",
+    "Follow-up",
+    "Adaptive sample sizes",
+    "Primary effectiveness endpoint",
+    "Primary safety endpoint"
+  ),
+  Reported_ADVENT_design = c(
+    "Drug-resistant paroxysmal atrial fibrillation",
+    "Pulsed field ablation",
+    "Thermal ablation by radiofrequency or cryoballoon ablation",
+    "1:1 after nonrandomized roll-in subjects",
+    "12 months",
+    "350, 450, 550, 650, or 750 randomized subjects",
+    paste(
+      "Treatment success: acute procedural success and freedom from",
+      "specified chronic failures through 12 months"
+    ),
+    paste(
+      "Composite device- or procedure-related serious adverse events,",
+      "including selected acute and chronic events"
+    )
+  )
+)
+
+knitr::kable(trial_summary)
+```
+
+| Feature | Reported_ADVENT_design |
+|:---|:---|
+| Population | Drug-resistant paroxysmal atrial fibrillation |
+| Treatment arm | Pulsed field ablation |
+| Control arm | Thermal ablation by radiofrequency or cryoballoon ablation |
+| Randomization | 1:1 after nonrandomized roll-in subjects |
+| Follow-up | 12 months |
+| Adaptive sample sizes | 350, 450, 550, 650, or 750 randomized subjects |
+| Primary effectiveness endpoint | Treatment success: acute procedural success and freedom from specified chronic failures through 12 months |
+| Primary safety endpoint | Composite device- or procedure-related serious adverse events, including selected acute and chronic events |
+
+The final published randomized cohort included 305 subjects assigned to
+PFA and 302 assigned to thermal ablation. In the primary results paper,
+PFA was noninferior to thermal ablation for both primary effectiveness
+and primary safety.
+
+The published design also included a trial-flow figure. The following
+diagram recreates the parts of that flow that matter for the package
+mapping.
+
+``` r
+
+DiagrammeR::grViz("
+digraph advent_trial_flow {
+  graph [rankdir = TB, bgcolor = transparent]
+  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 10]
+  edge  [fontname = Helvetica, fontsize = 9]
+
+  screen [label = 'Eligible patients with\\ndrug-resistant paroxysmal AF']
+  rollin [label = 'Optional site roll-in\\n1 to 3 nonrandomized PFA subjects']
+  random [label = 'Randomized subjects\\n1:1 allocation']
+  pfa    [label = 'PFA arm\\nFARAPULSE system']
+  thermal [label = 'Thermal ablation arm\\nradiofrequency or cryoballoon']
+  blank  [label = '90-day blanking period\\nfor arrhythmia recurrence']
+  follow [label = 'Follow-up through\\n12 months']
+  endpoints [label = 'Co-primary endpoints\\neffectiveness and safety']
+
+  screen -> rollin
+  rollin -> random
+  random -> pfa
+  random -> thermal
+  pfa -> blank
+  thermal -> blank
+  blank -> follow
+  follow -> endpoints
+}
+")
+```
+
+In the code below, the nonrandomized roll-in subjects are ignored and
+the randomized comparison starts at the 1:1 allocation step.
+
+## The Goldilocks flow
+
+The ADVENT design paper includes a flowchart for the adaptive sample
+size algorithm. The chart below recreates the logic in package terms
+rather than copying the published image.
+
+``` r
+
+DiagrammeR::grViz("
+digraph advent_goldilocks {
+  graph [rankdir = LR, bgcolor = transparent]
+  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 10]
+  edge  [fontname = Helvetica, fontsize = 9]
+
+  start [label = 'Enroll N = 350\\nrandomized subjects']
+  high  [shape = diamond, label = 'High predictive probability\\nof noninferiority for\\nboth endpoints at current N?']
+  success [label = 'Stop enrollment\\nSample size is adequate']
+  low   [shape = diamond, label = 'Low predictive probability\\nof noninferiority for\\neither endpoint at max N = 750?']
+  futile [label = 'Stop enrollment\\nTrial appears futile']
+  maxn  [shape = diamond, label = 'N = 750?']
+  maxstop [label = 'Stop enrollment\\nMaximum reached']
+  accrue [label = 'Accrue 100 more\\nrandomized subjects']
+  follow [label = 'Follow enrolled subjects\\nto 12 months']
+  final [label = 'Final Bayesian\\nnoninferiority analyses']
+
+  start -> high
+  high -> success [label = 'Yes']
+  high -> low [label = 'No']
+  low -> futile [label = 'Yes']
+  low -> maxn [label = 'No']
+  maxn -> maxstop [label = 'Yes']
+  maxn -> accrue [label = 'No']
+  accrue -> high
+  success -> follow
+  futile -> follow
+  maxstop -> follow
+  follow -> final
+}
+")
+```
+
+The corresponding `goldilocks` arguments are:
+
+``` r
+
+N_total <- 750
+interim_look <- c(350, 450, 550, 650)
+
+Sn <- c(0.95, 0.90, 0.85, 0.80)
+Fn <- c(0.05, 0.10, 0.10, 0.10)
+```
+
+The mapping is direct:
+
+- `N_total = 750` is the maximum randomized sample size.
+- `interim_look = c(350, 450, 550, 650)` supplies the enrollment
+  milestones at which the Goldilocks decision rule is evaluated. The
+  maximum sample size is not included in `interim_look`.
+- `Sn` contains the published predicted-success thresholds for sample
+  sizes 350, 450, 550, and 650.
+- `Fn` contains the published futility thresholds for the same looks.
+
+ADVENT required the predictive probability rule to be favorable for both
+co-primary endpoints before enrollment stopped for predicted success,
+and unfavorable for either endpoint before stopping for futility. The
+current
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+interface models one endpoint per run. In this vignette we therefore run
+the effectiveness and safety endpoints separately, then explain how
+those separate endpoint-specific runs relate to the reported co-primary
+design.
+
+## Endpoint scale
+
+ADVENT reported the primary effectiveness endpoint as treatment success
+at 12 months. The beta-binomial method in `goldilocks` is parameterized
+on the binary event probability. For the effectiveness endpoint we
+therefore code the event as failure by 12 months:
+
+``` math
+p_{\text{failure}} = 1 - p_{\text{treatment success}}.
+```
+
+The design paper reports a target scenario with 65% treatment success in
+each arm. On the event scale used in the code, that corresponds to a 35%
+failure probability in each arm.
+
+For the safety endpoint, the event is already an adverse event. The
+target scenario was an 8% primary safety event rate in each arm.
+
+``` r
+
+endpoint_map <- data.frame(
+  Endpoint = c("Effectiveness", "Safety"),
+  Published_scale = c(
+    "Treatment success by 12 months",
+    "Primary safety event by 12 months"
+  ),
+  Code_event = c(
+    "Failure to meet treatment success",
+    "Primary safety event"
+  ),
+  Target_event_probability = c(0.35, 0.08),
+  Noninferiority_margin = c(0.15, 0.08),
+  Posterior_threshold = c(0.956, 0.966)
+)
+
+knitr::kable(endpoint_map, digits = 3)
+```
+
+| Endpoint | Published_scale | Code_event | Target_event_probability | Noninferiority_margin | Posterior_threshold |
+|:---|:---|:---|---:|---:|---:|
+| Effectiveness | Treatment success by 12 months | Failure to meet treatment success | 0.35 | 0.15 | 0.956 |
+| Safety | Primary safety event by 12 months | Primary safety event | 0.08 | 0.08 | 0.966 |
+
+The ADVENT primary analyses used Bayesian beta-binomial endpoint models
+with noninformative `Beta(0.5, 0.5)` priors. In `goldilocks`, this is
+specified with:
+
+``` r
+
+bin_prior <- c(0.5, 0.5)
+```
+
+The `prior` argument still appears in the code below because
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+uses a time-to-event model to impute not-yet-observed outcomes at
+interim looks. That imputation model uses a Gamma prior on
+piecewise-exponential hazards. The ADVENT design paper reports the
+beta-binomial prior for the completed binary endpoint analysis, but the
+main paper does not provide the exact Gamma hyperparameters used for the
+time-to-event predictive imputation model. We therefore use the package
+default:
+
+``` r
+
+prior <- c(0.1, 0.1)
+```
+
+That distinction is important: `bin_prior` is the ADVENT-aligned
+endpoint prior; `prior` is the package’s predictive imputation prior.
+
+## Simulating endpoint probabilities
+
+The `goldilocks` simulator generates event times and then reduces each
+imputed or completed dataset to binary endpoint status when
+`method = "bayes-bin"`. For a simple vignette, we use constant hazards
+that reproduce the target event probabilities at 12 months.
+
+``` r
+
+end_of_study <- 12
+
+haz_eff_fail <- prop_to_haz(0.35, endtime = end_of_study)
+haz_safety <- prop_to_haz(0.08, endtime = end_of_study)
+
+prob_check <- data.frame(
+  Endpoint = c("Effectiveness failure", "Safety event"),
+  Hazard = c(haz_eff_fail, haz_safety),
+  Event_probability_at_12_months = c(
+    ppwe(
+      hazard = matrix(haz_eff_fail, nrow = 1),
+      end_of_study = end_of_study,
+      cutpoints = 0
+    ),
+    ppwe(
+      hazard = matrix(haz_safety, nrow = 1),
+      end_of_study = end_of_study,
+      cutpoints = 0
+    )
+  )
+)
+
+knitr::kable(prob_check, digits = 4)
+```
+
+| Endpoint              | Hazard | Event_probability_at_12_months |
+|:----------------------|-------:|-------------------------------:|
+| Effectiveness failure | 0.0359 |                           0.35 |
+| Safety event          | 0.0069 |                           0.08 |
+
+This constant-hazard simplification is a modeling choice for the
+vignette. The ADVENT composite endpoints combine acute procedural
+outcomes and later chronic outcomes. A richer analysis could use
+piecewise hazards to place more event mass early, for example around the
+index procedure or shortly after the blanking period. The package
+supports that through `cutpoints` and vector-valued hazards, but the
+published design summary is sufficient for the simpler constant-hazard
+example here.
+
+## Effectiveness endpoint
+
+For the effectiveness endpoint, success in the code means:
+
+``` math
+\Pr(p_{\text{PFA failure}} - p_{\text{thermal failure}} < 0.15 \mid
+\text{data}) > 0.956.
+```
+
+This matches the reported 15 percentage point absolute noninferiority
+margin for treatment success, after translating success into failure. A
+lower failure probability is better, so we use `alternative = "less"`.
+
+ADVENT used 1:1 randomization. The design paper also reports site
+stratification and randomly varying permuted block sizes. The package
+can generate blocked 1:1 randomization, but it does not model site-level
+stratification. Here `block = 2` and `rand_ratio = c(1, 1)` represent
+the 1:1 allocation.
+
+The paper reports follow-up through 12 months. The ClinicalTrials.gov
+record reports 305 randomized subjects starting in the PFA arm and 302
+in the thermal arm, with 12 not completing in each arm. We use
+`prop_loss = 0.04` as a rough vignette-level approximation to incomplete
+follow-up.
+
+The reported enrollment period implies rapid accrual, roughly 40
+randomized subjects per month. We use `lambda = 40` to make the
+simulated calendar-time information broadly comparable. Accrual speed is
+worth sensitivity checking: fast accrual can reduce the amount of
+observed endpoint information available at interim looks.
+
+``` r
+
+set.seed(4601)
+
+advent_effectiveness <- survival_adapt(
+  hazard_treatment = haz_eff_fail,
+  hazard_control = haz_eff_fail,
+  cutpoints = 0,
+  N_total = N_total,
+  lambda = 40,
+  lambda_time = 0,
+  interim_look = interim_look,
+  end_of_study = end_of_study,
+  prior = prior,
+  bin_prior = bin_prior,
+  bin_method = "quadrature",
+  block = 2,
+  rand_ratio = c(1, 1),
+  prop_loss = 0.04,
+  alternative = "less",
+  h0 = 0.15,
+  Fn = Fn,
+  Sn = Sn,
+  prob_ha = 0.956,
+  N_impute = 50,
+  method = "bayes-bin",
+  imputed_final = TRUE
+)
+
+advent_effectiveness
+#>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
+#> 1          0.956   0.15        less         225       225        450   750
+#>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
+#> 1    0.9992122 0.007522124        0.92             0                     1
+```
+
+The most important columns are:
+
+- `N_enrolled`: the selected sample size for this simulated trial.
+- `stop_expected_success`: whether enrollment stopped because the
+  current sample size appeared adequate.
+- `stop_futility`: whether enrollment stopped because success looked
+  unlikely even at the maximum sample size.
+- `est_final`: the posterior mean of
+  $`p_{\text{PFA failure}} - p_{\text{thermal failure}}`$.
+- `post_prob_ha`: the final posterior probability that the binary
+  endpoint effect is below the noninferiority margin.
+
+## Safety endpoint
+
+The safety endpoint uses the same Goldilocks sample-size rule, but
+changes the event probability, margin, and posterior probability
+threshold. Success in the code means:
+
+``` math
+\Pr(p_{\text{PFA safety event}} - p_{\text{thermal safety event}} < 0.08
+\mid \text{data}) > 0.966.
+```
+
+``` r
+
+set.seed(4602)
+
+advent_safety <- survival_adapt(
+  hazard_treatment = haz_safety,
+  hazard_control = haz_safety,
+  cutpoints = 0,
+  N_total = N_total,
+  lambda = 40,
+  lambda_time = 0,
+  interim_look = interim_look,
+  end_of_study = end_of_study,
+  prior = prior,
+  bin_prior = bin_prior,
+  bin_method = "quadrature",
+  block = 2,
+  rand_ratio = c(1, 1),
+  prop_loss = 0.04,
+  alternative = "less",
+  h0 = 0.08,
+  Fn = Fn,
+  Sn = Sn,
+  prob_ha = 0.966,
+  N_impute = 50,
+  method = "bayes-bin",
+  imputed_final = TRUE
+)
+
+advent_safety
+#>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
+#> 1          0.966   0.08        less         325       325        650   750
+#>   post_prob_ha    est_final ppp_success stop_futility stop_expected_success
+#> 1    0.9999509 -0.007055215        0.94             0                     1
+```
+
+In the published ADVENT design, a predicted-success stopping
+recommendation required high predictive probability for both endpoints.
+A futility recommendation could be triggered by low predictive
+probability for either endpoint. The two separate simulations above do
+not impose that joint rule. Instead, they show how each
+endpoint-specific Bayesian rule maps to
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
+
+## A compact design object
+
+For simulations, it is helpful to collect the common design settings
+once and then vary only the endpoint-specific values.
+
+``` r
+
+advent_common <- list(
+  cutpoints = 0,
+  N_total = N_total,
+  lambda = 40,
+  lambda_time = 0,
+  interim_look = interim_look,
+  end_of_study = end_of_study,
+  prior = prior,
+  bin_prior = bin_prior,
+  bin_method = "quadrature",
+  block = 2,
+  rand_ratio = c(1, 1),
+  prop_loss = 0.04,
+  alternative = "less",
+  Fn = Fn,
+  Sn = Sn,
+  N_impute = 30,
+  method = "bayes-bin",
+  imputed_final = TRUE,
+  ncores = 1
+)
+
+advent_common
+#> $cutpoints
+#> [1] 0
+#> 
+#> $N_total
+#> [1] 750
+#> 
+#> $lambda
+#> [1] 40
+#> 
+#> $lambda_time
+#> [1] 0
+#> 
+#> $interim_look
+#> [1] 350 450 550 650
+#> 
+#> $end_of_study
+#> [1] 12
+#> 
+#> $prior
+#> [1] 0.1 0.1
+#> 
+#> $bin_prior
+#> [1] 0.5 0.5
+#> 
+#> $bin_method
+#> [1] "quadrature"
+#> 
+#> $block
+#> [1] 2
+#> 
+#> $rand_ratio
+#> [1] 1 1
+#> 
+#> $prop_loss
+#> [1] 0.04
+#> 
+#> $alternative
+#> [1] "less"
+#> 
+#> $Fn
+#> [1] 0.05 0.10 0.10 0.10
+#> 
+#> $Sn
+#> [1] 0.95 0.90 0.85 0.80
+#> 
+#> $N_impute
+#> [1] 30
+#> 
+#> $method
+#> [1] "bayes-bin"
+#> 
+#> $imputed_final
+#> [1] TRUE
+#> 
+#> $ncores
+#> [1] 1
+```
+
+Then the endpoint-specific simulation calls become short:
+
+``` r
+
+set.seed(4610)
+
+eff_target <- do.call(sim_trials, c(
+  advent_common,
+  list(
+    N_trials = 20,
+    hazard_treatment = haz_eff_fail,
+    hazard_control = haz_eff_fail,
+    h0 = 0.15,
+    prob_ha = 0.956,
+    seed = 4610
+  )
+))
+
+eff_null_boundary <- do.call(sim_trials, c(
+  advent_common,
+  list(
+    N_trials = 20,
+    hazard_treatment = prop_to_haz(0.50, endtime = end_of_study),
+    hazard_control = haz_eff_fail,
+    h0 = 0.15,
+    prob_ha = 0.956,
+    seed = 4611
+  )
+))
+
+oc_small <- summarise_sims(list(
+  "target: equal 35% failure" = eff_target$sims,
+  "margin: PFA failure 50%" = eff_null_boundary$sims
+))
+
+knitr::kable(oc_small, digits = 3)
+```
+
+| scenario | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
+|:---|---:|---:|---:|---:|---:|---:|---:|
+| margin: PFA failure 50% | 0.05 | 0.10 | 0.6 | 0.30 | 560 | 158.612 | 0.05 |
+| target: equal 35% failure | 1.00 | 0.95 | 0.0 | 0.05 | 510 | 104.630 | 0.00 |
+
+This table is intentionally small so the vignette can build quickly. It
+checks that the code runs and shows the workflow for comparing a target
+scenario with a boundary scenario. It should not be interpreted as a
+stable estimate of power or type I error. For design work, increase
+`N_trials`, increase `N_impute`, and run sensitivity analyses over
+accrual speed, loss to follow-up, event rates, and the imputation hazard
+model.
+
+## Full calibration template
+
+The following code is closer to what one would run outside the vignette
+build. It is not evaluated here.
+
+``` r
+
+advent_common_full <- modifyList(advent_common, list(
+  N_impute = 100,
+  ncores = 8
+))
+
+eff_target_full <- do.call(sim_trials, c(
+  advent_common_full,
+  list(
+    N_trials = 1000,
+    hazard_treatment = haz_eff_fail,
+    hazard_control = haz_eff_fail,
+    h0 = 0.15,
+    prob_ha = 0.956,
+    seed = 4620
+  )
+))
+
+eff_margin_full <- do.call(sim_trials, c(
+  advent_common_full,
+  list(
+    N_trials = 1000,
+    hazard_treatment = prop_to_haz(0.50, endtime = end_of_study),
+    hazard_control = haz_eff_fail,
+    h0 = 0.15,
+    prob_ha = 0.956,
+    seed = 4621
+  )
+))
+
+safety_target_full <- do.call(sim_trials, c(
+  advent_common_full,
+  list(
+    N_trials = 1000,
+    hazard_treatment = haz_safety,
+    hazard_control = haz_safety,
+    h0 = 0.08,
+    prob_ha = 0.966,
+    seed = 4622
+  )
+))
+
+safety_margin_full <- do.call(sim_trials, c(
+  advent_common_full,
+  list(
+    N_trials = 1000,
+    hazard_treatment = prop_to_haz(0.16, endtime = end_of_study),
+    hazard_control = haz_safety,
+    h0 = 0.08,
+    prob_ha = 0.966,
+    seed = 4623
+  )
+))
+
+summarise_sims(list(
+  "effectiveness target" = eff_target_full$sims,
+  "effectiveness margin" = eff_margin_full$sims,
+  "safety target" = safety_target_full$sims,
+  "safety margin" = safety_margin_full$sims
+))
+```
+
+The “margin” scenarios above set the treatment event probability equal
+to the control event probability plus the noninferiority margin. They
+are useful for checking false-positive behavior near the design
+boundary. They are not the only null scenarios worth studying.
+
+## What matches ADVENT, and what is simplified?
+
+The code above is intentionally close to the reported design in the
+following ways:
+
+- It uses the published Goldilocks sample-size options: 350, 450, 550,
+  650, and 750.
+- It uses the published predicted-success thresholds: 0.95, 0.90, 0.85,
+  and 0.80.
+- It uses the published futility thresholds: 0.05, 0.10, 0.10, and 0.10.
+- It uses the published beta-binomial endpoint prior, `Beta(0.5, 0.5)`,
+  via `bin_prior = c(0.5, 0.5)`.
+- It uses the published noninferiority margins: 15 percentage points for
+  effectiveness and 8 percentage points for safety.
+- It uses the published posterior probability thresholds: 0.956 for
+  effectiveness and 0.966 for safety.
+- It uses a 12-month endpoint window.
+
+The code simplifies the reported trial in these ways:
+
+- It models effectiveness and safety as separate endpoint-specific
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  runs. ADVENT used co-primary endpoints with a joint stopping
+  recommendation.
+- It does not model site stratification or the exact randomly varying
+  block randomization scheme.
+- It ignores nonrandomized roll-in subjects.
+- It uses constant hazards to reproduce the target 12-month event
+  probabilities. The real composite endpoints include acute and chronic
+  components.
+- It uses the package default Gamma prior for the time-to-event
+  imputation model because the main design paper reports the
+  beta-binomial endpoint prior but not all imputation-model
+  hyperparameters.
+- It approximates incomplete follow-up with `prop_loss = 0.04`.
+
+These simplifications are typical when translating a published design
+into a teaching vignette. The important point is that the central ADVENT
+design features now have direct `goldilocks` arguments.
+
+## References
+
+Broglio KR, Connor JT, Berry SM. Not too big, not too small: a
+Goldilocks approach to sample size selection. *Journal of
+Biopharmaceutical Statistics*. 2014;24(3):685-705.
+<doi:10.1080/10543406.2014.888569>.
+
+Reddy VY, Gerstenfeld EP, Natale A, et al. A randomized controlled trial
+of pulsed field ablation versus standard-of-care ablation for paroxysmal
+atrial fibrillation: The ADVENT trial rationale and design. *Heart
+Rhythm O2*. 2023;4(5):317-328. <doi:10.1016/j.hroo.2023.03.001>.
+
+Reddy VY, Gerstenfeld EP, Natale A, et al. Pulsed field or conventional
+thermal ablation for paroxysmal atrial fibrillation. *New England
+Journal of Medicine*. 2023;389(18):1660-1671.
+<doi:10.1056/NEJMoa2307291>.
+
+ClinicalTrials.gov. A prospective randomized pivotal trial of the
+FARAPULSE pulsed field ablation system compared with standard of care
+ablation in patients with paroxysmal atrial fibrillation. NCT04612244.

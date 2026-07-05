@@ -4,6 +4,8 @@
 
 - [Two-arm randomized
   trials](https://graemeleehickey.github.io/goldilocks/articles/broglio.md):
+- [ADVENT: a published Goldilocks
+  design](https://graemeleehickey.github.io/goldilocks/articles/advent.md):
 - [Bayesian piecewise-exponential
   designs](https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.md):
 - [Bayesian binary outcome

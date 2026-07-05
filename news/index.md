@@ -77,6 +77,10 @@
 - Added a new vignette, “Bayesian binary outcome designs”, documenting
   `method = "bayes-bin"` for two-arm and single-arm complete binary
   endpoint analyses.
+- Added a new vignette, “ADVENT: a published Goldilocks design”, showing
+  how the published ADVENT pulsed field ablation trial maps to
+  `method = "bayes-bin"` with beta-binomial non-inferiority endpoints,
+  adaptive sample-size thresholds, and cached simulation examples.
 - Renamed vignettes for consistency: “Two-arm randomized trials”,
   “Bayesian piecewise-exponential designs”, “Single-arm designs with a
   performance goal”, and “Package architecture”.
