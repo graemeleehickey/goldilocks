@@ -46,6 +46,21 @@ test_that("analyse_data works with method = 'cox'", {
   expect_type(res$effect, "double")
 })
 
+test_that("cox_wald_test matches coxph treatment estimate and standard error", {
+  set.seed(4291)
+  data <- data.frame(
+    time = c(rexp(50, rate = 0.06), rexp(50, rate = 0.04)),
+    event = sample(0:1, 100, replace = TRUE),
+    treatment = rep(0:1, each = 50)
+  )
+
+  fast_fit <- cox_wald_test(data)
+  survival_fit <- coxph(Surv(time, event) ~ treatment, data = data)
+
+  expect_equal(fast_fit$estimate, unname(survival_fit$coefficients[1]))
+  expect_equal(fast_fit$std_error, sqrt(unname(survival_fit$var[1, 1])))
+})
+
 test_that("analyse_data works with method = 'bayes' (two-arm)", {
   set.seed(8415)
   data <- data.frame(
@@ -106,9 +121,10 @@ test_that("analyse_data works with method = 'bayes' and alternative = 'less'", {
 
 test_that("analyse_data works with method = 'chisq'", {
   set.seed(2647)
+  event <- sample(0:1, 100, replace = TRUE, prob = c(0.3, 0.7))
   data <- data.frame(
-    time = rexp(100, 0.02),
-    event = sample(0:1, 100, replace = TRUE, prob = c(0.3, 0.7)),
+    time = ifelse(event == 1, rexp(100, 0.02), 36),
+    event = event,
     treatment = rep(0:1, each = 50)
   )
   res <- analyse_data(
@@ -126,6 +142,29 @@ test_that("analyse_data works with method = 'chisq'", {
   expect_named(res, c("success", "effect"))
   expect_true(res$success >= 0 && res$success <= 1)
   expect_type(res$effect, "double")
+})
+
+test_that("analyse_data method = 'chisq' rejects incomplete censored outcomes", {
+  data <- data.frame(
+    time = c(5, 36, 7, 36),
+    event = c(0, 0, 1, 1),
+    treatment = c(0, 0, 1, 1)
+  )
+
+  expect_error(
+    analyse_data(
+      data = data,
+      cutpoints = 0,
+      end_of_study = 36,
+      prior = c(0.1, 0.1),
+      N_mcmc = 10,
+      single_arm = FALSE,
+      method = "chisq",
+      alternative = "two.sided",
+      h0 = 0
+    ),
+    "requires all censored subjects"
+  )
 })
 
 test_that("analyse_data works with method = 'bayes' (single-arm)", {

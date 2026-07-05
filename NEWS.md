@@ -2,6 +2,7 @@
 
 ## Improvements
 
+* Cox model analyses now use a lower-level survival fit for repeated Wald tests, avoiding formula and summary overhead in simulation hot paths.
 * `survival_adapt()` now uses `h0` as the null log hazard ratio for Cox model tests, allowing non-inferiority testing with `h0 = log(margin)`.
 * Added maintainer performance benchmarks for simulation hot paths, including posterior probability conversion, posterior sampling, imputation, and representative `survival_adapt()` runs (#42).
 * Harmonized treatment-assignment terminology in internal simulation helpers and documentation: data use `treatment = 1` for treatment and `treatment = 0` for control, while posterior/imputation array indexing is now described separately as hazard slices (#35).
@@ -13,6 +14,7 @@
 
 ## Bug fixes
 
+* Chi-square analyses now error if censored subjects have not been followed to `end_of_study` or imputed before analysis.
 * `survival_adapt()` no longer dereferences the disabled futility result when `Fn = 0`, so futility counters remain inert when futility monitoring is turned off (#33).
 
 ## Documentation

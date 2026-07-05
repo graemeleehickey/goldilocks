@@ -9,14 +9,27 @@
 #'
 #' @return A list with 2 elements:
 #'
-#'   - `success`: Mean posterior probability of effect, or 1 minus the
-#'     conventional *P*-value if `method = "logrank"`, `method = "cox"`, or
-#'     `method = "chisq"`.
+#'   - `success`: Analysis-specific success score:
+#'     - if `method = "bayes"`, the posterior probability that the treatment
+#'       effect is greater than `h0` when `alternative = "greater"`, or less
+#'       than `h0` when `alternative = "less"`;
+#'     - if `method = "logrank"`, 1 minus the log-rank test *P*-value, using a
+#'       two-sided *P*-value when `alternative = "two.sided"` and a one-sided
+#'       *P*-value otherwise;
+#'     - if `method = "cox"`, 1 minus the Cox Wald test *P*-value for the
+#'       estimated log hazard ratio compared with `h0`, using a two-sided
+#'       *P*-value when `alternative = "two.sided"` and a one-sided *P*-value
+#'       otherwise;
+#'     - if `method = "chisq"`, 1 minus the chi-square test *P*-value.
 #'   - `effect`: Sample vector from the posterior distribution of the effect
-#'     size. If `method = "logrank"`, this is `NULL`.
+#'     size for `method = "bayes"`, the estimated log hazard ratio for
+#'     `method = "cox"`, the chi-square statistic for `method = "chisq"`, or
+#'     `NA` for `method = "logrank"`.
 #'
 #' @importFrom stats pchisq pnorm
+#' @import Rcpp
 #' @import survival
+#' @useDynLib goldilocks, .registration = TRUE
 #'
 #' @noRd
 analyse_data <- function(
@@ -94,9 +107,8 @@ analyse_data <- function(
   ####################################################
 
   if (method == "cox") {
-    fit_cox <- coxph(Surv(time, event) ~ treatment, data = data)
-    fit_res <- coef(summary(fit_cox))
-    z <- (fit_res[1, 1] - h0) / fit_res[1, 3]
+    fit_cox <- cox_wald_test(data)
+    z <- (fit_cox$estimate - h0) / fit_cox$std_error
     if (alternative == "two.sided") {
       success <- 1 - (2 * pnorm(-abs(z)))
     } else {
@@ -109,16 +121,20 @@ analyse_data <- function(
         success <- pnorm(z)
       }
     }
-    effect <- fit_res[1, 1]
+    effect <- fit_cox$estimate
   }
 
   ####################################################
   ### Chi-square test
   ####################################################
 
-  # Assumes all LTFU subjects have been imputed
-
   if (method == "chisq") {
+    if (any(data$event == 0 & data$time < end_of_study)) {
+      stop(
+        "Chi-square analysis requires all censored subjects to be followed ",
+        "to 'end_of_study' or imputed before analysis"
+      )
+    }
     mat <- with(data, table(event, treatment))
     fit_cs <- chisq.test(mat, correct = FALSE)
     success <- 1 - fit_cs$p.val
@@ -129,4 +145,71 @@ analyse_data <- function(
     "success" = success,
     "effect" = effect
   ))
+}
+
+#' @title Calculate the log-rank test very quickly
+#'
+#' @param groupa vector of group a's survival times
+#' @param groupb vector of group b's survival times
+#' @param groupacensored vector of censored information of group a's survival
+#'   times
+#' @param groupbcensored vector of censored information of group b's survival
+#'   times
+#' @param onlyz (optional) calculate only z-statistic
+#'
+#' @return chi-squared statistic, z-statistic, p-value
+#'
+#' @examples
+#' T1 <- c(6, 6, 6, 6, 7, 9, 10, 10, 11, 13, 16, 17, 19, 20, 22, 23, 25, 32, 32, 34, 35)
+#' E1 <- c(1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0)
+#' T2 <- c(1, 1, 2, 2, 3, 4, 4, 5, 5, 8, 8, 8, 8, 11, 11, 12, 12, 15, 17, 22, 23)
+#' E2 <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+#' logrank_test(T1, T2, E1, E2)
+#' #1.679294e+01 -4.097919e+00, 4.168809e-05
+#'
+#' @noRd
+#' @keywords internal
+logrank_test <- function(
+  groupa,
+  groupb,
+  groupacensored,
+  groupbcensored,
+  onlyz = FALSE
+) {
+  logrank_instance(groupa, groupb, groupacensored, groupbcensored, onlyz)
+}
+
+#' @title Fast Cox proportional hazards Wald test for treatment effect
+#'
+#' @inheritParams analyse_data
+#'
+#' @return A list with the estimated log hazard ratio (`estimate`) and its
+#'   standard error (`std_error`).
+#'
+#' @noRd
+cox_wald_test <- function(data) {
+  y <- Surv(data$time, data$event)
+  x <- matrix(as.double(data$treatment), ncol = 1)
+
+  # Use the lower-level fitter to avoid formula/model-frame and summary
+  # overhead in repeated simulation analyses.
+  coxph_fit <- getFromNamespace("coxph.fit", "survival")
+  fit <- coxph_fit(
+    x = x,
+    y = y,
+    strata = NULL,
+    offset = NULL,
+    init = NULL,
+    control = coxph.control(),
+    weights = NULL,
+    method = "efron",
+    rownames = NULL,
+    resid = FALSE,
+    nocenter = NULL
+  )
+
+  list(
+    estimate = fit$coefficients[1],
+    std_error = sqrt(fit$var[1, 1])
+  )
 }
