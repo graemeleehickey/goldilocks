@@ -19,7 +19,8 @@ test_that("survival_adapt-bayes", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "bayes")
+    method = "bayes"
+  )
 
   expect_s3_class(out, "data.frame")
 })
@@ -45,7 +46,8 @@ test_that("survival_adapt-logrank", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "logrank")
+    method = "logrank"
+  )
 
   expect_s3_class(out, "data.frame")
 })
@@ -72,7 +74,8 @@ test_that("survival_adapt-cox", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "cox")
+    method = "cox"
+  )
 
   expect_s3_class(out, "data.frame")
   expect_true(!is.na(out$est_final))
@@ -100,7 +103,8 @@ test_that("survival_adapt-chisq", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "chisq")
+    method = "chisq"
+  )
 
   expect_s3_class(out, "data.frame")
   expect_true(!is.na(out$est_final))
@@ -129,7 +133,8 @@ test_that("survival_adapt-chisq excludes LTFU when imputed_final = FALSE", {
     N_impute = 2,
     N_mcmc = 2,
     method = "chisq",
-    imputed_final = FALSE)
+    imputed_final = FALSE
+  )
 
   expect_s3_class(out, "data.frame")
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
@@ -158,14 +163,14 @@ test_that("survival_adapt-cox with imputed_final", {
     N_impute = 2,
     N_mcmc = 2,
     method = "cox",
-    imputed_final = TRUE)
+    imputed_final = TRUE
+  )
 
   expect_s3_class(out, "data.frame")
   expect_true(!is.na(out$post_prob_ha))
 })
 
 test_that("survival_adapt-complex", {
-
   skip_on_cran()
 
   hc <- prop_to_haz(c(0.20, 0.25, 0.30), c(0, 3, 6), 24)
@@ -193,7 +198,8 @@ test_that("survival_adapt-complex", {
     N_impute = 20,
     N_mcmc = 20,
     method = "bayes",
-    imputed_final = TRUE)
+    imputed_final = TRUE
+  )
 
   expect_s3_class(out, "data.frame")
 })
@@ -220,7 +226,8 @@ test_that("error-interim-looks", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      method = "logrank")
+      method = "logrank"
+    )
   )
 })
 
@@ -249,7 +256,8 @@ test_that("error-interim-look-below-block-size", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      method = "bayes"),
+      method = "bayes"
+    ),
     "must be at least the block size"
   )
 })
@@ -276,7 +284,8 @@ test_that("error-alternative", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      method = "logrank")
+      method = "logrank"
+    )
   )
 })
 
@@ -302,7 +311,8 @@ test_that("error-cutpoint", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      method = "logrank")
+      method = "logrank"
+    )
   )
 })
 
@@ -328,7 +338,8 @@ test_that("error-alternative-bayes", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      method = "bayes")
+      method = "bayes"
+    )
   )
 })
 
@@ -353,7 +364,8 @@ test_that("survival_adapt-logrank-one-sided", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "logrank")
+    method = "logrank"
+  )
 
   expect_s3_class(out, "data.frame")
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
@@ -380,7 +392,8 @@ test_that("survival_adapt-cox-one-sided-less", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "cox")
+    method = "cox"
+  )
 
   expect_s3_class(out, "data.frame")
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
@@ -409,7 +422,8 @@ test_that("survival_adapt-cox-one-sided-greater", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "cox")
+    method = "cox"
+  )
 
   expect_s3_class(out, "data.frame")
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
@@ -437,7 +451,8 @@ test_that("error-alternative-chisq", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      method = "chisq"),
+      method = "chisq"
+    ),
     "chi-square"
   )
 })
@@ -464,7 +479,8 @@ test_that("error-logrank-single_arm", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      method = "logrank")
+      method = "logrank"
+    )
   )
 })
 
@@ -490,7 +506,8 @@ test_that("error-prob-thresholds-length_v1", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      method = "logrank")
+      method = "logrank"
+    )
   )
 })
 
@@ -516,7 +533,8 @@ test_that("survival_adapt works with no interim looks", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "logrank")
+    method = "logrank"
+  )
 
   expect_s3_class(out, "data.frame")
   expect_equal(out$N_enrolled, 200)
@@ -547,7 +565,8 @@ test_that("survival_adapt keeps futility disabled when Fn = 0", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "logrank")
+    method = "logrank"
+  )
 
   expect_s3_class(out, "data.frame")
   expect_equal(out$stop_futility, 0)
@@ -575,6 +594,7 @@ test_that("error-prob-thresholds-length_v2", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      method = "logrank")
+      method = "logrank"
+    )
   )
 })

@@ -11,7 +11,10 @@ test_that("sim_comp_data returns data frame with correct columns (two-arm)", {
   )
   expect_s3_class(out, "data.frame")
   expect_equal(nrow(out), 50)
-  expect_named(out, c("time", "treatment", "event", "enrollment", "id", "loss_to_fu"))
+  expect_named(
+    out,
+    c("time", "treatment", "event", "enrollment", "id", "loss_to_fu")
+  )
 })
 
 test_that("sim_comp_data returns correct columns for single-arm", {

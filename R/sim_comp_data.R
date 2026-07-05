@@ -128,18 +128,20 @@ sim_comp_data <- function(
 
   # Creating a new data.frame for all the variables
   data_total <- data.frame(
-    time       = time,
-    treatment  = treatment,
-    event      = event,
+    time = time,
+    treatment = treatment,
+    event = event,
     enrollment = enrollment,
-    id         = 1:N_total,
+    id = 1:N_total,
     loss_to_fu = loss_to_fu
   )
 
   # Subjects lost are uniformly distributed
   if (prop_loss > 0) {
     data_total$time[data_total$loss_to_fu] <- runif(
-      n_loss_to_fu, 0, data_total$time[data_total$loss_to_fu]
+      n_loss_to_fu,
+      0,
+      data_total$time[data_total$loss_to_fu]
     )
     data_total$event[data_total$loss_to_fu] <- rep(0, n_loss_to_fu)
   }

@@ -126,6 +126,6 @@ analyse_data <- function(
 
   return(list(
     "success" = success,
-    "effect"  = effect
+    "effect" = effect
   ))
 }

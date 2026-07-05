@@ -142,8 +142,12 @@ test_that("ppwe returns probabilities in (0, 1)", {
 test_that("ppwe matches PWEALL across endpoint boundary cases", {
   haz_matrix <- matrix(
     c(
-      0.01, 0.02, 0.03,
-      0.02, 0.03, 0.04
+      0.01,
+      0.02,
+      0.03,
+      0.02,
+      0.03,
+      0.04
     ),
     ncol = 3,
     byrow = TRUE
@@ -164,8 +168,11 @@ test_that("ppwe matches PWEALL across endpoint boundary cases", {
     )
 
     expect_equal(
-      ppwe(hazard = haz_matrix, end_of_study = end_of_study,
-           cutpoints = cutpoints),
+      ppwe(
+        hazard = haz_matrix,
+        end_of_study = end_of_study,
+        cutpoints = cutpoints
+      ),
       expected,
       tolerance = 1e-12
     )

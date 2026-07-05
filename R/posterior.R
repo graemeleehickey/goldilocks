@@ -65,8 +65,12 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
         if (treatment_summ$n[k] == 0) {
           source_k <- if (k > first_nonzero) k - 1 else first_nonzero
           warning(
-            "Treatment value ", treatment_value, ", interval ", k,
-            " has zero subjects; propagating data from interval ", source_k,
+            "Treatment value ",
+            treatment_value,
+            ", interval ",
+            k,
+            " has zero subjects; propagating data from interval ",
+            source_k,
             " for posterior estimation.",
             call. = FALSE
           )
@@ -91,7 +95,8 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
     )
   }
 
-  if (!single_arm) { # If control patients present
+  if (!single_arm) {
+    # If control patients present
     for (j in 1:n_intervals) {
       post[, j, 2] <- with(
         subset(data_summ, treatment == 0),
@@ -139,6 +144,9 @@ posterior_sufficient_stats <- function(data, cutpoints, single_arm) {
     }
   }
 
-  data_summ$interval <- factor(data_summ$interval, levels = seq_len(n_intervals))
+  data_summ$interval <- factor(
+    data_summ$interval,
+    levels = seq_len(n_intervals)
+  )
   data_summ
 }

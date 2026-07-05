@@ -35,9 +35,19 @@
 #' @return Vector with 1) posterior probability (or P-value equivalent) for
 #'   alternative hypothesis, and 2) mean posterior treatment effect.
 #' @noRd
-test_final <- function(data_in, cutpoints, prior, N_mcmc, single_arm,
-                       imputed_final, method, N_impute, alternative,
-                       h0, end_of_study) {
+test_final <- function(
+  data_in,
+  cutpoints,
+  prior,
+  N_mcmc,
+  single_arm,
+  imputed_final,
+  method,
+  N_impute,
+  alternative,
+  h0,
+  end_of_study
+) {
   if (imputed_final) {
     # Posterior distribution of lambdas: final data
     post_lambda_final <- posterior(
@@ -57,21 +67,19 @@ test_final <- function(data_in, cutpoints, prior, N_mcmc, single_arm,
     for (j in 1:N_impute) {
       # Single imputed data set
       data_success_impute <- impute_data(
-        data_in      = data_in,
-        hazard       = post_lambda_final[j, , , drop = FALSE],
+        data_in = data_in,
+        hazard = post_lambda_final[j, , , drop = FALSE],
         end_of_study = end_of_study,
-        cutpoints    = cutpoints,
-        type         = "success",
-        single_arm   = single_arm
+        cutpoints = cutpoints,
+        type = "success",
+        single_arm = single_arm
       )
 
       # Create enrolled subject data frame for analysis
       time <- NULL
       event <- NULL
       treatment <- NULL
-      data <- subset(data_success_impute,
-        select = c(time, event, treatment)
-      )
+      data <- subset(data_success_impute, select = c(time, event, treatment))
 
       # Apply primary analysis to imputed data
       success <- analyse_data(

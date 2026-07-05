@@ -28,8 +28,14 @@
 #'   with imputed event times.
 #'
 #' @noRd
-impute_data <- function(data_in, hazard, end_of_study, cutpoints, type,
-                        single_arm) {
+impute_data <- function(
+  data_in,
+  hazard,
+  end_of_study,
+  cutpoints,
+  type,
+  single_arm
+) {
   stopifnot(dim(hazard)[1] == 1) # otherwise, need to use vectorized ppwe()
 
   # Start from the original data and update only the rows that need imputation.

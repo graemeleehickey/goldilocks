@@ -24,7 +24,8 @@ test_that("sim_trials-logrank", {
     N_mcmc = 2,
     N_trials = 2,
     method = "logrank",
-    ncores = 1)
+    ncores = 1
+  )
 
   expect_type(out, "list")
   expect_s3_class(out$sims, "data.frame")
@@ -59,7 +60,8 @@ test_that("sim_trials-bayes", {
     N_mcmc = 2,
     N_trials = 2,
     method = "bayes",
-    ncores = 1)
+    ncores = 1
+  )
 
   expect_type(out, "list")
   expect_s3_class(out$sims, "data.frame")
@@ -95,7 +97,8 @@ test_that("sim_trials-zero_cores", {
       N_mcmc = 2,
       N_trials = 2,
       method = "bayes",
-      ncores = NULL)
+      ncores = NULL
+    )
   )
 })
 
@@ -127,7 +130,8 @@ test_that("sim_trials is reproducible with seed and ncores = 1", {
       N_trials = 2,
       method = "logrank",
       ncores = 1,
-      seed = 4101)
+      seed = 4101
+    )
   }
 
   expect_equal(run_once()$sims, run_once()$sims)
@@ -163,7 +167,8 @@ test_that("sim_trials uses reproducible per-trial streams in parallel", {
       N_trials = 2,
       method = "logrank",
       ncores = ncores,
-      seed = 4101)
+      seed = 4101
+    )
   }
 
   expect_equal(run_with_cores(1)$sims, run_with_cores(2)$sims)
@@ -197,7 +202,8 @@ test_that("sim_trials validates seed", {
       N_trials = 2,
       method = "logrank",
       ncores = 1,
-      seed = c(1, 2)),
+      seed = c(1, 2)
+    ),
     "single integer"
   )
 })

@@ -32,12 +32,12 @@ haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
     # Standard exponential for when no internal cutpoints
     p_treatment <- pexp(
       q = end_of_study,
-      rate = post[, , 1]
+      rate = post[,, 1]
     )
     if (!single_arm) {
       p_control <- pexp(
         q = end_of_study,
-        rate = post[, , 2]
+        rate = post[,, 2]
       )
     } else {
       p_control <- NA
@@ -49,7 +49,7 @@ haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
     #   x = post[, , 1],
     #   cuts = cutpoints)
     p_treatment <- ppwe(
-      hazard = post[, , 1],
+      hazard = post[,, 1],
       end_of_study = end_of_study,
       cutpoints = cutpoints
     )
@@ -59,7 +59,7 @@ haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
       #   x = post[, , 2],
       #   cuts = cutpoints)
       p_control <- ppwe(
-        hazard = post[, , 2],
+        hazard = post[,, 2],
         end_of_study = end_of_study,
         cutpoints = cutpoints
       )

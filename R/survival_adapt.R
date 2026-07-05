@@ -290,9 +290,11 @@ survival_adapt <- function(
       if (any(interim_look < min_look)) {
         stop(
           "Each 'interim_look' must be at least the block size (",
-          min_look, ") so that both treatment groups are present at every ",
+          min_look,
+          ") so that both treatment groups are present at every ",
           "interim analysis. Smallest 'interim_look' given: ",
-          min(interim_look), "."
+          min(interim_look),
+          "."
         )
       }
     }
@@ -305,7 +307,9 @@ survival_adapt <- function(
 
   # Check: Bayesian test only available as a one-sided test
   if (alternative == "two.sided" & method == "bayes") {
-    stop("The Bayes test can only be used with alternative equal to 'greater' or 'less'")
+    stop(
+      "The Bayes test can only be used with alternative equal to 'greater' or 'less'"
+    )
   }
 
   # Check: chi-square test only available as two-sided
@@ -381,14 +385,17 @@ survival_adapt <- function(
       #                            then patient could potentially be observed for 4 months
 
       data_interim <- within(data_total, {
-        subject_enrolled = (id <= analysis_at_enrollnumber[i])
-        subject_impute_futility = !subject_enrolled
-        time_from_rand_at_look = enrollment[analysis_at_enrollnumber[i]] - enrollment
-        subject_impute_success =
+        subject_enrolled <- (id <= analysis_at_enrollnumber[i])
+        subject_impute_futility <- !subject_enrolled
+        time_from_rand_at_look <- enrollment[analysis_at_enrollnumber[i]] -
+          enrollment
+        subject_impute_success <-
           # Had event, but has not occurred yet (based on interim look)
           ((event == 1) * (time_from_rand_at_look < time) & subject_enrolled) |
           # Event-free and not had opportunity to complete full follow
-          ((event == 0) * (time_from_rand_at_look < end_of_study) & subject_enrolled) |
+          ((event == 0) *
+            (time_from_rand_at_look < end_of_study) &
+            subject_enrolled) |
           (loss_to_fu & subject_enrolled)
       })
 
@@ -398,13 +405,14 @@ survival_adapt <- function(
       # Clamp to .Machine$double.eps so the boundary subject contributes
       # negligible but non-zero exposure to the interim posterior.
       data_interim <- within(data_interim, {
-        time = pmax(pmin(time, time_from_rand_at_look), .Machine$double.eps)
-        event = ifelse(subject_impute_success, 0, event)
+        time <- pmax(pmin(time, time_from_rand_at_look), .Machine$double.eps)
+        event <- ifelse(subject_impute_success, 0, event)
       })
 
       # Carry out interim analysis on patients with complete data only
       # - Set-up new 'data' data frame
-      data <- subset(data_interim,
+      data <- subset(
+        data_interim,
         subset = subject_enrolled,
         select = c(time, event, treatment)
       )
@@ -498,8 +506,8 @@ survival_adapt <- function(
   # - complete follow-up (except any censoring)
   data_final <- subset(data_total, id <= stage_trial_stopped)
   data_final <- within(data_final, {
-    time_from_rand_at_look = enrollment[stage_trial_stopped] - enrollment
-    subject_impute_success = ((event == 0) & (time < end_of_study))
+    time_from_rand_at_look <- enrollment[stage_trial_stopped] - enrollment
+    subject_impute_success <- ((event == 0) & (time < end_of_study))
   })
 
   results_final <- test_final(

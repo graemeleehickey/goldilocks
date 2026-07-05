@@ -28,7 +28,9 @@ NULL
 # Quiets concerns of R CMD check re: no visible binding
 if (getRversion() >= "2.15.1") {
   utils::globalVariables(c(
-    "id", "subject_impute_futility",
-    "subject_impute_success", "treatment"
+    "id",
+    "subject_impute_futility",
+    "subject_impute_success",
+    "treatment"
   ))
 }

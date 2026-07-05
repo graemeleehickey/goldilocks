@@ -111,8 +111,13 @@ sim_trials <- function(
   }
 
   if (!is.null(seed)) {
-    if (length(seed) != 1 || !is.numeric(seed) || is.na(seed) ||
-        !is.finite(seed) || seed != floor(seed)) {
+    if (
+      length(seed) != 1 ||
+        !is.numeric(seed) ||
+        is.na(seed) ||
+        !is.finite(seed) ||
+        seed != floor(seed)
+    ) {
       stop("'seed' must be NULL or a single integer value")
     }
     trial_streams <- make_rng_streams(seed, N_trials)
@@ -159,7 +164,11 @@ sim_trials <- function(
 
 make_rng_streams <- function(seed, n) {
   old_kind <- RNGkind()
-  old_seed_exists <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  old_seed_exists <- exists(
+    ".Random.seed",
+    envir = .GlobalEnv,
+    inherits = FALSE
+  )
   if (old_seed_exists) {
     old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
   }
