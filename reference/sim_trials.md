@@ -57,14 +57,14 @@ sim_trials(
 - lambda:
 
   vector. Enrollment rates across simulated enrollment times. See
-  [`enrollment`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
+  [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
   for more details.
 
 - lambda_time:
 
   vector. Enrollment time(s) at which the enrollment rates change. Must
   be same length as lambda. See
-  [`enrollment`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
+  [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
   for more details.
 
 - interim_look:
@@ -87,10 +87,10 @@ sim_trials(
   parameters are each \\Gamma(a_0, b_0)\\, where \\a_0\\ is the shape
   parameter and \\b_0\\ is the rate parameter (i.e., the inverse of the
   scale). This follows R's
-  [`rgamma`](https://rdrr.io/r/stats/GammaDist.html) parameterization.
-  The same prior is applied to all piecewise intervals and to both
-  treatment groups. The default non-informative prior distribution used
-  is `Gamma(0.1, 0.1)`, which is specified by setting
+  [`stats::rgamma()`](https://rdrr.io/r/stats/GammaDist.html)
+  parameterization. The same prior is applied to all piecewise intervals
+  and to both treatment groups. The default non-informative prior
+  distribution used is `Gamma(0.1, 0.1)`, which is specified by setting
   `prior = c(0.1, 0.1)`.
 
 - block:
@@ -101,7 +101,7 @@ sim_trials(
 
   vector. Randomization allocation for the ratio of control to
   treatment. Integer values mapping the size of the block. See
-  [`randomization`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
+  [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
   for more details.
 
 - prop_loss:
@@ -127,34 +127,45 @@ sim_trials(
 
 - h0:
 
-  scalar. Null hypothesis value of \\p\_\textrm{treatment} -
-  p\_\textrm{control}\\ when `method = "bayes"`. Default is `h0 = 0`. In
-  a single-arm design, `h0` is the external benchmark event probability,
-  often referred to as a performance goal (PG) or objective performance
-  criterion (OPC). The argument is ignored for non-Bayesian analysis
-  methods; in those cases the usual method-specific null hypothesis is
-  used.
+  scalar. Null hypothesis value or margin. Default is `h0 = 0`.
+
+  - When `method = "bayes"`, `h0` is the null value of
+    \\p\_\textrm{treatment} - p\_\textrm{control}\\. In a single-arm
+    design, `h0` is the external benchmark event probability, often
+    referred to as a performance goal (PG) or objective performance
+    criterion (OPC).
+
+  - When `method = "cox"`, `h0` is the null log hazard ratio for
+    treatment versus control. Use `h0 = 0` for the usual hazard ratio of
+    1 null, or `h0 = log(margin)` for a non-inferiority margin specified
+    as a hazard ratio. A Cox non-inferiority test should usually use
+    `alternative = "less"`.
+
+  - The argument is ignored for `method = "logrank"` and
+    `method = "chisq"`; in those cases the usual method-specific null
+    hypothesis is used.
 
 - Fn:
 
-  vector of `[0, 1]` values. Each element is the probability threshold
-  to stop at the \\i\\-th look early for futility. If there are no
-  interim looks (i.e. `interim_look = NULL`), then `Fn` is not used in
-  the simulations or analysis. Set `Fn = 0` to disable futility
+  vector of values between 0 and 1. Each element is the probability
+  threshold to stop at the \\i\\-th look early for futility. If there
+  are no interim looks (i.e. `interim_look = NULL`), then `Fn` is not
+  used in the simulations or analysis. Set `Fn = 0` to disable futility
   monitoring. The length of `Fn` should be the same as `interim_look`,
   else the values are recycled.
 
 - Sn:
 
-  vector of `[0, 1]` values. Each element is the probability threshold
-  to stop at the \\i\\-th look early for expected success. If there are
-  no interim looks (i.e. `interim_look = NULL`), then `Sn` is not used
-  in the simulations or analysis. The length of `Sn` should be the same
-  as `interim_look`, else the values are recycled.
+  vector of values between 0 and 1. Each element is the probability
+  threshold to stop at the \\i\\-th look early for expected success. If
+  there are no interim looks (i.e. `interim_look = NULL`), then `Sn` is
+  not used in the simulations or analysis. The length of `Sn` should be
+  the same as `interim_look`, else the values are recycled.
 
 - prob_ha:
 
-  scalar `[0, 1]`. Probability threshold of alternative hypothesis.
+  scalar value between 0 and 1. Probability threshold of alternative
+  hypothesis.
 
 - N_impute:
 
@@ -183,8 +194,8 @@ sim_trials(
 
   logical. Should the final analysis (after all subjects have been
   followed-up to the study end) be based on imputed outcomes for
-  subjects who were LTFU (i.e. right-censored with time
-  `<end_of_study`)? Default is `TRUE`. Setting to `FALSE` means that the
+  subjects who were LTFU (i.e. right-censored with time less than
+  `end_of_study`)? Default is `TRUE`. Setting to `FALSE` means that the
   final analysis would incorporate right-censoring.
 
 - ncores:
@@ -202,21 +213,21 @@ sim_trials(
 
 Data frame with 1 row per simulated trial and columns for key summary
 statistics. See
-[`survival_adapt`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
 for details of what is returned in each row.
 
 ## Details
 
 This is basically a wrapper function for
-[`survival_adapt`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md),
-whereby we repeatedly run the function for a independent number of
-trials (all with the same input design parameters and treatment effect).
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md),
+whereby we repeatedly run the function for independent trials (all with
+the same input design parameters and treatment effect).
 
-To use will multiple cores (where available), the argument `ncores` can
-be increased from the default of 1. Note: on Windows machines, it is not
-possible to use the
-[`mclapply`](https://rdrr.io/r/parallel/mclapply.html) function with
-`ncores` \\\>1\\.
+To use multiple cores (where available), the argument `ncores` can be
+increased from the default of 1. Note: on Windows machines, it is not
+possible to use
+[`parallel::mclapply()`](https://rdrr.io/r/parallel/mclapply.html) with
+`ncores` \\\> 1\\.
 
 Set `seed` to make `sim_trials()` reproducible. When a seed is supplied,
 `sim_trials()` first generates one independent `"L'Ecuyer-CMRG"` stream

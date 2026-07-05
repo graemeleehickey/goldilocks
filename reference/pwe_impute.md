@@ -37,14 +37,21 @@ event indicator (`event`, 1 = event occurred, 0 = censoring).
 ## Details
 
 If a subject is event-free at time \\s \< t\\, then the conditional
-probability \\F\_{T \\ s}\|(t \\ s) = P\[T \le \\ T \> s\] = (F(t) -
-F(s)) / (1 - F(s))\\, where \\F(\cdot)\\ is the cumulative distribution
-function of the piecewise exponential (PWE) distribution. Equivalently,
-\\F(t) = 1 - S(t)\\, where `S(t)` is the survival function. If \\U \sim
-Unif(0, 1)\\, then we can generate an event time (conditional on being
-event free up until \\s\\) as \\F^{-1}(U(1-F(s)) + F(s))\\. Note: if \\s
-= 0\\, then this is the equivalent of a direct (unconditional) sample
-from the PWE distribution.
+probability is
+
+\$\$F\_{T \| s}(t \| s) = P(T \le t \| T \> s) = \frac{F(t) - F(s)}{1 -
+F(s)}\$\$
+
+where \\F(\cdot)\\ is the cumulative distribution function of the
+piecewise exponential (PWE) distribution. Equivalently, \\F(t) = 1 -
+S(t)\\, where `S(t)` is the survival function. If \\U \sim Unif(0, 1)\\,
+then we can generate an event time (conditional on being event free up
+until \\s\\) as
+
+\$\$F^{-1}(U(1 - F(s)) + F(s))\$\$
+
+If \\s = 0\\, this is equivalent to a direct unconditional sample from
+the PWE distribution.
 
 ## Examples
 

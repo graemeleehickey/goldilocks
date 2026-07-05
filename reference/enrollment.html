@@ -95,14 +95,16 @@ enrollment rate over time:</p>
 $$</p>
 <p>Then, to simulate individual patient enrollment dates with a sample size
 (<code>N_total</code>) of 50, we use</p>
-<p><code>enrollment(lambda = c(0.3, 0.7, 0.9, 1.2), N_total = 50,
-        lambda_time = c(0, 5, 10, 15))</code></p>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">enrollment</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">c</span>(<span class="fl">0.3</span>, <span class="fl">0.7</span>, <span class="fl">0.9</span>, <span class="fl">1.2</span>),</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  <span class="at">N_total =</span> <span class="dv">50</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="at">lambda_time =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">15</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>)</span></code></pre><p></p></div>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>This function is based on the <code>enrollment</code> function from the
-<a href="https://cran.r-project.org/package=bayesCT" class="external-link"><code>bayesCT</code></a>
-R package.</p></div>
+<a href="https://cran.r-project.org/package=bayesCT" class="external-link"><code>bayesCT</code></a> R package.</p></div>
     </div>
 
     <div class="section level2">

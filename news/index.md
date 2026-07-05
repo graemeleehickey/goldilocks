@@ -4,6 +4,9 @@
 
 ### Improvements
 
+- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  now uses `h0` as the null log hazard ratio for Cox model tests,
+  allowing non-inferiority testing with `h0 = log(margin)`.
 - Added maintainer performance benchmarks for simulation hot paths,
   including posterior probability conversion, posterior sampling,
   imputation, and representative
@@ -52,6 +55,9 @@
 
 ### Documentation
 
+- Modernized roxygen2 source comments to use markdown tables, links,
+  code spans, and emphasis in place of older Rd markup where
+  appropriate.
 - Added a new vignette, “Technical details of the Goldilocks design”,
   documenting the design notation, piecewise-exponential event-time
   model, Gamma posterior updating, posterior predictive probabilities,

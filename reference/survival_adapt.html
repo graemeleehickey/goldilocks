@@ -98,12 +98,12 @@ exponential model.</p></dd>
 
 <dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
 <dd><p>vector. Enrollment rates across simulated enrollment times. See
-<code><a href="enrollment.html">enrollment</a></code> for more details.</p></dd>
+<code><a href="enrollment.html">enrollment()</a></code> for more details.</p></dd>
 
 
 <dt id="arg-lambda-time">lambda_time<a class="anchor" aria-label="anchor" href="#arg-lambda-time"></a></dt>
 <dd><p>vector. Enrollment time(s) at which the enrollment rates
-change. Must be same length as lambda. See <code><a href="enrollment.html">enrollment</a></code> for
+change. Must be same length as lambda. See <code><a href="enrollment.html">enrollment()</a></code> for
 more details.</p></dd>
 
 
@@ -125,11 +125,10 @@ will be evaluated.</p></dd>
 <dd><p>vector. The prior distributions for the piecewise hazard rate
 parameters are each \(Gamma(a_0, b_0)\), where \(a_0\) is the shape
 parameter and \(b_0\) is the rate parameter (i.e., the inverse of the
-scale). This follows R's <code><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">rgamma</a></code> parameterization. The
+scale). This follows R's <code><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">stats::rgamma()</a></code> parameterization. The
 same prior is applied to all piecewise intervals and to both treatment
 groups. The default non-informative prior distribution used is
-<code>Gamma(0.1, 0.1)</code>, which is specified by setting <code>prior = c(0.1,
-  0.1)</code>.</p></dd>
+<code>Gamma(0.1, 0.1)</code>, which is specified by setting <code>prior = c(0.1, 0.1)</code>.</p></dd>
 
 
 <dt id="arg-block">block<a class="anchor" aria-label="anchor" href="#arg-block"></a></dt>
@@ -139,7 +138,7 @@ groups. The default non-informative prior distribution used is
 <dt id="arg-rand-ratio">rand_ratio<a class="anchor" aria-label="anchor" href="#arg-rand-ratio"></a></dt>
 <dd><p>vector. Randomization allocation for the ratio of control
 to treatment. Integer values mapping the size of the block. See
-<code><a href="randomization.html">randomization</a></code> for more details.</p></dd>
+<code><a href="randomization.html">randomization()</a></code> for more details.</p></dd>
 
 
 <dt id="arg-prop-loss">prop_loss<a class="anchor" aria-label="anchor" href="#arg-prop-loss"></a></dt>
@@ -155,26 +154,32 @@ right-censored. Defaults to zero.</p></dd>
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
 <dd><p>character. The string specifying the alternative
 hypothesis, must be one of <code>"greater"</code> (default), <code>"less"</code> or
-<code>"two.sided"</code>. All three options are supported for <code>method =
-  "bayes"</code>, <code>"logrank"</code>, and <code>"cox"</code>. The chi-square test
-(<code>method = "chisq"</code>) only supports <code>"two.sided"</code>. For survival
-outcomes, <code>"less"</code> corresponds to the treatment arm having a lower
-cumulative incidence (i.e., treatment is beneficial), and <code>"greater"</code>
+<code>"two.sided"</code>. All three options are supported for <code>method = "bayes"</code>,
+<code>"logrank"</code>, and <code>"cox"</code>. The chi-square test (<code>method = "chisq"</code>) only
+supports <code>"two.sided"</code>. For survival outcomes, <code>"less"</code> corresponds to the
+treatment arm having a lower cumulative incidence (i.e., treatment is
+beneficial), and <code>"greater"</code>
 corresponds to the treatment arm having a higher cumulative incidence.</p></dd>
 
 
 <dt id="arg-h-">h0<a class="anchor" aria-label="anchor" href="#arg-h-"></a></dt>
-<dd><p>scalar. Null hypothesis value of \(p_\textrm{treatment} -
-  p_\textrm{control}\) when <code>method = "bayes"</code>. Default is <code>h0 = 0</code>.
-In a single-arm design, <code>h0</code> is the external benchmark event
-probability, often referred to as a performance goal (PG) or objective
-performance criterion (OPC). The argument is ignored for non-Bayesian
-analysis methods; in those cases the usual method-specific null hypothesis
-is used.</p></dd>
+<dd><p>scalar. Null hypothesis value or margin. Default is <code>h0 = 0</code>.</p><ul><li><p>When <code>method = "bayes"</code>, <code>h0</code> is the null value of
+\(p_\textrm{treatment} - p_\textrm{control}\). In a single-arm design,
+<code>h0</code> is the external benchmark event probability, often referred to
+as a performance goal (PG) or objective performance criterion (OPC).</p></li>
+<li><p>When <code>method = "cox"</code>, <code>h0</code> is the null log hazard ratio for
+treatment versus control. Use <code>h0 = 0</code> for the usual hazard ratio
+of 1 null, or <code>h0 = log(margin)</code> for a non-inferiority margin
+specified as a hazard ratio. A Cox non-inferiority test should usually
+use <code>alternative = "less"</code>.</p></li>
+<li><p>The argument is ignored for <code>method = "logrank"</code> and
+<code>method = "chisq"</code>; in those cases the usual method-specific null
+hypothesis is used.</p></li>
+</ul></dd>
 
 
 <dt id="arg-fn">Fn<a class="anchor" aria-label="anchor" href="#arg-fn"></a></dt>
-<dd><p>vector of <code>[0, 1]</code> values. Each element is the probability
+<dd><p>vector of values between 0 and 1. Each element is the probability
 threshold to stop at the \(i\)-th look early for futility. If there are
 no interim looks (i.e. <code>interim_look = NULL</code>), then <code>Fn</code> is not
 used in the simulations or analysis. Set <code>Fn = 0</code> to disable futility
@@ -183,7 +188,7 @@ monitoring. The length of <code>Fn</code> should be the same as
 
 
 <dt id="arg-sn">Sn<a class="anchor" aria-label="anchor" href="#arg-sn"></a></dt>
-<dd><p>vector of <code>[0, 1]</code> values. Each element is the probability
+<dd><p>vector of values between 0 and 1. Each element is the probability
 threshold to stop at the \(i\)-th look early for expected success. If
 there are no interim looks (i.e. <code>interim_look = NULL</code>), then
 <code>Sn</code> is not used in the simulations or analysis. The length of
@@ -192,7 +197,7 @@ recycled.</p></dd>
 
 
 <dt id="arg-prob-ha">prob_ha<a class="anchor" aria-label="anchor" href="#arg-prob-ha"></a></dt>
-<dd><p>scalar <code>[0, 1]</code>. Probability threshold of alternative
+<dd><p>scalar value between 0 and 1. Probability threshold of alternative
 hypothesis.</p></dd>
 
 
@@ -210,58 +215,22 @@ distribution when using a Bayesian test (<code>method = "bayes"</code>).</p></dd
 <dd><p>character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
 (<code>method = "logrank"</code>) test, Cox proportional hazards regression model
-Wald test (<code>method = "cox"</code>), a fully-Bayesian analysis (<code>method
-  = "bayes"</code>), or a chi-square test (<code>method = "chisq"</code>). See Details
+Wald test (<code>method = "cox"</code>), a fully-Bayesian analysis (<code>method = "bayes"</code>), or a chi-square test (<code>method = "chisq"</code>). See Details
 section.</p></dd>
 
 
 <dt id="arg-imputed-final">imputed_final<a class="anchor" aria-label="anchor" href="#arg-imputed-final"></a></dt>
 <dd><p>logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
-subjects who were LTFU (i.e. right-censored with time
-<code>&lt;end_of_study</code>)? Default is <code>TRUE</code>. Setting to <code>FALSE</code>
+subjects who were LTFU (i.e. right-censored with time less than
+<code>end_of_study</code>)? Default is <code>TRUE</code>. Setting to <code>FALSE</code>
 means that the final analysis would incorporate right-censoring.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A data frame containing some input parameters (arguments) as well as
-statistics from the analysis, including:</p>
-<dl><dt><code>N_treatment:</code></dt>
-<dd><p>integer. The number of patients enrolled in the treatment arm for
-each simulation.</p></dd>
-
-<dt><code>N_control:</code></dt>
-<dd><p>integer. The number of patients enrolled in the control arm for
-each simulation.</p></dd>
-
-<dt><code>est_final:</code></dt>
-<dd><p>scalar. The treatment effect that was estimated at the final analysis.
-Final analysis occurs when either the maximum sample size is reached
-and follow-up complete, or the interim analysis triggered an early
-stopping of enrollment/accrual and follow-up for those subjects is
-complete.</p></dd>
-
-<dt><code>post_prob_ha:</code></dt>
-<dd><p>scalar. The corresponding posterior probability from the final
-analysis. If <code>imputed_final</code> is true, this is calculated as the
-posterior probability of efficacy (or equivalent, depending on how
-<code>alternative:</code> and <code>h0</code> were specified) for each imputed
-final analysis dataset, and then averaged over the <code>N_impute</code>
-imputations. If <code>method = "logrank"</code>, <code>post_prob_ha</code> is
-calculated in the same fashion, but value represents \(1 - P\),
-where \(P\) denotes the frequentist \(P\)-value.</p></dd>
-
-<dt><code>stop_futility:</code></dt>
-<dd><p>integer. A logical indicator of whether the trial was stopped early for
-futility.</p></dd>
-
-<dt><code>stop_expected_success:</code></dt>
-<dd><p>integer. A logical indicator of whether the trial was stopped early for
-expected success.</p></dd>
-
-
-</dl></div>
+statistics from the analysis, including:</p><table class="table table"><tr><td>Column</td><td>Description</td></tr><tr><td><code>N_treatment</code></td><td>Number of patients enrolled in the treatment arm.</td></tr><tr><td><code>N_control</code></td><td>Number of patients enrolled in the control arm.</td></tr><tr><td><code>est_final</code></td><td>Treatment effect estimated at the final analysis. The final analysis occurs when either the maximum sample size is reached and follow-up is complete, or the interim analysis triggered early stopping of enrollment/accrual and follow-up for those subjects is complete.</td></tr><tr><td><code>post_prob_ha</code></td><td>Posterior probability from the final analysis. If <code>imputed_final</code> is <code>TRUE</code>, this is calculated for each imputed final-analysis dataset and averaged over <code>N_impute</code> imputations. If <code>method = "logrank"</code>, the value represents \(1 - P\), where \(P\) is the frequentist <em>P</em>-value.</td></tr><tr><td><code>stop_futility</code></td><td>Logical indicator of whether the trial stopped early for futility.</td></tr><tr><td><code>stop_expected_success</code></td><td>Logical indicator of whether the trial stopped early for expected success.</td></tr></table></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Implements the Goldilocks design method described in Broglio et al.
@@ -299,9 +268,12 @@ one-sided <em>P</em>-value is computed from the log-rank z-statistic.</p></li>
 Similar to the log-rank test, a <em>P</em>-value is calculated and
 \(1 - P\) is reported in <code>post_prob_ha</code>. When
 <code>alternative = "two.sided"</code>, the standard two-sided Wald
-<em>P</em>-value is used. When <code>alternative = "less"</code> or
+<em>P</em>-value is used when <code>h0 = 0</code>. For other values of
+<code>h0</code>, the Wald test is centered on the specified null log hazard
+ratio. When <code>alternative = "less"</code> or
 <code>"greater"</code>, a one-sided <em>P</em>-value is derived from the Wald
-z-statistic. The treatment effect (log hazard ratio) is also reported.</p></li>
+z-statistic relative to <code>h0</code>. The treatment effect (log hazard
+ratio) is also reported.</p></li>
 <li><p>Bayesian absolute difference (<code>method = "bayes"</code>).
 Each imputed dataset is used to update the conjugate Gamma prior
 (defined by <code>prior</code>), yielding a posterior distribution for the
@@ -311,15 +283,15 @@ distribution of the cumulative incidence function (\(1 - S(t)\), where
 <code>end_of_study</code> is calculated. If a single-arm study, then this
 summarizes the treatment effect, else, if a two-armed study, the
 independent posteriors are used to estimate the posterior distribution
-of the difference. A posterior probability is calculated according to
-the specification of the test type (<code>alternative</code>) and the value of
-the null hypothesis (<code>h0</code>).</p></li>
+of the difference. A posterior probability is calculated according to the
+specification of the test type (<code>alternative</code>) and the value of the null
+hypothesis (<code>h0</code>).</p></li>
 <li><p>Chi-square test (<code>method = "chisq"</code>).
 Each (imputed) dataset with both treatment and control arms can be
 compared using a standard chi-square test on the final event status,
-which discards the event time information. The output is a
-<em>P</em>-value, and there is no treatment effect reported. The function
-returns \(1 - P\), which is reported in <code>post_prob_ha</code>. Whilst
+which discards the event time information. The output is a <em>P</em>-value,
+and there is no treatment effect reported. The function returns \(1 -
+     P\), which is reported in <code>post_prob_ha</code>. Whilst
 not a posterior probability, it can be contrasted in the same manner.
 For example, if the success threshold is \(P &lt; 0.05\), then one
 requires <code>post_prob_ha</code> \(&gt; 0.95\). The reason for this is to
@@ -348,8 +320,8 @@ is estimated from the combined observed and imputed data, and this
 posterior is used for inference. This is consistent with the predictive
 probability framework described in Broglio et al. (2014), but users
 should be aware that the imputation model's posterior influences the
-analysis posterior. For frequentist methods (<code>"logrank"</code>,
-<code>"cox"</code>, <code>"chisq"</code>), the second stage uses a standard test
+analysis posterior. For frequentist methods (<code>"logrank"</code>, <code>"cox"</code>,
+<code>"chisq"</code>), the second stage uses a standard test
 rather than a posterior, so this feedback loop does not arise.</p>
 <p>At each interim look, follow-up times are masked (censored) to reflect
 the calendar time of the analysis. The package treats enrollment and
@@ -362,8 +334,8 @@ posterior. This affects at most one subject per interim look.</p>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks
-approach to sample size selection. <em>Journal of Biopharmaceutical
-Statistics</em>, 2014; 24(3): 685–705.</p>
+approach to sample size selection. <em>Journal of Biopharmaceutical Statistics</em>,
+2014; 24(3): 685–705.</p>
     </div>
 
     <div class="section level2">

@@ -17,8 +17,7 @@ prop_to_haz(probs, cutpoints = 0, endtime)
 
   vector. Probabilities of the event (i.e. cumulative incidence
   probabilities) at one or more time point. If only a single value is
-  given, then it is assumed that this is the probability at the
-  `endtime`.
+  given, then it is assumed that this is the probability at `endtime`.
 
 - cutpoints:
 

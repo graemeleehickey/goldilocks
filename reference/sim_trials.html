@@ -101,12 +101,12 @@ exponential model.</p></dd>
 
 <dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
 <dd><p>vector. Enrollment rates across simulated enrollment times. See
-<code><a href="enrollment.html">enrollment</a></code> for more details.</p></dd>
+<code><a href="enrollment.html">enrollment()</a></code> for more details.</p></dd>
 
 
 <dt id="arg-lambda-time">lambda_time<a class="anchor" aria-label="anchor" href="#arg-lambda-time"></a></dt>
 <dd><p>vector. Enrollment time(s) at which the enrollment rates
-change. Must be same length as lambda. See <code><a href="enrollment.html">enrollment</a></code> for
+change. Must be same length as lambda. See <code><a href="enrollment.html">enrollment()</a></code> for
 more details.</p></dd>
 
 
@@ -128,11 +128,10 @@ will be evaluated.</p></dd>
 <dd><p>vector. The prior distributions for the piecewise hazard rate
 parameters are each \(Gamma(a_0, b_0)\), where \(a_0\) is the shape
 parameter and \(b_0\) is the rate parameter (i.e., the inverse of the
-scale). This follows R's <code><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">rgamma</a></code> parameterization. The
+scale). This follows R's <code><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">stats::rgamma()</a></code> parameterization. The
 same prior is applied to all piecewise intervals and to both treatment
 groups. The default non-informative prior distribution used is
-<code>Gamma(0.1, 0.1)</code>, which is specified by setting <code>prior = c(0.1,
-  0.1)</code>.</p></dd>
+<code>Gamma(0.1, 0.1)</code>, which is specified by setting <code>prior = c(0.1, 0.1)</code>.</p></dd>
 
 
 <dt id="arg-block">block<a class="anchor" aria-label="anchor" href="#arg-block"></a></dt>
@@ -142,7 +141,7 @@ groups. The default non-informative prior distribution used is
 <dt id="arg-rand-ratio">rand_ratio<a class="anchor" aria-label="anchor" href="#arg-rand-ratio"></a></dt>
 <dd><p>vector. Randomization allocation for the ratio of control
 to treatment. Integer values mapping the size of the block. See
-<code><a href="randomization.html">randomization</a></code> for more details.</p></dd>
+<code><a href="randomization.html">randomization()</a></code> for more details.</p></dd>
 
 
 <dt id="arg-prop-loss">prop_loss<a class="anchor" aria-label="anchor" href="#arg-prop-loss"></a></dt>
@@ -158,26 +157,32 @@ right-censored. Defaults to zero.</p></dd>
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
 <dd><p>character. The string specifying the alternative
 hypothesis, must be one of <code>"greater"</code> (default), <code>"less"</code> or
-<code>"two.sided"</code>. All three options are supported for <code>method =
-  "bayes"</code>, <code>"logrank"</code>, and <code>"cox"</code>. The chi-square test
-(<code>method = "chisq"</code>) only supports <code>"two.sided"</code>. For survival
-outcomes, <code>"less"</code> corresponds to the treatment arm having a lower
-cumulative incidence (i.e., treatment is beneficial), and <code>"greater"</code>
+<code>"two.sided"</code>. All three options are supported for <code>method = "bayes"</code>,
+<code>"logrank"</code>, and <code>"cox"</code>. The chi-square test (<code>method = "chisq"</code>) only
+supports <code>"two.sided"</code>. For survival outcomes, <code>"less"</code> corresponds to the
+treatment arm having a lower cumulative incidence (i.e., treatment is
+beneficial), and <code>"greater"</code>
 corresponds to the treatment arm having a higher cumulative incidence.</p></dd>
 
 
 <dt id="arg-h-">h0<a class="anchor" aria-label="anchor" href="#arg-h-"></a></dt>
-<dd><p>scalar. Null hypothesis value of \(p_\textrm{treatment} -
-  p_\textrm{control}\) when <code>method = "bayes"</code>. Default is <code>h0 = 0</code>.
-In a single-arm design, <code>h0</code> is the external benchmark event
-probability, often referred to as a performance goal (PG) or objective
-performance criterion (OPC). The argument is ignored for non-Bayesian
-analysis methods; in those cases the usual method-specific null hypothesis
-is used.</p></dd>
+<dd><p>scalar. Null hypothesis value or margin. Default is <code>h0 = 0</code>.</p><ul><li><p>When <code>method = "bayes"</code>, <code>h0</code> is the null value of
+\(p_\textrm{treatment} - p_\textrm{control}\). In a single-arm design,
+<code>h0</code> is the external benchmark event probability, often referred to
+as a performance goal (PG) or objective performance criterion (OPC).</p></li>
+<li><p>When <code>method = "cox"</code>, <code>h0</code> is the null log hazard ratio for
+treatment versus control. Use <code>h0 = 0</code> for the usual hazard ratio
+of 1 null, or <code>h0 = log(margin)</code> for a non-inferiority margin
+specified as a hazard ratio. A Cox non-inferiority test should usually
+use <code>alternative = "less"</code>.</p></li>
+<li><p>The argument is ignored for <code>method = "logrank"</code> and
+<code>method = "chisq"</code>; in those cases the usual method-specific null
+hypothesis is used.</p></li>
+</ul></dd>
 
 
 <dt id="arg-fn">Fn<a class="anchor" aria-label="anchor" href="#arg-fn"></a></dt>
-<dd><p>vector of <code>[0, 1]</code> values. Each element is the probability
+<dd><p>vector of values between 0 and 1. Each element is the probability
 threshold to stop at the \(i\)-th look early for futility. If there are
 no interim looks (i.e. <code>interim_look = NULL</code>), then <code>Fn</code> is not
 used in the simulations or analysis. Set <code>Fn = 0</code> to disable futility
@@ -186,7 +191,7 @@ monitoring. The length of <code>Fn</code> should be the same as
 
 
 <dt id="arg-sn">Sn<a class="anchor" aria-label="anchor" href="#arg-sn"></a></dt>
-<dd><p>vector of <code>[0, 1]</code> values. Each element is the probability
+<dd><p>vector of values between 0 and 1. Each element is the probability
 threshold to stop at the \(i\)-th look early for expected success. If
 there are no interim looks (i.e. <code>interim_look = NULL</code>), then
 <code>Sn</code> is not used in the simulations or analysis. The length of
@@ -195,7 +200,7 @@ recycled.</p></dd>
 
 
 <dt id="arg-prob-ha">prob_ha<a class="anchor" aria-label="anchor" href="#arg-prob-ha"></a></dt>
-<dd><p>scalar <code>[0, 1]</code>. Probability threshold of alternative
+<dd><p>scalar value between 0 and 1. Probability threshold of alternative
 hypothesis.</p></dd>
 
 
@@ -217,16 +222,15 @@ distribution when using a Bayesian test (<code>method = "bayes"</code>).</p></dd
 <dd><p>character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
 (<code>method = "logrank"</code>) test, Cox proportional hazards regression model
-Wald test (<code>method = "cox"</code>), a fully-Bayesian analysis (<code>method
-  = "bayes"</code>), or a chi-square test (<code>method = "chisq"</code>). See Details
+Wald test (<code>method = "cox"</code>), a fully-Bayesian analysis (<code>method = "bayes"</code>), or a chi-square test (<code>method = "chisq"</code>). See Details
 section.</p></dd>
 
 
 <dt id="arg-imputed-final">imputed_final<a class="anchor" aria-label="anchor" href="#arg-imputed-final"></a></dt>
 <dd><p>logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
-subjects who were LTFU (i.e. right-censored with time
-<code>&lt;end_of_study</code>)? Default is <code>TRUE</code>. Setting to <code>FALSE</code>
+subjects who were LTFU (i.e. right-censored with time less than
+<code>end_of_study</code>)? Default is <code>TRUE</code>. Setting to <code>FALSE</code>
 means that the final analysis would incorporate right-censoring.</p></dd>
 
 
@@ -244,19 +248,17 @@ simulation behavior.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Data frame with 1 row per simulated trial and columns for key summary
-statistics. See <code><a href="survival_adapt.html">survival_adapt</a></code> for details of what is
-returned in each row.</p>
+statistics. See <code><a href="survival_adapt.html">survival_adapt()</a></code> for details of what is returned in each
+row.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>This is basically a wrapper function for
-<code><a href="survival_adapt.html">survival_adapt</a></code>, whereby we repeatedly run the function for a
-independent number of trials (all with the same input design parameters and
-treatment effect).</p>
-<p>To use will multiple cores (where available), the argument <code>ncores</code>
+<code><a href="survival_adapt.html">survival_adapt()</a></code>, whereby we repeatedly run the function for independent
+trials (all with the same input design parameters and treatment effect).</p>
+<p>To use multiple cores (where available), the argument <code>ncores</code>
 can be increased from the default of 1. Note: on Windows machines, it is
-not possible to use the <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></code> function with
-<code>ncores</code> \(&gt;1\).</p>
+not possible to use <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply()</a></code> with <code>ncores</code> \(&gt; 1\).</p>
 <p>Set <code>seed</code> to make <code>sim_trials()</code> reproducible. When a seed is
 supplied, <code>sim_trials()</code> first generates one independent
 <code>"L'Ecuyer-CMRG"</code> stream for each simulated trial, then each call to

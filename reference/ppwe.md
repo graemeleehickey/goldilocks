@@ -1,6 +1,6 @@
 # Cumulative distribution function of the PWE for a vectorized hazard rate parameter
 
-Extends the [`pwe`](https://rdrr.io/pkg/PWEALL/man/pwe.html) function to
+Extends [`PWEALL::pwe()`](https://rdrr.io/pkg/PWEALL/man/pwe.html) to
 allow for vectorization over the hazard rates.
 
 ## Usage

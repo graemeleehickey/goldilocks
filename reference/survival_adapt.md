@@ -54,14 +54,14 @@ survival_adapt(
 - lambda:
 
   vector. Enrollment rates across simulated enrollment times. See
-  [`enrollment`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
+  [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
   for more details.
 
 - lambda_time:
 
   vector. Enrollment time(s) at which the enrollment rates change. Must
   be same length as lambda. See
-  [`enrollment`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
+  [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
   for more details.
 
 - interim_look:
@@ -84,10 +84,10 @@ survival_adapt(
   parameters are each \\Gamma(a_0, b_0)\\, where \\a_0\\ is the shape
   parameter and \\b_0\\ is the rate parameter (i.e., the inverse of the
   scale). This follows R's
-  [`rgamma`](https://rdrr.io/r/stats/GammaDist.html) parameterization.
-  The same prior is applied to all piecewise intervals and to both
-  treatment groups. The default non-informative prior distribution used
-  is `Gamma(0.1, 0.1)`, which is specified by setting
+  [`stats::rgamma()`](https://rdrr.io/r/stats/GammaDist.html)
+  parameterization. The same prior is applied to all piecewise intervals
+  and to both treatment groups. The default non-informative prior
+  distribution used is `Gamma(0.1, 0.1)`, which is specified by setting
   `prior = c(0.1, 0.1)`.
 
 - block:
@@ -98,7 +98,7 @@ survival_adapt(
 
   vector. Randomization allocation for the ratio of control to
   treatment. Integer values mapping the size of the block. See
-  [`randomization`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
+  [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
   for more details.
 
 - prop_loss:
@@ -124,34 +124,45 @@ survival_adapt(
 
 - h0:
 
-  scalar. Null hypothesis value of \\p\_\textrm{treatment} -
-  p\_\textrm{control}\\ when `method = "bayes"`. Default is `h0 = 0`. In
-  a single-arm design, `h0` is the external benchmark event probability,
-  often referred to as a performance goal (PG) or objective performance
-  criterion (OPC). The argument is ignored for non-Bayesian analysis
-  methods; in those cases the usual method-specific null hypothesis is
-  used.
+  scalar. Null hypothesis value or margin. Default is `h0 = 0`.
+
+  - When `method = "bayes"`, `h0` is the null value of
+    \\p\_\textrm{treatment} - p\_\textrm{control}\\. In a single-arm
+    design, `h0` is the external benchmark event probability, often
+    referred to as a performance goal (PG) or objective performance
+    criterion (OPC).
+
+  - When `method = "cox"`, `h0` is the null log hazard ratio for
+    treatment versus control. Use `h0 = 0` for the usual hazard ratio of
+    1 null, or `h0 = log(margin)` for a non-inferiority margin specified
+    as a hazard ratio. A Cox non-inferiority test should usually use
+    `alternative = "less"`.
+
+  - The argument is ignored for `method = "logrank"` and
+    `method = "chisq"`; in those cases the usual method-specific null
+    hypothesis is used.
 
 - Fn:
 
-  vector of `[0, 1]` values. Each element is the probability threshold
-  to stop at the \\i\\-th look early for futility. If there are no
-  interim looks (i.e. `interim_look = NULL`), then `Fn` is not used in
-  the simulations or analysis. Set `Fn = 0` to disable futility
+  vector of values between 0 and 1. Each element is the probability
+  threshold to stop at the \\i\\-th look early for futility. If there
+  are no interim looks (i.e. `interim_look = NULL`), then `Fn` is not
+  used in the simulations or analysis. Set `Fn = 0` to disable futility
   monitoring. The length of `Fn` should be the same as `interim_look`,
   else the values are recycled.
 
 - Sn:
 
-  vector of `[0, 1]` values. Each element is the probability threshold
-  to stop at the \\i\\-th look early for expected success. If there are
-  no interim looks (i.e. `interim_look = NULL`), then `Sn` is not used
-  in the simulations or analysis. The length of `Sn` should be the same
-  as `interim_look`, else the values are recycled.
+  vector of values between 0 and 1. Each element is the probability
+  threshold to stop at the \\i\\-th look early for expected success. If
+  there are no interim looks (i.e. `interim_look = NULL`), then `Sn` is
+  not used in the simulations or analysis. The length of `Sn` should be
+  the same as `interim_look`, else the values are recycled.
 
 - prob_ha:
 
-  scalar `[0, 1]`. Probability threshold of alternative hypothesis.
+  scalar value between 0 and 1. Probability threshold of alternative
+  hypothesis.
 
 - N_impute:
 
@@ -176,8 +187,8 @@ survival_adapt(
 
   logical. Should the final analysis (after all subjects have been
   followed-up to the study end) be based on imputed outcomes for
-  subjects who were LTFU (i.e. right-censored with time
-  `<end_of_study`)? Default is `TRUE`. Setting to `FALSE` means that the
+  subjects who were LTFU (i.e. right-censored with time less than
+  `end_of_study`)? Default is `TRUE`. Setting to `FALSE` means that the
   final analysis would incorporate right-censoring.
 
 ## Value
@@ -185,44 +196,15 @@ survival_adapt(
 A data frame containing some input parameters (arguments) as well as
 statistics from the analysis, including:
 
-- `N_treatment:`:
-
-  integer. The number of patients enrolled in the treatment arm for each
-  simulation.
-
-- `N_control:`:
-
-  integer. The number of patients enrolled in the control arm for each
-  simulation.
-
-- `est_final:`:
-
-  scalar. The treatment effect that was estimated at the final analysis.
-  Final analysis occurs when either the maximum sample size is reached
-  and follow-up complete, or the interim analysis triggered an early
-  stopping of enrollment/accrual and follow-up for those subjects is
-  complete.
-
-- `post_prob_ha:`:
-
-  scalar. The corresponding posterior probability from the final
-  analysis. If `imputed_final` is true, this is calculated as the
-  posterior probability of efficacy (or equivalent, depending on how
-  `alternative:` and `h0` were specified) for each imputed final
-  analysis dataset, and then averaged over the `N_impute` imputations.
-  If `method = "logrank"`, `post_prob_ha` is calculated in the same
-  fashion, but value represents \\1 - P\\, where \\P\\ denotes the
-  frequentist \\P\\-value.
-
-- `stop_futility:`:
-
-  integer. A logical indicator of whether the trial was stopped early
-  for futility.
-
-- `stop_expected_success:`:
-
-  integer. A logical indicator of whether the trial was stopped early
-  for expected success.
+|  |  |
+|----|----|
+| Column | Description |
+| `N_treatment` | Number of patients enrolled in the treatment arm. |
+| `N_control` | Number of patients enrolled in the control arm. |
+| `est_final` | Treatment effect estimated at the final analysis. The final analysis occurs when either the maximum sample size is reached and follow-up is complete, or the interim analysis triggered early stopping of enrollment/accrual and follow-up for those subjects is complete. |
+| `post_prob_ha` | Posterior probability from the final analysis. If `imputed_final` is `TRUE`, this is calculated for each imputed final-analysis dataset and averaged over `N_impute` imputations. If `method = "logrank"`, the value represents \\1 - P\\, where \\P\\ is the frequentist *P*-value. |
+| `stop_futility` | Logical indicator of whether the trial stopped early for futility. |
+| `stop_expected_success` | Logical indicator of whether the trial stopped early for expected success. |
 
 ## Details
 
@@ -273,9 +255,11 @@ At each interim (and final) analysis methods as:
 - Cox proportional hazards regression Wald test (`method = "cox"`).
   Similar to the log-rank test, a *P*-value is calculated and \\1 - P\\
   is reported in `post_prob_ha`. When `alternative = "two.sided"`, the
-  standard two-sided Wald *P*-value is used. When `alternative = "less"`
-  or `"greater"`, a one-sided *P*-value is derived from the Wald
-  z-statistic. The treatment effect (log hazard ratio) is also reported.
+  standard two-sided Wald *P*-value is used when `h0 = 0`. For other
+  values of `h0`, the Wald test is centered on the specified null log
+  hazard ratio. When `alternative = "less"` or `"greater"`, a one-sided
+  *P*-value is derived from the Wald z-statistic relative to `h0`. The
+  treatment effect (log hazard ratio) is also reported.
 
 - Bayesian absolute difference (`method = "bayes"`). Each imputed
   dataset is used to update the conjugate Gamma prior (defined by

@@ -76,21 +76,22 @@ always be 0.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data frame with simulated follow-up times (<code>time</code>) and
-respective event indicator (<code>event</code>, 1 = event occurred, 0 =
-censoring).</p>
+    <p>A data frame with simulated follow-up times (<code>time</code>) and respective
+event indicator (<code>event</code>, 1 = event occurred, 0 = censoring).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>If a subject is event-free at time \(s &lt; t\), then the conditional
-probability \(F_{T \| s}|(t \| s) = P[T \le \| T &gt; s] = (F(t) - F(s)) /
-  (1 - F(s))\), where \(F(\cdot)\) is the cumulative distribution function
-of the piecewise exponential (PWE) distribution. Equivalently, \(F(t) =
-  1 - S(t)\), where <code>S(t)</code> is the survival function. If \(U \sim
-  Unif(0, 1)\), then we can generate an event time (conditional on being event
-free up until \(s\)) as \(F^{-1}(U(1-F(s)) + F(s))\). Note: if \(s =
-  0\), then this is the equivalent of a direct (unconditional) sample from the
-PWE distribution.</p>
+probability is</p>
+<p>$$F_{T | s}(t | s) = P(T \le t | T &gt; s) = \frac{F(t) - F(s)}{1 - F(s)}$$</p>
+<p>where \(F(\cdot)\) is the cumulative distribution function of the
+piecewise exponential (PWE) distribution. Equivalently, \(F(t) = 1 -
+  S(t)\), where <code>S(t)</code> is the survival function. If \(U \sim Unif(0, 1)\),
+then we can generate an event time (conditional on being event free up
+until \(s\)) as</p>
+<p>$$F^{-1}(U(1 - F(s)) + F(s))$$</p>
+<p>If \(s = 0\), this is equivalent to a direct unconditional sample from
+the PWE distribution.</p>
     </div>
 
     <div class="section level2">

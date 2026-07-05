@@ -43,14 +43,14 @@ sim_comp_data(
 - lambda:
 
   vector. Enrollment rates across simulated enrollment times. See
-  [`enrollment`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
+  [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
   for more details.
 
 - lambda_time:
 
   vector. Enrollment time(s) at which the enrollment rates change. Must
   be same length as lambda. See
-  [`enrollment`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
+  [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
   for more details.
 
 - end_of_study:
@@ -66,7 +66,7 @@ sim_comp_data(
 
   vector. Randomization allocation for the ratio of control to
   treatment. Integer values mapping the size of the block. See
-  [`randomization`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
+  [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
   for more details.
 
 - prop_loss:
@@ -83,32 +83,12 @@ sim_comp_data(
 
 A data frame with 1 row per subject and columns:
 
-- `time:`:
-
-  numeric. Time of event or censoring time.
-
-- `treatment:`:
-
-  integer. Treatment assignment, coded `1L` for the treatment arm and
-  `0L` for the control arm. Single-arm designs have `treatment = 1L` for
-  every subject.
-
-- `event:`:
-
-  integer. Indicator of whether event occurred (`=1L` if occurred and
-  `=0L` if right-censored).
-
-- `enrollment:`:
-
-  numeric. Time of patient enrollment relative to the time the trial
-  enrolled the first patient. The package treats enrollment and
-  randomization as occurring at the same time.
-
-- `id:`:
-
-  integer. Identification number for each patient.
-
-- `loss_to_fu:`:
-
-  logical. Indicator of whether the patient was lost to follow-up during
-  the course of observation.
+|  |  |
+|----|----|
+| Column | Description |
+| `time` | Time of event or censoring time. |
+| `treatment` | Treatment assignment, coded `1L` for the treatment arm and `0L` for the control arm. Single-arm designs have `treatment = 1L` for every subject. |
+| `event` | Indicator of whether event occurred (`1L` if occurred and `0L` if right-censored). |
+| `enrollment` | Time of patient enrollment relative to the time the trial enrolled the first patient. The package treats enrollment and randomization as occurring at the same time. |
+| `id` | Identification number for each patient. |
+| `loss_to_fu` | Indicator of whether the patient was lost to follow-up during observation. |

@@ -13,7 +13,7 @@ pwe_sim(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL)
 
 - n:
 
-  integer. The number of random samples to generate. Default is `n=1`.
+  integer. The number of random samples to generate. Default is `n = 1`.
 
 - hazard:
 
@@ -36,7 +36,7 @@ event indicator (`event`, 1 = event occurred, 0 = censoring).
 ## Details
 
 See
-[`pwe_impute`](https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.md)
+[`pwe_impute()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.md)
 for details.
 
 ## Examples

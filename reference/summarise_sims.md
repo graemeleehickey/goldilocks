@@ -14,7 +14,7 @@ summarise_sims(data)
 
   list (of data frames) or a single data frame. If summarizing a single
   run of simulations, `data` will be a `data.frame` object returned from
-  [`survival_adapt`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
   If summarizing multiple simulation scenarios, `data` will be a `list`
   object, with each element being a `data.frame` object.
 

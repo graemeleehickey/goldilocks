@@ -50,7 +50,11 @@ in enrollment rate over time:
 Then, to simulate individual patient enrollment dates with a sample size
 (`N_total`) of 50, we use
 
-`enrollment(lambda = c(0.3, 0.7, 0.9, 1.2), N_total = 50, lambda_time = c(0, 5, 10, 15))`
+    enrollment(
+      lambda = c(0.3, 0.7, 0.9, 1.2),
+      N_total = 50,
+      lambda_time = c(0, 5, 10, 15)
+    )
 
 ## See also
 

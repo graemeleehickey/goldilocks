@@ -87,12 +87,12 @@ exponential model.</p></dd>
 
 <dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
 <dd><p>vector. Enrollment rates across simulated enrollment times. See
-<code><a href="enrollment.html">enrollment</a></code> for more details.</p></dd>
+<code><a href="enrollment.html">enrollment()</a></code> for more details.</p></dd>
 
 
 <dt id="arg-lambda-time">lambda_time<a class="anchor" aria-label="anchor" href="#arg-lambda-time"></a></dt>
 <dd><p>vector. Enrollment time(s) at which the enrollment rates
-change. Must be same length as lambda. See <code><a href="enrollment.html">enrollment</a></code> for
+change. Must be same length as lambda. See <code><a href="enrollment.html">enrollment()</a></code> for
 more details.</p></dd>
 
 
@@ -108,7 +108,7 @@ will be evaluated.</p></dd>
 <dt id="arg-rand-ratio">rand_ratio<a class="anchor" aria-label="anchor" href="#arg-rand-ratio"></a></dt>
 <dd><p>vector. Randomization allocation for the ratio of control
 to treatment. Integer values mapping the size of the block. See
-<code><a href="randomization.html">randomization</a></code> for more details.</p></dd>
+<code><a href="randomization.html">randomization()</a></code> for more details.</p></dd>
 
 
 <dt id="arg-prop-loss">prop_loss<a class="anchor" aria-label="anchor" href="#arg-prop-loss"></a></dt>
@@ -123,32 +123,7 @@ right-censored. Defaults to zero.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data frame with 1 row per subject and columns:</p><dl><dt><code>time:</code></dt>
-<dd><p>numeric. Time of event or censoring time.</p></dd>
-
-<dt><code>treatment:</code></dt>
-<dd><p>integer. Treatment assignment, coded <code>1L</code> for the treatment arm
-and <code>0L</code> for the control arm. Single-arm designs have
-<code>treatment = 1L</code> for every subject.</p></dd>
-
-<dt><code>event:</code></dt>
-<dd><p>integer. Indicator of whether event occurred (<code>=1L</code> if occurred
-and <code>=0L</code> if right-censored).</p></dd>
-
-<dt><code>enrollment:</code></dt>
-<dd><p>numeric. Time of patient enrollment relative to the time the trial
-enrolled the first patient. The package treats enrollment and
-randomization as occurring at the same time.</p></dd>
-
-<dt><code>id:</code></dt>
-<dd><p>integer. Identification number for each patient.</p></dd>
-
-<dt><code>loss_to_fu:</code></dt>
-<dd><p>logical. Indicator of whether the patient was lost to follow-up during
-the course of observation.</p></dd>
-
-
-</dl></div>
+    <p>A data frame with 1 row per subject and columns:</p><table class="table table"><tr><td>Column</td><td>Description</td></tr><tr><td><code>time</code></td><td>Time of event or censoring time.</td></tr><tr><td><code>treatment</code></td><td>Treatment assignment, coded <code>1L</code> for the treatment arm and <code>0L</code> for the control arm. Single-arm designs have <code>treatment = 1L</code> for every subject.</td></tr><tr><td><code>event</code></td><td>Indicator of whether event occurred (<code>1L</code> if occurred and <code>0L</code> if right-censored).</td></tr><tr><td><code>enrollment</code></td><td>Time of patient enrollment relative to the time the trial enrolled the first patient. The package treats enrollment and randomization as occurring at the same time.</td></tr><tr><td><code>id</code></td><td>Identification number for each patient.</td></tr><tr><td><code>loss_to_fu</code></td><td>Indicator of whether the patient was lost to follow-up during observation.</td></tr></table></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
