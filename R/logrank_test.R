@@ -23,12 +23,11 @@
 #' @keywords internal
 #' @useDynLib goldilocks, .registration = TRUE
 logrank_test <- function(
-    groupa,
-    groupb,
-    groupacensored,
-    groupbcensored,
-    onlyz = FALSE) {
-
-    logrank_instance(groupa, groupb, groupacensored, groupbcensored, onlyz)
-
+  groupa,
+  groupb,
+  groupacensored,
+  groupbcensored,
+  onlyz = FALSE
+) {
+  logrank_instance(groupa, groupb, groupacensored, groupbcensored, onlyz)
 }

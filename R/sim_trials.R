@@ -68,31 +68,30 @@
 
 sim_trials <- function(
   hazard_treatment,
-  hazard_control    = NULL,
-  cutpoints         = 0,
+  hazard_control = NULL,
+  cutpoints = 0,
   N_total,
-  lambda            = 0.3,
-  lambda_time       = 0,
-  interim_look      = NULL,
+  lambda = 0.3,
+  lambda_time = 0,
+  interim_look = NULL,
   end_of_study,
-  prior             = c(0.1, 0.1),
-  block             = 2,
-  rand_ratio        = c(1, 1),
-  prop_loss         = 0,
-  alternative       = "two.sided",
-  h0                = 0,
-  Fn                = 0.1,
-  Sn                = 0.9,
-  prob_ha           = 0.95,
-  N_impute          = 10,
-  N_mcmc            = 10,
-  N_trials          = 10,
-  method            = "logrank",
-  imputed_final     = FALSE,
-  ncores            = 1L,
-  seed              = NULL
+  prior = c(0.1, 0.1),
+  block = 2,
+  rand_ratio = c(1, 1),
+  prop_loss = 0,
+  alternative = "two.sided",
+  h0 = 0,
+  Fn = 0.1,
+  Sn = 0.9,
+  prob_ha = 0.95,
+  N_impute = 10,
+  N_mcmc = 10,
+  N_trials = 10,
+  method = "logrank",
+  imputed_final = FALSE,
+  ncores = 1L,
+  seed = NULL
 ) {
-
   Call <- match.call()
 
   # Check: missing 'ncores' defaults to maximum available (spare 1)
@@ -127,26 +126,27 @@ sim_trials <- function(
     }
     survival_adapt(
       hazard_treatment = hazard_treatment,
-      hazard_control   = hazard_control,
-      cutpoints        = cutpoints,
-      N_total          = N_total,
-      lambda           = lambda,
-      lambda_time      = lambda_time,
-      interim_look     = interim_look,
-      end_of_study     = end_of_study,
-      prior            = prior,
-      block            = block,
-      rand_ratio       = rand_ratio,
-      prop_loss        = prop_loss,
-      alternative      = alternative,
-      h0               = h0,
-      Fn               = Fn,
-      Sn               = Sn,
-      prob_ha          = prob_ha,
-      N_impute         = N_impute,
-      N_mcmc           = N_mcmc,
-      method           = method,
-      imputed_final    = imputed_final)
+      hazard_control = hazard_control,
+      cutpoints = cutpoints,
+      N_total = N_total,
+      lambda = lambda,
+      lambda_time = lambda_time,
+      interim_look = interim_look,
+      end_of_study = end_of_study,
+      prior = prior,
+      block = block,
+      rand_ratio = rand_ratio,
+      prop_loss = prop_loss,
+      alternative = alternative,
+      h0 = h0,
+      Fn = Fn,
+      Sn = Sn,
+      prob_ha = prob_ha,
+      N_impute = N_impute,
+      N_mcmc = N_mcmc,
+      method = method,
+      imputed_final = imputed_final
+    )
   }
 
   sims <- pbmclapply(1:N_trials, survival_adapt_wrapper, mc.cores = ncores)
@@ -155,7 +155,6 @@ sim_trials <- function(
   out <- list(sims = sims, call = Call)
 
   return(out)
-
 }
 
 make_rng_streams <- function(seed, n) {

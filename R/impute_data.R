@@ -30,7 +30,6 @@
 #' @noRd
 impute_data <- function(data_in, hazard, end_of_study, cutpoints, type,
                         single_arm) {
-
   stopifnot(dim(hazard)[1] == 1) # otherwise, need to use vectorized ppwe()
 
   # Start from the original data and update only the rows that need imputation.
@@ -43,18 +42,22 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoints, type,
   if (type == "success") {
     subject_requires_imputation <- data_in$subject_impute_success
     impute <- function(idx, hazard_slice) {
-      pwe_impute(time      = data_in$time[idx],
-                 hazard    = hazard[1, , hazard_slice],
-                 maxtime   = end_of_study,
-                 cutpoints = cutpoints)
+      pwe_impute(
+        time = data_in$time[idx],
+        hazard = hazard[1, , hazard_slice],
+        maxtime = end_of_study,
+        cutpoints = cutpoints
+      )
     }
   } else if (type == "futility") {
     subject_requires_imputation <- data_in$subject_impute_futility
     impute <- function(idx, hazard_slice) {
-      pwe_sim(n         = sum(idx),
-              hazard    = hazard[1, , hazard_slice],
-              maxtime   = end_of_study,
-              cutpoints = cutpoints)
+      pwe_sim(
+        n = sum(idx),
+        hazard = hazard[1, , hazard_slice],
+        maxtime = end_of_study,
+        cutpoints = cutpoints
+      )
     }
   } else {
     stop("'type' must be either 'success' or 'futility'")
@@ -83,5 +86,4 @@ impute_data <- function(data_in, hazard, end_of_study, cutpoints, type,
   }
 
   return(data_impute)
-
 }

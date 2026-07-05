@@ -22,7 +22,6 @@
 #'
 #' @noRd
 posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
-
   n_intervals <- length(cutpoints)
 
   # Verify the expected treatment groups are actually present before
@@ -96,12 +95,12 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
     for (j in 1:n_intervals) {
       post[, j, 2] <- with(
         subset(data_summ, treatment == 0),
-        rgamma(N_mcmc, prior[1] + tot_events[j], prior[2] + tot_time[j]))
+        rgamma(N_mcmc, prior[1] + tot_events[j], prior[2] + tot_time[j])
+      )
     }
   }
 
   return(post)
-
 }
 
 posterior_sufficient_stats <- function(data, cutpoints, single_arm) {

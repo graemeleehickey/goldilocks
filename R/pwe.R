@@ -25,7 +25,6 @@
 #' y <- pwe_sim(n = 1, hazard = c(2.585924e-02, 3.685254e-09),
 #'              cutpoints = c(0, 12))
 pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
-
   # Check: 'cutpoints' should be same length as hazard
   if (length(cutpoints) != length(hazard)) {
     stop("Length of 'cutpoints' must be equal to length of rate")
@@ -58,13 +57,11 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
     min_time <- pmin(ret, maxtime)
     event <- as.numeric(ret == min_time)
     dat <- data.frame(time = min_time, event = event)
-  }
-  else {
+  } else {
     dat <- data.frame(time = ret, event = rep(1, length(ret)))
   }
 
   return(dat)
-
 }
 
 
@@ -104,7 +101,6 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
 #' pwe_impute(time = 19.621870008, hazard = c(2.585924e-02, 3.685254e-09),
 #'            cutpoints = c(0, 12), maxtime = 36)
 pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
-
   # Check: 'hazard' is positive
   if (any(hazard < 0)) {
     stop("At least one of the hazard rate(s) is less than 0")
@@ -152,7 +148,6 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
   }
 
   return(dat)
-
 }
 
 
@@ -175,7 +170,6 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
 #'
 #' @export
 ppwe <- function(hazard, end_of_study, cutpoints) {
-
   if (ncol(hazard) != length(cutpoints)) {
     stop("The length of the hazard rates and cutpoints do not match")
   }
@@ -183,5 +177,4 @@ ppwe <- function(hazard, end_of_study, cutpoints) {
   interval_upper <- c(cutpoints[-1], Inf)
   duration <- pmax(0, pmin(end_of_study, interval_upper) - cutpoints)
   1 - exp(-drop(hazard %*% duration))
-
 }

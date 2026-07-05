@@ -226,27 +226,27 @@
 #'  method = "bayes")
 survival_adapt <- function(
   hazard_treatment,
-  hazard_control    = NULL,
-  cutpoints         = 0,
+  hazard_control = NULL,
+  cutpoints = 0,
   N_total,
-  lambda            = 0.3,
-  lambda_time       = 0,
-  interim_look      = NULL,
+  lambda = 0.3,
+  lambda_time = 0,
+  interim_look = NULL,
   end_of_study,
-  prior             = c(0.1, 0.1),
-  block             = 2,
-  rand_ratio        = c(1, 1),
-  prop_loss         = 0,
-  alternative       = "greater",
-  h0                = 0,
-  Fn                = 0.05,
-  Sn                = 0.9,
-  prob_ha           = 0.95,
-  N_impute          = 10,
-  N_mcmc            = 10,
-  method            = "logrank",
-  imputed_final     = FALSE) {
-
+  prior = c(0.1, 0.1),
+  block = 2,
+  rand_ratio = c(1, 1),
+  prop_loss = 0,
+  alternative = "greater",
+  h0 = 0,
+  Fn = 0.05,
+  Sn = 0.9,
+  prob_ha = 0.95,
+  N_impute = 10,
+  N_mcmc = 10,
+  method = "logrank",
+  imputed_final = FALSE
+) {
   ##############################################################################
   ### Derive variables
   ##############################################################################
@@ -347,15 +347,15 @@ survival_adapt <- function(
 
   data_total <- sim_comp_data(
     hazard_treatment = hazard_treatment,
-    hazard_control   = hazard_control,
-    cutpoints        = cutpoints,
-    N_total          = N_total,
-    lambda           = lambda,
-    lambda_time      = lambda_time,
-    end_of_study     = end_of_study,
-    block            = block,
-    rand_ratio       = rand_ratio,
-    prop_loss        = prop_loss
+    hazard_control = hazard_control,
+    cutpoints = cutpoints,
+    N_total = N_total,
+    lambda = lambda,
+    lambda_time = lambda_time,
+    end_of_study = end_of_study,
+    block = block,
+    rand_ratio = rand_ratio,
+    prop_loss = prop_loss
   )
 
   ##############################################################################
@@ -363,12 +363,11 @@ survival_adapt <- function(
   ##############################################################################
 
   # Assigning stop_futility and stop_expected_success
-  stop_futility         <- 0
+  stop_futility <- 0
   stop_expected_success <- 0
 
   if (N_looks > 1) {
     for (i in 1:(N_looks - 1)) {
-
       # Analysis at the `analysis_at_enrollnumber` look (not incl. final look)
       # Indicators for subject type:
       # - subject_enrolled:        subject has data present in the current look
@@ -399,44 +398,46 @@ survival_adapt <- function(
       # Clamp to .Machine$double.eps so the boundary subject contributes
       # negligible but non-zero exposure to the interim posterior.
       data_interim <- within(data_interim, {
-        time  = pmax(pmin(time, time_from_rand_at_look), .Machine$double.eps)
+        time = pmax(pmin(time, time_from_rand_at_look), .Machine$double.eps)
         event = ifelse(subject_impute_success, 0, event)
       })
 
       # Carry out interim analysis on patients with complete data only
       # - Set-up new 'data' data frame
       data <- subset(data_interim,
-                     subset = subject_enrolled,
-                     select = c(time, event, treatment))
+        subset = subject_enrolled,
+        select = c(time, event, treatment)
+      )
 
       # Posterior distribution of lambdas: current data
-      post_lambda <- posterior(data       = data,
-                               cutpoints  = cutpoints,
-                               prior      = prior,
-                               N_mcmc     = N_impute,
-                               single_arm = single_arm)
+      post_lambda <- posterior(
+        data = data,
+        cutpoints = cutpoints,
+        prior = prior,
+        N_mcmc = N_impute,
+        single_arm = single_arm
+      )
 
       ##########################################################################
       ### Loop over multiple imputations
       ##########################################################################
 
-      futility_test         <- 0
+      futility_test <- 0
       expected_success_test <- 0
       for (j in 1:N_impute) {
-
         h <- post_lambda[j, , , drop = FALSE]
 
         stop_check <- test_stop_success(
-          data           = data_interim,
-          hazard         = h,
-          end_of_study   = end_of_study,
-          cutpoints      = cutpoints,
-          single_arm     = single_arm,
-          prior          = prior,
-          N_mcmc         = N_mcmc,
-          method         = method,
-          alternative    = alternative,
-          h0             = h0,
+          data = data_interim,
+          hazard = h,
+          end_of_study = end_of_study,
+          cutpoints = cutpoints,
+          single_arm = single_arm,
+          prior = prior,
+          N_mcmc = N_mcmc,
+          method = method,
+          alternative = alternative,
+          h0 = h0,
           check_futility = check_futility
         )
 
@@ -453,7 +454,6 @@ survival_adapt <- function(
             futility_test <- futility_test + 1
           }
         }
-
       }
 
       # Test if expected success criteria met
@@ -461,13 +461,13 @@ survival_adapt <- function(
       ppp_success <- expected_success_test / N_impute
       if (ppp_success > Sn[i]) {
         stop_expected_success <- 1
-        stage_trial_stopped   <- analysis_at_enrollnumber[i]
+        stage_trial_stopped <- analysis_at_enrollnumber[i]
         break # No further SS looks
       }
 
       # Test if futility success criteria is met
       if (futility_test / N_impute < Fn[i]) {
-        stop_futility       <- 1
+        stop_futility <- 1
         stage_trial_stopped <- analysis_at_enrollnumber[i]
         break # No further SS looks
       }
@@ -477,19 +477,17 @@ survival_adapt <- function(
         stage_trial_stopped <- analysis_at_enrollnumber[i + 1]
         break # No further SS looks
       }
-
     }
 
     # Number of patients enrolled at trial stop
     N_enrolled <- nrow(data_interim[data_interim$id <= stage_trial_stopped, ])
-
   } else {
     # Assigning stage trial stopped given no interim look
-    N_enrolled            <- N_total
-    stage_trial_stopped   <- N_total
-    stop_futility         <- 0
+    N_enrolled <- N_total
+    stage_trial_stopped <- N_total
+    stop_futility <- 0
     stop_expected_success <- 0
-    ppp_success           <- NA
+    ppp_success <- NA
   }
 
   ##############################################################################
@@ -504,43 +502,44 @@ survival_adapt <- function(
     subject_impute_success = ((event == 0) & (time < end_of_study))
   })
 
-  results_final <- test_final(data_in       = data_final,
-                              cutpoints     = cutpoints,
-                              prior         = prior,
-                              N_mcmc        = N_mcmc,
-                              single_arm    = single_arm,
-                              imputed_final = imputed_final,
-                              method        = method,
-                              N_impute      = N_impute,
-                              alternative   = alternative,
-                              h0            = h0,
-                              end_of_study  = end_of_study)
+  results_final <- test_final(
+    data_in = data_final,
+    cutpoints = cutpoints,
+    prior = prior,
+    N_mcmc = N_mcmc,
+    single_arm = single_arm,
+    imputed_final = imputed_final,
+    method = method,
+    N_impute = N_impute,
+    alternative = alternative,
+    h0 = h0,
+    end_of_study = end_of_study
+  )
 
-  post_paa  <- results_final[1]
+  post_paa <- results_final[1]
   est_final <- results_final[2]
 
-  N_treatment  <- sum(data_final$treatment == 1) # Total analyzed: treatment
-  N_control    <- sum(data_final$treatment == 0) # Total analyzed: control
+  N_treatment <- sum(data_final$treatment == 1) # Total analyzed: treatment
+  N_control <- sum(data_final$treatment == 0) # Total analyzed: control
 
   ##############################################################################
   ### Output
   ##############################################################################
 
-    results <- data.frame(
-    prob_threshold        = prob_ha,
-    margin                = h0,                       # Margin
-    alternative           = alternative,              # Alternative hypothesis
-    N_treatment           = N_treatment,
-    N_control             = N_control,
-    N_enrolled            = N_treatment + N_control,
-    N_max                 = N_total, 				          # Total potential sample size
-    post_prob_ha          = post_paa,                 # Posterior probability that alternative hypothesis is true
-    est_final             = est_final,                # Posterior treatment effect at final analysis
-    ppp_success           = ppp_success,              # Posterior predictive probability of eventual success when trial stopped
-    stop_futility         = stop_futility,            # Did the trial stop for futility
-    stop_expected_success = stop_expected_success     # Did the trial stop for expected success
+  results <- data.frame(
+    prob_threshold = prob_ha,
+    margin = h0,
+    alternative = alternative,
+    N_treatment = N_treatment,
+    N_control = N_control,
+    N_enrolled = N_treatment + N_control,
+    N_max = N_total,
+    post_prob_ha = post_paa,
+    est_final = est_final,
+    ppp_success = ppp_success,
+    stop_futility = stop_futility,
+    stop_expected_success = stop_expected_success
   )
 
   return(results)
-
 }

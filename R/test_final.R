@@ -38,17 +38,20 @@
 test_final <- function(data_in, cutpoints, prior, N_mcmc, single_arm,
                        imputed_final, method, N_impute, alternative,
                        h0, end_of_study) {
-
   if (imputed_final) {
     # Posterior distribution of lambdas: final data
-    post_lambda_final <- posterior(data       = data_in,
-                                   cutpoints  = cutpoints,
-                                   prior      = prior,
-                                   N_mcmc     = N_impute,
-                                   single_arm = single_arm)
+    post_lambda_final <- posterior(
+      data = data_in,
+      cutpoints = cutpoints,
+      prior = prior,
+      N_mcmc = N_impute,
+      single_arm = single_arm
+    )
     # Effect matrix + posterior probability
-    effect_final_mat <- matrix(nrow = ifelse(method == "bayes", N_mcmc, 1),
-                               ncol = N_impute)
+    effect_final_mat <- matrix(
+      nrow = ifelse(method == "bayes", N_mcmc, 1),
+      ncol = N_impute
+    )
     post_paa <- vector(length = N_impute)
     # Impute multiple data sets
     for (j in 1:N_impute) {
@@ -59,25 +62,29 @@ test_final <- function(data_in, cutpoints, prior, N_mcmc, single_arm,
         end_of_study = end_of_study,
         cutpoints    = cutpoints,
         type         = "success",
-        single_arm   = single_arm)
+        single_arm   = single_arm
+      )
 
       # Create enrolled subject data frame for analysis
-      time      <- NULL
-      event     <- NULL
+      time <- NULL
+      event <- NULL
       treatment <- NULL
       data <- subset(data_success_impute,
-                     select = c(time, event, treatment))
+        select = c(time, event, treatment)
+      )
 
       # Apply primary analysis to imputed data
-      success <- analyse_data(data         = data,
-                              cutpoints    = cutpoints,
-                              end_of_study = end_of_study,
-                              prior        = prior,
-                              N_mcmc       = N_mcmc,
-                              single_arm   = single_arm,
-                              method       = method,
-                              alternative  = alternative,
-                              h0           = h0)
+      success <- analyse_data(
+        data = data,
+        cutpoints = cutpoints,
+        end_of_study = end_of_study,
+        prior = prior,
+        N_mcmc = N_mcmc,
+        single_arm = single_arm,
+        method = method,
+        alternative = alternative,
+        h0 = h0
+      )
 
       post_paa[j] <- success$success
       if (method %in% c("cox", "bayes")) {
@@ -85,7 +92,7 @@ test_final <- function(data_in, cutpoints, prior, N_mcmc, single_arm,
       }
     }
     # Average over imputations
-    post_paa  <- mean(post_paa)
+    post_paa <- mean(post_paa)
     est_final <- mean(effect_final_mat)
   } else {
     # Apply primary analysis to final data (without imputation)
@@ -93,20 +100,21 @@ test_final <- function(data_in, cutpoints, prior, N_mcmc, single_arm,
     if (method == "chisq" && "loss_to_fu" %in% names(data_in)) {
       data_in <- data_in[!data_in$loss_to_fu, ]
     }
-    success <- analyse_data(data         = data_in,
-                            cutpoints    = cutpoints,
-                            end_of_study = end_of_study,
-                            prior        = prior,
-                            N_mcmc       = N_mcmc,
-                            single_arm   = single_arm,
-                            method       = method,
-                            alternative  = alternative,
-                            h0           = h0)
+    success <- analyse_data(
+      data = data_in,
+      cutpoints = cutpoints,
+      end_of_study = end_of_study,
+      prior = prior,
+      N_mcmc = N_mcmc,
+      single_arm = single_arm,
+      method = method,
+      alternative = alternative,
+      h0 = h0
+    )
 
     post_paa <- success$success
     est_final <- mean(success$effect)
   }
 
   return(c(post_paa, est_final))
-
 }

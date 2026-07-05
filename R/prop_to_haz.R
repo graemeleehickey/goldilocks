@@ -34,7 +34,6 @@
 #' PWEALL::pwe(12, prop_to_haz(c(0.15, 0.30), c(0, 12), 24), c(0, 12))$dist
 #' PWEALL::pwe(24, prop_to_haz(c(0.15, 0.30), c(0, 12), 24), c(0, 12))$dist
 prop_to_haz <- function(probs, cutpoints = 0, endtime) {
-
   if (cutpoints[1] != 0) {
     stop("First element of 'cutpoints' should be 0")
   }
@@ -49,11 +48,10 @@ prop_to_haz <- function(probs, cutpoints = 0, endtime) {
     s_diff <- diff(s)
     lambda[1] <- -log(1 - probs[1]) / s_diff[1]
     for (j in 2:J) {
-      offset <- sum(lambda[1:(j-1)] * s_diff[1:(j-1)])
+      offset <- sum(lambda[1:(j - 1)] * s_diff[1:(j - 1)])
       lambda[j] <- (-log(1 - probs[j]) - offset) / s_diff[j]
     }
   }
 
   return(lambda)
-
 }

@@ -39,7 +39,6 @@
 #' # For complete randomization set the N_total to block size
 #' randomization(N_total = 100, block = 100, allocation = c(1, 1))
 randomization <- function(N_total, block = 2, allocation = c(1, 1)) {
-
   if (any(block %% 1 != 0) | any(block <= 0)) {
     stop("'block' must be a non-negative integer")
   }
@@ -90,8 +89,10 @@ randomization <- function(N_total, block = 2, allocation = c(1, 1)) {
   sampling <- integer(N_total)
   start <- 1
   for (m in seq_len(n_blocking)) {
-    item <- rep(rep(0:1, times = allocation),
-                each = blocking[m] / sum(allocation))
+    item <- rep(
+      rep(0:1, times = allocation),
+      each = blocking[m] / sum(allocation)
+    )
     end <- start + blocking[m] - 1
     sampling[start:end] <- sample(item)
     start <- end + 1
@@ -99,11 +100,12 @@ randomization <- function(N_total, block = 2, allocation = c(1, 1)) {
 
   # Fill up the remainder of the allocation using next block
   if (N_total >= start) {
-    item <- rep(rep(0:1, times = allocation),
-                each = next_block / sum(allocation))
+    item <- rep(
+      rep(0:1, times = allocation),
+      each = next_block / sum(allocation)
+    )
     sampling[start:N_total] <- sample(item, size = N_total - start + 1)
   }
 
   return(sampling)
-
 }

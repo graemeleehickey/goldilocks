@@ -27,8 +27,8 @@ analyse_data <- function(
   single_arm,
   method,
   alternative,
-  h0) {
-
+  h0
+) {
   ####################################################
   ### Bayesian test
   ####################################################
@@ -37,17 +37,21 @@ analyse_data <- function(
 
   if (method == "bayes") {
     # Posterior distribution of lambdas: imputed data
-    post_lambda_imp <- posterior(data       = data,
-                                 cutpoints  = cutpoints,
-                                 prior      = prior,
-                                 N_mcmc     = N_mcmc,
-                                 single_arm = single_arm)
+    post_lambda_imp <- posterior(
+      data = data,
+      cutpoints = cutpoints,
+      prior = prior,
+      N_mcmc = N_mcmc,
+      single_arm = single_arm
+    )
 
     # Posterior distribution of event proportions: imputed data
-    post_imp <- haz_to_prop(post         = post_lambda_imp,
-                            cutpoints    = cutpoints,
-                            end_of_study = end_of_study,
-                            single_arm   = single_arm)
+    post_imp <- haz_to_prop(
+      post = post_lambda_imp,
+      cutpoints = cutpoints,
+      end_of_study = end_of_study,
+      single_arm = single_arm
+    )
 
     effect <- post_imp$effect
     if (alternative == "greater") {
@@ -122,6 +126,6 @@ analyse_data <- function(
 
   return(list(
     "success" = success,
-    "effect"  = effect))
-
+    "effect"  = effect
+  ))
 }

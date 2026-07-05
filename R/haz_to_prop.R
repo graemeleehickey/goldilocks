@@ -28,14 +28,17 @@
 #'
 #' @noRd
 haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
-
   if (length(cutpoints) == 1) {
     # Standard exponential for when no internal cutpoints
-    p_treatment <- pexp(q    = end_of_study,
-                        rate = post[, , 1])
+    p_treatment <- pexp(
+      q = end_of_study,
+      rate = post[, , 1]
+    )
     if (!single_arm) {
-      p_control <- pexp(q    = end_of_study,
-                        rate = post[, , 2])
+      p_control <- pexp(
+        q = end_of_study,
+        rate = post[, , 2]
+      )
     } else {
       p_control <- NA
     }
@@ -45,17 +48,21 @@ haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
     #   q = end_of_study,
     #   x = post[, , 1],
     #   cuts = cutpoints)
-    p_treatment <- ppwe(hazard = post[, , 1],
-                        end_of_study = end_of_study,
-                        cutpoints = cutpoints)
+    p_treatment <- ppwe(
+      hazard = post[, , 1],
+      end_of_study = end_of_study,
+      cutpoints = cutpoints
+    )
     if (!single_arm) {
       # p_control <- bayesDP::ppexp(
       #   q = end_of_study,
       #   x = post[, , 2],
       #   cuts = cutpoints)
-      p_control <- ppwe(hazard = post[, , 2],
-                        end_of_study = end_of_study,
-                        cutpoints = cutpoints)
+      p_control <- ppwe(
+        hazard = post[, , 2],
+        end_of_study = end_of_study,
+        cutpoints = cutpoints
+      )
     } else {
       p_control <- NA
     }
@@ -68,5 +75,4 @@ haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
   }
 
   return(data.frame(p_treatment, p_control, effect))
-
 }

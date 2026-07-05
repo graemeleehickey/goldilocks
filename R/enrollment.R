@@ -56,7 +56,6 @@
 #' enrollment(lambda = c(0.3, 0.5, 0.9, 1.2, 2.1), N_total = 200,
 #'            lambda_time = c(0, 20, 30, 40, 60))
 enrollment <- function(lambda = 1, N_total, lambda_time = 0) {
-
   if (any(lambda <= 0)) {
     stop("The lambda(s) for Poisson enrollment rate should be non-negative")
   }
@@ -112,5 +111,4 @@ enrollment <- function(lambda = 1, N_total, lambda_time = 0) {
   output <- output[1:N_total]
   output <- output - output[1]
   return(output)
-
 }

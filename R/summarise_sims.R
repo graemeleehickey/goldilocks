@@ -18,7 +18,6 @@
 #' @importFrom rlang .data
 #' @export
 summarise_sims <- function(data) {
-
   if (inherits(data, "list")) {
     fnames <- names(data)
     if (is.null(fnames)) {
@@ -43,5 +42,4 @@ summarise_sims <- function(data) {
     )
 
   return(out)
-
 }

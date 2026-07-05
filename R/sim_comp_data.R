@@ -41,18 +41,17 @@
 #' @importFrom stats runif sd
 #' @export
 sim_comp_data <- function(
-    hazard_treatment,
-    hazard_control    = NULL,
-    cutpoints         = 0,
-    N_total,
-    lambda            = 0.3,
-    lambda_time       = 0,
-    end_of_study,
-    block             = 2,
-    rand_ratio        = c(1, 1),
-    prop_loss         = 0
-    ) {
-
+  hazard_treatment,
+  hazard_control = NULL,
+  cutpoints = 0,
+  N_total,
+  lambda = 0.3,
+  lambda_time = 0,
+  end_of_study,
+  block = 2,
+  rand_ratio = c(1, 1),
+  prop_loss = 0
+) {
   ##############################################################################
   ### Run checks on arguments
   ##############################################################################
@@ -70,18 +69,22 @@ sim_comp_data <- function(
   ##############################################################################
 
   # Simulate enrollment times
-  enrollment <- enrollment(lambda      = lambda,
-                           N_total     = N_total,
-                           lambda_time = lambda_time)
+  enrollment <- enrollment(
+    lambda = lambda,
+    N_total = N_total,
+    lambda_time = lambda_time
+  )
   enrollment <- enrollment + runif(length(enrollment))
   enrollment <- sort(enrollment)
 
   # Simulate treatment assignment. The data convention is treatment = 1 for the
   # treatment arm and treatment = 0 for the control arm.
   if (!single_arm) {
-    treatment <- randomization(N_total    = N_total,
-                               block      = block,
-                               allocation = rand_ratio)
+    treatment <- randomization(
+      N_total = N_total,
+      block = block,
+      allocation = rand_ratio
+    )
   } else {
     treatment <- rep(1, N_total)
   }
@@ -90,26 +93,30 @@ sim_comp_data <- function(
   ### Simulate event times
   ##############################################################################
 
-  time  <- rep(NA, length = N_total)
+  time <- rep(NA, length = N_total)
   event <- rep(NA, length = N_total)
 
   # Simulate TTE outcome
   # - Note: time = time *from* enrollment/randomization. In this package these
   #   are treated as the same time point.
   if (!single_arm) {
-    sim_control <- pwe_sim(hazard     = hazard_control,
-                           n          = sum(treatment == 0),
-                           maxtime    = end_of_study,
-                           cutpoints  = cutpoints)
-    time[treatment == 0]  <- sim_control$time
+    sim_control <- pwe_sim(
+      hazard = hazard_control,
+      n = sum(treatment == 0),
+      maxtime = end_of_study,
+      cutpoints = cutpoints
+    )
+    time[treatment == 0] <- sim_control$time
     event[treatment == 0] <- sim_control$event
   }
 
-  sim_treatment <- pwe_sim(hazard    = hazard_treatment,
-                           n         = sum(treatment == 1),
-                           maxtime   = end_of_study,
-                           cutpoints = cutpoints)
-  time[treatment == 1]  <- sim_treatment$time
+  sim_treatment <- pwe_sim(
+    hazard = hazard_treatment,
+    n = sum(treatment == 1),
+    maxtime = end_of_study,
+    cutpoints = cutpoints
+  )
+  time[treatment == 1] <- sim_treatment$time
   event[treatment == 1] <- sim_treatment$event
 
   # Simulate loss to follow-up
@@ -126,15 +133,16 @@ sim_comp_data <- function(
     event      = event,
     enrollment = enrollment,
     id         = 1:N_total,
-    loss_to_fu = loss_to_fu)
+    loss_to_fu = loss_to_fu
+  )
 
   # Subjects lost are uniformly distributed
   if (prop_loss > 0) {
-    data_total$time[data_total$loss_to_fu]  <- runif(
-      n_loss_to_fu, 0, data_total$time[data_total$loss_to_fu])
+    data_total$time[data_total$loss_to_fu] <- runif(
+      n_loss_to_fu, 0, data_total$time[data_total$loss_to_fu]
+    )
     data_total$event[data_total$loss_to_fu] <- rep(0, n_loss_to_fu)
   }
 
   return(data_total)
-
 }
