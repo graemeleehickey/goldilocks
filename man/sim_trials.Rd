@@ -15,6 +15,9 @@ sim_trials(
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
+  bin_prior = c(1, 1),
+  bin_method = "mc",
+  bin_N = 10000,
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss = 0,
@@ -69,6 +72,18 @@ same prior is applied to all piecewise intervals and to both treatment
 groups. The default non-informative prior distribution used is
 \code{Gamma(0.1, 0.1)}, which is specified by setting \code{prior = c(0.1, 0.1)}.}
 
+\item{bin_prior}{vector. Prior distribution for the event probability when
+\code{method = "bayes-bin"}. The two values are the shape parameters of the
+\code{Beta(a, b)} prior. The same prior is applied to both treatment arms.}
+
+\item{bin_method}{character. Method used to calculate the posterior
+probability for \code{method = "bayes-bin"}, must be one of \code{"mc"} (Monte Carlo
+sampling), \code{"normal"} (normal approximation), or \code{"quadrature"} (numerical
+integration). The default is \code{"mc"}.}
+
+\item{bin_N}{integer. Number of Monte Carlo draws from the beta posterior
+when \code{method = "bayes-bin"} and \code{bin_method = "mc"}.}
+
 \item{block}{scalar. Block size for generating the randomization schedule.}
 
 \item{rand_ratio}{vector. Randomization allocation for the ratio of control
@@ -85,11 +100,12 @@ right-censored. Defaults to zero.}
 
 \item{alternative}{character. The string specifying the alternative
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
-\code{"two.sided"}. All three options are supported for \code{method = "bayes"},
-\code{"logrank"}, and \code{"cox"}. The chi-square test (\code{method = "chisq"}) only
-supports \code{"two.sided"}. For survival outcomes, \code{"less"} corresponds to the
-treatment arm having a lower cumulative incidence (i.e., treatment is
-beneficial), and \code{"greater"}
+\code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
+supported for \code{method = "bayes"} and \code{method = "bayes-bin"}. All three
+options are supported for \code{method = "logrank"} and \code{method = "cox"}. The
+chi-square test (\code{method = "chisq"}) only supports \code{"two.sided"}. For
+survival outcomes, \code{"less"} corresponds to the treatment arm having a lower
+cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
 corresponds to the treatment arm having a higher cumulative incidence.}
 
 \item{h0}{scalar. Null hypothesis value or margin. Default is \code{h0 = 0}.
@@ -98,6 +114,9 @@ corresponds to the treatment arm having a higher cumulative incidence.}
 \eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
 \code{h0} is the external benchmark event probability, often referred to
 as a performance goal (PG) or objective performance criterion (OPC).
+\item When \code{method = "bayes-bin"}, \code{h0} is the null value of
+\eqn{p_\textrm{treatment} - p_\textrm{control}} for a two-arm design, or
+the null event probability for a single-arm design.
 \item When \code{method = "cox"}, \code{h0} is the null log hazard ratio for
 treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
 of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
@@ -136,8 +155,10 @@ distribution when using a Bayesian test (\code{method = "bayes"}).}
 \item{method}{character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
 (\code{method = "logrank"}) test, Cox proportional hazards regression model
-Wald test (\code{method = "cox"}), a fully-Bayesian analysis (\code{method = "bayes"}), or a chi-square test (\code{method = "chisq"}). See Details
-section.}
+Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
+analysis (\code{method = "bayes"}), a Bayesian beta-binomial analysis of
+complete binary outcomes (\code{method = "bayes-bin"}), or a chi-square test
+(\code{method = "chisq"}). See Details section.}
 
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for

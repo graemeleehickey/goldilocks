@@ -15,19 +15,32 @@
 #'   same prior is applied to all piecewise intervals and to both treatment
 #'   groups. The default non-informative prior distribution used is
 #'   `Gamma(0.1, 0.1)`, which is specified by setting `prior = c(0.1, 0.1)`.
+#' @param bin_prior vector. Prior distribution for the event probability when
+#'   `method = "bayes-bin"`. The two values are the shape parameters of the
+#'   `Beta(a, b)` prior. The same prior is applied to both treatment arms.
+#' @param bin_method character. Method used to calculate the posterior
+#'   probability for `method = "bayes-bin"`, must be one of `"mc"` (Monte Carlo
+#'   sampling), `"normal"` (normal approximation), or `"quadrature"` (numerical
+#'   integration). The default is `"mc"`.
+#' @param bin_N integer. Number of Monte Carlo draws from the beta posterior
+#'   when `method = "bayes-bin"` and `bin_method = "mc"`.
 #' @param alternative character. The string specifying the alternative
 #'   hypothesis, must be one of `"greater"` (default), `"less"` or
-#'   `"two.sided"`. All three options are supported for `method = "bayes"`,
-#'   `"logrank"`, and `"cox"`. The chi-square test (`method = "chisq"`) only
-#'   supports `"two.sided"`. For survival outcomes, `"less"` corresponds to the
-#'   treatment arm having a lower cumulative incidence (i.e., treatment is
-#'   beneficial), and `"greater"`
+#'   `"two.sided"`. One-sided alternatives (`"greater"` and `"less"`) are
+#'   supported for `method = "bayes"` and `method = "bayes-bin"`. All three
+#'   options are supported for `method = "logrank"` and `method = "cox"`. The
+#'   chi-square test (`method = "chisq"`) only supports `"two.sided"`. For
+#'   survival outcomes, `"less"` corresponds to the treatment arm having a lower
+#'   cumulative incidence (i.e., treatment is beneficial), and `"greater"`
 #'   corresponds to the treatment arm having a higher cumulative incidence.
 #' @param h0 scalar. Null hypothesis value or margin. Default is `h0 = 0`.
 #'   * When `method = "bayes"`, `h0` is the null value of
 #'     \eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
 #'     `h0` is the external benchmark event probability, often referred to
 #'     as a performance goal (PG) or objective performance criterion (OPC).
+#'   * When `method = "bayes-bin"`, `h0` is the null value of
+#'     \eqn{p_\textrm{treatment} - p_\textrm{control}} for a two-arm design, or
+#'     the null event probability for a single-arm design.
 #'   * When `method = "cox"`, `h0` is the null log hazard ratio for
 #'     treatment versus control. Use `h0 = 0` for the usual hazard ratio
 #'     of 1 null, or `h0 = log(margin)` for a non-inferiority margin
@@ -57,9 +70,10 @@
 #' @param method character. For an imputed data set (or the final data set after
 #'   follow-up is complete), whether the analysis should be a log-rank
 #'   (`method = "logrank"`) test, Cox proportional hazards regression model
-#'   Wald test (`method = "cox"`), a fully-Bayesian analysis (`method
-#'   = "bayes"`), or a chi-square test (`method = "chisq"`). See Details
-#'   section.
+#'   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
+#'   analysis (`method = "bayes"`), a Bayesian beta-binomial analysis of
+#'   complete binary outcomes (`method = "bayes-bin"`), or a chi-square test
+#'   (`method = "chisq"`). See Details section.
 #' @param imputed_final logical. Should the final analysis (after all subjects
 #'   have been followed-up to the study end) be based on imputed outcomes for
 #'   subjects who were LTFU (i.e. right-censored with time less than
@@ -131,6 +145,20 @@
 #'      specification of the test type (`alternative`) and the value of the null
 #'      hypothesis (`h0`).
 #'
+#'   * Bayesian beta-binomial analysis (`method = "bayes-bin"`).
+#'      Each complete or imputed dataset is reduced to binary event outcomes at
+#'      `end_of_study`. A conjugate `Beta(a, b)` prior, specified with
+#'      `bin_prior`, is updated with the number of events and non-events in
+#'      each arm. In a single-arm study, inference is based on the posterior
+#'      event probability. In a two-arm study, inference is based on
+#'      \eqn{p_\textrm{treatment} - p_\textrm{control}}. This posterior
+#'      probability can be calculated using Monte Carlo beta draws
+#'      (`bin_method = "mc"`), a normal approximation (`"normal"`), or numerical
+#'      quadrature (`"quadrature"`). Like the chi-square test, this method
+#'      requires complete binary outcomes: censored subjects must either be
+#'      followed to `end_of_study`, imputed, or excluded when
+#'      `imputed_final = FALSE`.
+#'
 #'  * Chi-square test (`method = "chisq"`).
 #'      Each (imputed) dataset with both treatment and control arms can be
 #'      compared using a standard chi-square test on the final event status,
@@ -158,18 +186,21 @@
 #'      right-censored due to loss to follow-up, which we assume is a
 #'      non-informative process. This can be used with any `method`.
 #'
-#'   When `method = "bayes"` and imputation is involved (either at interim
+#'   When `method = "bayes"` or `method = "bayes-bin"` and imputation is
+#'   involved (either at interim
 #'   analyses or via `imputed_final = TRUE`), a two-stage posterior
 #'   procedure is used. First, the posterior distribution of the piecewise
 #'   hazard rates is estimated from the *observed* data and used to draw
-#'   imputed event times for censored subjects. Second, a *new* posterior
-#'   is estimated from the combined observed and imputed data, and this
-#'   posterior is used for inference. This is consistent with the predictive
-#'   probability framework described in Broglio et al. (2014), but users
-#'   should be aware that the imputation model's posterior influences the
-#'   analysis posterior. For frequentist methods (`"logrank"`, `"cox"`,
-#'   `"chisq"`), the second stage uses a standard test
-#'   rather than a posterior, so this feedback loop does not arise.
+#'   imputed event times for censored subjects. Second, a *new* posterior is
+#'   estimated from the combined observed and imputed data: the
+#'   piecewise-exponential posterior for `method = "bayes"` or the beta
+#'   posterior for `method = "bayes-bin"`. This posterior is used for
+#'   inference. This is consistent with the predictive probability framework
+#'   described in Broglio et al. (2014), but users should be aware that the
+#'   imputation model's posterior influences the analysis posterior. For
+#'   frequentist methods (`"logrank"`, `"cox"`, `"chisq"`), the second stage
+#'   uses a standard test rather than a posterior, so this feedback loop does
+#'   not arise.
 #'
 #'   At each interim look, follow-up times are masked (censored) to reflect
 #'   the calendar time of the analysis. The package treats enrollment and
@@ -241,6 +272,9 @@ survival_adapt <- function(
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
+  bin_prior = c(1, 1),
+  bin_method = "mc",
+  bin_N = 10000,
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss = 0,
@@ -274,7 +308,7 @@ survival_adapt <- function(
   # Number of looks
   N_looks <- length(analysis_at_enrollnumber)
 
-  # If not using Bayesian test, then set N_mcmc = 1
+  # If not using piecewise-exponential Bayesian test, then set N_mcmc = 1
   if (method != "bayes") {
     N_mcmc <- 1
   }
@@ -312,10 +346,15 @@ survival_adapt <- function(
     stop("The input for alternative is wrong")
   }
 
+  # Check: 'method' is correctly specified
+  if (!method %in% c("bayes", "bayes-bin", "logrank", "cox", "chisq")) {
+    stop("The input for method is wrong")
+  }
+
   # Check: Bayesian test only available as a one-sided test
-  if (alternative == "two.sided" & method == "bayes") {
+  if (alternative == "two.sided" & method %in% c("bayes", "bayes-bin")) {
     stop(
-      "The Bayes test can only be used with alternative equal to 'greater' or 'less'"
+      "Bayesian tests can only be used with alternative equal to 'greater' or 'less'"
     )
   }
 
@@ -327,6 +366,11 @@ survival_adapt <- function(
   # Check: frequentist tests only available for two-armed trials
   if (single_arm & method %in% c("logrank", "cox", "chisq")) {
     stop("The selected method can only be used for two-armed trials")
+  }
+
+  # Check: Bayesian binomial test arguments
+  if (method == "bayes-bin") {
+    validate_bayes_binomial_args(bin_prior, bin_method, bin_N)
   }
 
   # Check: thresholds of consistent dimension
@@ -453,6 +497,9 @@ survival_adapt <- function(
           method = method,
           alternative = alternative,
           h0 = h0,
+          bin_prior = bin_prior,
+          bin_method = bin_method,
+          bin_N = bin_N,
           check_futility = check_futility
         )
 
@@ -528,6 +575,9 @@ survival_adapt <- function(
     N_impute = N_impute,
     alternative = alternative,
     h0 = h0,
+    bin_prior = bin_prior,
+    bin_method = bin_method,
+    bin_N = bin_N,
     end_of_study = end_of_study
   )
 

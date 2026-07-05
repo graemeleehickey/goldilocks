@@ -20,13 +20,20 @@
 #'       estimated log hazard ratio compared with `h0`, using a two-sided
 #'       *P*-value when `alternative = "two.sided"` and a one-sided *P*-value
 #'       otherwise;
+#'     - if `method = "bayes-bin"`, the posterior probability that the binary
+#'       event proportion (single-arm) or treatment-control difference in
+#'       binary event proportions (two-arm) is greater than `h0` when
+#'       `alternative = "greater"`, or less than `h0` when
+#'       `alternative = "less"`;
 #'     - if `method = "chisq"`, 1 minus the chi-square test *P*-value.
 #'   - `effect`: Sample vector from the posterior distribution of the effect
-#'     size for `method = "bayes"`, the estimated log hazard ratio for
-#'     `method = "cox"`, the chi-square statistic for `method = "chisq"`, or
-#'     `NA` for `method = "logrank"`.
+#'     size for `method = "bayes"` and for `method = "bayes-bin"` with
+#'     `bin_method = "mc"`, the posterior mean effect for `method =
+#'     "bayes-bin"` with `bin_method = "normal"` or `"quadrature"`, the
+#'     estimated log hazard ratio for `method = "cox"`, the chi-square
+#'     statistic for `method = "chisq"`, or `NA` for `method = "logrank"`.
 #'
-#' @importFrom stats pchisq pnorm
+#' @importFrom stats dbeta integrate pbeta pchisq pnorm rbeta
 #' @import Rcpp
 #' @import survival
 #' @useDynLib goldilocks, .registration = TRUE
@@ -41,7 +48,10 @@ analyse_data <- function(
   single_arm,
   method,
   alternative,
-  h0
+  h0,
+  bin_prior = c(1, 1),
+  bin_method = "mc",
+  bin_N = N_mcmc
 ) {
   ####################################################
   ### Bayesian test
@@ -73,6 +83,25 @@ analyse_data <- function(
     } else if (alternative == "less") {
       success <- mean(effect < h0)
     }
+  }
+
+  ####################################################
+  ### Bayesian binomial test
+  ####################################################
+
+  if (method == "bayes-bin") {
+    assert_complete_binary_outcomes(data, end_of_study, "Bayesian binomial")
+    bin_res <- bayes_binomial_test(
+      data = data,
+      single_arm = single_arm,
+      alternative = alternative,
+      h0 = h0,
+      bin_prior = bin_prior,
+      bin_method = bin_method,
+      bin_N = bin_N
+    )
+    success <- bin_res$success
+    effect <- bin_res$effect
   }
 
   ####################################################
@@ -129,12 +158,7 @@ analyse_data <- function(
   ####################################################
 
   if (method == "chisq") {
-    if (any(data$event == 0 & data$time < end_of_study)) {
-      stop(
-        "Chi-square analysis requires all censored subjects to be followed ",
-        "to 'end_of_study' or imputed before analysis"
-      )
-    }
+    assert_complete_binary_outcomes(data, end_of_study, "Chi-square")
     mat <- with(data, table(event, treatment))
     fit_cs <- chisq.test(mat, correct = FALSE)
     success <- 1 - fit_cs$p.val
@@ -145,6 +169,189 @@ analyse_data <- function(
     "success" = success,
     "effect" = effect
   ))
+}
+
+#' @title Bayesian binomial test for complete binary outcomes
+#'
+#' @inheritParams analyse_data
+#'
+#' @return A list with the posterior probability of success (`success`) and
+#'   posterior treatment effect (`effect`).
+#'
+#' @noRd
+bayes_binomial_test <- function(
+  data,
+  single_arm,
+  alternative,
+  h0,
+  bin_prior,
+  bin_method,
+  bin_N
+) {
+  validate_bayes_binomial_args(bin_prior, bin_method, bin_N)
+  if (alternative == "two.sided") {
+    stop(
+      "Bayesian binomial analysis can only be used with alternative equal ",
+      "to 'greater' or 'less'"
+    )
+  }
+
+  treatment_stats <- beta_binomial_stats(
+    event = data$event[data$treatment == 1],
+    prior = bin_prior
+  )
+
+  if (single_arm) {
+    if (bin_method == "mc") {
+      effect <- rbeta(bin_N, treatment_stats$alpha, treatment_stats$beta)
+      success <- posterior_tail_probability(effect, alternative, h0)
+    } else {
+      effect <- treatment_stats$mean
+      success <- beta_binomial_single_arm_success(
+        alpha = treatment_stats$alpha,
+        beta = treatment_stats$beta,
+        alternative = alternative,
+        h0 = h0,
+        method = bin_method
+      )
+    }
+    return(list(success = success, effect = effect))
+  }
+
+  control_stats <- beta_binomial_stats(
+    event = data$event[data$treatment == 0],
+    prior = bin_prior
+  )
+
+  if (bin_method == "mc") {
+    effect <- rbeta(bin_N, treatment_stats$alpha, treatment_stats$beta) -
+      rbeta(bin_N, control_stats$alpha, control_stats$beta)
+    success <- posterior_tail_probability(effect, alternative, h0)
+  } else if (bin_method == "normal") {
+    effect <- treatment_stats$mean - control_stats$mean
+    effect_se <- sqrt(treatment_stats$variance + control_stats$variance)
+    if (alternative == "greater") {
+      success <- 1 - pnorm(h0, mean = effect, sd = effect_se)
+    } else if (alternative == "less") {
+      success <- pnorm(h0, mean = effect, sd = effect_se)
+    }
+  } else if (bin_method == "quadrature") {
+    effect <- treatment_stats$mean - control_stats$mean
+    success <- beta_binomial_difference_success(
+      treatment = treatment_stats,
+      control = control_stats,
+      alternative = alternative,
+      h0 = h0
+    )
+  }
+
+  list(success = success, effect = effect)
+}
+
+#' @noRd
+validate_bayes_binomial_args <- function(bin_prior, bin_method, bin_N) {
+  if (length(bin_prior) != 2 ||
+    any(!is.finite(bin_prior)) ||
+    any(bin_prior <= 0)) {
+    stop("'bin_prior' must contain two positive finite values")
+  }
+  if (!bin_method %in% c("mc", "normal", "quadrature")) {
+    stop("'bin_method' must be one of 'mc', 'normal', or 'quadrature'")
+  }
+  if (
+    length(bin_N) != 1 ||
+      !is.numeric(bin_N) ||
+      is.na(bin_N) ||
+      !is.finite(bin_N) ||
+      bin_N <= 0 ||
+      bin_N != floor(bin_N)
+  ) {
+    stop("'bin_N' must be a single positive integer")
+  }
+}
+
+#' @noRd
+beta_binomial_stats <- function(event, prior) {
+  if (length(event) == 0) {
+    stop("Bayesian binomial analysis requires at least one subject per arm")
+  }
+  alpha <- prior[1] + sum(event)
+  beta <- prior[2] + length(event) - sum(event)
+  list(
+    alpha = alpha,
+    beta = beta,
+    mean = alpha / (alpha + beta),
+    variance = (alpha * beta) / ((alpha + beta)^2 * (alpha + beta + 1))
+  )
+}
+
+#' @noRd
+posterior_tail_probability <- function(effect, alternative, h0) {
+  if (alternative == "greater") {
+    mean(effect > h0)
+  } else if (alternative == "less") {
+    mean(effect < h0)
+  }
+}
+
+#' @noRd
+beta_binomial_single_arm_success <- function(
+  alpha,
+  beta,
+  alternative,
+  h0,
+  method
+) {
+  if (method == "normal") {
+    effect <- alpha / (alpha + beta)
+    effect_se <- sqrt((alpha * beta) / ((alpha + beta)^2 * (alpha + beta + 1)))
+    if (alternative == "greater") {
+      return(1 - pnorm(h0, mean = effect, sd = effect_se))
+    } else if (alternative == "less") {
+      return(pnorm(h0, mean = effect, sd = effect_se))
+    }
+  }
+
+  if (alternative == "greater") {
+    1 - pbeta(h0, alpha, beta)
+  } else if (alternative == "less") {
+    pbeta(h0, alpha, beta)
+  }
+}
+
+#' @noRd
+beta_binomial_difference_success <- function(
+  treatment,
+  control,
+  alternative,
+  h0
+) {
+  integrand <- function(x) {
+    treatment_density <- dbeta(x, treatment$alpha, treatment$beta)
+    control_threshold <- x - h0
+    if (alternative == "greater") {
+      treatment_density * pbeta(control_threshold, control$alpha, control$beta)
+    } else if (alternative == "less") {
+      treatment_density *
+        (1 - pbeta(control_threshold, control$alpha, control$beta))
+    }
+  }
+
+  integrate(integrand, lower = 0, upper = 1)$value
+}
+
+#' @noRd
+assert_complete_binary_outcomes <- function(data, end_of_study, method_label) {
+  if (any(!data$event %in% c(0, 1))) {
+    stop(method_label, " analysis requires binary event outcomes")
+  }
+  if (any(data$event == 0 & data$time < end_of_study)) {
+    stop(
+      method_label,
+      " analysis requires all censored subjects to be followed ",
+      "to 'end_of_study' or imputed before analysis"
+    )
+  }
 }
 
 #' @title Calculate the log-rank test very quickly

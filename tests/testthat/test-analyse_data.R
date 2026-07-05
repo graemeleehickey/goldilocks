@@ -167,6 +167,149 @@ test_that("analyse_data method = 'chisq' rejects incomplete censored outcomes", 
   )
 })
 
+test_that("analyse_data works with method = 'bayes-bin' and Monte Carlo", {
+  set.seed(4912)
+  data <- data.frame(
+    time = rep(36, 100),
+    event = c(rep(1, 10), rep(0, 40), rep(1, 30), rep(0, 20)),
+    treatment = rep(0:1, each = 50)
+  )
+
+  res <- analyse_data(
+    data = data,
+    cutpoints = 0,
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    N_mcmc = 10,
+    single_arm = FALSE,
+    method = "bayes-bin",
+    alternative = "greater",
+    h0 = 0,
+    bin_prior = c(1, 1),
+    bin_method = "mc",
+    bin_N = 5000
+  )
+
+  expect_type(res, "list")
+  expect_named(res, c("success", "effect"))
+  expect_true(res$success >= 0 && res$success <= 1)
+  expect_length(res$effect, 5000)
+  expect_true(res$success > 0.9)
+})
+
+test_that("analyse_data method = 'bayes-bin' quadrature tails sum to 1", {
+  data <- data.frame(
+    time = rep(36, 40),
+    event = c(rep(1, 8), rep(0, 12), rep(1, 13), rep(0, 7)),
+    treatment = rep(0:1, each = 20)
+  )
+  args <- list(
+    data = data,
+    cutpoints = 0,
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    N_mcmc = 10,
+    single_arm = FALSE,
+    method = "bayes-bin",
+    h0 = 0,
+    bin_prior = c(1, 1),
+    bin_method = "quadrature",
+    bin_N = 1000
+  )
+
+  res_less <- do.call(analyse_data, c(args, alternative = "less"))
+  res_greater <- do.call(analyse_data, c(args, alternative = "greater"))
+
+  expect_equal(res_less$success + res_greater$success, 1, tolerance = 1e-8)
+  expect_type(res_less$effect, "double")
+})
+
+test_that("analyse_data method = 'bayes-bin' engines agree on stable data", {
+  data <- data.frame(
+    time = rep(36, 400),
+    event = c(rep(1, 80), rep(0, 120), rep(1, 120), rep(0, 80)),
+    treatment = rep(0:1, each = 200)
+  )
+  args <- list(
+    data = data,
+    cutpoints = 0,
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    N_mcmc = 10,
+    single_arm = FALSE,
+    method = "bayes-bin",
+    alternative = "greater",
+    h0 = 0,
+    bin_prior = c(1, 1)
+  )
+
+  set.seed(3319)
+  res_mc <- do.call(analyse_data, c(args, bin_method = "mc", bin_N = 50000))
+  res_normal <- do.call(
+    analyse_data,
+    c(args, bin_method = "normal", bin_N = 1000)
+  )
+  res_quadrature <- do.call(
+    analyse_data,
+    c(args, bin_method = "quadrature", bin_N = 1000)
+  )
+
+  expect_equal(res_mc$success, res_quadrature$success, tolerance = 0.01)
+  expect_equal(res_normal$success, res_quadrature$success, tolerance = 0.02)
+})
+
+test_that("analyse_data method = 'bayes-bin' works for single-arm data", {
+  data <- data.frame(
+    time = rep(36, 50),
+    event = c(rep(1, 15), rep(0, 35)),
+    treatment = rep(1, 50)
+  )
+
+  res <- analyse_data(
+    data = data,
+    cutpoints = 0,
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    N_mcmc = 10,
+    single_arm = TRUE,
+    method = "bayes-bin",
+    alternative = "less",
+    h0 = 0.4,
+    bin_prior = c(1, 1),
+    bin_method = "quadrature",
+    bin_N = 1000
+  )
+
+  expect_true(res$success > 0.9)
+  expect_type(res$effect, "double")
+})
+
+test_that("analyse_data method = 'bayes-bin' rejects incomplete censored outcomes", {
+  data <- data.frame(
+    time = c(36, 5, 36, 36),
+    event = c(1, 0, 1, 0),
+    treatment = c(0, 0, 1, 1)
+  )
+
+  expect_error(
+    analyse_data(
+      data = data,
+      cutpoints = 0,
+      end_of_study = 36,
+      prior = c(0.1, 0.1),
+      N_mcmc = 10,
+      single_arm = FALSE,
+      method = "bayes-bin",
+      alternative = "greater",
+      h0 = 0,
+      bin_prior = c(1, 1),
+      bin_method = "mc",
+      bin_N = 1000
+    ),
+    "requires all censored subjects"
+  )
+})
+
 test_that("analyse_data works with method = 'bayes' (single-arm)", {
   set.seed(9473)
   data <- data.frame(

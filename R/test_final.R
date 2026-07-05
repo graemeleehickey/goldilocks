@@ -27,10 +27,10 @@
 #'   If `imputed_final = FALSE` then intuitively, we might expect to see a
 #'   marginal increase in the proportion of studies that stop for expected
 #'   success, but which then go on to fail. We have not verified this aspect,
-#'   but it should be noted. When `method = "chisq"` and
-#'   `imputed_final = FALSE`, subjects lost to follow-up are excluded
-#'   from the analysis because the chi-square test cannot handle
-#'   right-censored observations.
+#'   but it should be noted. When `method = "chisq"` or
+#'   `method = "bayes-bin"` and `imputed_final = FALSE`, subjects lost to
+#'   follow-up are excluded from the analysis because complete binary outcome
+#'   analyses cannot handle right-censored observations.
 #'
 #' @return Vector with 1) posterior probability (or P-value equivalent) for
 #'   alternative hypothesis, and 2) mean posterior treatment effect.
@@ -46,6 +46,9 @@ test_final <- function(
   N_impute,
   alternative,
   h0,
+  bin_prior,
+  bin_method,
+  bin_N,
   end_of_study
 ) {
   if (imputed_final) {
@@ -58,10 +61,11 @@ test_final <- function(
       single_arm = single_arm
     )
     # Effect matrix + posterior probability
-    effect_final_mat <- matrix(
-      nrow = ifelse(method == "bayes", N_mcmc, 1),
-      ncol = N_impute
-    )
+    effect_rows <- ifelse(method == "bayes", N_mcmc, 1)
+    if (method == "bayes-bin" && bin_method == "mc") {
+      effect_rows <- bin_N
+    }
+    effect_final_mat <- matrix(nrow = effect_rows, ncol = N_impute)
     post_paa <- vector(length = N_impute)
     # Impute multiple data sets
     for (j in 1:N_impute) {
@@ -91,11 +95,14 @@ test_final <- function(
         single_arm = single_arm,
         method = method,
         alternative = alternative,
-        h0 = h0
+        h0 = h0,
+        bin_prior = bin_prior,
+        bin_method = bin_method,
+        bin_N = bin_N
       )
 
       post_paa[j] <- success$success
-      if (method %in% c("cox", "bayes")) {
+      if (method %in% c("cox", "bayes", "bayes-bin")) {
         effect_final_mat[, j] <- success$effect # See Gelman et al. (2004, p. 520)
       }
     }
@@ -105,7 +112,7 @@ test_final <- function(
   } else {
     # Apply primary analysis to final data (without imputation)
     # Chi-square test cannot handle censored (LTFU) subjects, so exclude them
-    if (method == "chisq" && "loss_to_fu" %in% names(data_in)) {
+    if (method %in% c("chisq", "bayes-bin") && "loss_to_fu" %in% names(data_in)) {
       data_in <- data_in[!data_in$loss_to_fu, ]
     }
     success <- analyse_data(
@@ -117,7 +124,10 @@ test_final <- function(
       single_arm = single_arm,
       method = method,
       alternative = alternative,
-      h0 = h0
+      h0 = h0,
+      bin_prior = bin_prior,
+      bin_method = bin_method,
+      bin_N = bin_N
     )
 
     post_paa <- success$success

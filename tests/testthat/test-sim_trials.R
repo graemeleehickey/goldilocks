@@ -70,6 +70,43 @@ test_that("sim_trials-bayes", {
   expect_s3_class(summ_out, "data.frame")
 })
 
+test_that("sim_trials-bayes-bin", {
+  hc <- -log(0.7) / 36
+  ht <- -log(0.85) / 36
+
+  out <- sim_trials(
+    hazard_treatment = ht,
+    hazard_control = hc,
+    cutpoints = 0,
+    N_total = 200,
+    lambda = 20,
+    lambda_time = 0,
+    interim_look = 100,
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    bin_prior = c(1, 1),
+    bin_method = "normal",
+    bin_N = 100,
+    block = 2,
+    rand_ratio = c(1, 1),
+    prop_loss = 0.30,
+    alternative = "less",
+    h0 = 0,
+    Fn = 0.05,
+    Sn = 0.9,
+    prob_ha = 0.975,
+    N_impute = 2,
+    N_mcmc = 2,
+    N_trials = 1,
+    method = "bayes-bin",
+    ncores = 1,
+    seed = 9241
+  )
+
+  expect_type(out, "list")
+  expect_s3_class(out$sims, "data.frame")
+})
+
 test_that("sim_trials-zero_cores", {
   hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
   ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)

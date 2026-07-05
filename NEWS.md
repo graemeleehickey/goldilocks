@@ -2,6 +2,7 @@
 
 ## Improvements
 
+* Added `method = "bayes-bin"` for Bayesian beta-binomial analysis of complete binary outcomes, with Monte Carlo, normal approximation, and quadrature options for treatment-control differences.
 * Cox model analyses now use a lower-level survival fit for repeated Wald tests, avoiding formula and summary overhead in simulation hot paths.
 * `survival_adapt()` now uses `h0` as the null log hazard ratio for Cox model tests, allowing non-inferiority testing with `h0 = log(margin)`.
 * Added maintainer performance benchmarks for simulation hot paths, including posterior probability conversion, posterior sampling, imputation, and representative `survival_adapt()` runs (#42).
