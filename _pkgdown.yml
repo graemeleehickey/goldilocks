@@ -53,6 +53,7 @@ articles:
   - title: Getting started
     contents:
       - broglio
+      - advent
       - bayes-piecewise
       - bayesian-binary
       - single-arm

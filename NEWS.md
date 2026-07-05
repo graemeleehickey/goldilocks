@@ -24,6 +24,7 @@
 * Modernized roxygen2 source comments to use markdown tables, links, code spans, and emphasis in place of older Rd markup where appropriate.
 * Added a new vignette, "Technical details of the Goldilocks design", documenting the design notation, piecewise-exponential event-time model, Gamma posterior updating, posterior predictive probabilities, interim decision rules, final analysis options, and simulation-based calibration.
 * Added a new vignette, "Bayesian binary outcome designs", documenting `method = "bayes-bin"` for two-arm and single-arm complete binary endpoint analyses.
+* Added a new vignette, "ADVENT: a published Goldilocks design", showing how the published ADVENT pulsed field ablation trial maps to `method = "bayes-bin"` with beta-binomial non-inferiority endpoints, adaptive sample-size thresholds, and cached simulation examples.
 * Renamed vignettes for consistency: "Two-arm randomized trials", "Bayesian piecewise-exponential designs", "Single-arm designs with a performance goal", and "Package architecture".
 * Clarified that `goldilocks` treats enrollment time and randomization time as the same time point in its time-to-event simulations.
 * Clarified that the single-arm external benchmark `h0` is often referred to as a performance goal (PG) or objective performance criterion (OPC).
