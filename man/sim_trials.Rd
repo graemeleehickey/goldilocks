@@ -93,13 +93,21 @@ outcomes, \code{"less"} corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
 corresponds to the treatment arm having a higher cumulative incidence.}
 
-\item{h0}{scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
-  p_\textrm{control}} when \code{method = "bayes"}. Default is \code{h0 = 0}.
-In a single-arm design, \code{h0} is the external benchmark event
-probability, often referred to as a performance goal (PG) or objective
-performance criterion (OPC). The argument is ignored for non-Bayesian
-analysis methods; in those cases the usual method-specific null hypothesis
-is used.}
+\item{h0}{scalar. Null hypothesis value or margin. Default is \code{h0 = 0}.
+\itemize{
+\item When \code{method = "bayes"}, \code{h0} is the null value of
+\eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
+\code{h0} is the external benchmark event probability, often referred to
+as a performance goal (PG) or objective performance criterion (OPC).
+\item When \code{method = "cox"}, \code{h0} is the null log hazard ratio for
+treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
+of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
+specified as a hazard ratio. A Cox non-inferiority test should usually
+use \code{alternative = "less"}.
+\item The argument is ignored for \code{method = "logrank"} and
+\code{method = "chisq"}; in those cases the usual method-specific null
+hypothesis is used.
+}}
 
 \item{Fn}{vector of \code{[0, 1]} values. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for futility. If there are

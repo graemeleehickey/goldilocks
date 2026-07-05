@@ -228,3 +228,23 @@ test_that("analyse_data one-sided cox detects beneficial treatment", {
   # "less" = treatment beneficial; should have high success
   expect_true(res$success > 0.95)
 })
+
+test_that("analyse_data one-sided cox uses h0 as the null log hazard ratio", {
+  set.seed(123)
+  data <- data.frame(
+    time      = c(rexp(200, rate = 0.10), rexp(200, rate = 0.12)),
+    event     = rep(1L, 400),
+    treatment = rep(0:1, each = 200)
+  )
+
+  args <- list(
+    data = data, cutpoints = 0, end_of_study = 36,
+    prior = c(0.1, 0.1), N_mcmc = 10, single_arm = FALSE,
+    method = "cox", alternative = "less"
+  )
+  res_superiority <- do.call(analyse_data, c(args, h0 = 0))
+  res_noninferiority <- do.call(analyse_data, c(args, h0 = log(1.5)))
+
+  expect_true(res_superiority$success < 0.05)
+  expect_true(res_noninferiority$success > 0.95)
+})

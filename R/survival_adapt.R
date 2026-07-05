@@ -24,13 +24,19 @@
 #'   outcomes, \code{"less"} corresponds to the treatment arm having a lower
 #'   cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
 #'   corresponds to the treatment arm having a higher cumulative incidence.
-#' @param h0 scalar. Null hypothesis value of \eqn{p_\textrm{treatment} -
-#'   p_\textrm{control}} when \code{method = "bayes"}. Default is \code{h0 = 0}.
-#'   In a single-arm design, \code{h0} is the external benchmark event
-#'   probability, often referred to as a performance goal (PG) or objective
-#'   performance criterion (OPC). The argument is ignored for non-Bayesian
-#'   analysis methods; in those cases the usual method-specific null hypothesis
-#'   is used.
+#' @param h0 scalar. Null hypothesis value or margin. Default is \code{h0 = 0}.
+#'   * When \code{method = "bayes"}, \code{h0} is the null value of
+#'     \eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
+#'     \code{h0} is the external benchmark event probability, often referred to
+#'     as a performance goal (PG) or objective performance criterion (OPC).
+#'   * When \code{method = "cox"}, \code{h0} is the null log hazard ratio for
+#'     treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
+#'     of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
+#'     specified as a hazard ratio. A Cox non-inferiority test should usually
+#'     use \code{alternative = "less"}.
+#'   * The argument is ignored for \code{method = "logrank"} and
+#'     \code{method = "chisq"}; in those cases the usual method-specific null
+#'     hypothesis is used.
 #' @param Fn vector of \code{[0, 1]} values. Each element is the probability
 #'   threshold to stop at the \eqn{i}-th look early for futility. If there are
 #'   no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
@@ -106,9 +112,12 @@
 #'      Similar to the log-rank test, a \emph{P}-value is calculated and
 #'      \eqn{1 - P} is reported in \code{post_prob_ha}. When
 #'      \code{alternative = "two.sided"}, the standard two-sided Wald
-#'      \emph{P}-value is used. When \code{alternative = "less"} or
+#'      \emph{P}-value is used when \code{h0 = 0}. For other values of
+#'      \code{h0}, the Wald test is centered on the specified null log hazard
+#'      ratio. When \code{alternative = "less"} or
 #'      \code{"greater"}, a one-sided \emph{P}-value is derived from the Wald
-#'      z-statistic. The treatment effect (log hazard ratio) is also reported.
+#'      z-statistic relative to \code{h0}. The treatment effect (log hazard
+#'      ratio) is also reported.
 #'
 #'   * Bayesian absolute difference (\code{method = "bayes"}).
 #'      Each imputed dataset is used to update the conjugate Gamma prior

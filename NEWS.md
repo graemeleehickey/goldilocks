@@ -2,6 +2,7 @@
 
 ## Improvements
 
+* `survival_adapt()` now uses `h0` as the null log hazard ratio for Cox model tests, allowing non-inferiority testing with `h0 = log(margin)`.
 * Added maintainer performance benchmarks for simulation hot paths, including posterior probability conversion, posterior sampling, imputation, and representative `survival_adapt()` runs (#42).
 * Harmonized treatment-assignment terminology in internal simulation helpers and documentation: data use `treatment = 1` for treatment and `treatment = 0` for control, while posterior/imputation array indexing is now described separately as hazard slices (#35).
 * `sim_trials()` now accepts a `seed` argument that creates independent per-trial `"L'Ecuyer-CMRG"` random-number streams for reproducible simulations, including when using multiple cores (#41).

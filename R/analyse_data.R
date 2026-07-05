@@ -96,13 +96,13 @@ analyse_data <- function(
   if (method == "cox") {
     fit_cox <- coxph(Surv(time, event) ~ treatment, data = data)
     fit_res <- coef(summary(fit_cox))
+    z <- (fit_res[1, 1] - h0) / fit_res[1, 3]
     if (alternative == "two.sided") {
-      success <- 1 - fit_res[1, 5]
+      success <- 1 - (2 * pnorm(-abs(z)))
     } else {
-      # Cox z < 0 when treatment reduces hazard (beneficial).
-      # "less" => treatment beneficial => large success when z << 0
-      # "greater" => treatment harmful => large success when z >> 0
-      z <- fit_res[1, 4]
+      # Cox z < 0 when the estimated log hazard ratio is less than h0.
+      # "less" => treatment beneficial/non-inferior => large success when z << 0
+      # "greater" => treatment harmful/superior to h0 => large success when z >> 0
       if (alternative == "less") {
         success <- 1 - pnorm(z)
       } else if (alternative == "greater") {
