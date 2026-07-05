@@ -31,10 +31,10 @@ exponential model.}
 \item{N_total}{integer. Maximum sample size allowable}
 
 \item{lambda}{vector. Enrollment rates across simulated enrollment times. See
-\code{\link{enrollment}} for more details.}
+\code{\link[=enrollment]{enrollment()}} for more details.}
 
 \item{lambda_time}{vector. Enrollment time(s) at which the enrollment rates
-change. Must be same length as lambda. See \code{\link{enrollment}} for
+change. Must be same length as lambda. See \code{\link[=enrollment]{enrollment()}} for
 more details.}
 
 \item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
@@ -44,7 +44,7 @@ will be evaluated.}
 
 \item{rand_ratio}{vector. Randomization allocation for the ratio of control
 to treatment. Integer values mapping the size of the block. See
-\code{\link{randomization}} for more details.}
+\code{\link[=randomization]{randomization()}} for more details.}
 
 \item{prop_loss}{scalar. Overall proportion of subjects lost to follow-up.
 Subjects are selected at random for LTFU regardless of treatment assignment or
@@ -55,32 +55,14 @@ event or censoring time. Since the LTFU time is always less than
 right-censored. Defaults to zero.}
 }
 \value{
-A data frame with 1 row per subject and columns:
-\describe{
-\item{\code{time:}}{
-numeric. Time of event or censoring time.
-}
-\item{\code{treatment:}}{
-integer. Treatment assignment, coded \code{1L} for the treatment arm
-and \code{0L} for the control arm. Single-arm designs have
-\code{treatment = 1L} for every subject.
-}
-\item{\code{event:}}{
-integer. Indicator of whether event occurred (\code{=1L} if occurred
-and \code{=0L} if right-censored).
-}
-\item{\code{enrollment:}}{
-numeric. Time of patient enrollment relative to the time the trial
-enrolled the first patient. The package treats enrollment and
-randomization as occurring at the same time.
-}
-\item{\code{id:}}{
-integer. Identification number for each patient.
-}
-\item{\code{loss_to_fu:}}{
-logical. Indicator of whether the patient was lost to follow-up during
-the course of observation.
-}
+A data frame with 1 row per subject and columns:\tabular{ll}{
+   Column \tab Description \cr
+   \code{time} \tab Time of event or censoring time. \cr
+   \code{treatment} \tab Treatment assignment, coded \code{1L} for the treatment arm and \code{0L} for the control arm. Single-arm designs have \code{treatment = 1L} for every subject. \cr
+   \code{event} \tab Indicator of whether event occurred (\code{1L} if occurred and \code{0L} if right-censored). \cr
+   \code{enrollment} \tab Time of patient enrollment relative to the time the trial enrolled the first patient. The package treats enrollment and randomization as occurring at the same time. \cr
+   \code{id} \tab Identification number for each patient. \cr
+   \code{loss_to_fu} \tab Indicator of whether the patient was lost to follow-up during observation. \cr
 }
 }
 \description{

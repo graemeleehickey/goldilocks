@@ -19,9 +19,8 @@ always be 0.}
 \item{maxtime}{scalar. Maximum time before end of study.}
 }
 \value{
-A data frame with simulated follow-up times (\code{time}) and
-respective event indicator (\code{event}, 1 = event occurred, 0 =
-censoring).
+A data frame with simulated follow-up times (\code{time}) and respective
+event indicator (\code{event}, 1 = event occurred, 0 = censoring).
 }
 \description{
 Imputation of time-to-event outcomes using the piecewise
@@ -29,14 +28,20 @@ constant hazard exponential function conditional on observed exposure.
 }
 \details{
 If a subject is event-free at time \eqn{s < t}, then the conditional
-probability \eqn{F_{T \| s}|(t \| s) = P[T \le \| T > s] = (F(t) - F(s)) /
-  (1 - F(s))}, where \eqn{F(\cdot)} is the cumulative distribution function
-of the piecewise exponential (PWE) distribution. Equivalently, \eqn{F(t) =
-  1 - S(t)}, where \code{S(t)} is the survival function. If \eqn{U \sim
-  Unif(0, 1)}, then we can generate an event time (conditional on being event
-free up until \eqn{s}) as \eqn{F^{-1}(U(1-F(s)) + F(s))}. Note: if \eqn{s =
-  0}, then this is the equivalent of a direct (unconditional) sample from the
-PWE distribution.
+probability is
+
+\deqn{F_{T | s}(t | s) = P(T \le t | T > s) = \frac{F(t) - F(s)}{1 - F(s)}}
+
+where \eqn{F(\cdot)} is the cumulative distribution function of the
+piecewise exponential (PWE) distribution. Equivalently, \eqn{F(t) = 1 -
+  S(t)}, where \code{S(t)} is the survival function. If \eqn{U \sim Unif(0, 1)},
+then we can generate an event time (conditional on being event free up
+until \eqn{s}) as
+
+\deqn{F^{-1}(U(1 - F(s)) + F(s))}
+
+If \eqn{s = 0}, this is equivalent to a direct unconditional sample from
+the PWE distribution.
 }
 \examples{
 pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = c(0, 12))

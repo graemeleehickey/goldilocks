@@ -8,10 +8,10 @@ summarise_sims(data)
 }
 \arguments{
 \item{data}{list (of data frames) or a single data frame. If summarizing a
-single run of simulations, \code{data} will be a \code{data.frame} object
-returned from \code{\link{survival_adapt}}. If summarizing multiple
-simulation scenarios, \code{data} will be a \code{list} object, with each
-element being a \code{data.frame} object.}
+single run of simulations, \code{data} will be a \code{data.frame} object returned
+from \code{\link[=survival_adapt]{survival_adapt()}}. If summarizing multiple simulation scenarios,
+\code{data} will be a \code{list} object, with each element being a \code{data.frame}
+object.}
 }
 \value{
 Data frame reporting the operating characteristics, including the

@@ -1,22 +1,22 @@
 #' @title Posterior distribution of piecewise exponential constant hazard rates
 #'
 #' @description Using the Beta-Gamma conjugacy property, the posterior
-#'   distribution of the piecewise hazard rates (\eqn{\lambda_j}, for \code{j=1,
-#'   \dots, J}) is calculated and sampled from.
+#'   distribution of the piecewise hazard rates (\eqn{\lambda_j}, for `j = 1,
+#'   ..., J`) is calculated and sampled from.
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams haz_to_prop
 #' @param data data frame. Minimum requirements are 3 columns: event time
-#'   (\code{time}), indicator of the event (\code{event}), and indicator for
-#'   treatment assignment (\code{treatment}, coded \code{1} for treatment and
-#'   \code{0} for control). Other columns can be included in the data frame and
+#'   (`time`), indicator of the event (`event`), and indicator for
+#'   treatment assignment (`treatment`, coded `1` for treatment and
+#'   `0` for control). Other columns can be included in the data frame and
 #'   will be handled in the split.
 #'
 #' @return An array of dimension 3. The first dimension is of length
-#'   \code{N_mcmc}, the second dimension is of length \eqn{J} (one column for
+#'   `N_mcmc`, the second dimension is of length \eqn{J} (one column for
 #'   each hazard piece), and the third dimension is of length 2, with the first
-#'   slice including posterior samples from \code{post_treatment}, and the
-#'   second slice including posterior samples from \code{post_control}.
+#'   slice including posterior samples from `post_treatment`, and the
+#'   second slice including posterior samples from `post_control`.
 #'
 #' @importFrom stats rgamma
 #'

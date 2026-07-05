@@ -6,9 +6,9 @@
 #'
 #' @param N_total integer. Total sample size for randomization allocation.
 #' @param block vector. Block size for randomization. Note that it needs to be a
-#'   multiple of the sum of \code{allocation}.
+#'   multiple of the sum of `allocation`.
 #' @param allocation vector. The randomization allocation in the order
-#'   \code{c(control, treatment)}.
+#'   `c(control, treatment)`.
 #'
 #' @details Complete randomization may not always be ideal due to the chance of
 #'   drawing a large block assigned to one treatment group, potentially
@@ -19,8 +19,8 @@
 #'   an integer that is divisible by the sum of the randomization allocation;
 #'   see the examples.
 #'
-#' @return An integer treatment assignment vector, coded \code{0} for control
-#'   and \code{1} for treatment.
+#' @return An integer treatment assignment vector, coded `0` for control and
+#'   `1` for treatment.
 #'
 #' @export
 #'

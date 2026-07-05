@@ -9,31 +9,29 @@
 #' @param N_trials integer. Number of trials to simulate.
 #' @param ncores integer. Number of cores to use for parallel processing.
 #' @param seed optional integer. Seed used to generate independent per-trial
-#'   \code{"L'Ecuyer-CMRG"} random-number streams. The default, \code{NULL},
+#'   `"L'Ecuyer-CMRG"` random-number streams. The default, `NULL`,
 #'   does not reset the global RNG state, preserving the usual unseeded
 #'   simulation behavior.
 #'
 #' @details This is basically a wrapper function for
-#'   \code{\link{survival_adapt}}, whereby we repeatedly run the function for a
-#'   independent number of trials (all with the same input design parameters and
-#'   treatment effect).
+#'   [survival_adapt()], whereby we repeatedly run the function for independent
+#'   trials (all with the same input design parameters and treatment effect).
 #'
-#'   To use will multiple cores (where available), the argument \code{ncores}
+#'   To use multiple cores (where available), the argument `ncores`
 #'   can be increased from the default of 1. Note: on Windows machines, it is
-#'   not possible to use the \code{\link[parallel]{mclapply}} function with
-#'   \code{ncores} \eqn{>1}.
+#'   not possible to use [parallel::mclapply()] with `ncores` \eqn{> 1}.
 #'
-#'   Set \code{seed} to make \code{sim_trials()} reproducible. When a seed is
-#'   supplied, \code{sim_trials()} first generates one independent
-#'   \code{"L'Ecuyer-CMRG"} stream for each simulated trial, then each call to
-#'   \code{survival_adapt()} runs with its own per-trial stream. This avoids
+#'   Set `seed` to make `sim_trials()` reproducible. When a seed is
+#'   supplied, `sim_trials()` first generates one independent
+#'   `"L'Ecuyer-CMRG"` stream for each simulated trial, then each call to
+#'   [survival_adapt()] runs with its own per-trial stream. This avoids
 #'   reusing the same random-number stream across workers when
-#'   \code{ncores > 1}. With \code{seed = NULL}, the function uses R's current
+#'   `ncores > 1`. With `seed = NULL`, the function uses R's current
 #'   global RNG state.
 #'
 #' @return Data frame with 1 row per simulated trial and columns for key summary
-#'   statistics. See \code{\link{survival_adapt}} for details of what is
-#'   returned in each row.
+#'   statistics. See [survival_adapt()] for details of what is returned in each
+#'   row.
 #'
 #' @importFrom parallel detectCores
 #' @importFrom pbmcapply pbmclapply

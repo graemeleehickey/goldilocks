@@ -49,8 +49,12 @@ enrollment rate over time:
 Then, to simulate individual patient enrollment dates with a sample size
 (\code{N_total}) of 50, we use
 
-\code{enrollment(lambda = c(0.3, 0.7, 0.9, 1.2), N_total = 50,
-        lambda_time = c(0, 5, 10, 15))}
+\if{html}{\out{<div class="sourceCode">}}\preformatted{enrollment(
+  lambda = c(0.3, 0.7, 0.9, 1.2),
+  N_total = 50,
+  lambda_time = c(0, 5, 10, 15)
+)
+}\if{html}{\out{</div>}}
 }
 \examples{
 enrollment(lambda = c(0.003, 0.7), N_total = 100, lambda_time = c(0, 10))
@@ -59,6 +63,5 @@ enrollment(lambda = c(0.3, 0.5, 0.9, 1.2, 2.1), N_total = 200,
 }
 \seealso{
 This function is based on the \code{enrollment} function from the
-\href{https://cran.r-project.org/package=bayesCT}{\code{bayesCT}}
-R package.
+\href{https://cran.r-project.org/package=bayesCT}{\code{bayesCT}} R package.
 }

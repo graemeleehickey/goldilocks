@@ -10,22 +10,19 @@
 #' @inheritParams sim_comp_data
 #' @inheritParams haz_to_prop
 #' @param data_in data frame. The time-to-event data that requires imputation,
-#'   with columns for treatment assignment (\code{treatment}, coded \code{1}
-#'   for treatment and \code{0} for control; single-arm designs use all 1s),
-#'   event time (\code{time}), event indicator (\code{event}), and indicators
+#'   with columns for treatment assignment (`treatment`, coded `1`
+#'   for treatment and `0` for control; single-arm designs use all 1s),
+#'   event time (`time`), event indicator (`event`), and indicators
 #'   of whether the subject requires imputation for expected success
-#'   (\code{subject_impute_success}) or futility
-#'   (\code{subject_impute_futility}).
+#'   (`subject_impute_success`) or futility (`subject_impute_futility`).
 #' @param hazard array. Hazard parameters for the piecewise exponential
 #'   distribution. This should be a single sample from a posterior distribution.
 #'   The single slice must have dimensions 1 (rows), \eqn{J} (columns), and 2
 #'   (third dimension, in order of treatment and control hazard slices).
-#' @param type character. Whether imputation is for \code{success} or
-#'   \code{futility}.
+#' @param type character. Whether imputation is for `success` or `futility`.
 #'
 #' @details This function is not intended to be used outside of the main
-#'   simulation programs: \code{\link{survival_adapt}} and
-#'   \code{\link{sim_trials}}.
+#'   simulation programs: [survival_adapt()] and [sim_trials()].
 #'
 #' @return A data frame with the same number of rows (number of subjects), but
 #'   with imputed event times.

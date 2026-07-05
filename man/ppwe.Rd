@@ -26,6 +26,6 @@ cumulative distribution function. Length of the vector matches the number
 of rows of the \code{hazard} matrix parameter.
 }
 \description{
-Extends the \code{\link[PWEALL]{pwe}} function to allow for
-vectorization over the hazard rates.
+Extends \code{\link[PWEALL:pwe]{PWEALL::pwe()}} to allow for vectorization over the
+hazard rates.
 }

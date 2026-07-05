@@ -4,67 +4,66 @@
 #' @inheritParams sim_comp_data
 #' @param interim_look vector. Sample size for each interim look. Note: the
 #'   maximum sample size should not be included. For two-arm designs, each
-#'   interim look must be at least the (largest) block size (see \code{block}),
+#'   interim look must be at least the (largest) block size (see `block`),
 #'   ensuring both treatment groups are present at every interim analysis; a
 #'   smaller look could enroll subjects from one treatment group only, leaving
 #'   the interim posterior undefined for the missing group.
 #' @param prior vector. The prior distributions for the piecewise hazard rate
 #'   parameters are each \eqn{Gamma(a_0, b_0)}, where \eqn{a_0} is the shape
 #'   parameter and \eqn{b_0} is the rate parameter (i.e., the inverse of the
-#'   scale). This follows R's \code{\link[stats]{rgamma}} parameterization. The
+#'   scale). This follows R's [stats::rgamma()] parameterization. The
 #'   same prior is applied to all piecewise intervals and to both treatment
 #'   groups. The default non-informative prior distribution used is
-#'   \code{Gamma(0.1, 0.1)}, which is specified by setting \code{prior = c(0.1,
-#'   0.1)}.
+#'   `Gamma(0.1, 0.1)`, which is specified by setting `prior = c(0.1, 0.1)`.
 #' @param alternative character. The string specifying the alternative
-#'   hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
-#'   \code{"two.sided"}. All three options are supported for \code{method =
-#'   "bayes"}, \code{"logrank"}, and \code{"cox"}. The chi-square test
-#'   (\code{method = "chisq"}) only supports \code{"two.sided"}. For survival
-#'   outcomes, \code{"less"} corresponds to the treatment arm having a lower
-#'   cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
+#'   hypothesis, must be one of `"greater"` (default), `"less"` or
+#'   `"two.sided"`. All three options are supported for `method = "bayes"`,
+#'   `"logrank"`, and `"cox"`. The chi-square test (`method = "chisq"`) only
+#'   supports `"two.sided"`. For survival outcomes, `"less"` corresponds to the
+#'   treatment arm having a lower cumulative incidence (i.e., treatment is
+#'   beneficial), and `"greater"`
 #'   corresponds to the treatment arm having a higher cumulative incidence.
-#' @param h0 scalar. Null hypothesis value or margin. Default is \code{h0 = 0}.
-#'   * When \code{method = "bayes"}, \code{h0} is the null value of
+#' @param h0 scalar. Null hypothesis value or margin. Default is `h0 = 0`.
+#'   * When `method = "bayes"`, `h0` is the null value of
 #'     \eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
-#'     \code{h0} is the external benchmark event probability, often referred to
+#'     `h0` is the external benchmark event probability, often referred to
 #'     as a performance goal (PG) or objective performance criterion (OPC).
-#'   * When \code{method = "cox"}, \code{h0} is the null log hazard ratio for
-#'     treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
-#'     of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
+#'   * When `method = "cox"`, `h0` is the null log hazard ratio for
+#'     treatment versus control. Use `h0 = 0` for the usual hazard ratio
+#'     of 1 null, or `h0 = log(margin)` for a non-inferiority margin
 #'     specified as a hazard ratio. A Cox non-inferiority test should usually
-#'     use \code{alternative = "less"}.
-#'   * The argument is ignored for \code{method = "logrank"} and
-#'     \code{method = "chisq"}; in those cases the usual method-specific null
+#'     use `alternative = "less"`.
+#'   * The argument is ignored for `method = "logrank"` and
+#'     `method = "chisq"`; in those cases the usual method-specific null
 #'     hypothesis is used.
-#' @param Fn vector of \code{[0, 1]} values. Each element is the probability
+#' @param Fn vector of values between 0 and 1. Each element is the probability
 #'   threshold to stop at the \eqn{i}-th look early for futility. If there are
-#'   no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
-#'   used in the simulations or analysis. Set \code{Fn = 0} to disable futility
-#'   monitoring. The length of \code{Fn} should be the same as
-#'   \code{interim_look}, else the values are recycled.
-#' @param Sn vector of \code{[0, 1]} values. Each element is the probability
+#'   no interim looks (i.e. `interim_look = NULL`), then `Fn` is not
+#'   used in the simulations or analysis. Set `Fn = 0` to disable futility
+#'   monitoring. The length of `Fn` should be the same as
+#'   `interim_look`, else the values are recycled.
+#' @param Sn vector of values between 0 and 1. Each element is the probability
 #'   threshold to stop at the \eqn{i}-th look early for expected success. If
-#'   there are no interim looks (i.e. \code{interim_look = NULL}), then
-#'   \code{Sn} is not used in the simulations or analysis. The length of
-#'   \code{Sn} should be the same as \code{interim_look}, else the values are
+#'   there are no interim looks (i.e. `interim_look = NULL`), then
+#'   `Sn` is not used in the simulations or analysis. The length of
+#'   `Sn` should be the same as `interim_look`, else the values are
 #'   recycled.
-#' @param prob_ha scalar \code{[0, 1]}. Probability threshold of alternative
+#' @param prob_ha scalar value between 0 and 1. Probability threshold of alternative
 #'   hypothesis.
 #' @param N_impute integer. Number of imputations for Monte Carlo simulation of
 #'   missing data.
 #' @param N_mcmc integer. Number of samples to draw from the posterior
-#'   distribution when using a Bayesian test (\code{method = "bayes"}).
+#'   distribution when using a Bayesian test (`method = "bayes"`).
 #' @param method character. For an imputed data set (or the final data set after
 #'   follow-up is complete), whether the analysis should be a log-rank
-#'   (\code{method = "logrank"}) test, Cox proportional hazards regression model
-#'   Wald test (\code{method = "cox"}), a fully-Bayesian analysis (\code{method
-#'   = "bayes"}), or a chi-square test (\code{method = "chisq"}). See Details
+#'   (`method = "logrank"`) test, Cox proportional hazards regression model
+#'   Wald test (`method = "cox"`), a fully-Bayesian analysis (`method
+#'   = "bayes"`), or a chi-square test (`method = "chisq"`). See Details
 #'   section.
 #' @param imputed_final logical. Should the final analysis (after all subjects
 #'   have been followed-up to the study end) be based on imputed outcomes for
-#'   subjects who were LTFU (i.e. right-censored with time
-#'   \code{<end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
+#'   subjects who were LTFU (i.e. right-censored with time less than
+#'   `end_of_study`)? Default is `TRUE`. Setting to `FALSE`
 #'   means that the final analysis would incorporate right-censoring.
 #'
 #' @details Implements the Goldilocks design method described in Broglio et al.
@@ -74,18 +73,18 @@
 #'      calculated as the proportion of imputed datasets at the *current* sample
 #'      size that would go on to be success at the specified threshold. At each
 #'      interim analysis it is compared to the corresponding element of
-#'      \code{Sn}, and if it exceeds the threshold,
+#'      `Sn`, and if it exceeds the threshold,
 #'      accrual/enrollment is suspended and the outstanding follow-up allowed to
 #'      complete before conducting the pre-specified final analysis.
 #'
 #'   2. **The posterior predictive probability of final success**. This is
 #'      calculated as the proportion of imputed datasets at the *maximum*
 #'      threshold that would go on to be successful. Similar to above, it is
-#'      compared to the corresponding element of \code{Fn}, and if it
+#'      compared to the corresponding element of `Fn`, and if it
 #'      is less than the threshold, accrual/enrollment is suspended and the
 #'      trial terminated. Typically this would be a binding decision. If it is
 #'      not a binding decision, then one should also explore the simulations
-#'      with \code{Fn = 0}.
+#'      with `Fn = 0`.
 #'
 #'   Hence, at each interim analysis look, 3 decisions are allowed:
 #'
@@ -96,59 +95,59 @@
 #'
 #'   At each interim (and final) analysis methods as:
 #'
-#'  * Log-rank test (\code{method = "logrank"}).
+#'  * Log-rank test (`method = "logrank"`).
 #'      Each (imputed) dataset with both treatment and control arms can be
-#'      compared using a standard log-rank test. The output is a \emph{P}-value,
+#'      compared using a standard log-rank test. The output is a *P*-value,
 #'      and there is no treatment effect reported. The function returns \eqn{1 -
-#'      P}, which is reported in \code{post_prob_ha}. Whilst not a posterior
+#'      P}, which is reported in `post_prob_ha`. Whilst not a posterior
 #'      probability, it can be contrasted in the same manner. For example, if
 #'      the success threshold is \eqn{P < 0.05}, then one requires
-#'      \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to enable
+#'      `post_prob_ha` \eqn{> 0.95}. The reason for this is to enable
 #'      simple switching between Bayesian and frequentist paradigms for
-#'      analysis. When \code{alternative = "less"} or \code{"greater"}, a
-#'      one-sided \emph{P}-value is computed from the log-rank z-statistic.
+#'      analysis. When `alternative = "less"` or `"greater"`, a
+#'      one-sided *P*-value is computed from the log-rank z-statistic.
 #'
-#'   * Cox proportional hazards regression Wald test (\code{method = "cox"}).
-#'      Similar to the log-rank test, a \emph{P}-value is calculated and
-#'      \eqn{1 - P} is reported in \code{post_prob_ha}. When
-#'      \code{alternative = "two.sided"}, the standard two-sided Wald
-#'      \emph{P}-value is used when \code{h0 = 0}. For other values of
-#'      \code{h0}, the Wald test is centered on the specified null log hazard
-#'      ratio. When \code{alternative = "less"} or
-#'      \code{"greater"}, a one-sided \emph{P}-value is derived from the Wald
-#'      z-statistic relative to \code{h0}. The treatment effect (log hazard
+#'   * Cox proportional hazards regression Wald test (`method = "cox"`).
+#'      Similar to the log-rank test, a *P*-value is calculated and
+#'      \eqn{1 - P} is reported in `post_prob_ha`. When
+#'      `alternative = "two.sided"`, the standard two-sided Wald
+#'      *P*-value is used when `h0 = 0`. For other values of
+#'      `h0`, the Wald test is centered on the specified null log hazard
+#'      ratio. When `alternative = "less"` or
+#'      `"greater"`, a one-sided *P*-value is derived from the Wald
+#'      z-statistic relative to `h0`. The treatment effect (log hazard
 #'      ratio) is also reported.
 #'
-#'   * Bayesian absolute difference (\code{method = "bayes"}).
+#'   * Bayesian absolute difference (`method = "bayes"`).
 #'      Each imputed dataset is used to update the conjugate Gamma prior
-#'      (defined by \code{prior}), yielding a posterior distribution for the
+#'      (defined by `prior`), yielding a posterior distribution for the
 #'      piecewise exponential rate parameters. In turn, the posterior
 #'      distribution of the cumulative incidence function (\eqn{1 - S(t)}, where
 #'      \eqn{S(t)} is the survival function) evaluated at time
-#'      \code{end_of_study} is calculated. If a single-arm study, then this
+#'      `end_of_study` is calculated. If a single-arm study, then this
 #'      summarizes the treatment effect, else, if a two-armed study, the
 #'      independent posteriors are used to estimate the posterior distribution
-#'      of the difference. A posterior probability is calculated according to
-#'      the specification of the test type (\code{alternative}) and the value of
-#'      the null hypothesis (\code{h0}).
+#'      of the difference. A posterior probability is calculated according to the
+#'      specification of the test type (`alternative`) and the value of the null
+#'      hypothesis (`h0`).
 #'
-#'  * Chi-square test (\code{method = "chisq"}).
+#'  * Chi-square test (`method = "chisq"`).
 #'      Each (imputed) dataset with both treatment and control arms can be
 #'      compared using a standard chi-square test on the final event status,
-#'      which discards the event time information. The output is a
-#'      \emph{P}-value, and there is no treatment effect reported. The function
-#'      returns \eqn{1 - P}, which is reported in \code{post_prob_ha}. Whilst
+#'      which discards the event time information. The output is a *P*-value,
+#'      and there is no treatment effect reported. The function returns \eqn{1 -
+#'      P}, which is reported in `post_prob_ha`. Whilst
 #'      not a posterior probability, it can be contrasted in the same manner.
 #'      For example, if the success threshold is \eqn{P < 0.05}, then one
-#'      requires \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to
+#'      requires `post_prob_ha` \eqn{> 0.95}. The reason for this is to
 #'      enable simple switching between Bayesian and frequentist paradigms for
 #'      analysis. Because the chi-square test cannot handle right-censored
 #'      observations, subjects lost to follow-up are excluded from the final
-#'      analysis when \code{imputed_final = FALSE}. When
-#'      \code{imputed_final = TRUE}, LTFU subjects are imputed before the
+#'      analysis when `imputed_final = FALSE`. When
+#'      `imputed_final = TRUE`, LTFU subjects are imputed before the
 #'      test is applied, so all subjects are included.
 #'
-#'  * Imputed final analysis (\code{imputed_final}).
+#'  * Imputed final analysis (`imputed_final`).
 #'      The overall final analysis conducted after accrual is suspended and
 #'      follow-up is complete can be analyzed on imputed datasets (default) or
 #'      on the non-imputed dataset. Since the imputations/predictions used
@@ -157,66 +156,45 @@
 #'      conduct the trial in the same manner, especially if loss to follow-up
 #'      rates are appreciable. Note, this only applies to subjects who are
 #'      right-censored due to loss to follow-up, which we assume is a
-#'      non-informative process. This can be used with any \code{method}.
+#'      non-informative process. This can be used with any `method`.
 #'
-#'   When \code{method = "bayes"} and imputation is involved (either at interim
-#'   analyses or via \code{imputed_final = TRUE}), a two-stage posterior
+#'   When `method = "bayes"` and imputation is involved (either at interim
+#'   analyses or via `imputed_final = TRUE`), a two-stage posterior
 #'   procedure is used. First, the posterior distribution of the piecewise
-#'   hazard rates is estimated from the \emph{observed} data and used to draw
-#'   imputed event times for censored subjects. Second, a \emph{new} posterior
+#'   hazard rates is estimated from the *observed* data and used to draw
+#'   imputed event times for censored subjects. Second, a *new* posterior
 #'   is estimated from the combined observed and imputed data, and this
 #'   posterior is used for inference. This is consistent with the predictive
 #'   probability framework described in Broglio et al. (2014), but users
 #'   should be aware that the imputation model's posterior influences the
-#'   analysis posterior. For frequentist methods (\code{"logrank"},
-#'   \code{"cox"}, \code{"chisq"}), the second stage uses a standard test
+#'   analysis posterior. For frequentist methods (`"logrank"`, `"cox"`,
+#'   `"chisq"`), the second stage uses a standard test
 #'   rather than a posterior, so this feedback loop does not arise.
 #'
 #'   At each interim look, follow-up times are masked (censored) to reflect
 #'   the calendar time of the analysis. The package treats enrollment and
 #'   randomization as occurring at the same time. Subjects enrolled at the exact
 #'   interim boundary have zero follow-up time. These times are clamped to
-#'   \code{.Machine$double.eps} (approximately \eqn{2.2 \times 10^{-16}}) so
+#'   `.Machine$double.eps` (approximately \eqn{2.2 \times 10^{-16}}) so
 #'   that they contribute negligible but non-zero exposure to the interim
 #'   posterior. This affects at most one subject per interim look.
 #'
 #' @return A data frame containing some input parameters (arguments) as well as
 #'   statistics from the analysis, including:
 #'
-#'   \describe{
-#'     \item{\code{N_treatment:}}{
-#'       integer. The number of patients enrolled in the treatment arm for
-#'       each simulation.}
-#'     \item{\code{N_control:}}{
-#'       integer. The number of patients enrolled in the control arm for
-#'       each simulation.}
-#'     \item{\code{est_final:}}{
-#'       scalar. The treatment effect that was estimated at the final analysis.
-#'       Final analysis occurs when either the maximum sample size is reached
-#'       and follow-up complete, or the interim analysis triggered an early
-#'       stopping of enrollment/accrual and follow-up for those subjects is
-#'       complete.}
-#'     \item{\code{post_prob_ha:}}{
-#'       scalar. The corresponding posterior probability from the final
-#'       analysis. If \code{imputed_final} is true, this is calculated as the
-#'       posterior probability of efficacy (or equivalent, depending on how
-#'       \code{alternative:} and \code{h0} were specified) for each imputed
-#'       final analysis dataset, and then averaged over the \code{N_impute}
-#'       imputations. If \code{method = "logrank"}, \code{post_prob_ha} is
-#'       calculated in the same fashion, but value represents \eqn{1 - P},
-#'       where \eqn{P} denotes the frequentist \eqn{P}-value.}
-#'     \item{\code{stop_futility:}}{
-#'       integer. A logical indicator of whether the trial was stopped early for
-#'       futility.}
-#'     \item{\code{stop_expected_success:}}{
-#'       integer. A logical indicator of whether the trial was stopped early for
-#'       expected success.}
-#'  }
+#' | Column | Description |
+#' | --- | --- |
+#' | `N_treatment` | Number of patients enrolled in the treatment arm. |
+#' | `N_control` | Number of patients enrolled in the control arm. |
+#' | `est_final` | Treatment effect estimated at the final analysis. The final analysis occurs when either the maximum sample size is reached and follow-up is complete, or the interim analysis triggered early stopping of enrollment/accrual and follow-up for those subjects is complete. |
+#' | `post_prob_ha` | Posterior probability from the final analysis. If `imputed_final` is `TRUE`, this is calculated for each imputed final-analysis dataset and averaged over `N_impute` imputations. If `method = "logrank"`, the value represents \eqn{1 - P}, where \eqn{P} is the frequentist *P*-value. |
+#' | `stop_futility` | Logical indicator of whether the trial stopped early for futility. |
+#' | `stop_expected_success` | Logical indicator of whether the trial stopped early for expected success. |
 #'
 #' @references
 #' Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks
-#' approach to sample size selection. \emph{Journal of Biopharmaceutical
-#' Statistics}, 2014; 24(3): 685–705.
+#' approach to sample size selection. *Journal of Biopharmaceutical Statistics*,
+#' 2014; 24(3): 685–705.
 #'
 #' @importFrom stats pexp coef chisq.test
 #' @export

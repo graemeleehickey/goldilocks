@@ -16,8 +16,8 @@ multiple of the sum of \code{allocation}.}
 \code{c(control, treatment)}.}
 }
 \value{
-An integer treatment assignment vector, coded \code{0} for control
-and \code{1} for treatment.
+An integer treatment assignment vector, coded \code{0} for control and
+\code{1} for treatment.
 }
 \description{
 Generates a randomized treatment assignment sequence for

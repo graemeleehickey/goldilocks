@@ -9,15 +9,10 @@
 #'
 #' @return A list with 2 elements:
 #'
-#' \describe{
-#'     \item{\code{success}}{
-#'        The mean posterior probability of effect (or 1 - the conventional
-#'        P-value if \code{method = "logrank"}, \code{method = "cox"}, or
-#'        \code{method = "chisq"}).}
-#'     \item{\code{effect}}{ A sample vector from the posterior distribution of
-#'        the effect size. If \code{method = "logrank"}, then this is
-#'        \code{NULL}.}
-#' }
+#' | Element | Description |
+#' | --- | --- |
+#' | `success` | Mean posterior probability of effect, or 1 minus the conventional *P*-value if `method = "logrank"`, `method = "cox"`, or `method = "chisq"`. |
+#' | `effect` | Sample vector from the posterior distribution of the effect size. If `method = "logrank"`, this is `NULL`. |
 #'
 #' @importFrom stats pchisq pnorm
 #' @import survival

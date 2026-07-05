@@ -3,11 +3,11 @@
 #' @description Simulate enrollment time using a piecewise Poisson distribution.
 #'
 #' @param lambda vector. Rate parameter(s) for Poisson distribution.
-#' @param lambda_time vector. Knots (of \code{length(lambda)}) indicating
-#'   regions where a specific hazard rate (\code{lambda}) applies. The first
-#'   element is always \code{lambda_time = 0}, denoting the trial start time.
-#'   Note: final element of \code{lambda} is assumed to be constant as
-#'   \code{lambda_time} tends to infinity.
+#' @param lambda_time vector. Knots (of `length(lambda)`) indicating
+#'   regions where a specific hazard rate (`lambda`) applies. The first
+#'   element is always `lambda_time = 0`, denoting the trial start time.
+#'   Note: final element of `lambda` is assumed to be constant as
+#'   `lambda_time` tends to infinity.
 #' @param N_total integer. Value of total sample size.
 #'
 #' @details Subject recruitment is assumed to follow a (piecewise stationary)
@@ -32,17 +32,21 @@
 #' }
 #'
 #'   Then, to simulate individual patient enrollment dates with a sample size
-#'   (\code{N_total}) of 50, we use
+#'   (`N_total`) of 50, we use
 #'
-#'   \code{enrollment(lambda = c(0.3, 0.7, 0.9, 1.2), N_total = 50,
-#'         lambda_time = c(0, 5, 10, 15))}
+#'   ```
+#'   enrollment(
+#'     lambda = c(0.3, 0.7, 0.9, 1.2),
+#'     N_total = 50,
+#'     lambda_time = c(0, 5, 10, 15)
+#'   )
+#'   ```
 #'
 #' @return A vector of enrollment times (from time of first patient enrollment)
 #'   in unit time (e.g. days).
 #'
-#' @seealso This function is based on the \code{enrollment} function from the
-#'   [\code{bayesCT}](https://cran.r-project.org/package=bayesCT)
-#'    R package.
+#' @seealso This function is based on the `enrollment` function from the
+#'   [`bayesCT`](https://cran.r-project.org/package=bayesCT) R package.
 #'
 #' @importFrom stats rpois
 #' @export

@@ -8,11 +8,11 @@
 #'
 #' @param probs vector. Probabilities of the event (i.e. cumulative incidence
 #'   probabilities) at one or more time point. If only a single value is given,
-#'   then it is assumed that this is the probability at the \code{endtime}.
+#'   then it is assumed that this is the probability at `endtime`.
 #' @param cutpoints vector. Times at which the baseline hazard changes. Default
-#'   is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
+#'   is `cutpoints = 0`, which corresponds to a simple (non-piecewise)
 #'   exponential model.
-#' @param endtime scalar. Time at which final element in \code{probs}
+#' @param endtime scalar. Time at which final element in `probs`
 #'   corresponds to. Typically this would be the study endpoint time.
 #'
 #' @details Given \eqn{J-1} internal cut-points, then there are J intervals

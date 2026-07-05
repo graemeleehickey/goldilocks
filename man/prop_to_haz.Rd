@@ -10,7 +10,7 @@ prop_to_haz(probs, cutpoints = 0, endtime)
 \arguments{
 \item{probs}{vector. Probabilities of the event (i.e. cumulative incidence
 probabilities) at one or more time point. If only a single value is given,
-then it is assumed that this is the probability at the \code{endtime}.}
+then it is assumed that this is the probability at \code{endtime}.}
 
 \item{cutpoints}{vector. Times at which the baseline hazard changes. Default
 is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)

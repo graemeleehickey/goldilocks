@@ -9,25 +9,22 @@
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
 #' @param post array An array of posterior probabilities of the piecewise hazard
-#'   rates (\eqn{\lambda_j}, for \code{j=1, \dots, J}) estimated by
-#'   \code{\link{posterior}}. The array has dimension 3. The first dimension is
-#'   of length \code{N_mcmc}, the second dimension is of length \eqn{J} (one
+#'   rates (\eqn{\lambda_j}, for `j = 1, ..., J`) estimated by `posterior()`.
+#'   The array has dimension 3. The first dimension is
+#'   of length `N_mcmc`, the second dimension is of length \eqn{J} (one
 #'   column for each hazard piece), and the third dimension is of length 2, with
-#'   the first slice including posterior samples from \code{post_treatment}, and
-#'   the second slice including posterior samples from \code{post_control}.
-#' @param single_arm logical. If \code{TRUE}, the trial is single-arm. If
-#'   \code{FALSE}, the trial is a randomized two-arm trial.
+#'   the first slice including posterior samples from `post_treatment`, and
+#'   the second slice including posterior samples from `post_control`.
+#' @param single_arm logical. If `TRUE`, the trial is single-arm. If
+#'   `FALSE`, the trial is a randomized two-arm trial.
 #'
 #' @return A data frame with 3 columns of posterior samples:
 #'
-#'   \describe{
-#'     \item{\code{p_treatment}}{
-#'       The posterior probabilities of the event for the treatment arm.}
-#'     \item{\code{p_control}}{
-#'       The posterior probabilities of the event for the control arm.}
-#'     \item{\code{effect}}{
-#'       The posterior distribution of the treatment effect.}
-#'   }
+#' | Column | Description |
+#' | --- | --- |
+#' | `p_treatment` | Posterior probabilities of the event for the treatment arm. |
+#' | `p_control` | Posterior probabilities of the event for the control arm. |
+#' | `effect` | Posterior distribution of the treatment effect. |
 #'
 #' @noRd
 haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {

@@ -42,10 +42,10 @@ exponential model.}
 \item{N_total}{integer. Maximum sample size allowable}
 
 \item{lambda}{vector. Enrollment rates across simulated enrollment times. See
-\code{\link{enrollment}} for more details.}
+\code{\link[=enrollment]{enrollment()}} for more details.}
 
 \item{lambda_time}{vector. Enrollment time(s) at which the enrollment rates
-change. Must be same length as lambda. See \code{\link{enrollment}} for
+change. Must be same length as lambda. See \code{\link[=enrollment]{enrollment()}} for
 more details.}
 
 \item{interim_look}{vector. Sample size for each interim look. Note: the
@@ -61,17 +61,16 @@ will be evaluated.}
 \item{prior}{vector. The prior distributions for the piecewise hazard rate
 parameters are each \eqn{Gamma(a_0, b_0)}, where \eqn{a_0} is the shape
 parameter and \eqn{b_0} is the rate parameter (i.e., the inverse of the
-scale). This follows R's \code{\link[stats]{rgamma}} parameterization. The
+scale). This follows R's \code{\link[stats:GammaDist]{stats::rgamma()}} parameterization. The
 same prior is applied to all piecewise intervals and to both treatment
 groups. The default non-informative prior distribution used is
-\code{Gamma(0.1, 0.1)}, which is specified by setting \code{prior = c(0.1,
-  0.1)}.}
+\code{Gamma(0.1, 0.1)}, which is specified by setting \code{prior = c(0.1, 0.1)}.}
 
 \item{block}{scalar. Block size for generating the randomization schedule.}
 
 \item{rand_ratio}{vector. Randomization allocation for the ratio of control
 to treatment. Integer values mapping the size of the block. See
-\code{\link{randomization}} for more details.}
+\code{\link[=randomization]{randomization()}} for more details.}
 
 \item{prop_loss}{scalar. Overall proportion of subjects lost to follow-up.
 Subjects are selected at random for LTFU regardless of treatment assignment or
@@ -83,11 +82,11 @@ right-censored. Defaults to zero.}
 
 \item{alternative}{character. The string specifying the alternative
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
-\code{"two.sided"}. All three options are supported for \code{method =
-  "bayes"}, \code{"logrank"}, and \code{"cox"}. The chi-square test
-(\code{method = "chisq"}) only supports \code{"two.sided"}. For survival
-outcomes, \code{"less"} corresponds to the treatment arm having a lower
-cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
+\code{"two.sided"}. All three options are supported for \code{method = "bayes"},
+\code{"logrank"}, and \code{"cox"}. The chi-square test (\code{method = "chisq"}) only
+supports \code{"two.sided"}. For survival outcomes, \code{"less"} corresponds to the
+treatment arm having a lower cumulative incidence (i.e., treatment is
+beneficial), and \code{"greater"}
 corresponds to the treatment arm having a higher cumulative incidence.}
 
 \item{h0}{scalar. Null hypothesis value or margin. Default is \code{h0 = 0}.
@@ -106,21 +105,21 @@ use \code{alternative = "less"}.
 hypothesis is used.
 }}
 
-\item{Fn}{vector of \code{[0, 1]} values. Each element is the probability
+\item{Fn}{vector of values between 0 and 1. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for futility. If there are
 no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
 used in the simulations or analysis. Set \code{Fn = 0} to disable futility
 monitoring. The length of \code{Fn} should be the same as
 \code{interim_look}, else the values are recycled.}
 
-\item{Sn}{vector of \code{[0, 1]} values. Each element is the probability
+\item{Sn}{vector of values between 0 and 1. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for expected success. If
 there are no interim looks (i.e. \code{interim_look = NULL}), then
 \code{Sn} is not used in the simulations or analysis. The length of
 \code{Sn} should be the same as \code{interim_look}, else the values are
 recycled.}
 
-\item{prob_ha}{scalar \code{[0, 1]}. Probability threshold of alternative
+\item{prob_ha}{scalar value between 0 and 1. Probability threshold of alternative
 hypothesis.}
 
 \item{N_impute}{integer. Number of imputations for Monte Carlo simulation of
@@ -132,48 +131,25 @@ distribution when using a Bayesian test (\code{method = "bayes"}).}
 \item{method}{character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
 (\code{method = "logrank"}) test, Cox proportional hazards regression model
-Wald test (\code{method = "cox"}), a fully-Bayesian analysis (\code{method
-  = "bayes"}), or a chi-square test (\code{method = "chisq"}). See Details
+Wald test (\code{method = "cox"}), a fully-Bayesian analysis (\code{method = "bayes"}), or a chi-square test (\code{method = "chisq"}). See Details
 section.}
 
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
-subjects who were LTFU (i.e. right-censored with time
-\code{<end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
+subjects who were LTFU (i.e. right-censored with time less than
+\code{end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
 means that the final analysis would incorporate right-censoring.}
 }
 \value{
 A data frame containing some input parameters (arguments) as well as
-statistics from the analysis, including:
-
-\describe{
-\item{\code{N_treatment:}}{
-integer. The number of patients enrolled in the treatment arm for
-each simulation.}
-\item{\code{N_control:}}{
-integer. The number of patients enrolled in the control arm for
-each simulation.}
-\item{\code{est_final:}}{
-scalar. The treatment effect that was estimated at the final analysis.
-Final analysis occurs when either the maximum sample size is reached
-and follow-up complete, or the interim analysis triggered an early
-stopping of enrollment/accrual and follow-up for those subjects is
-complete.}
-\item{\code{post_prob_ha:}}{
-scalar. The corresponding posterior probability from the final
-analysis. If \code{imputed_final} is true, this is calculated as the
-posterior probability of efficacy (or equivalent, depending on how
-\code{alternative:} and \code{h0} were specified) for each imputed
-final analysis dataset, and then averaged over the \code{N_impute}
-imputations. If \code{method = "logrank"}, \code{post_prob_ha} is
-calculated in the same fashion, but value represents \eqn{1 - P},
-where \eqn{P} denotes the frequentist \eqn{P}-value.}
-\item{\code{stop_futility:}}{
-integer. A logical indicator of whether the trial was stopped early for
-futility.}
-\item{\code{stop_expected_success:}}{
-integer. A logical indicator of whether the trial was stopped early for
-expected success.}
+statistics from the analysis, including:\tabular{ll}{
+   Column \tab Description \cr
+   \code{N_treatment} \tab Number of patients enrolled in the treatment arm. \cr
+   \code{N_control} \tab Number of patients enrolled in the control arm. \cr
+   \code{est_final} \tab Treatment effect estimated at the final analysis. The final analysis occurs when either the maximum sample size is reached and follow-up is complete, or the interim analysis triggered early stopping of enrollment/accrual and follow-up for those subjects is complete. \cr
+   \code{post_prob_ha} \tab Posterior probability from the final analysis. If \code{imputed_final} is \code{TRUE}, this is calculated for each imputed final-analysis dataset and averaged over \code{N_impute} imputations. If \code{method = "logrank"}, the value represents \eqn{1 - P}, where \eqn{P} is the frequentist \emph{P}-value. \cr
+   \code{stop_futility} \tab Logical indicator of whether the trial stopped early for futility. \cr
+   \code{stop_expected_success} \tab Logical indicator of whether the trial stopped early for expected success. \cr
 }
 }
 \description{
@@ -241,15 +217,15 @@ distribution of the cumulative incidence function (\eqn{1 - S(t)}, where
 \code{end_of_study} is calculated. If a single-arm study, then this
 summarizes the treatment effect, else, if a two-armed study, the
 independent posteriors are used to estimate the posterior distribution
-of the difference. A posterior probability is calculated according to
-the specification of the test type (\code{alternative}) and the value of
-the null hypothesis (\code{h0}).
+of the difference. A posterior probability is calculated according to the
+specification of the test type (\code{alternative}) and the value of the null
+hypothesis (\code{h0}).
 \item Chi-square test (\code{method = "chisq"}).
 Each (imputed) dataset with both treatment and control arms can be
 compared using a standard chi-square test on the final event status,
-which discards the event time information. The output is a
-\emph{P}-value, and there is no treatment effect reported. The function
-returns \eqn{1 - P}, which is reported in \code{post_prob_ha}. Whilst
+which discards the event time information. The output is a \emph{P}-value,
+and there is no treatment effect reported. The function returns \eqn{1 -
+     P}, which is reported in \code{post_prob_ha}. Whilst
 not a posterior probability, it can be contrasted in the same manner.
 For example, if the success threshold is \eqn{P < 0.05}, then one
 requires \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to
@@ -280,8 +256,8 @@ is estimated from the combined observed and imputed data, and this
 posterior is used for inference. This is consistent with the predictive
 probability framework described in Broglio et al. (2014), but users
 should be aware that the imputation model's posterior influences the
-analysis posterior. For frequentist methods (\code{"logrank"},
-\code{"cox"}, \code{"chisq"}), the second stage uses a standard test
+analysis posterior. For frequentist methods (\code{"logrank"}, \code{"cox"},
+\code{"chisq"}), the second stage uses a standard test
 rather than a posterior, so this feedback loop does not arise.
 
 At each interim look, follow-up times are masked (censored) to reflect
@@ -320,6 +296,6 @@ survival_adapt(
 }
 \references{
 Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks
-approach to sample size selection. \emph{Journal of Biopharmaceutical
-Statistics}, 2014; 24(3): 685–705.
+approach to sample size selection. \emph{Journal of Biopharmaceutical Statistics},
+2014; 24(3): 685–705.
 }

@@ -8,7 +8,7 @@ pwe_sim(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL)
 }
 \arguments{
 \item{n}{integer. The number of random samples to generate. Default is
-\code{n=1}.}
+\code{n = 1}.}
 
 \item{hazard}{vector. The constant hazard rates for exponential failures.}
 
@@ -19,16 +19,15 @@ always be 0.}
 \item{maxtime}{scalar. Maximum time before end of study.}
 }
 \value{
-A data frame with simulated follow-up times (\code{time}) and
-respective event indicator (\code{event}, 1 = event occurred, 0 =
-censoring).
+A data frame with simulated follow-up times (\code{time}) and respective
+event indicator (\code{event}, 1 = event occurred, 0 = censoring).
 }
 \description{
 Simulate time-to-event outcomes using the piecewise constant
 hazard exponential function.
 }
 \details{
-See \code{\link{pwe_impute}} for details.
+See \code{\link[=pwe_impute]{pwe_impute()}} for details.
 }
 \examples{
 pwe_sim(10, hazard = c(0.005, 0.001), cutpoints = c(0, 3), maxtime = 36)

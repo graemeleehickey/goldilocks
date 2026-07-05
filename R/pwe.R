@@ -4,18 +4,17 @@
 #'   hazard exponential function.
 #'
 #' @param n integer. The number of random samples to generate. Default is
-#'   \code{n=1}.
+#'   `n = 1`.
 #' @param hazard vector. The constant hazard rates for exponential failures.
 #' @param cutpoints vector. The change-point vector indicating time when the
-#'   hazard rates change. Note the first element of \code{cutpoints} should
+#'   hazard rates change. Note the first element of `cutpoints` should
 #'   always be 0.
 #' @param maxtime scalar. Maximum time before end of study.
 #'
-#' @details See \code{\link{pwe_impute}} for details.
+#' @details See [pwe_impute()] for details.
 #'
-#' @return A data frame with simulated follow-up times (\code{time}) and
-#'   respective event indicator (\code{event}, 1 = event occurred, 0 =
-#'   censoring).
+#' @return A data frame with simulated follow-up times (`time`) and respective
+#'   event indicator (`event`, 1 = event occurred, 0 = censoring).
 #'
 #' @importFrom PWEALL rpwe qpwe pwe
 #' @importFrom stats rexp
@@ -76,21 +75,26 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
 #'
 #' @inheritParams pwe_sim
 #' @param time vector. The observed time for patient that have had no event or
-#'   passed \code{maxtime}.
+#'   passed `maxtime`.
 #'
 #' @details If a subject is event-free at time \eqn{s < t}, then the conditional
-#'   probability \eqn{F_{T \| s}|(t \| s) = P[T \le \| T > s] = (F(t) - F(s)) /
-#'   (1 - F(s))}, where \eqn{F(\cdot)} is the cumulative distribution function
-#'   of the piecewise exponential (PWE) distribution. Equivalently, \eqn{F(t) =
-#'   1 - S(t)}, where \code{S(t)} is the survival function. If \eqn{U \sim
-#'   Unif(0, 1)}, then we can generate an event time (conditional on being event
-#'   free up until \eqn{s}) as \eqn{F^{-1}(U(1-F(s)) + F(s))}. Note: if \eqn{s =
-#'   0}, then this is the equivalent of a direct (unconditional) sample from the
-#'   PWE distribution.
+#'   probability is
 #'
-#' @return A data frame with simulated follow-up times (\code{time}) and
-#'   respective event indicator (\code{event}, 1 = event occurred, 0 =
-#'   censoring).
+#'   \deqn{F_{T | s}(t | s) = P(T \le t | T > s) = \frac{F(t) - F(s)}{1 - F(s)}}
+#'
+#'   where \eqn{F(\cdot)} is the cumulative distribution function of the
+#'   piecewise exponential (PWE) distribution. Equivalently, \eqn{F(t) = 1 -
+#'   S(t)}, where `S(t)` is the survival function. If \eqn{U \sim Unif(0, 1)},
+#'   then we can generate an event time (conditional on being event free up
+#'   until \eqn{s}) as
+#'
+#'   \deqn{F^{-1}(U(1 - F(s)) + F(s))}
+#'
+#'   If \eqn{s = 0}, this is equivalent to a direct unconditional sample from
+#'   the PWE distribution.
+#'
+#' @return A data frame with simulated follow-up times (`time`) and respective
+#'   event indicator (`event`, 1 = event occurred, 0 = censoring).
 #' @export
 #'
 #' @examples
@@ -155,11 +159,11 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
 #' @title Cumulative distribution function of the PWE for a vectorized hazard
 #'   rate parameter
 #'
-#' @description Extends the \code{\link[PWEALL]{pwe}} function to allow for
-#'   vectorization over the hazard rates.
+#' @description Extends [PWEALL::pwe()] to allow for vectorization over the
+#'   hazard rates.
 #'
 #' @param hazard matrix. A matrix of hazard rate parameters with number of
-#'   columns equal to the length of the \code{cutpoints} vector. The number of
+#'   columns equal to the length of the `cutpoints` vector. The number of
 #'   rows can be anything, and is typically dictated by the number of MCMC
 #'   draws.
 #' @inheritParams pwe_sim

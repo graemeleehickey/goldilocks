@@ -5,55 +5,38 @@
 #'   arm.
 #' @param hazard_control vector. Constant hazard rates under the control arm.
 #' @param cutpoints  vector. Times at which the baseline hazard changes. Default
-#'   is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
+#'   is `cutpoints = 0`, which corresponds to a simple (non-piecewise)
 #'   exponential model.
 #' @param N_total integer. Maximum sample size allowable
 #' @param lambda vector. Enrollment rates across simulated enrollment times. See
-#'   \code{\link{enrollment}} for more details.
+#'   [enrollment()] for more details.
 #' @param lambda_time vector. Enrollment time(s) at which the enrollment rates
-#'   change. Must be same length as lambda. See \code{\link{enrollment}} for
+#'   change. Must be same length as lambda. See [enrollment()] for
 #'   more details.
 #' @param end_of_study scalar. Length of the study; i.e. time at which endpoint
 #'   will be evaluated.
 #' @param block scalar. Block size for generating the randomization schedule.
 #' @param rand_ratio vector. Randomization allocation for the ratio of control
 #'   to treatment. Integer values mapping the size of the block. See
-#'   \code{\link{randomization}} for more details.
+#'   [randomization()] for more details.
 #' @param prop_loss scalar. Overall proportion of subjects lost to follow-up.
 #'   Subjects are selected at random for LTFU regardless of treatment assignment or
 #'   event status. Each LTFU subject's observed time is drawn from a
-#'   \code{Uniform(0, t)} distribution, where \code{t} is their potential
+#'   `Uniform(0, t)` distribution, where `t` is their potential
 #'   event or censoring time. Since the LTFU time is always less than
-#'   \code{t}, the event has not yet occurred at dropout and the subject is
+#'   `t`, the event has not yet occurred at dropout and the subject is
 #'   right-censored. Defaults to zero.
 #'
 #' @return A data frame with 1 row per subject and columns:
-#' \describe{
-#'     \item{\code{time:}}{
-#'       numeric. Time of event or censoring time.
-#'     }
-#'     \item{\code{treatment:}}{
-#'       integer. Treatment assignment, coded \code{1L} for the treatment arm
-#'       and \code{0L} for the control arm. Single-arm designs have
-#'       \code{treatment = 1L} for every subject.
-#'     }
-#'     \item{\code{event:}}{
-#'       integer. Indicator of whether event occurred (\code{=1L} if occurred
-#'       and \code{=0L} if right-censored).
-#'     }
-#'     \item{\code{enrollment:}}{
-#'       numeric. Time of patient enrollment relative to the time the trial
-#'       enrolled the first patient. The package treats enrollment and
-#'       randomization as occurring at the same time.
-#'     }
-#'     \item{\code{id:}}{
-#'       integer. Identification number for each patient.
-#'     }
-#'     \item{\code{loss_to_fu:}}{
-#'       logical. Indicator of whether the patient was lost to follow-up during
-#'       the course of observation.
-#'     }
-#' }
+#'
+#' | Column | Description |
+#' | --- | --- |
+#' | `time` | Time of event or censoring time. |
+#' | `treatment` | Treatment assignment, coded `1L` for the treatment arm and `0L` for the control arm. Single-arm designs have `treatment = 1L` for every subject. |
+#' | `event` | Indicator of whether event occurred (`1L` if occurred and `0L` if right-censored). |
+#' | `enrollment` | Time of patient enrollment relative to the time the trial enrolled the first patient. The package treats enrollment and randomization as occurring at the same time. |
+#' | `id` | Identification number for each patient. |
+#' | `loss_to_fu` | Indicator of whether the patient was lost to follow-up during observation. |
 #'
 #' @importFrom stats runif sd
 #' @export

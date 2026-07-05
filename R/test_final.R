@@ -7,28 +7,28 @@
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
 #' @param data_in data frame. The time-to-event data that requires imputation,
-#'   with columns for treatment assignment (\code{treatment}, coded \code{1}
-#'   for treatment and \code{0} for control; single-arm designs use all 1s),
-#'   event time (\code{time}), event indicator (\code{event}), and indicator of
+#'   with columns for treatment assignment (`treatment`, coded `1`
+#'   for treatment and `0` for control; single-arm designs use all 1s),
+#'   event time (`time`), event indicator (`event`), and indicator of
 #'   whether the subject requires imputation for expected success
-#'   (\code{subject_impute_success}).
+#'   (`subject_impute_success`).
 #'
-#' @details If \code{prop_loss} is $>0$, then there is drop-out (loss to
+#' @details If `prop_loss > 0`, then there is drop-out (loss to
 #'   follow-up) for some subjects. During the Goldilocks algorithm, all subjects
 #'   who are event-free and still eligible for follow-up for the primary
 #'   endpoint are imputed. This means subjects who are lost to follow-up will be
 #'   imputed. In the final analysis we need to decide whether we mimic that, or
 #'   whether we will exclude or right-censor such subjects (depending on
-#'   analysis \code{method} choice). This is controlled by \code{imputed_final},
-#'   which is a Boolean: \code{TRUE} implies the final analysis will be based on
-#'   fully imputed data, whereas \code{FALSE} implies the final analysis will be
+#'   analysis `method` choice). This is controlled by `imputed_final`,
+#'   which is a Boolean: `TRUE` implies the final analysis will be based on
+#'   fully imputed data, whereas `FALSE` implies the final analysis will be
 #'   based on observed (non-imputed) data only.
 #'
-#'   If \code{imputed_final = FALSE} then intuitively, we might expect to see a
+#'   If `imputed_final = FALSE` then intuitively, we might expect to see a
 #'   marginal increase in the proportion of studies that stop for expected
 #'   success, but which then go on to fail. We have not verified this aspect,
-#'   but it should be noted. When \code{method = "chisq"} and
-#'   \code{imputed_final = FALSE}, subjects lost to follow-up are excluded
+#'   but it should be noted. When `method = "chisq"` and
+#'   `imputed_final = FALSE`, subjects lost to follow-up are excluded
 #'   from the analysis because the chi-square test cannot handle
 #'   right-censored observations.
 #'

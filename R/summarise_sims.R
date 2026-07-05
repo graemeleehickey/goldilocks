@@ -1,10 +1,10 @@
 #' @title Summarize simulations to get operating characteristics
 #'
 #' @param data list (of data frames) or a single data frame. If summarizing a
-#'   single run of simulations, \code{data} will be a \code{data.frame} object
-#'   returned from \code{\link{survival_adapt}}. If summarizing multiple
-#'   simulation scenarios, \code{data} will be a \code{list} object, with each
-#'   element being a \code{data.frame} object.
+#'   single run of simulations, `data` will be a `data.frame` object returned
+#'   from [survival_adapt()]. If summarizing multiple simulation scenarios,
+#'   `data` will be a `list` object, with each element being a `data.frame`
+#'   object.
 #'
 #' @return Data frame reporting the operating characteristics, including the
 #'   power (which will be equal to the type I error in the null case); the
