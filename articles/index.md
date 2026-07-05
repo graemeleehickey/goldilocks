@@ -6,6 +6,8 @@
   trials](https://graemeleehickey.github.io/goldilocks/articles/broglio.md):
 - [Bayesian piecewise-exponential
   designs](https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.md):
+- [Bayesian binary outcome
+  designs](https://graemeleehickey.github.io/goldilocks/articles/bayesian-binary.md):
 - [Single-arm designs with a performance
   goal](https://graemeleehickey.github.io/goldilocks/articles/single-arm.md):
 

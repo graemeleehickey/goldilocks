@@ -1,0 +1,197 @@
+# Bayesian binary outcome designs
+
+``` r
+
+library(goldilocks)
+```
+
+`goldilocks` can analyze completed binary endpoints using
+`method = "bayes-bin"`. This is useful when the final decision is based
+on the event indicator by a fixed endpoint time, rather than the event
+time itself. The trial simulator still uses time-to-event hazards to
+generate when events occur and to impute not-yet-observed outcomes at
+interim looks, but the final analysis reduces each completed dataset to
+binary event status by `end_of_study`.
+
+Two practical consequences follow:
+
+- `method = "bayes-bin"` only supports one-sided alternatives:
+  `alternative = "less"` or `alternative = "greater"`.
+- The final binary analysis requires complete endpoint status. Subjects
+  who are censored before `end_of_study` must be imputed
+  (`imputed_final = TRUE`) or, if `imputed_final = FALSE`, excluded from
+  the final binary analysis.
+
+## Two-arm design
+
+Suppose the control event probability by 12 months is 35%, and the
+treatment is expected to reduce this to 25%. We use a beta-binomial
+final analysis with a uniform `Beta(1, 1)` prior in each arm. Since
+lower event probability is beneficial, we use `alternative = "less"` and
+compare the posterior distribution of
+
+``` math
+p_{\text{treatment}} - p_{\text{control}}
+```
+
+against `h0 = 0`.
+
+``` r
+
+end_of_study <- 12
+hc <- prop_to_haz(0.35, endtime = end_of_study)
+ht <- prop_to_haz(0.25, endtime = end_of_study)
+
+out_two_arm <- survival_adapt(
+  hazard_treatment = ht,
+  hazard_control = hc,
+  cutpoints = 0,
+  N_total = 120,
+  lambda = 10,
+  lambda_time = 0,
+  interim_look = 80,
+  end_of_study = end_of_study,
+  bin_prior = c(1, 1),
+  bin_method = "quadrature",
+  block = 2,
+  rand_ratio = c(1, 1),
+  prop_loss = 0,
+  alternative = "less",
+  h0 = 0,
+  Fn = 0.05,
+  Sn = 0.90,
+  prob_ha = 0.95,
+  N_impute = 20,
+  method = "bayes-bin",
+  imputed_final = FALSE
+)
+
+out_two_arm
+#>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
+#> 1           0.95      0        less          60        60        120   120
+#>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
+#> 1    0.9376521 -0.1290323        0.15             0                     0
+```
+
+The output has the same structure as other
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+analyses. For `method = "bayes-bin"`, `est_final` is the posterior mean
+binary effect: the treatment event probability minus the control event
+probability. The `post_prob_ha` value is the posterior probability that
+this difference is below `h0` when `alternative = "less"`.
+
+## Single-arm design
+
+For a single-arm design, set `hazard_control = NULL`. The comparator is
+an external benchmark event probability supplied through `h0`, often
+called a performance goal (PG) or objective performance criterion (OPC).
+
+Here the benchmark event probability is 30%, and the target event
+probability is 20%. With `alternative = "less"`, success means the
+posterior probability that the event probability is below 30% exceeds
+`prob_ha`.
+
+``` r
+
+benchmark <- 0.30
+target <- 0.20
+ht_single <- prop_to_haz(target, endtime = end_of_study)
+
+out_single_arm <- survival_adapt(
+  hazard_treatment = ht_single,
+  hazard_control = NULL,
+  cutpoints = 0,
+  N_total = 80,
+  lambda = 8,
+  lambda_time = 0,
+  interim_look = 50,
+  end_of_study = end_of_study,
+  bin_prior = c(1, 1),
+  bin_method = "quadrature",
+  prop_loss = 0,
+  alternative = "less",
+  h0 = benchmark,
+  Fn = 0.05,
+  Sn = 0.90,
+  prob_ha = 0.95,
+  N_impute = 20,
+  method = "bayes-bin",
+  imputed_final = FALSE
+)
+
+out_single_arm
+#>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
+#> 1           0.95    0.3        less          80         0         80    80
+#>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
+#> 1    0.8209404 0.2560976        0.65             0                     0
+```
+
+In this setting `est_final` is the posterior mean event probability in
+the single arm, and `post_prob_ha` is the posterior probability that
+this event probability is below the benchmark.
+
+## Choosing `bin_method`
+
+The posterior probability can be calculated in three ways:
+
+- `bin_method = "mc"` draws from the beta posterior directly. Use
+  `bin_N` to control the number of Monte Carlo draws.
+- `bin_method = "normal"` uses a normal approximation to the posterior
+  mean or treatment-control difference.
+- `bin_method = "quadrature"` uses numerical integration for the two-arm
+  posterior difference, and the closed-form beta CDF for single-arm
+  designs.
+
+The Monte Carlo option is usually the most flexible. The quadrature
+option is deterministic and useful for small examples or checks. The
+normal approximation is fastest, but should be used with care when
+sample sizes are small or event probabilities are near 0 or 1.
+
+## Operating characteristics
+
+As with the survival methods, operating characteristics should be
+evaluated by simulation. The `seed` argument makes the simulation
+reproducible, including when `ncores` is greater than 1 on platforms
+that support parallel simulation.
+
+``` r
+
+out_power <- sim_trials(
+  N_trials = 1000,
+  hazard_treatment = ht,
+  hazard_control = hc,
+  cutpoints = 0,
+  N_total = 120,
+  lambda = 10,
+  lambda_time = 0,
+  interim_look = 80,
+  end_of_study = end_of_study,
+  bin_prior = c(1, 1),
+  bin_method = "quadrature",
+  block = 2,
+  rand_ratio = c(1, 1),
+  prop_loss = 0,
+  alternative = "less",
+  h0 = 0,
+  Fn = 0.05,
+  Sn = 0.90,
+  prob_ha = 0.95,
+  N_impute = 20,
+  method = "bayes-bin",
+  imputed_final = FALSE,
+  ncores = 2,
+  seed = 5107
+)
+
+out_null <- update(out_power, hazard_treatment = hc, seed = 5108)
+
+summarise_sims(list(out_power$sims, out_null$sims))
+```
+
+The binary endpoint model is still calibrated through the event-time
+simulator. When the binary endpoint corresponds to event status by
+`end_of_study`, choose hazards that reproduce clinically meaningful
+endpoint probabilities through
+[`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
+and
+[`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md).

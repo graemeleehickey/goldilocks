@@ -431,6 +431,30 @@ or
 <code>"less"</code>, <code>"greater"</code>
 </td>
 </tr>
+<tr class="even">
+<td>Two-arm randomized trial</td>
+<td><code>bayes-bin</code></td>
+<td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(\Delta_{\mathrm{bin}} &lt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>&gt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(\Delta_{\mathrm{bin}} &gt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+</td>
+<td>
+<code>"less"</code>, <code>"greater"</code>
+</td>
+</tr>
+<tr class="odd">
+<td>Single-arm trial</td>
+<td><code>bayes-bin</code></td>
+<td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>π</mi><mn>1</mn></msub><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(\pi_1 &lt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>π</mi><mn>1</mn></msub><mo>&gt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(\pi_1 &gt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+</td>
+<td>
+<code>"less"</code>, <code>"greater"</code>
+</td>
+</tr>
 </tbody>
 </table>
 <p>For frequentist analyses, <code>prob_ha</code> is therefore a
@@ -558,16 +582,20 @@ to excess events in the control arm under the package convention. Let
 denote the traditional two-sided log-rank test P-value. For the Cox
 option, let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>η</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\widehat{\eta}</annotation></semantics></math>
-be the estimated log hazard ratio for treatment versus control and
-let</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">x</mi></mrow></msub><mo>=</mo><mfrac><mover><mi>η</mi><mo accent="true">̂</mo></mover><mrow><mrow><mi mathvariant="normal">se</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mover><mi>η</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">Z_{\mathrm{Cox}} = \frac{\widehat{\eta}}
+be the estimated log hazard ratio for treatment versus control. The null
+value <code>h0</code> is on the log-hazard-ratio scale, so the package
+uses</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">x</mi></mrow></msub><mo>=</mo><mfrac><mrow><mover><mi>η</mi><mo accent="true">̂</mo></mover><mo>−</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><mrow><mrow><mi mathvariant="normal">se</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mover><mi>η</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">Z_{\mathrm{Cox}} = \frac{\widehat{\eta} - h_0}
   {\operatorname{se}(\widehat{\eta})}.</annotation></semantics></math></p>
-<p>Here, lower treatment hazard corresponds to
+<p>When <code>h0 = 0</code>, this is the usual hazard-ratio-equals-1
+null. A non-inferiority margin specified as a hazard ratio can be
+supplied as <code>h0 = log(margin)</code>. Here, lower treatment hazard
+corresponds to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">x</mi></mrow></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">Z_{\mathrm{Cox}} &lt; 0</annotation></semantics></math>.
 Let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">x</mi></mrow></msub><annotation encoding="application/x-tex">p_{\mathrm{Cox}}</annotation></semantics></math>
-denote the traditional two-sided Wald-test P-value from the Cox model.
-The package uses the following method-specific definitions of
+denote the two-sided Wald-test P-value relative to <code>h0</code>. The
+package uses the following method-specific definitions of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(\mathcal{D})</annotation></semantics></math>:</p>
 <table class="table">
 <thead><tr class="header">
@@ -624,7 +652,7 @@ information and is available only for two-arm designs with
 <code>alternative = "two.sided"</code>.</p>
 </div>
 <div class="section level3">
-<h3 id="bayesian-final-test">6.2 Bayesian final test<a class="anchor" aria-label="anchor" href="#bayesian-final-test"></a>
+<h3 id="bayesian-survival-final-test">6.2 Bayesian survival final test<a class="anchor" aria-label="anchor" href="#bayesian-survival-final-test"></a>
 </h3>
 <p>For <code>method = "bayes-surv"</code>, posterior hazard draws are
 mapped to cumulative event probabilities at
@@ -680,7 +708,54 @@ designs in <code>goldilocks</code> require
 can use <code>method = "bayes-bin"</code>.</p>
 </div>
 <div class="section level3">
-<h3 id="loss-to-follow-up-at-the-final-analysis">6.3 Loss to follow-up at the final analysis<a class="anchor" aria-label="anchor" href="#loss-to-follow-up-at-the-final-analysis"></a>
+<h3 id="bayesian-binary-final-test">6.3 Bayesian binary final test<a class="anchor" aria-label="anchor" href="#bayesian-binary-final-test"></a>
+</h3>
+<p>For <code>method = "bayes-bin"</code>, each analysis dataset is
+reduced to the binary indicator of whether the endpoint has occurred by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>.
+Subjects with right-censored follow-up before
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+must be imputed or excluded before this final test is applied, as
+described below.</p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>z</mi></msub><annotation encoding="application/x-tex">x_z</annotation></semantics></math>
+be the number of events and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>z</mi></msub><annotation encoding="application/x-tex">n_z</annotation></semantics></math>
+the number of subjects in treatment group
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>.
+With <code>bin_prior = c(a, b)</code>, the event probability in arm
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+has posterior distribution</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mi>z</mi></msub><mo>∣</mo><mi>𝒟</mi><mo>∼</mo><mrow><mi mathvariant="normal">Beta</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>+</mo><msub><mi>x</mi><mi>z</mi></msub><mo>,</mo><mi>b</mi><mo>+</mo><msub><mi>n</mi><mi>z</mi></msub><mo>−</mo><msub><mi>x</mi><mi>z</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\pi_z \mid \mathcal{D} \sim
+  \operatorname{Beta}(a + x_z, b + n_z - x_z).</annotation></semantics></math></p>
+<p>In a two-arm design, the binary treatment effect is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>=</mo><msub><mi>π</mi><mn>1</mn></msub><mo>−</mo><msub><mi>π</mi><mn>0</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\Delta_{\mathrm{bin}} = \pi_1 - \pi_0,</annotation></semantics></math></p>
+<p>the treatment-arm event probability minus the control-arm event
+probability. For an adverse binary event, benefit usually means
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta_{\mathrm{bin}} &lt; 0</annotation></semantics></math>.
+With <code>alternative = "less"</code>, success is declared when</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mtext mathvariant="monospace">𝚙𝚛𝚘𝚋_𝚑𝚊</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">\Pr(\Delta_{\mathrm{bin}} &lt; h_0 \mid \mathcal{D}) &gt;
+  \texttt{prob_ha}.</annotation></semantics></math></p>
+<p>With <code>alternative = "greater"</code>, success is declared
+when</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>&gt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mtext mathvariant="monospace">𝚙𝚛𝚘𝚋_𝚑𝚊</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">\Pr(\Delta_{\mathrm{bin}} &gt; h_0 \mid \mathcal{D}) &gt;
+  \texttt{prob_ha}.</annotation></semantics></math></p>
+<p>In a single-arm design, the estimand is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>π</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\pi_1</annotation></semantics></math>
+and <code>h0</code> is the external benchmark event probability. Thus,
+<code>alternative = "less"</code> declares success when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>π</mi><mn>1</mn></msub><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo></mrow><annotation encoding="application/x-tex">\Pr(\pi_1 &lt; h_0 \mid \mathcal{D}) &gt;</annotation></semantics></math><code>prob_ha</code>.</p>
+<p>The posterior probability can be computed in three ways. With
+<code>bin_method = "mc"</code>, the package draws from the beta
+posterior directly. With <code>bin_method = "normal"</code>, it uses a
+normal approximation to the posterior mean or treatment-control
+difference. With <code>bin_method = "quadrature"</code>, it uses
+numerical integration for the two-arm posterior difference. The argument
+<code>bin_N</code> controls the number of Monte Carlo beta draws only
+when <code>bin_method = "mc"</code>.</p>
+</div>
+<div class="section level3">
+<h3 id="loss-to-follow-up-at-the-final-analysis">6.4 Loss to follow-up at the final analysis<a class="anchor" aria-label="anchor" href="#loss-to-follow-up-at-the-final-analysis"></a>
 </h3>
 <p>Interim predictions impute outcomes that are not yet known. At the
 final analysis, <code>imputed_final</code> controls whether subjects
@@ -690,14 +765,16 @@ interim predictive framework: each imputed completed dataset is
 analyzed, yielding a value of the success probability scale
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(\mathcal{D})</annotation></semantics></math>
 (posterior probability for <code>method = "bayes-surv"</code> or
-transformed P-value for frequentist methods), and
-<code>post_prob_ha</code> is the average of those values across
-imputations. If <code>imputed_final = FALSE</code>, the final analysis
-uses observed right-censored data for methods that can handle censoring
-(<code>logrank</code>, <code>cox</code>, and <code>bayes-surv</code>).
-For <code>chisq</code>, lost-to-follow-up subjects are excluded when
-<code>imputed_final = FALSE</code> because the chi-square test has no
-mechanism for right-censored observations.</p>
+<code>method = "bayes-bin"</code>, or transformed P-value for
+frequentist methods), and <code>post_prob_ha</code> is the average of
+those values across imputations. If <code>imputed_final = FALSE</code>,
+the final analysis uses observed right-censored data for methods that
+can handle censoring (<code>logrank</code>, <code>cox</code>, and
+<code>bayes-surv</code>). For <code>chisq</code> and
+<code>bayes-bin</code>, lost-to-follow-up subjects are excluded when
+<code>imputed_final = FALSE</code> because these methods require
+complete binary outcomes and have no mechanism for right-censored
+observations.</p>
 <p>The loss-to-follow-up mechanism in the simulator is non-informative.
 Designs where dropout may depend on prognosis should be assessed with
 sensitivity analyses outside the default data-generating mechanism.</p>
@@ -806,7 +883,8 @@ the final analysis does not meet the success criterion.</p>
 <span>  N_impute         <span class="op">=</span> <span class="va">N_impute</span>,</span>
 <span>  N_mcmc           <span class="op">=</span> <span class="va">N_mcmc</span>,</span>
 <span>  N_trials         <span class="op">=</span> <span class="va">N_trials</span>,</span>
-<span>  method           <span class="op">=</span> <span class="va">method</span><span class="op">)</span></span>
+<span>  method           <span class="op">=</span> <span class="va">method</span>,</span>
+<span>  seed             <span class="op">=</span> <span class="fl">12345</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span></span></code></pre></div>
 <p>Broglio et al. emphasize that type I error for this class of adaptive
@@ -886,6 +964,12 @@ often referred to as a performance goal (PG) or objective performance
 criterion (OPC). This is convenient for early-phase, rare-disease, or
 proof-of-concept settings, but validity then depends on the benchmark
 being transportable to the enrolled population.</p>
+<p>For complete binary endpoints, <code>method = "bayes-bin"</code>
+replaces the piecewise-exponential final analysis with a conjugate
+beta-binomial analysis. The interim prediction machinery still imputes
+not-yet-observed endpoint statuses from the event-time model, so users
+should specify data-generating hazards that are clinically meaningful
+for the binary endpoint time.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

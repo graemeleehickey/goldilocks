@@ -284,6 +284,8 @@ analysis quantity $`Q(\mathcal{D})`$ depends on the analysis method:
 | Two-arm randomized trial | `chisq` | $`1-p(\mathcal{D})`$, where $`p(\mathcal{D})`$ is the traditional chi-square test P-value | `"two.sided"` |
 | Two-arm randomized trial | `bayes-surv` | $`\Pr(\Delta < h_0 \mid \mathcal{D})`$ or $`\Pr(\Delta > h_0 \mid \mathcal{D})`$ | `"less"`, `"greater"` |
 | Single-arm trial | `bayes-surv` | $`\Pr(p_1(\tau) < h_0 \mid \mathcal{D})`$ or $`\Pr(p_1(\tau) > h_0 \mid \mathcal{D})`$ | `"less"`, `"greater"` |
+| Two-arm randomized trial | `bayes-bin` | $`\Pr(\Delta_{\mathrm{bin}} < h_0 \mid \mathcal{D})`$ or $`\Pr(\Delta_{\mathrm{bin}} > h_0 \mid \mathcal{D})`$ | `"less"`, `"greater"` |
+| Single-arm trial | `bayes-bin` | $`\Pr(\pi_1 < h_0 \mid \mathcal{D})`$ or $`\Pr(\pi_1 > h_0 \mid \mathcal{D})`$ | `"less"`, `"greater"` |
 
 For frequentist analyses, `prob_ha` is therefore a transformed P-value
 threshold. For example, `prob_ha = 0.975` corresponds to a one-sided
@@ -425,16 +427,19 @@ log-rank statistic, with positive values corresponding to excess events
 in the control arm under the package convention. Let $`p_{\mathrm{LR}}`$
 denote the traditional two-sided log-rank test P-value. For the Cox
 option, let $`\widehat{\eta}`$ be the estimated log hazard ratio for
-treatment versus control and let
+treatment versus control. The null value `h0` is on the log-hazard-ratio
+scale, so the package uses
 
 ``` math
-Z_{\mathrm{Cox}} = \frac{\widehat{\eta}}
+Z_{\mathrm{Cox}} = \frac{\widehat{\eta} - h_0}
   {\operatorname{se}(\widehat{\eta})}.
 ```
 
-Here, lower treatment hazard corresponds to $`Z_{\mathrm{Cox}} < 0`$.
-Let $`p_{\mathrm{Cox}}`$ denote the traditional two-sided Wald-test
-P-value from the Cox model. The package uses the following
+When `h0 = 0`, this is the usual hazard-ratio-equals-1 null. A
+non-inferiority margin specified as a hazard ratio can be supplied as
+`h0 = log(margin)`. Here, lower treatment hazard corresponds to
+$`Z_{\mathrm{Cox}} < 0`$. Let $`p_{\mathrm{Cox}}`$ denote the two-sided
+Wald-test P-value relative to `h0`. The package uses the following
 method-specific definitions of $`Q(\mathcal{D})`$:
 
 | Method    | Alternative   | $`Q(\mathcal{D})`$             |
@@ -455,7 +460,7 @@ For `method = "chisq"`, the final event indicator is compared between
 arms using a chi-square test. This discards event-time information and
 is available only for two-arm designs with `alternative = "two.sided"`.
 
-### 6.2 Bayesian final test
+### 6.2 Bayesian survival final test
 
 For `method = "bayes-surv"`, posterior hazard draws are mapped to
 cumulative event probabilities at $`\tau`$. In a two-arm design the
@@ -517,7 +522,58 @@ Consequently, single-arm survival designs in `goldilocks` require
 `method = "bayes-surv"`; complete binary single-arm designs can use
 `method = "bayes-bin"`.
 
-### 6.3 Loss to follow-up at the final analysis
+### 6.3 Bayesian binary final test
+
+For `method = "bayes-bin"`, each analysis dataset is reduced to the
+binary indicator of whether the endpoint has occurred by $`\tau`$.
+Subjects with right-censored follow-up before $`\tau`$ must be imputed
+or excluded before this final test is applied, as described below.
+
+Let $`x_z`$ be the number of events and $`n_z`$ the number of subjects
+in treatment group $`z`$. With `bin_prior = c(a, b)`, the event
+probability in arm $`z`$ has posterior distribution
+
+``` math
+\pi_z \mid \mathcal{D} \sim
+  \operatorname{Beta}(a + x_z, b + n_z - x_z).
+```
+
+In a two-arm design, the binary treatment effect is
+
+``` math
+\Delta_{\mathrm{bin}} = \pi_1 - \pi_0,
+```
+
+the treatment-arm event probability minus the control-arm event
+probability. For an adverse binary event, benefit usually means
+$`\Delta_{\mathrm{bin}} < 0`$. With `alternative = "less"`, success is
+declared when
+
+``` math
+\Pr(\Delta_{\mathrm{bin}} < h_0 \mid \mathcal{D}) >
+  \texttt{prob_ha}.
+```
+
+With `alternative = "greater"`, success is declared when
+
+``` math
+\Pr(\Delta_{\mathrm{bin}} > h_0 \mid \mathcal{D}) >
+  \texttt{prob_ha}.
+```
+
+In a single-arm design, the estimand is $`\pi_1`$ and `h0` is the
+external benchmark event probability. Thus, `alternative = "less"`
+declares success when $`\Pr(\pi_1 < h_0 \mid \mathcal{D}) >`$`prob_ha`.
+
+The posterior probability can be computed in three ways. With
+`bin_method = "mc"`, the package draws from the beta posterior directly.
+With `bin_method = "normal"`, it uses a normal approximation to the
+posterior mean or treatment-control difference. With
+`bin_method = "quadrature"`, it uses numerical integration for the
+two-arm posterior difference. The argument `bin_N` controls the number
+of Monte Carlo beta draws only when `bin_method = "mc"`.
+
+### 6.4 Loss to follow-up at the final analysis
 
 Interim predictions impute outcomes that are not yet known. At the final
 analysis, `imputed_final` controls whether subjects lost to follow-up
@@ -526,13 +582,14 @@ are also imputed.
 If `imputed_final = TRUE`, the final analysis mirrors the interim
 predictive framework: each imputed completed dataset is analyzed,
 yielding a value of the success probability scale $`Q(\mathcal{D})`$
-(posterior probability for `method = "bayes-surv"` or transformed
-P-value for frequentist methods), and `post_prob_ha` is the average of
-those values across imputations. If `imputed_final = FALSE`, the final
-analysis uses observed right-censored data for methods that can handle
-censoring (`logrank`, `cox`, and `bayes-surv`). For `chisq`,
-lost-to-follow-up subjects are excluded when `imputed_final = FALSE`
-because the chi-square test has no mechanism for right-censored
+(posterior probability for `method = "bayes-surv"` or
+`method = "bayes-bin"`, or transformed P-value for frequentist methods),
+and `post_prob_ha` is the average of those values across imputations. If
+`imputed_final = FALSE`, the final analysis uses observed right-censored
+data for methods that can handle censoring (`logrank`, `cox`, and
+`bayes-surv`). For `chisq` and `bayes-bin`, lost-to-follow-up subjects
+are excluded when `imputed_final = FALSE` because these methods require
+complete binary outcomes and have no mechanism for right-censored
 observations.
 
 The loss-to-follow-up mechanism in the simulator is non-informative.
@@ -634,7 +691,8 @@ out <- sim_trials(
   N_impute         = N_impute,
   N_mcmc           = N_mcmc,
   N_trials         = N_trials,
-  method           = method)
+  method           = method,
+  seed             = 12345)
 
 summarise_sims(out$sims)
 ```
@@ -708,6 +766,13 @@ often referred to as a performance goal (PG) or objective performance
 criterion (OPC). This is convenient for early-phase, rare-disease, or
 proof-of-concept settings, but validity then depends on the benchmark
 being transportable to the enrolled population.
+
+For complete binary endpoints, `method = "bayes-bin"` replaces the
+piecewise-exponential final analysis with a conjugate beta-binomial
+analysis. The interim prediction machinery still imputes
+not-yet-observed endpoint statuses from the event-time model, so users
+should specify data-generating hazards that are clinically meaningful
+for the binary endpoint time.
 
 ## References
 

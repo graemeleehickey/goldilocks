@@ -74,6 +74,9 @@
   model, Gamma posterior updating, posterior predictive probabilities,
   interim decision rules, final analysis options, and simulation-based
   calibration.
+- Added a new vignette, “Bayesian binary outcome designs”, documenting
+  `method = "bayes-bin"` for two-arm and single-arm complete binary
+  endpoint analyses.
 - Renamed vignettes for consistency: “Two-arm randomized trials”,
   “Bayesian piecewise-exponential designs”, “Single-arm designs with a
   performance goal”, and “Package architecture”.

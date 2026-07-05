@@ -222,6 +222,8 @@ parallelize the simulations over multiple cores.</p>
 </li>
 <li>Parallel computation: <code>ncores = 8</code> (note: this is not
 currently possible on Windows machines)</li>
+<li>Reproducible simulation streams: <code>seed = 123</code>
+</li>
 </ul>
 <p>Similar to above, the parameter <code>N_mcmc</code> is not required
 when using a log-rank test, meaning we do not need to enter a value for
@@ -260,7 +262,8 @@ treatment effect when the OS rate at 12-months for the treatment arm is
 <span>  N_impute <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  N_trials <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"logrank"</span>,</span>
-<span>  ncores <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
+<span>  ncores <span class="op">=</span> <span class="fl">8</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span></code></pre></div>
 <p>The simulations take approximately 3 minutes to run on 2 GHz
 Quad-Core Intel i5 MacBook Pro.</p>
 <p>It is straightforward to calculate the type I error under this
@@ -270,7 +273,7 @@ design. The only change required is to set the
 use of the <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> function to avoid having to type
 everything else over again.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">out_t1error</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">out_t1error</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span>, seed <span class="op">=</span> <span class="fl">124</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power</span><span class="op">$</span><span class="va">sims</span>, <span class="va">out_t1error</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -341,7 +344,7 @@ error. For example, if we use
 operating characteristics are more acceptable.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_power2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, prob_ha <span class="op">=</span> <span class="fl">0.96</span><span class="op">)</span></span>
-<span><span class="va">out_t1error2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power2</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">out_t1error2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power2</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span>, seed <span class="op">=</span> <span class="fl">125</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power2</span><span class="op">$</span><span class="va">sims</span>, <span class="va">out_t1error2</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span><span class="op">)</span>,</span>

@@ -127,6 +127,7 @@ parallelize the simulations over multiple cores.
   `prior = c(0.1, 0.1)`
 - Parallel computation: `ncores = 8` (note: this is not currently
   possible on Windows machines)
+- Reproducible simulation streams: `seed = 123`
 
 Similar to above, the parameter `N_mcmc` is not required when using a
 log-rank test, meaning we do not need to enter a value for this
@@ -170,7 +171,8 @@ out_power <- sim_trials(
   N_impute = 100,
   N_trials = 500,
   method = "logrank",
-  ncores = 8)
+  ncores = 8,
+  seed = 123)
 ```
 
 The simulations take approximately 3 minutes to run on 2 GHz Quad-Core
@@ -184,7 +186,7 @@ function to avoid having to type everything else over again.
 
 ``` r
 
-out_t1error <- update(out_power, hazard_treatment = hc)
+out_t1error <- update(out_power, hazard_treatment = hc, seed = 124)
 ```
 
 ``` r
@@ -222,7 +224,7 @@ acceptable.
 ``` r
 
 out_power2 <- update(out_power, prob_ha = 0.96)
-out_t1error2 <- update(out_power2, hazard_treatment = hc)
+out_t1error2 <- update(out_power2, hazard_treatment = hc, seed = 125)
 ```
 
 ``` r
