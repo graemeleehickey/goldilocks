@@ -31,6 +31,7 @@ sim_trials(
   N_trials = 10,
   method = "logrank",
   imputed_final = FALSE,
+  empty_interval = c("propagate", "prior", "error"),
   ncores = 1L,
   seed = NULL
 )
@@ -165,6 +166,15 @@ have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 \code{end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
 means that the final analysis would incorporate right-censoring.}
+
+\item{empty_interval}{character. Policy for empty piecewise-exponential
+intervals in \code{method = "bayes-surv"} posterior calculations. An empty
+interval is an interval with no exposed subjects in a treatment arm at the
+analysis time. \code{"propagate"} (the default, matching earlier package
+behavior) copies exposure time and event counts from the nearest non-empty
+interval in the same treatment arm and emits a warning. \code{"prior"} leaves
+the interval at zero exposure time and zero events, so its posterior is
+driven only by \code{prior}. \code{"error"} stops when any empty interval is found.}
 
 \item{ncores}{integer. Number of cores to use for parallel processing.}
 

@@ -24,3 +24,42 @@ test_that("prop_to_haz errors when cutpoints don't start at 0", {
     "First element"
   )
 })
+
+test_that("prop_to_haz validates cumulative probabilities", {
+  expect_error(
+    prop_to_haz(c(0.30, 0.20), c(0, 12), 24),
+    "non-decreasing"
+  )
+
+  expect_error(
+    prop_to_haz(1, cutpoints = 0, endtime = 36),
+    "probs"
+  )
+
+  expect_error(
+    prop_to_haz(1.1, cutpoints = 0, endtime = 36),
+    "probs"
+  )
+
+  expect_error(
+    prop_to_haz(NA_real_, cutpoints = 0, endtime = 36),
+    "probs"
+  )
+})
+
+test_that("prop_to_haz validates cutpoint and endpoint dimensions", {
+  expect_error(
+    prop_to_haz(c(0.15, 0.30), cutpoints = 0, endtime = 36),
+    "same length"
+  )
+
+  expect_error(
+    prop_to_haz(c(0.15, 0.30), cutpoints = c(0, 12), endtime = 12),
+    "greater than the last cutpoint"
+  )
+
+  expect_error(
+    prop_to_haz(c(0.15, 0.30), cutpoints = c(0, 0), endtime = 36),
+    "strictly increasing"
+  )
+})

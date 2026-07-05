@@ -105,6 +105,48 @@ test_that("posterior propagates zero-exposure intervals within treatment group",
   expect_lt(abs(trt_int3 - trt_int2), abs(trt_int3 - ctrl_int3))
 })
 
+test_that("posterior can leave zero-exposure intervals prior-driven", {
+  data <- data.frame(
+    time = c(2, 25, 3, 4),
+    event = c(1, 1, 1, 0),
+    treatment = c(0, 0, 1, 1)
+  )
+
+  set.seed(1429)
+  res <- posterior(
+    data,
+    cutpoints = c(0, 10, 20),
+    prior = c(2, 0.5),
+    N_mcmc = 10000,
+    single_arm = FALSE,
+    empty_interval = "prior"
+  )
+
+  # Treatment interval 3 has no exposure, so with empty_interval = "prior"
+  # the posterior mean should be close to the Gamma prior mean.
+  expect_equal(mean(res[, 3, 1]), 2 / 0.5, tolerance = 0.15)
+})
+
+test_that("posterior can error on zero-exposure intervals", {
+  data <- data.frame(
+    time = c(2, 25, 3, 4),
+    event = c(1, 1, 1, 0),
+    treatment = c(0, 0, 1, 1)
+  )
+
+  expect_error(
+    posterior(
+      data,
+      cutpoints = c(0, 10, 20),
+      prior = c(0.1, 0.1),
+      N_mcmc = 10,
+      single_arm = FALSE,
+      empty_interval = "error"
+    ),
+    "zero subjects"
+  )
+})
+
 test_that("posterior errors when the treatment group has no subjects (factor)", {
   # Two-arm analysis but the treatment group has no enrolled subjects in this
   # look, encoded as a factor with both levels present.

@@ -80,3 +80,25 @@ test_that("randomization errors on non-integer allocation", {
     "integer"
   )
 })
+
+test_that("randomization validates allocation length and positivity", {
+  expect_error(
+    randomization(N_total = 100, block = 2, allocation = c(1, 1, 1)),
+    "two positive"
+  )
+
+  expect_error(
+    randomization(N_total = 100, block = 2, allocation = c(0, 1)),
+    "two positive"
+  )
+
+  expect_error(
+    randomization(N_total = 100, block = 2, allocation = c(-1, 2)),
+    "two positive"
+  )
+
+  expect_error(
+    randomization(N_total = 100, block = 2, allocation = c(1, Inf)),
+    "integer"
+  )
+})

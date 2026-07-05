@@ -11,6 +11,11 @@
 #'   treatment assignment (`treatment`, coded `1` for treatment and
 #'   `0` for control). Other columns can be included in the data frame and
 #'   will be handled in the split.
+#' @param empty_interval character. Policy for piecewise intervals with no
+#'   exposed subjects in a treatment arm. `"propagate"` copies sufficient
+#'   statistics from the nearest non-empty interval in the same arm;
+#'   `"prior"` leaves the interval with zero exposure and zero events, making
+#'   the posterior prior-driven; `"error"` stops with a clear message.
 #'
 #' @return An array of dimension 3. The first dimension is of length
 #'   `N_mcmc`, the second dimension is of length \eqn{J} (one column for
@@ -21,7 +26,15 @@
 #' @importFrom stats rgamma
 #'
 #' @noRd
-posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
+posterior <- function(
+  data,
+  cutpoints,
+  prior,
+  N_mcmc,
+  single_arm,
+  empty_interval = "propagate"
+) {
+  empty_interval <- match.arg(empty_interval, c("propagate", "prior", "error"))
   n_intervals <- length(cutpoints)
 
   # Verify the expected treatment groups are actually present before
@@ -36,51 +49,16 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
 
   data_summ <- posterior_sufficient_stats(data, cutpoints, single_arm)
 
-  # If a time-interval has zero subjects at a given interim analysis, it will
-  # mean that there is zero exposure time and events for that stratum. To avoid
-  # unrealistic hazard parameter estimates, we propagate the exposure time and
-  # event counts from the nearest non-zero stratum *within the same treatment
-  # group*. This is equivalent to independent draws from the Gamma posterior of
-  # that stratum. Propagation is done per treatment value because data_summ
-  # stacks treatment groups (all control intervals, then all treatment
-  # intervals); propagating across the flat row order would otherwise leak one
-  # group's data into the other.
   if (any(data_summ$n == 0)) {
-    for (treatment_value in unique(data_summ$treatment)) {
-      treatment_rows <- which(data_summ$treatment == treatment_value)
-      treatment_summ <- data_summ[treatment_rows, ]
+    if (empty_interval == "error") {
+      stop(
+        "At least one treatment arm interval has zero subjects; set ",
+        "'empty_interval' to 'propagate' or 'prior' to continue."
+      )
+    }
 
-      if (all(treatment_summ$n == 0)) {
-        # Defensive: with the top-level treatment-presence check above this should be
-        # unreachable, but guard against a treatment value that appears only as
-        # empty factor levels.
-        stop("No subjects with treatment = ", treatment_value)
-      }
-
-      # Walk the intervals in order; for an empty interval, carry forward the
-      # last non-empty interval's data. If the first interval(s) are empty,
-      # back-fill from the first non-empty interval instead.
-      first_nonzero <- which(treatment_summ$n > 0)[1]
-      for (k in seq_len(nrow(treatment_summ))) {
-        if (treatment_summ$n[k] == 0) {
-          source_k <- if (k > first_nonzero) k - 1 else first_nonzero
-          warning(
-            "Treatment value ",
-            treatment_value,
-            ", interval ",
-            k,
-            " has zero subjects; propagating data from interval ",
-            source_k,
-            " for posterior estimation.",
-            call. = FALSE
-          )
-          treatment_summ[k, c("tot_time", "tot_events")] <-
-            treatment_summ[source_k, c("tot_time", "tot_events")]
-        }
-      }
-
-      data_summ[treatment_rows, c("tot_time", "tot_events")] <-
-        treatment_summ[, c("tot_time", "tot_events")]
+    if (empty_interval == "propagate") {
+      data_summ <- propagate_empty_intervals(data_summ)
     }
   }
 
@@ -106,6 +84,44 @@ posterior <- function(data, cutpoints, prior, N_mcmc, single_arm) {
   }
 
   return(post)
+}
+
+propagate_empty_intervals <- function(data_summ) {
+  for (treatment_value in unique(data_summ$treatment)) {
+    treatment_rows <- which(data_summ$treatment == treatment_value)
+    treatment_summ <- data_summ[treatment_rows, ]
+
+    if (all(treatment_summ$n == 0)) {
+      stop("No non-empty intervals with treatment = ", treatment_value)
+    }
+
+    # Walk the intervals in order; for an empty interval, carry forward the
+    # last non-empty interval's data. If the first interval(s) are empty,
+    # back-fill from the first non-empty interval instead.
+    first_nonzero <- which(treatment_summ$n > 0)[1]
+    for (k in seq_len(nrow(treatment_summ))) {
+      if (treatment_summ$n[k] == 0) {
+        source_k <- if (k > first_nonzero) k - 1 else first_nonzero
+        warning(
+          "Treatment value ",
+          treatment_value,
+          ", interval ",
+          k,
+          " has zero subjects; propagating data from interval ",
+          source_k,
+          " for posterior estimation.",
+          call. = FALSE
+        )
+        treatment_summ[k, c("tot_time", "tot_events")] <-
+          treatment_summ[source_k, c("tot_time", "tot_events")]
+      }
+    }
+
+    data_summ[treatment_rows, c("tot_time", "tot_events")] <-
+      treatment_summ[, c("tot_time", "tot_events")]
+  }
+
+  data_summ
 }
 
 posterior_sufficient_stats <- function(data, cutpoints, single_arm) {

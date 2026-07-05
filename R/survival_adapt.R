@@ -67,6 +67,14 @@
 #'   missing data.
 #' @param N_mcmc integer. Number of samples to draw from the posterior
 #'   distribution when using a Bayesian test (`method = "bayes-surv"`).
+#' @param empty_interval character. Policy for empty piecewise-exponential
+#'   intervals in `method = "bayes-surv"` posterior calculations. An empty
+#'   interval is an interval with no exposed subjects in a treatment arm at the
+#'   analysis time. `"propagate"` (the default, matching earlier package
+#'   behavior) copies exposure time and event counts from the nearest non-empty
+#'   interval in the same treatment arm and emits a warning. `"prior"` leaves
+#'   the interval at zero exposure time and zero events, so its posterior is
+#'   driven only by `prior`. `"error"` stops when any empty interval is found.
 #' @param method character. For an imputed data set (or the final data set after
 #'   follow-up is complete), whether the analysis should be a log-rank
 #'   (`method = "logrank"`) test, Cox proportional hazards regression model
@@ -144,6 +152,19 @@
 #'      of the difference. A posterior probability is calculated according to the
 #'      specification of the test type (`alternative`) and the value of the null
 #'      hypothesis (`h0`).
+#'
+#'      For piecewise-exponential analyses, an interim or final dataset may
+#'      contain intervals with no exposed subjects in one treatment arm,
+#'      especially when later cutpoints occur after the available follow-up at
+#'      early looks. The `empty_interval` argument controls this case.
+#'      The default, `"propagate"`, preserves historical package behavior by
+#'      borrowing sufficient statistics from the nearest non-empty interval
+#'      within the same treatment arm. This is operationally stable but
+#'      statistically consequential because the empty interval's posterior is
+#'      informed by adjacent observed data. `"prior"` instead leaves the empty
+#'      interval prior-driven, making the absence of interval data explicit.
+#'      `"error"` is strict and stops the simulation or analysis when an empty
+#'      interval is encountered.
 #'
 #'   * Bayesian beta-binomial analysis (`method = "bayes-bin"`).
 #'      Each complete or imputed dataset is reduced to binary event outcomes at
@@ -285,6 +306,7 @@ survival_adapt <- function(
   prob_ha = 0.95,
   N_impute = 10,
   N_mcmc = 10,
+  empty_interval = c("propagate", "prior", "error"),
   method = "logrank",
   imputed_final = FALSE
 ) {
@@ -298,27 +320,24 @@ survival_adapt <- function(
   # Interim look and final look
   analysis_at_enrollnumber <- c(interim_look, N_total)
 
-  # Futility assessment required?
-  if (is.null(Fn) | all(Fn == 0)) {
-    check_futility <- FALSE
-  } else {
-    check_futility <- TRUE
-  }
-
   # Number of looks
   N_looks <- length(analysis_at_enrollnumber)
-
-  # If not using piecewise-exponential Bayesian test, then set N_mcmc = 1
-  if (method != "bayes-surv") {
-    N_mcmc <- 1
-  }
 
   ##############################################################################
   ### Run checks on arguments
   ##############################################################################
 
+  validate_positive_integer_scalar(N_total, "N_total")
+  validate_single_probability(prop_loss, "prop_loss")
+  validate_single_probability(prob_ha, "prob_ha")
+  validate_positive_integer_scalar(N_impute, "N_impute")
+  validate_positive_integer_scalar(N_mcmc, "N_mcmc")
+  validate_gamma_prior(prior)
+  empty_interval <- match.arg(empty_interval)
+
   # Check: 'interim_look' bounded by maximum sample size
   if (!is.null(interim_look)) {
+    validate_positive_integer_vector(interim_look, "interim_look")
     stopifnot(all(N_total > interim_look))
 
     # Check: each interim look is large enough to (with block randomization)
@@ -373,27 +392,39 @@ survival_adapt <- function(
     validate_bayes_binomial_args(bin_prior, bin_method, bin_N)
   }
 
-  # Check: thresholds of consistent dimension
-  if (length(Sn) != length(Fn)) {
-    stop("Probability threshold vectors need to be the same length")
-  }
-
-  # Check: thresholds available for each interim look
-  if (N_looks <= length(Fn)) {
-    stop("More thresholds specified than actual interim looks")
-  }
-  if (N_looks > 1 & length(Fn) == 1) {
-    # Recycle thresholds if needed
-    # Note - we already enforce that Sn = Fn
-    Sn <- rep(Sn, N_looks - 1)
-    Fn <- rep(Fn, N_looks - 1)
-  }
-
   # Assign: if no interim looks, set thresholds to 0, as they are not needed
-  if (is.null(Fn) & N_looks == 1) {
+  if (N_looks == 1) {
     Sn <- 0
     Fn <- 0
     check_futility <- FALSE
+  } else {
+    validate_probability_vector(Sn, "Sn")
+    if (!is.null(Fn)) {
+      validate_probability_vector(Fn, "Fn")
+    }
+
+    N_interims <- N_looks - 1
+
+    if (length(Sn) == 1) {
+      Sn <- rep(Sn, N_interims)
+    } else if (length(Sn) != N_interims) {
+      stop("More thresholds specified than actual interim looks")
+    }
+
+    if (is.null(Fn)) {
+      Fn <- rep(0, N_interims)
+    } else if (length(Fn) == 1) {
+      Fn <- rep(Fn, N_interims)
+    } else if (length(Fn) != N_interims) {
+      stop("More thresholds specified than actual interim looks")
+    }
+
+    check_futility <- any(Fn != 0)
+  }
+
+  # If not using piecewise-exponential Bayesian test, then set N_mcmc = 1
+  if (method != "bayes-surv") {
+    N_mcmc <- 1
   }
 
   ##############################################################################
@@ -474,7 +505,8 @@ survival_adapt <- function(
         cutpoints = cutpoints,
         prior = prior,
         N_mcmc = N_impute,
-        single_arm = single_arm
+        single_arm = single_arm,
+        empty_interval = empty_interval
       )
 
       ##########################################################################
@@ -500,6 +532,7 @@ survival_adapt <- function(
           bin_prior = bin_prior,
           bin_method = bin_method,
           bin_N = bin_N,
+          empty_interval = empty_interval,
           check_futility = check_futility
         )
 
@@ -578,6 +611,7 @@ survival_adapt <- function(
     bin_prior = bin_prior,
     bin_method = bin_method,
     bin_N = bin_N,
+    empty_interval = empty_interval,
     end_of_study = end_of_study
   )
 

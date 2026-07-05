@@ -92,19 +92,26 @@ sim_trials <- function(
   N_trials = 10,
   method = "logrank",
   imputed_final = FALSE,
+  empty_interval = c("propagate", "prior", "error"),
   ncores = 1L,
   seed = NULL
 ) {
   Call <- match.call()
+  empty_interval <- match.arg(empty_interval)
+
+  validate_positive_integer_scalar(N_trials, "N_trials")
 
   # Check: missing 'ncores' defaults to maximum available (spare 1)
   if (missing(ncores)) {
-    ncores <- max(1, parallel::detectCores() - 1)
+    ncores <- default_ncores()
+  } else {
+    validate_positive_integer_scalar(ncores, "ncores")
   }
 
   # Check: cannot specify <1 core
   if (ncores < 1) {
     warning("Must use at least 1 core... setting ncores = 1")
+    ncores <- 1L
   }
 
   # Check: if Windows and if ncores = 1
@@ -156,7 +163,8 @@ sim_trials <- function(
       N_impute = N_impute,
       N_mcmc = N_mcmc,
       method = method,
-      imputed_final = imputed_final
+      imputed_final = imputed_final,
+      empty_interval = empty_interval
     )
   }
 
@@ -166,6 +174,22 @@ sim_trials <- function(
   out <- list(sims = sims, call = Call)
 
   return(out)
+}
+
+default_ncores <- function(
+  detected = parallel::detectCores(logical = TRUE)
+) {
+  if (
+    length(detected) != 1 ||
+      !is.numeric(detected) ||
+      is.na(detected) ||
+      !is.finite(detected) ||
+      detected < 2
+  ) {
+    return(1L)
+  }
+
+  max(1L, as.integer(detected) - 1L)
 }
 
 #' Generate independent random-number streams for trial simulations

@@ -49,6 +49,7 @@ test_final <- function(
   bin_prior,
   bin_method,
   bin_N,
+  empty_interval,
   end_of_study
 ) {
   if (imputed_final) {
@@ -58,7 +59,8 @@ test_final <- function(
       cutpoints = cutpoints,
       prior = prior,
       N_mcmc = N_impute,
-      single_arm = single_arm
+      single_arm = single_arm,
+      empty_interval = empty_interval
     )
     # Effect matrix + posterior probability
     effect_rows <- ifelse(method == "bayes-surv", N_mcmc, 1)
@@ -98,7 +100,8 @@ test_final <- function(
         h0 = h0,
         bin_prior = bin_prior,
         bin_method = bin_method,
-        bin_N = bin_N
+        bin_N = bin_N,
+        empty_interval = empty_interval
       )
 
       post_paa[j] <- success$success
@@ -129,7 +132,8 @@ test_final <- function(
       h0 = h0,
       bin_prior = bin_prior,
       bin_method = bin_method,
-      bin_N = bin_N
+      bin_N = bin_N,
+      empty_interval = empty_interval
     )
 
     post_paa <- success$success

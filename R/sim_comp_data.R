@@ -60,6 +60,9 @@ sim_comp_data <- function(
   ### Run checks on arguments
   ##############################################################################
 
+  validate_positive_integer_scalar(N_total, "N_total")
+  validate_single_probability(prop_loss, "prop_loss")
+
   # Check: none of the 'cutpoints' exceed 'end_of_study'
   if (!is.null(cutpoints)) {
     stopifnot(any(cutpoints < end_of_study))

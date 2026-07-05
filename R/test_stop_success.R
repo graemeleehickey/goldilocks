@@ -21,6 +21,7 @@ test_stop_success <- function(
   bin_prior,
   bin_method,
   bin_N,
+  empty_interval,
   check_futility
 ) {
   ##############################################################################
@@ -60,7 +61,8 @@ test_stop_success <- function(
     h0 = h0,
     bin_prior = bin_prior,
     bin_method = bin_method,
-    bin_N = bin_N
+    bin_N = bin_N,
+    empty_interval = empty_interval
   )
 
   ##############################################################################
@@ -97,7 +99,8 @@ test_stop_success <- function(
       h0 = h0,
       bin_prior = bin_prior,
       bin_method = bin_method,
-      bin_N = bin_N
+      bin_N = bin_N,
+      empty_interval = empty_interval
     )
   } else {
     success_max <- NA

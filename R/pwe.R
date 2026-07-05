@@ -116,6 +116,9 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
     if (maxtime <= 0 | length(maxtime) > 1) {
       stop("'maxtime' must be a postive single value")
     }
+    if (any(maxtime < time)) {
+      stop("'maxtime' must be greater than or equal to all observed 'time' values")
+    }
   }
 
   # Use inverse CDF to get conditional samples
@@ -139,7 +142,6 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
   }
 
   if (!is.null(maxtime)) {
-    # If 'maxtime' is lower than observed time, censor the data
     min_time <- pmin(time_imp, maxtime)
     event <- as.numeric(time_imp == min_time)
     dat <- data.frame(time = min_time, event = event)

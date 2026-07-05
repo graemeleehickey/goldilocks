@@ -139,6 +139,34 @@ test_that("sim_trials-zero_cores", {
   )
 })
 
+test_that("default_ncores falls back safely when cores are unavailable", {
+  expect_equal(goldilocks:::default_ncores(NA_real_), 1L)
+  expect_equal(goldilocks:::default_ncores(1L), 1L)
+  expect_equal(goldilocks:::default_ncores(4L), 3L)
+})
+
+test_that("sim_trials validates N_trials", {
+  hc <- -log(0.7) / 36
+  ht <- -log(0.85) / 36
+
+  expect_error(
+    sim_trials(
+      hazard_treatment = ht,
+      hazard_control = hc,
+      cutpoints = 0,
+      N_total = 50,
+      lambda = 20,
+      lambda_time = 0,
+      interim_look = NULL,
+      end_of_study = 36,
+      N_trials = 1.5,
+      method = "logrank",
+      ncores = 1
+    ),
+    "N_trials"
+  )
+})
+
 test_that("sim_trials is reproducible with seed and ncores = 1", {
   hc <- -log(0.7) / 36
   ht <- -log(0.85) / 36

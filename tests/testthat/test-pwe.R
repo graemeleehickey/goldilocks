@@ -105,6 +105,20 @@ test_that("pwe_impute respects maxtime censoring", {
   expect_true(all(out$time <= 36))
 })
 
+test_that("pwe_impute rejects maxtime before observed time", {
+  expect_error(
+    pwe_impute(time = 10, hazard = 0.1, cutpoints = 0, maxtime = 5),
+    "greater than or equal"
+  )
+})
+
+test_that("pwe_impute permits maxtime equal to observed time", {
+  out <- pwe_impute(time = 10, hazard = 0.1, cutpoints = 0, maxtime = 10)
+
+  expect_equal(out$time, 10)
+  expect_equal(out$event, 0)
+})
+
 test_that("pwe_impute without maxtime marks all as events", {
   set.seed(1847)
   out <- pwe_impute(

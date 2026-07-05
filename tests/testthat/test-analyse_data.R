@@ -46,6 +46,52 @@ test_that("analyse_data works with method = 'cox'", {
   expect_type(res$effect, "double")
 })
 
+test_that("analyse_data errors clearly for non-estimable log-rank tests", {
+  data <- data.frame(
+    time = rep(10, 20),
+    event = rep(0, 20),
+    treatment = rep(0:1, each = 10)
+  )
+
+  expect_error(
+    analyse_data(
+      data = data,
+      cutpoints = 0,
+      end_of_study = 36,
+      prior = c(0.1, 0.1),
+      N_mcmc = 10,
+      single_arm = FALSE,
+      method = "logrank",
+      alternative = "greater",
+      h0 = 0
+    ),
+    "Log-rank analysis is non-estimable"
+  )
+})
+
+test_that("analyse_data errors clearly for non-estimable Cox tests", {
+  data <- data.frame(
+    time = rep(10, 20),
+    event = rep(0, 20),
+    treatment = rep(0:1, each = 10)
+  )
+
+  expect_error(
+    analyse_data(
+      data = data,
+      cutpoints = 0,
+      end_of_study = 36,
+      prior = c(0.1, 0.1),
+      N_mcmc = 10,
+      single_arm = FALSE,
+      method = "cox",
+      alternative = "greater",
+      h0 = 0
+    ),
+    "Cox analysis is non-estimable"
+  )
+})
+
 test_that("cox_wald_test matches coxph treatment estimate and standard error", {
   set.seed(4291)
   data <- data.frame(

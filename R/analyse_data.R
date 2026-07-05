@@ -51,7 +51,8 @@ analyse_data <- function(
   h0,
   bin_prior = c(1, 1),
   bin_method = "mc",
-  bin_N = N_mcmc
+  bin_N = N_mcmc,
+  empty_interval = "propagate"
 ) {
   ####################################################
   ### Bayesian test
@@ -66,7 +67,8 @@ analyse_data <- function(
       cutpoints = cutpoints,
       prior = prior,
       N_mcmc = N_mcmc,
-      single_arm = single_arm
+      single_arm = single_arm,
+      empty_interval = empty_interval
     )
 
     # Posterior distribution of event proportions: imputed data
@@ -114,6 +116,7 @@ analyse_data <- function(
     e0 <- data$event[data$treatment == 0]
     e1 <- data$event[data$treatment == 1]
     lr <- logrank_test(t0, t1, e0, e1)
+    assert_logrank_estimable(lr)
     if (alternative == "two.sided") {
       success <- 1 - lr[3]
     } else {
@@ -136,7 +139,8 @@ analyse_data <- function(
   ####################################################
 
   if (method == "cox") {
-    fit_cox <- cox_wald_test(data)
+    fit_cox <- cox_wald_test_checked(data)
+    assert_cox_estimable(fit_cox)
     z <- (fit_cox$estimate - h0) / fit_cox$std_error
     if (alternative == "two.sided") {
       success <- 1 - (2 * pnorm(-abs(z)))
@@ -388,6 +392,22 @@ logrank_test <- function(
   logrank_instance(groupa, groupb, groupacensored, groupbcensored, onlyz)
 }
 
+assert_logrank_estimable <- function(lr) {
+  if (
+    length(lr) < 3 ||
+      any(is.na(lr[1:3])) ||
+      any(!is.finite(lr[1:3]))
+  ) {
+    stop(
+      "Log-rank analysis is non-estimable: the test statistic is not finite. ",
+      "This can occur when there are no events or insufficient information ",
+      "to compare treatment groups."
+    )
+  }
+
+  invisible(TRUE)
+}
+
 #' @title Fast Cox proportional hazards Wald test for treatment effect
 #'
 #' @inheritParams analyse_data
@@ -396,6 +416,48 @@ logrank_test <- function(
 #'   standard error (`std_error`).
 #'
 #' @noRd
+cox_wald_test_checked <- function(data) {
+  fit_warning <- NULL
+  fit <- withCallingHandlers(
+    cox_wald_test(data),
+    warning = function(w) {
+      fit_warning <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  if (!is.null(fit_warning)) {
+    stop(
+      "Cox analysis is non-estimable: the Cox model did not produce a ",
+      "reliable Wald statistic. survival::coxph.fit reported: ",
+      fit_warning
+    )
+  }
+
+  fit
+}
+
+assert_cox_estimable <- function(fit) {
+  if (
+    length(fit$estimate) != 1 ||
+      length(fit$std_error) != 1 ||
+      is.na(fit$estimate) ||
+      is.na(fit$std_error) ||
+      !is.finite(fit$estimate) ||
+      !is.finite(fit$std_error) ||
+      fit$std_error <= 0
+  ) {
+    stop(
+      "Cox analysis is non-estimable: the treatment effect or standard ",
+      "error is not finite and positive. This can occur when there are no ",
+      "events, separation, or insufficient information to estimate the ",
+      "treatment effect."
+    )
+  }
+
+  invisible(TRUE)
+}
+
 cox_wald_test <- function(data) {
   y <- Surv(data$time, data$event)
   x <- matrix(as.double(data$treatment), ncol = 1)

@@ -78,3 +78,32 @@ test_that("sim_comp_data works with piecewise hazard", {
   expect_equal(nrow(out), 80)
   expect_true(all(out$time > 0))
 })
+
+test_that("sim_comp_data validates counts and loss-to-follow-up probability", {
+  expect_error(
+    sim_comp_data(
+      hazard_treatment = 0.01,
+      hazard_control = 0.02,
+      cutpoints = 0,
+      N_total = 50.5,
+      lambda = 5,
+      lambda_time = 0,
+      end_of_study = 36
+    ),
+    "N_total"
+  )
+
+  expect_error(
+    sim_comp_data(
+      hazard_treatment = 0.01,
+      hazard_control = 0.02,
+      cutpoints = 0,
+      N_total = 50,
+      lambda = 5,
+      lambda_time = 0,
+      end_of_study = 36,
+      prop_loss = -0.1
+    ),
+    "prop_loss"
+  )
+})
