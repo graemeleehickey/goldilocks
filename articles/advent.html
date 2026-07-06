@@ -54,7 +54,6 @@
 
 
 
-<link href="advent_files/htmltools-fill-0.5.9/fill.css" rel="stylesheet">
 <script src="advent_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="advent_files/viz-1.8.2/viz.js"></script><link href="advent_files/DiagrammeR-styles-0.2/styles.css" rel="stylesheet">
 <script src="advent_files/grViz-binding-1.0.12/grViz.js"></script><div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
@@ -102,37 +101,6 @@ either radiofrequency ablation or cryoballoon ablation depending on
 site. The first 1 to 3 subjects at each site were nonrandomized roll-in
 subjects and are not part of the randomized comparison modeled
 below.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">trial_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  Feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="st">"Population"</span>,</span>
-<span>    <span class="st">"Treatment arm"</span>,</span>
-<span>    <span class="st">"Control arm"</span>,</span>
-<span>    <span class="st">"Randomization"</span>,</span>
-<span>    <span class="st">"Follow-up"</span>,</span>
-<span>    <span class="st">"Adaptive sample sizes"</span>,</span>
-<span>    <span class="st">"Primary effectiveness endpoint"</span>,</span>
-<span>    <span class="st">"Primary safety endpoint"</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  Reported_ADVENT_design <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="st">"Drug-resistant paroxysmal atrial fibrillation"</span>,</span>
-<span>    <span class="st">"Pulsed field ablation"</span>,</span>
-<span>    <span class="st">"Thermal ablation by radiofrequency or cryoballoon ablation"</span>,</span>
-<span>    <span class="st">"1:1 after nonrandomized roll-in subjects"</span>,</span>
-<span>    <span class="st">"12 months"</span>,</span>
-<span>    <span class="st">"350, 450, 550, 650, or 750 randomized subjects"</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span></span>
-<span>      <span class="st">"Treatment success: acute procedural success and freedom from"</span>,</span>
-<span>      <span class="st">"specified chronic failures through 12 months"</span></span>
-<span>    <span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span></span>
-<span>      <span class="st">"Composite device- or procedure-related serious adverse events,"</span>,</span>
-<span>      <span class="st">"including selected acute and chronic events"</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">trial_summary</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
 <col width="22%">
@@ -187,34 +155,8 @@ effectiveness and primary safety.</p>
 <p>The published design also included a trial-flow figure. The following
 diagram recreates the parts of that flow that matter for the package
 mapping.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">DiagrammeR</span><span class="fu">::</span><span class="fu"><a href="https://rich-iannone.github.io/DiagrammeR/reference/grViz.html" class="external-link">grViz</a></span><span class="op">(</span><span class="st">"</span></span>
-<span><span class="st">digraph advent_trial_flow {</span></span>
-<span><span class="st">  graph [rankdir = TB, bgcolor = transparent]</span></span>
-<span><span class="st">  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 10]</span></span>
-<span><span class="st">  edge  [fontname = Helvetica, fontsize = 9]</span></span>
-<span><span class="st"></span></span>
-<span><span class="st">  screen [label = 'Eligible patients with\\ndrug-resistant paroxysmal AF']</span></span>
-<span><span class="st">  rollin [label = 'Optional site roll-in\\n1 to 3 nonrandomized PFA subjects']</span></span>
-<span><span class="st">  random [label = 'Randomized subjects\\n1:1 allocation']</span></span>
-<span><span class="st">  pfa    [label = 'PFA arm\\nFARAPULSE system']</span></span>
-<span><span class="st">  thermal [label = 'Thermal ablation arm\\nradiofrequency or cryoballoon']</span></span>
-<span><span class="st">  blank  [label = '90-day blanking period\\nfor arrhythmia recurrence']</span></span>
-<span><span class="st">  follow [label = 'Follow-up through\\n12 months']</span></span>
-<span><span class="st">  endpoints [label = 'Co-primary endpoints\\neffectiveness and safety']</span></span>
-<span><span class="st"></span></span>
-<span><span class="st">  screen -&gt; rollin</span></span>
-<span><span class="st">  rollin -&gt; random</span></span>
-<span><span class="st">  random -&gt; pfa</span></span>
-<span><span class="st">  random -&gt; thermal</span></span>
-<span><span class="st">  pfa -&gt; blank</span></span>
-<span><span class="st">  thermal -&gt; blank</span></span>
-<span><span class="st">  blank -&gt; follow</span></span>
-<span><span class="st">  follow -&gt; endpoints</span></span>
-<span><span class="st">}</span></span>
-<span><span class="st">"</span><span class="op">)</span></span></code></pre></div>
-<div class="grViz html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:672px;height:384px;"></div>
-<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\ndigraph advent_trial_flow {\n  graph [rankdir = TB, bgcolor = transparent]\n  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 10]\n  edge  [fontname = Helvetica, fontsize = 9]\n\n  screen [label = \"Eligible patients with\\ndrug-resistant paroxysmal AF\"]\n  rollin [label = \"Optional site roll-in\\n1 to 3 nonrandomized PFA subjects\"]\n  random [label = \"Randomized subjects\\n1:1 allocation\"]\n  pfa    [label = \"PFA arm\\nFARAPULSE system\"]\n  thermal [label = \"Thermal ablation arm\\nradiofrequency or cryoballoon\"]\n  blank  [label = \"90-day blanking period\\nfor arrhythmia recurrence\"]\n  follow [label = \"Follow-up through\\n12 months\"]\n  endpoints [label = \"Co-primary endpoints\\neffectiveness and safety\"]\n\n  screen -> rollin\n  rollin -> random\n  random -> pfa\n  random -> thermal\n  pfa -> blank\n  thermal -> blank\n  blank -> follow\n  follow -> endpoints\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>In the code below, the nonrandomized roll-in subjects are ignored and
+<div id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:100%;height:620px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\ndigraph advent_trial_flow {\n  graph [rankdir = TB, bgcolor = transparent, ranksep = 0.55, nodesep = 0.35]\n  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 14,\n         margin = 0.12]\n  edge  [fontname = Helvetica, fontsize = 12]\n\n  screen [label = \"Eligible patients\\nwith drug-resistant PAF\"]\n  rollin [label = \"Site roll-in\\n1 to 3 PFA subjects\"]\n  random [label = \"Randomized comparison\\n1:1 allocation\"]\n  pfa    [label = \"PFA arm\"]\n  thermal [label = \"Thermal ablation arm\\nRF or cryoballoon\"]\n  blank  [label = \"90-day blanking period\"]\n  follow [label = \"Follow to 12 months\"]\n  endpoints [label = \"Co-primary endpoints\\neffectiveness + safety\"]\n\n  screen -> rollin\n  rollin -> random\n  random -> pfa\n  random -> thermal\n  pfa -> blank\n  thermal -> blank\n  blank -> follow\n  follow -> endpoints\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>In the code below, the nonrandomized roll-in subjects are ignored and
 the randomized comparison starts at the 1:1 allocation step.</p>
 </div>
 <div class="section level2">
@@ -223,41 +165,9 @@ the randomized comparison starts at the 1:1 allocation step.</p>
 <p>The ADVENT design paper includes a flowchart for the adaptive sample
 size algorithm. The chart below recreates the logic in package terms
 rather than copying the published image.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">DiagrammeR</span><span class="fu">::</span><span class="fu"><a href="https://rich-iannone.github.io/DiagrammeR/reference/grViz.html" class="external-link">grViz</a></span><span class="op">(</span><span class="st">"</span></span>
-<span><span class="st">digraph advent_goldilocks {</span></span>
-<span><span class="st">  graph [rankdir = LR, bgcolor = transparent]</span></span>
-<span><span class="st">  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 10]</span></span>
-<span><span class="st">  edge  [fontname = Helvetica, fontsize = 9]</span></span>
-<span><span class="st"></span></span>
-<span><span class="st">  start [label = 'Enroll N = 350\\nrandomized subjects']</span></span>
-<span><span class="st">  high  [shape = diamond, label = 'High predictive probability\\nof noninferiority for\\nboth endpoints at current N?']</span></span>
-<span><span class="st">  success [label = 'Stop enrollment\\nSample size is adequate']</span></span>
-<span><span class="st">  low   [shape = diamond, label = 'Low predictive probability\\nof noninferiority for\\neither endpoint at max N = 750?']</span></span>
-<span><span class="st">  futile [label = 'Stop enrollment\\nTrial appears futile']</span></span>
-<span><span class="st">  maxn  [shape = diamond, label = 'N = 750?']</span></span>
-<span><span class="st">  maxstop [label = 'Stop enrollment\\nMaximum reached']</span></span>
-<span><span class="st">  accrue [label = 'Accrue 100 more\\nrandomized subjects']</span></span>
-<span><span class="st">  follow [label = 'Follow enrolled subjects\\nto 12 months']</span></span>
-<span><span class="st">  final [label = 'Final Bayesian\\nnoninferiority analyses']</span></span>
-<span><span class="st"></span></span>
-<span><span class="st">  start -&gt; high</span></span>
-<span><span class="st">  high -&gt; success [label = 'Yes']</span></span>
-<span><span class="st">  high -&gt; low [label = 'No']</span></span>
-<span><span class="st">  low -&gt; futile [label = 'Yes']</span></span>
-<span><span class="st">  low -&gt; maxn [label = 'No']</span></span>
-<span><span class="st">  maxn -&gt; maxstop [label = 'Yes']</span></span>
-<span><span class="st">  maxn -&gt; accrue [label = 'No']</span></span>
-<span><span class="st">  accrue -&gt; high</span></span>
-<span><span class="st">  success -&gt; follow</span></span>
-<span><span class="st">  futile -&gt; follow</span></span>
-<span><span class="st">  maxstop -&gt; follow</span></span>
-<span><span class="st">  follow -&gt; final</span></span>
-<span><span class="st">}</span></span>
-<span><span class="st">"</span><span class="op">)</span></span></code></pre></div>
-<div class="grViz html-widget html-fill-item" id="htmlwidget-e5c8c404fe174e4c81bd" style="width:672px;height:384px;"></div>
-<script type="application/json" data-for="htmlwidget-e5c8c404fe174e4c81bd">{"x":{"diagram":"\ndigraph advent_goldilocks {\n  graph [rankdir = LR, bgcolor = transparent]\n  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 10]\n  edge  [fontname = Helvetica, fontsize = 9]\n\n  start [label = \"Enroll N = 350\\nrandomized subjects\"]\n  high  [shape = diamond, label = \"High predictive probability\\nof noninferiority for\\nboth endpoints at current N?\"]\n  success [label = \"Stop enrollment\\nSample size is adequate\"]\n  low   [shape = diamond, label = \"Low predictive probability\\nof noninferiority for\\neither endpoint at max N = 750?\"]\n  futile [label = \"Stop enrollment\\nTrial appears futile\"]\n  maxn  [shape = diamond, label = \"N = 750?\"]\n  maxstop [label = \"Stop enrollment\\nMaximum reached\"]\n  accrue [label = \"Accrue 100 more\\nrandomized subjects\"]\n  follow [label = \"Follow enrolled subjects\\nto 12 months\"]\n  final [label = \"Final Bayesian\\nnoninferiority analyses\"]\n\n  start -> high\n  high -> success [label = \"Yes\"]\n  high -> low [label = \"No\"]\n  low -> futile [label = \"Yes\"]\n  low -> maxn [label = \"No\"]\n  maxn -> maxstop [label = \"Yes\"]\n  maxn -> accrue [label = \"No\"]\n  accrue -> high\n  success -> follow\n  futile -> follow\n  maxstop -> follow\n  follow -> final\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>The corresponding <code>goldilocks</code> arguments are:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div id="htmlwidget-e5c8c404fe174e4c81bd" style="width:100%;height:760px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-e5c8c404fe174e4c81bd">{"x":{"diagram":"\ndigraph advent_goldilocks {\n  graph [rankdir = TB, bgcolor = transparent, ranksep = 0.55, nodesep = 0.35]\n  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 14,\n         margin = 0.12]\n  edge  [fontname = Helvetica, fontsize = 12]\n\n  start [label = \"Start adaptive review\\nN = 350\"]\n  high  [shape = diamond, label = \"Predicted success\\nhigh for both endpoints?\"]\n  success [label = \"Stop enrollment\\ncurrent N is adequate\"]\n  low   [shape = diamond, label = \"Predicted success\\nlow for either endpoint\\nat max N = 750?\"]\n  futile [label = \"Stop enrollment\\nfutility\"]\n  maxn  [shape = diamond, label = \"Reached\\nN = 750?\"]\n  maxstop [label = \"Stop enrollment\\nmaximum reached\"]\n  accrue [label = \"Accrue 100 more\\nrandomized subjects\"]\n  follow [label = \"Complete 12-month\\nfollow-up\"]\n  final [label = \"Final Bayesian\\nnoninferiority analyses\"]\n\n  start -> high\n  high -> success [label = \"Yes\"]\n  high -> low [label = \"No\"]\n  low -> futile [label = \"Yes\"]\n  low -> maxn [label = \"No\"]\n  maxn -> maxstop [label = \"Yes\"]\n  maxn -> accrue [label = \"No\"]\n  accrue -> high\n  success -> follow\n  futile -> follow\n  maxstop -> follow\n  follow -> final\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>The corresponding <code>goldilocks</code> arguments are:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N_total</span> <span class="op">&lt;-</span> <span class="fl">750</span></span>
 <span><span class="va">interim_look</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">350</span>, <span class="fl">450</span>, <span class="fl">550</span>, <span class="fl">650</span><span class="op">)</span></span>
 <span></span>
@@ -304,7 +214,7 @@ in each arm. On the event scale used in the code, that corresponds to a
 35% failure probability in each arm.</p>
 <p>For the safety endpoint, the event is already an adverse event. The
 target scenario was an 8% primary safety event rate in each arm.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">endpoint_map</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  Endpoint <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Effectiveness"</span>, <span class="st">"Safety"</span><span class="op">)</span>,</span>
 <span>  Published_scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -360,7 +270,7 @@ target scenario was an 8% primary safety event rate in each arm.</p>
 <p>The ADVENT primary analyses used Bayesian beta-binomial endpoint
 models with noninformative <code>Beta(0.5, 0.5)</code> priors. In
 <code>goldilocks</code>, this is specified with:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bin_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 <p>The <code>prior</code> argument still appears in the code below
 because <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> uses a time-to-event model to
@@ -370,7 +280,7 @@ paper reports the beta-binomial prior for the completed binary endpoint
 analysis, but the main paper does not provide the exact Gamma
 hyperparameters used for the time-to-event predictive imputation model.
 We therefore use the package default:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span></span></code></pre></div>
 <p>That distinction is important: <code>bin_prior</code> is the
 ADVENT-aligned endpoint prior; <code>prior</code> is the package’s
@@ -384,7 +294,7 @@ reduces each imputed or completed dataset to binary endpoint status when
 <code>method = "bayes-bin"</code>. For a simple vignette, we use
 constant hazards that reproduce the target event probabilities at 12
 months.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">end_of_study</span> <span class="op">&lt;-</span> <span class="fl">12</span></span>
 <span></span>
 <span><span class="va">haz_eff_fail</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.35</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
@@ -463,7 +373,7 @@ randomized subjects per month. We use <code>lambda = 40</code> to make
 the simulated calendar-time information broadly comparable. Accrual
 speed is worth sensitivity checking: fast accrual can reduce the amount
 of observed endpoint information available at interim looks.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4601</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">advent_effectiveness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
@@ -525,7 +435,7 @@ threshold. Success in the code means:</p>
 \Pr(p_{\text{PFA safety event}} - p_{\text{thermal safety event}} &lt; 0.08
 \mid \text{data}) &gt; 0.966.
 </annotation></semantics></math></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4602</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">advent_safety</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
@@ -571,7 +481,7 @@ endpoint-specific Bayesian rule maps to
 </h2>
 <p>For simulations, it is helpful to collect the common design settings
 once and then vary only the endpoint-specific values.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">advent_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="va">N_total</span>,</span>
@@ -652,7 +562,7 @@ once and then vary only the endpoint-specific values.</p>
 <span><span class="co">#&gt; $ncores</span></span>
 <span><span class="co">#&gt; [1] 1</span></span></code></pre></div>
 <p>Then the endpoint-specific simulation calls become short:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4610</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">eff_target</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trials</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -742,7 +652,7 @@ and the imputation hazard model.</p>
 </h2>
 <p>The following code is closer to what one would run outside the
 vignette build. It is not evaluated here.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">advent_common_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">advent_common</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  N_impute <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">8</span></span>

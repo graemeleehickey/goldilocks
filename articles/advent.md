@@ -38,40 +38,6 @@ either radiofrequency ablation or cryoballoon ablation depending on
 site. The first 1 to 3 subjects at each site were nonrandomized roll-in
 subjects and are not part of the randomized comparison modeled below.
 
-``` r
-
-trial_summary <- data.frame(
-  Feature = c(
-    "Population",
-    "Treatment arm",
-    "Control arm",
-    "Randomization",
-    "Follow-up",
-    "Adaptive sample sizes",
-    "Primary effectiveness endpoint",
-    "Primary safety endpoint"
-  ),
-  Reported_ADVENT_design = c(
-    "Drug-resistant paroxysmal atrial fibrillation",
-    "Pulsed field ablation",
-    "Thermal ablation by radiofrequency or cryoballoon ablation",
-    "1:1 after nonrandomized roll-in subjects",
-    "12 months",
-    "350, 450, 550, 650, or 750 randomized subjects",
-    paste(
-      "Treatment success: acute procedural success and freedom from",
-      "specified chronic failures through 12 months"
-    ),
-    paste(
-      "Composite device- or procedure-related serious adverse events,",
-      "including selected acute and chronic events"
-    )
-  )
-)
-
-knitr::kable(trial_summary)
-```
-
 | Feature | Reported_ADVENT_design |
 |:---|:---|
 | Population | Drug-resistant paroxysmal atrial fibrillation |
@@ -92,35 +58,6 @@ The published design also included a trial-flow figure. The following
 diagram recreates the parts of that flow that matter for the package
 mapping.
 
-``` r
-
-DiagrammeR::grViz("
-digraph advent_trial_flow {
-  graph [rankdir = TB, bgcolor = transparent]
-  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 10]
-  edge  [fontname = Helvetica, fontsize = 9]
-
-  screen [label = 'Eligible patients with\\ndrug-resistant paroxysmal AF']
-  rollin [label = 'Optional site roll-in\\n1 to 3 nonrandomized PFA subjects']
-  random [label = 'Randomized subjects\\n1:1 allocation']
-  pfa    [label = 'PFA arm\\nFARAPULSE system']
-  thermal [label = 'Thermal ablation arm\\nradiofrequency or cryoballoon']
-  blank  [label = '90-day blanking period\\nfor arrhythmia recurrence']
-  follow [label = 'Follow-up through\\n12 months']
-  endpoints [label = 'Co-primary endpoints\\neffectiveness and safety']
-
-  screen -> rollin
-  rollin -> random
-  random -> pfa
-  random -> thermal
-  pfa -> blank
-  thermal -> blank
-  blank -> follow
-  follow -> endpoints
-}
-")
-```
-
 In the code below, the nonrandomized roll-in subjects are ignored and
 the randomized comparison starts at the 1:1 allocation step.
 
@@ -129,41 +66,6 @@ the randomized comparison starts at the 1:1 allocation step.
 The ADVENT design paper includes a flowchart for the adaptive sample
 size algorithm. The chart below recreates the logic in package terms
 rather than copying the published image.
-
-``` r
-
-DiagrammeR::grViz("
-digraph advent_goldilocks {
-  graph [rankdir = LR, bgcolor = transparent]
-  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 10]
-  edge  [fontname = Helvetica, fontsize = 9]
-
-  start [label = 'Enroll N = 350\\nrandomized subjects']
-  high  [shape = diamond, label = 'High predictive probability\\nof noninferiority for\\nboth endpoints at current N?']
-  success [label = 'Stop enrollment\\nSample size is adequate']
-  low   [shape = diamond, label = 'Low predictive probability\\nof noninferiority for\\neither endpoint at max N = 750?']
-  futile [label = 'Stop enrollment\\nTrial appears futile']
-  maxn  [shape = diamond, label = 'N = 750?']
-  maxstop [label = 'Stop enrollment\\nMaximum reached']
-  accrue [label = 'Accrue 100 more\\nrandomized subjects']
-  follow [label = 'Follow enrolled subjects\\nto 12 months']
-  final [label = 'Final Bayesian\\nnoninferiority analyses']
-
-  start -> high
-  high -> success [label = 'Yes']
-  high -> low [label = 'No']
-  low -> futile [label = 'Yes']
-  low -> maxn [label = 'No']
-  maxn -> maxstop [label = 'Yes']
-  maxn -> accrue [label = 'No']
-  accrue -> high
-  success -> follow
-  futile -> follow
-  maxstop -> follow
-  follow -> final
-}
-")
-```
 
 The corresponding `goldilocks` arguments are:
 
