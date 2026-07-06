@@ -54,7 +54,7 @@ radiofrequency ablation or cryoballoon ablation depending on site. The first 1
 to 3 subjects at each site were nonrandomized roll-in subjects and are not part
 of the randomized comparison modeled below.
 
-```{r trial-summary}
+```{r trial-summary, echo=FALSE}
 trial_summary <- data.frame(
   Feature = c(
     "Population",
@@ -95,21 +95,22 @@ safety.
 The published design also included a trial-flow figure. The following diagram
 recreates the parts of that flow that matter for the package mapping.
 
-```{r trial-flowchart, message=FALSE}
+```{r trial-flowchart, echo=FALSE, message=FALSE, out.width='100%'}
 DiagrammeR::grViz("
 digraph advent_trial_flow {
-  graph [rankdir = TB, bgcolor = transparent]
-  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 10]
-  edge  [fontname = Helvetica, fontsize = 9]
+  graph [rankdir = TB, bgcolor = transparent, ranksep = 0.55, nodesep = 0.35]
+  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 14,
+         margin = 0.12]
+  edge  [fontname = Helvetica, fontsize = 12]
 
-  screen [label = 'Eligible patients with\\ndrug-resistant paroxysmal AF']
-  rollin [label = 'Optional site roll-in\\n1 to 3 nonrandomized PFA subjects']
-  random [label = 'Randomized subjects\\n1:1 allocation']
-  pfa    [label = 'PFA arm\\nFARAPULSE system']
-  thermal [label = 'Thermal ablation arm\\nradiofrequency or cryoballoon']
-  blank  [label = '90-day blanking period\\nfor arrhythmia recurrence']
-  follow [label = 'Follow-up through\\n12 months']
-  endpoints [label = 'Co-primary endpoints\\neffectiveness and safety']
+  screen [label = 'Eligible patients\\nwith drug-resistant PAF']
+  rollin [label = 'Site roll-in\\n1 to 3 PFA subjects']
+  random [label = 'Randomized comparison\\n1:1 allocation']
+  pfa    [label = 'PFA arm']
+  thermal [label = 'Thermal ablation arm\\nRF or cryoballoon']
+  blank  [label = '90-day blanking period']
+  follow [label = 'Follow to 12 months']
+  endpoints [label = 'Co-primary endpoints\\neffectiveness + safety']
 
   screen -> rollin
   rollin -> random
@@ -120,7 +121,7 @@ digraph advent_trial_flow {
   blank -> follow
   follow -> endpoints
 }
-")
+", width = "100%", height = "620px")
 ```
 
 In the code below, the nonrandomized roll-in subjects are ignored and the
@@ -132,22 +133,23 @@ The ADVENT design paper includes a flowchart for the adaptive sample size
 algorithm. The chart below recreates the logic in package terms rather than
 copying the published image.
 
-```{r adaptive-flowchart, message=FALSE}
+```{r adaptive-flowchart, echo=FALSE, message=FALSE, out.width='100%'}
 DiagrammeR::grViz("
 digraph advent_goldilocks {
-  graph [rankdir = LR, bgcolor = transparent]
-  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 10]
-  edge  [fontname = Helvetica, fontsize = 9]
+  graph [rankdir = TB, bgcolor = transparent, ranksep = 0.55, nodesep = 0.35]
+  node  [shape = box, style = rounded, fontname = Helvetica, fontsize = 14,
+         margin = 0.12]
+  edge  [fontname = Helvetica, fontsize = 12]
 
-  start [label = 'Enroll N = 350\\nrandomized subjects']
-  high  [shape = diamond, label = 'High predictive probability\\nof noninferiority for\\nboth endpoints at current N?']
-  success [label = 'Stop enrollment\\nSample size is adequate']
-  low   [shape = diamond, label = 'Low predictive probability\\nof noninferiority for\\neither endpoint at max N = 750?']
-  futile [label = 'Stop enrollment\\nTrial appears futile']
-  maxn  [shape = diamond, label = 'N = 750?']
-  maxstop [label = 'Stop enrollment\\nMaximum reached']
+  start [label = 'Start adaptive review\\nN = 350']
+  high  [shape = diamond, label = 'Predicted success\\nhigh for both endpoints?']
+  success [label = 'Stop enrollment\\ncurrent N is adequate']
+  low   [shape = diamond, label = 'Predicted success\\nlow for either endpoint\\nat max N = 750?']
+  futile [label = 'Stop enrollment\\nfutility']
+  maxn  [shape = diamond, label = 'Reached\\nN = 750?']
+  maxstop [label = 'Stop enrollment\\nmaximum reached']
   accrue [label = 'Accrue 100 more\\nrandomized subjects']
-  follow [label = 'Follow enrolled subjects\\nto 12 months']
+  follow [label = 'Complete 12-month\\nfollow-up']
   final [label = 'Final Bayesian\\nnoninferiority analyses']
 
   start -> high
@@ -163,7 +165,7 @@ digraph advent_goldilocks {
   maxstop -> follow
   follow -> final
 }
-")
+", width = "100%", height = "760px")
 ```
 
 The corresponding `goldilocks` arguments are:

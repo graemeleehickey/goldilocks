@@ -1,6 +1,8 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
+^README\.html$
+^cache$
 ^codecov\.yml$
 ^\.travis\.yml$
 ^\.github$
