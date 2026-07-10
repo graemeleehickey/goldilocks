@@ -5,7 +5,9 @@
 #'
 #' @param n integer. The number of random samples to generate. Default is
 #'   `n = 1`.
-#' @param hazard vector. The constant hazard rates for exponential failures.
+#' @param hazard vector. Finite non-negative constant hazard rates for
+#'   exponential failures. If the final rate is zero, `maxtime` must be
+#'   supplied so that subjects without an event can be administratively censored.
 #' @param cutpoints vector. The change-point vector indicating time when the
 #'   hazard rates change. Note the first element of `cutpoints` should
 #'   always be 0.
@@ -25,10 +27,7 @@
 #' y <- pwe_sim(n = 1, hazard = c(2.585924e-02, 3.685254e-09),
 #'              cutpoints = c(0, 12))
 pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
-  # Check: 'cutpoints' should be same length as hazard
-  if (length(cutpoints) != length(hazard)) {
-    stop("Length of 'cutpoints' must be equal to length of rate")
-  }
+  validate_piecewise_hazard(hazard, cutpoints)
 
   # Check: first element of 'cutpoints' should be 0
   if (cutpoints[1] != 0) {
@@ -47,8 +46,14 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
     }
   }
 
+  if (is.null(maxtime) && tail(hazard, 1) == 0) {
+    stop("'maxtime' must be supplied when the final hazard rate is zero")
+  }
+
   if (length(hazard) == 1) {
-    ret <- rexp(n, rate = hazard)
+    # stats::rexp(rate = 0) returns NaN, whereas a zero constant hazard
+    # represents no event before administrative censoring.
+    ret <- if (hazard == 0) rep(Inf, n) else rexp(n, rate = hazard)
   } else {
     ret <- PWEALL::rpwe(n, rate = hazard, tchange = cutpoints)$r
   }
@@ -101,10 +106,7 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
 #' pwe_impute(time = 19.621870008, hazard = c(2.585924e-02, 3.685254e-09),
 #'            cutpoints = c(0, 12), maxtime = 36)
 pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
-  # Check: 'hazard' is positive
-  if (any(hazard < 0)) {
-    stop("At least one of the hazard rate(s) is less than 0")
-  }
+  validate_piecewise_hazard(hazard, cutpoints)
 
   # Check: 'time' is positive integer
   if (any(time < 0)) {
@@ -119,6 +121,10 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
     if (any(maxtime < time)) {
       stop("'maxtime' must be greater than or equal to all observed 'time' values")
     }
+  }
+
+  if (is.null(maxtime) && tail(hazard, 1) == 0) {
+    stop("'maxtime' must be supplied when the final hazard rate is zero")
   }
 
   # Use inverse CDF to get conditional samples
@@ -172,9 +178,7 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
 #'
 #' @export
 ppwe <- function(hazard, end_of_study, cutpoints) {
-  if (ncol(hazard) != length(cutpoints)) {
-    stop("The length of the hazard rates and cutpoints do not match")
-  }
+  validate_hazard_matrix(hazard, cutpoints)
 
   interval_upper <- c(cutpoints[-1], Inf)
   duration <- pmax(0, pmin(end_of_study, interval_upper) - cutpoints)

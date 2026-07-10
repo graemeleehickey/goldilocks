@@ -1,9 +1,10 @@
 #' @title Simulate a complete clinical trial with event data drawn from a
 #'   piecewise exponential distribution
 #'
-#' @param hazard_treatment vector. Constant hazard rates under the treatment
-#'   arm.
-#' @param hazard_control vector. Constant hazard rates under the control arm.
+#' @param hazard_treatment vector. Finite non-negative constant hazard rates
+#'   under the treatment arm.
+#' @param hazard_control vector. Finite non-negative constant hazard rates
+#'   under the control arm.
 #' @param cutpoints  vector. Times at which the baseline hazard changes. Default
 #'   is `cutpoints = 0`, which corresponds to a simple (non-piecewise)
 #'   exponential model.
@@ -63,13 +64,17 @@ sim_comp_data <- function(
   validate_positive_integer_scalar(N_total, "N_total")
   validate_single_probability(prop_loss, "prop_loss")
 
+  # Assign: indicator of whether single-arm study
+  single_arm <- is.null(hazard_control)
+  validate_piecewise_hazard(hazard_treatment, cutpoints, "hazard_treatment")
+  if (!single_arm) {
+    validate_piecewise_hazard(hazard_control, cutpoints, "hazard_control")
+  }
+
   # Check: none of the 'cutpoints' exceed 'end_of_study'
   if (!is.null(cutpoints)) {
     stopifnot(any(cutpoints < end_of_study))
   }
-
-  # Assign: indicator of whether single-arm study
-  single_arm <- is.null(hazard_control)
 
   ##############################################################################
   ### Simulate enrollment/randomization + treatment assignment

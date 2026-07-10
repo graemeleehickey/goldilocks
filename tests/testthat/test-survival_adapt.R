@@ -606,6 +606,64 @@ test_that("survival_adapt validates probability, count, and prior arguments", {
   expect_error(do.call(survival_adapt, modifyList(common_args, list(prop_loss = -0.1))), "prop_loss")
 })
 
+test_that("survival_adapt validates interim ordering and h0", {
+  common_args <- list(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    cutpoints = 0,
+    N_total = 200,
+    lambda = 20,
+    lambda_time = 0,
+    interim_look = 100,
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    block = 2,
+    rand_ratio = c(1, 1),
+    prop_loss = 0,
+    alternative = "less",
+    h0 = 0,
+    Fn = 0,
+    Sn = 1,
+    prob_ha = 0.95,
+    N_impute = 1,
+    N_mcmc = 1,
+    method = "bayes-surv"
+  )
+
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(common_args, list(interim_look = c(150, 100)))
+    ),
+    "strictly increasing"
+  )
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(common_args, list(interim_look = c(100, 100)))
+    ),
+    "strictly increasing"
+  )
+  expect_error(
+    do.call(survival_adapt, modifyList(common_args, list(h0 = Inf))),
+    "single finite"
+  )
+  expect_error(
+    do.call(survival_adapt, modifyList(common_args, list(h0 = 1.1))),
+    "\\[-1, 1\\]"
+  )
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(
+        common_args,
+        list(hazard_control = NULL, h0 = -0.1)
+      )
+    ),
+    "\\[0, 1\\]"
+  )
+})
+
 test_that("survival_adapt keeps futility disabled when Fn = 0", {
   set.seed(1)
   out <- survival_adapt(

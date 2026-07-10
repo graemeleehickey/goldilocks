@@ -21,9 +21,9 @@ sim_trials(
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss = 0,
-  alternative = "two.sided",
+  alternative = "greater",
   h0 = 0,
-  Fn = 0.1,
+  Fn = 0.05,
   Sn = 0.9,
   prob_ha = 0.95,
   N_impute = 10,
@@ -37,10 +37,11 @@ sim_trials(
 )
 }
 \arguments{
-\item{hazard_treatment}{vector. Constant hazard rates under the treatment
-arm.}
+\item{hazard_treatment}{vector. Finite non-negative constant hazard rates
+under the treatment arm.}
 
-\item{hazard_control}{vector. Constant hazard rates under the control arm.}
+\item{hazard_control}{vector. Finite non-negative constant hazard rates
+under the control arm.}
 
 \item{cutpoints}{vector. Times at which the baseline hazard changes. Default
 is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
@@ -109,7 +110,9 @@ survival outcomes, \code{"less"} corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
 corresponds to the treatment arm having a higher cumulative incidence.}
 
-\item{h0}{scalar. Null hypothesis value or margin. Default is \code{h0 = 0}.
+\item{h0}{single finite numeric null hypothesis value or margin. Default is
+\code{h0 = 0}. For Bayesian analyses, \code{h0} must lie in \verb{[0, 1]} for a
+single-arm design and \verb{[-1, 1]} for a two-arm design.
 \itemize{
 \item When \code{method = "bayes-surv"}, \code{h0} is the null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
@@ -124,8 +127,8 @@ of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use \code{alternative = "less"}.
 \item The argument is ignored for \code{method = "logrank"} and
-\code{method = "chisq"}; in those cases the usual method-specific null
-hypothesis is used.
+\code{method = "chisq"} after its finite-value validation; in those cases
+the usual method-specific null hypothesis is used.
 }}
 
 \item{Fn}{vector of values between 0 and 1. Each element is the probability

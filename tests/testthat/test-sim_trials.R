@@ -145,6 +145,14 @@ test_that("default_ncores falls back safely when cores are unavailable", {
   expect_equal(goldilocks:::default_ncores(4L), 3L)
 })
 
+test_that("sim_trials uses survival_adapt decision-rule defaults", {
+  expect_identical(
+    formals(sim_trials)$alternative,
+    formals(survival_adapt)$alternative
+  )
+  expect_identical(formals(sim_trials)$Fn, formals(survival_adapt)$Fn)
+})
+
 test_that("sim_trials validates N_trials", {
   hc <- -log(0.7) / 36
   ht <- -log(0.85) / 36

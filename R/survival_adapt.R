@@ -33,7 +33,9 @@
 #'   survival outcomes, `"less"` corresponds to the treatment arm having a lower
 #'   cumulative incidence (i.e., treatment is beneficial), and `"greater"`
 #'   corresponds to the treatment arm having a higher cumulative incidence.
-#' @param h0 scalar. Null hypothesis value or margin. Default is `h0 = 0`.
+#' @param h0 single finite numeric null hypothesis value or margin. Default is
+#'   `h0 = 0`. For Bayesian analyses, `h0` must lie in `[0, 1]` for a
+#'   single-arm design and `[-1, 1]` for a two-arm design.
 #'   * When `method = "bayes-surv"`, `h0` is the null value of
 #'     \eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
 #'     `h0` is the external benchmark event probability, often referred to
@@ -47,8 +49,8 @@
 #'     specified as a hazard ratio. A Cox non-inferiority test should usually
 #'     use `alternative = "less"`.
 #'   * The argument is ignored for `method = "logrank"` and
-#'     `method = "chisq"`; in those cases the usual method-specific null
-#'     hypothesis is used.
+#'     `method = "chisq"` after its finite-value validation; in those cases
+#'     the usual method-specific null hypothesis is used.
 #' @param Fn vector of values between 0 and 1. Each element is the probability
 #'   threshold to stop at the \eqn{i}-th look early for futility. If there are
 #'   no interim looks (i.e. `interim_look = NULL`), then `Fn` is not
@@ -339,6 +341,9 @@ survival_adapt <- function(
   if (!is.null(interim_look)) {
     validate_positive_integer_vector(interim_look, "interim_look")
     stopifnot(all(N_total > interim_look))
+    if (any(diff(interim_look) <= 0)) {
+      stop("'interim_look' must be strictly increasing without duplicates")
+    }
 
     # Check: each interim look is large enough to (with block randomization)
     # guarantee both treatment groups are represented. A look smaller than one
@@ -386,6 +391,8 @@ survival_adapt <- function(
   if (single_arm & method %in% c("logrank", "cox", "chisq")) {
     stop("The selected method can only be used for two-armed trials")
   }
+
+  validate_h0(h0, method, single_arm)
 
   # Check: Bayesian binomial test arguments
   if (method == "bayes-bin") {

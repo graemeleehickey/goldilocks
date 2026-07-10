@@ -19,10 +19,11 @@ sim_comp_data(
 )
 }
 \arguments{
-\item{hazard_treatment}{vector. Constant hazard rates under the treatment
-arm.}
+\item{hazard_treatment}{vector. Finite non-negative constant hazard rates
+under the treatment arm.}
 
-\item{hazard_control}{vector. Constant hazard rates under the control arm.}
+\item{hazard_control}{vector. Finite non-negative constant hazard rates
+under the control arm.}
 
 \item{cutpoints}{vector. Times at which the baseline hazard changes. Default
 is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)

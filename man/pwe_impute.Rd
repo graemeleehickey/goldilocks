@@ -10,7 +10,9 @@ pwe_impute(time, hazard, cutpoints = 0, maxtime = NULL)
 \item{time}{vector. The observed time for patient that have had no event or
 passed \code{maxtime}.}
 
-\item{hazard}{vector. The constant hazard rates for exponential failures.}
+\item{hazard}{vector. Finite non-negative constant hazard rates for
+exponential failures. If the final rate is zero, \code{maxtime} must be
+supplied so that subjects without an event can be administratively censored.}
 
 \item{cutpoints}{vector. The change-point vector indicating time when the
 hazard rates change. Note the first element of \code{cutpoints} should

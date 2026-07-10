@@ -10,7 +10,9 @@ pwe_sim(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL)
 \item{n}{integer. The number of random samples to generate. Default is
 \code{n = 1}.}
 
-\item{hazard}{vector. The constant hazard rates for exponential failures.}
+\item{hazard}{vector. Finite non-negative constant hazard rates for
+exponential failures. If the final rate is zero, \code{maxtime} must be
+supplied so that subjects without an event can be administratively censored.}
 
 \item{cutpoints}{vector. The change-point vector indicating time when the
 hazard rates change. Note the first element of \code{cutpoints} should

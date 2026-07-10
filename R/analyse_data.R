@@ -54,6 +54,8 @@ analyse_data <- function(
   bin_N = N_mcmc,
   empty_interval = "propagate"
 ) {
+  validate_h0(h0, method, single_arm)
+
   ####################################################
   ### Bayesian test
   ####################################################

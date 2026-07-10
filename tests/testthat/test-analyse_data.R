@@ -505,3 +505,33 @@ test_that("analyse_data one-sided cox uses h0 as the null log hazard ratio", {
   expect_true(res_superiority$success < 0.05)
   expect_true(res_noninferiority$success > 0.95)
 })
+
+test_that("analyse_data validates h0 before Bayesian analysis", {
+  data <- data.frame(
+    time = rep(36, 4),
+    event = c(0, 1, 0, 1),
+    treatment = c(0, 0, 1, 1)
+  )
+  args <- list(
+    data = data,
+    cutpoints = 0,
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    N_mcmc = 10,
+    single_arm = FALSE,
+    method = "bayes-bin",
+    alternative = "greater",
+    bin_prior = c(1, 1),
+    bin_method = "quadrature",
+    bin_N = 10
+  )
+
+  expect_error(
+    do.call(analyse_data, c(args, h0 = NaN)),
+    "single finite"
+  )
+  expect_error(
+    do.call(analyse_data, c(args, h0 = -1.1)),
+    "\\[-1, 1\\]"
+  )
+})

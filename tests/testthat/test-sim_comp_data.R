@@ -107,3 +107,24 @@ test_that("sim_comp_data validates counts and loss-to-follow-up probability", {
     "prop_loss"
   )
 })
+
+test_that("sim_comp_data validates treatment-arm hazards", {
+  common_args <- list(
+    hazard_treatment = 0.01,
+    hazard_control = 0.02,
+    cutpoints = 0,
+    N_total = 50,
+    lambda = 5,
+    lambda_time = 0,
+    end_of_study = 36
+  )
+
+  expect_error(
+    do.call(sim_comp_data, modifyList(common_args, list(hazard_treatment = Inf))),
+    "hazard_treatment"
+  )
+  expect_error(
+    do.call(sim_comp_data, modifyList(common_args, list(hazard_control = NA_real_))),
+    "hazard_control"
+  )
+})

@@ -16,6 +16,10 @@
 
 ## Bug fixes
 
+* `sim_trials()` now uses the same default alternative hypothesis and futility threshold as `survival_adapt()`, so omitted arguments define the same adaptive design (#47).
+* `survival_adapt()` now requires interim looks to be strictly increasing, preventing non-chronological or duplicated analyses (#48).
+* Piecewise hazard inputs are now validated as finite and non-negative across simulation, imputation, and probability helpers. A finite `maxtime` is now required when the final hazard is zero (#49).
+* `h0` must now be a single finite value, with probability-scale bounds enforced for Bayesian analyses (#50).
 * Chi-square analyses now error if censored subjects have not been followed to `end_of_study` or imputed before analysis.
 * `survival_adapt()` now works with the documented default success and futility thresholds when `interim_look = NULL`; thresholds are ignored when there are no interim looks.
 * `survival_adapt()`, `sim_comp_data()`, and `sim_trials()` now validate probability, prior, and positive-integer count arguments up front, avoiding invalid simulations or low-level downstream errors.

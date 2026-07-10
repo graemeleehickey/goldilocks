@@ -129,10 +129,48 @@ test_that("pwe_impute without maxtime marks all as events", {
   expect_true(all(out$event == 1))
 })
 
-test_that("pwe_impute errors on negative hazard", {
+test_that("pwe utilities validate finite non-negative hazard rates", {
   expect_error(
     pwe_impute(time = 5, hazard = -0.01, cutpoints = 0),
-    "less than 0"
+    "finite non-negative"
+  )
+  expect_error(
+    pwe_sim(n = 2, hazard = Inf, cutpoints = 0, maxtime = 5),
+    "finite non-negative"
+  )
+  expect_error(
+    pwe_impute(time = 5, hazard = NaN, cutpoints = 0),
+    "finite non-negative"
+  )
+  expect_error(
+    ppwe(matrix(-0.01, ncol = 1), end_of_study = 5, cutpoints = 0),
+    "finite non-negative"
+  )
+})
+
+test_that("pwe utilities require maxtime for a zero final hazard", {
+  expect_error(
+    pwe_sim(n = 2, hazard = 0, cutpoints = 0),
+    "final hazard rate is zero"
+  )
+  expect_error(
+    pwe_impute(time = 1, hazard = 0, cutpoints = 0),
+    "final hazard rate is zero"
+  )
+
+  out <- pwe_sim(n = 2, hazard = 0, cutpoints = 0, maxtime = 5)
+  expect_equal(out$time, c(5, 5))
+  expect_equal(out$event, c(0, 0))
+
+  imp <- pwe_impute(time = c(1, 2), hazard = 0, cutpoints = 0, maxtime = 5)
+  expect_equal(imp$time, c(5, 5))
+  expect_equal(imp$event, c(0, 0))
+
+  expect_no_error(
+    pwe_sim(n = 2, hazard = c(0, 0.1), cutpoints = c(0, 1))
+  )
+  expect_no_error(
+    pwe_sim(n = 2, hazard = c(0.1, 0), cutpoints = c(0, 1), maxtime = 5)
   )
 })
 
