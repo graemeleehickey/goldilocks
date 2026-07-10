@@ -61,7 +61,9 @@ hazard exponential function.</p>
 
 
 <dt id="arg-hazard">hazard<a class="anchor" aria-label="anchor" href="#arg-hazard"></a></dt>
-<dd><p>vector. The constant hazard rates for exponential failures.</p></dd>
+<dd><p>vector. Finite non-negative constant hazard rates for
+exponential failures. If the final rate is zero, <code>maxtime</code> must be
+supplied so that subjects without an event can be administratively censored.</p></dd>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
@@ -111,7 +113,7 @@ event indicator (<code>event</code>, 1 = event occurred, 0 = censoring).</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

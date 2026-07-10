@@ -82,12 +82,13 @@ time-to-event endpoint</p>
 
 
 <dl><dt id="arg-hazard-treatment">hazard_treatment<a class="anchor" aria-label="anchor" href="#arg-hazard-treatment"></a></dt>
-<dd><p>vector. Constant hazard rates under the treatment
-arm.</p></dd>
+<dd><p>vector. Finite non-negative constant hazard rates
+under the treatment arm.</p></dd>
 
 
 <dt id="arg-hazard-control">hazard_control<a class="anchor" aria-label="anchor" href="#arg-hazard-control"></a></dt>
-<dd><p>vector. Constant hazard rates under the control arm.</p></dd>
+<dd><p>vector. Finite non-negative constant hazard rates
+under the control arm.</p></dd>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
@@ -186,7 +187,9 @@ corresponds to the treatment arm having a higher cumulative incidence.</p></dd>
 
 
 <dt id="arg-h-">h0<a class="anchor" aria-label="anchor" href="#arg-h-"></a></dt>
-<dd><p>scalar. Null hypothesis value or margin. Default is <code>h0 = 0</code>.</p><ul><li><p>When <code>method = "bayes-surv"</code>, <code>h0</code> is the null value of
+<dd><p>single finite numeric null hypothesis value or margin. Default is
+<code>h0 = 0</code>. For Bayesian analyses, <code>h0</code> must lie in <code>[0, 1]</code> for a
+single-arm design and <code>[-1, 1]</code> for a two-arm design.</p><ul><li><p>When <code>method = "bayes-surv"</code>, <code>h0</code> is the null value of
 \(p_\textrm{treatment} - p_\textrm{control}\). In a single-arm design,
 <code>h0</code> is the external benchmark event probability, often referred to
 as a performance goal (PG) or objective performance criterion (OPC).</p></li>
@@ -199,8 +202,8 @@ of 1 null, or <code>h0 = log(margin)</code> for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use <code>alternative = "less"</code>.</p></li>
 <li><p>The argument is ignored for <code>method = "logrank"</code> and
-<code>method = "chisq"</code>; in those cases the usual method-specific null
-hypothesis is used.</p></li>
+<code>method = "chisq"</code> after its finite-value validation; in those cases
+the usual method-specific null hypothesis is used.</p></li>
 </ul></dd>
 
 
@@ -461,7 +464,7 @@ approach to sample size selection. <em>Journal of Biopharmaceutical Statistics</
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

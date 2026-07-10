@@ -22,9 +22,9 @@ sim_trials(
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss = 0,
-  alternative = "two.sided",
+  alternative = "greater",
   h0 = 0,
-  Fn = 0.1,
+  Fn = 0.05,
   Sn = 0.9,
   prob_ha = 0.95,
   N_impute = 10,
@@ -42,11 +42,13 @@ sim_trials(
 
 - hazard_treatment:
 
-  vector. Constant hazard rates under the treatment arm.
+  vector. Finite non-negative constant hazard rates under the treatment
+  arm.
 
 - hazard_control:
 
-  vector. Constant hazard rates under the control arm.
+  vector. Finite non-negative constant hazard rates under the control
+  arm.
 
 - cutpoints:
 
@@ -151,7 +153,9 @@ sim_trials(
 
 - h0:
 
-  scalar. Null hypothesis value or margin. Default is `h0 = 0`.
+  single finite numeric null hypothesis value or margin. Default is
+  `h0 = 0`. For Bayesian analyses, `h0` must lie in `[0, 1]` for a
+  single-arm design and `[-1, 1]` for a two-arm design.
 
   - When `method = "bayes-surv"`, `h0` is the null value of
     \\p\_\textrm{treatment} - p\_\textrm{control}\\. In a single-arm
@@ -170,8 +174,8 @@ sim_trials(
     `alternative = "less"`.
 
   - The argument is ignored for `method = "logrank"` and
-    `method = "chisq"`; in those cases the usual method-specific null
-    hypothesis is used.
+    `method = "chisq"` after its finite-value validation; in those cases
+    the usual method-specific null hypothesis is used.
 
 - Fn:
 

@@ -24,11 +24,13 @@ sim_comp_data(
 
 - hazard_treatment:
 
-  vector. Constant hazard rates under the treatment arm.
+  vector. Finite non-negative constant hazard rates under the treatment
+  arm.
 
 - hazard_control:
 
-  vector. Constant hazard rates under the control arm.
+  vector. Finite non-negative constant hazard rates under the control
+  arm.
 
 - cutpoints:
 

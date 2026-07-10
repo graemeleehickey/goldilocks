@@ -17,7 +17,9 @@ pwe_sim(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL)
 
 - hazard:
 
-  vector. The constant hazard rates for exponential failures.
+  vector. Finite non-negative constant hazard rates for exponential
+  failures. If the final rate is zero, `maxtime` must be supplied so
+  that subjects without an event can be administratively censored.
 
 - cutpoints:
 

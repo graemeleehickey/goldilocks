@@ -57,6 +57,23 @@
 
 ### Bug fixes
 
+- [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  now uses the same default alternative hypothesis and futility
+  threshold as
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md),
+  so omitted arguments define the same adaptive design
+  ([\#47](https://github.com/graemeleehickey/goldilocks/issues/47)).
+- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  now requires interim looks to be strictly increasing, preventing
+  non-chronological or duplicated analyses
+  ([\#48](https://github.com/graemeleehickey/goldilocks/issues/48)).
+- Piecewise hazard inputs are now validated as finite and non-negative
+  across simulation, imputation, and probability helpers. A finite
+  `maxtime` is now required when the final hazard is zero
+  ([\#49](https://github.com/graemeleehickey/goldilocks/issues/49)).
+- `h0` must now be a single finite value, with probability-scale bounds
+  enforced for Bayesian analyses
+  ([\#50](https://github.com/graemeleehickey/goldilocks/issues/50)).
 - Chi-square analyses now error if censored subjects have not been
   followed to `end_of_study` or imputed before analysis.
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
