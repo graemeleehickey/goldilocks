@@ -19,13 +19,14 @@ ppwe(hazard, end_of_study, cutpoints)
 
 - end_of_study:
 
-  scalar. Length of the study; i.e. time at which endpoint will be
-  evaluated.
+  finite positive time at which the cumulative event probability is
+  evaluated. It may fall before later cutpoints, for example when
+  evaluating an interim analysis.
 
 - cutpoints:
 
-  vector. The change-point vector indicating time when the hazard rates
-  change. Note the first element of `cutpoints` should always be 0.
+  finite, strictly increasing vector of change-points for the hazard
+  rates. The first element must be 0.
 
 ## Value
 

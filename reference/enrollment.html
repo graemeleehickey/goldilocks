@@ -53,19 +53,19 @@
 
 
 <dl><dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
-<dd><p>vector. Rate parameter(s) for Poisson distribution.</p></dd>
+<dd><p>finite positive rate parameter(s) for the Poisson distribution.</p></dd>
 
 
 <dt id="arg-n-total">N_total<a class="anchor" aria-label="anchor" href="#arg-n-total"></a></dt>
-<dd><p>integer. Value of total sample size.</p></dd>
+<dd><p>positive integer total sample size.</p></dd>
 
 
 <dt id="arg-lambda-time">lambda_time<a class="anchor" aria-label="anchor" href="#arg-lambda-time"></a></dt>
-<dd><p>vector. Knots (of <code>length(lambda)</code>) indicating
-regions where a specific hazard rate (<code>lambda</code>) applies. The first
-element is always <code>lambda_time = 0</code>, denoting the trial start time.
-Note: final element of <code>lambda</code> is assumed to be constant as
-<code>lambda_time</code> tends to infinity.</p></dd>
+<dd><p>finite, strictly increasing knots (of <code>length(lambda)</code>)
+indicating regions where a specific rate (<code>lambda</code>) applies. The first
+element must be <code>lambda_time = 0</code>, denoting the trial start time. The final
+element of <code>lambda</code> is assumed to be constant as <code>lambda_time</code> tends to
+infinity.</p></dd>
 
 </dl></div>
     <div class="section level2">

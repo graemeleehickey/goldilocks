@@ -49,9 +49,9 @@ survival_adapt(
 
 - cutpoints:
 
-  vector. Times at which the baseline hazard changes. Default is
-  `cutpoints = 0`, which corresponds to a simple (non-piecewise)
-  exponential model.
+  finite, strictly increasing times at which the baseline hazard
+  changes. The first value must be 0. Default is `cutpoints = 0`, which
+  corresponds to a simple (non-piecewise) exponential model.
 
 - N_total:
 
@@ -81,8 +81,7 @@ survival_adapt(
 
 - end_of_study:
 
-  scalar. Length of the study; i.e. time at which endpoint will be
-  evaluated.
+  finite study endpoint, strictly greater than the last cutpoint.
 
 - prior:
 

@@ -69,6 +69,9 @@
 <li>Piecewise hazard inputs are now validated as finite and non-negative across simulation, imputation, and probability helpers. A finite <code>maxtime</code> is now required when the final hazard is zero (<a href="https://github.com/graemeleehickey/goldilocks/issues/49" class="external-link">#49</a>).</li>
 <li>
 <code>h0</code> must now be a single finite value, with probability-scale bounds enforced for Bayesian analyses (<a href="https://github.com/graemeleehickey/goldilocks/issues/50" class="external-link">#50</a>).</li>
+<li>Piecewise model inputs now require finite, strictly increasing cutpoints beginning at zero and a finite study endpoint after the final cutpoint. This validation is shared by simulation and probability helpers (<a href="https://github.com/graemeleehickey/goldilocks/issues/52" class="external-link">#52</a>).</li>
+<li>
+<code><a href="../reference/enrollment.html">enrollment()</a></code> now validates its complete schedule before generating data, including integer sample size, finite positive rates, and finite strictly increasing knots (<a href="https://github.com/graemeleehickey/goldilocks/issues/53" class="external-link">#53</a>).</li>
 <li>Chi-square analyses now error if censored subjects have not been followed to <code>end_of_study</code> or imputed before analysis.</li>
 <li>
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> now works with the documented default success and futility thresholds when <code>interim_look = NULL</code>; thresholds are ignored when there are no interim looks.</li>

@@ -95,9 +95,9 @@ under the control arm.</p></dd>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
-<dd><p>vector. Times at which the baseline hazard changes. Default
-is <code>cutpoints = 0</code>, which corresponds to a simple (non-piecewise)
-exponential model.</p></dd>
+<dd><p>finite, strictly increasing times at which the baseline
+hazard changes. The first value must be 0. Default is <code>cutpoints = 0</code>,
+which corresponds to a simple (non-piecewise) exponential model.</p></dd>
 
 
 <dt id="arg-n-total">N_total<a class="anchor" aria-label="anchor" href="#arg-n-total"></a></dt>
@@ -125,8 +125,8 @@ the interim posterior undefined for the missing group.</p></dd>
 
 
 <dt id="arg-end-of-study">end_of_study<a class="anchor" aria-label="anchor" href="#arg-end-of-study"></a></dt>
-<dd><p>scalar. Length of the study; i.e. time at which endpoint
-will be evaluated.</p></dd>
+<dd><p>finite study endpoint, strictly greater than the last
+cutpoint.</p></dd>
 
 
 <dt id="arg-prior">prior<a class="anchor" aria-label="anchor" href="#arg-prior"></a></dt>

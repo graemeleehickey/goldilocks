@@ -23,8 +23,8 @@ pwe_sim(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL)
 
 - cutpoints:
 
-  vector. The change-point vector indicating time when the hazard rates
-  change. Note the first element of `cutpoints` should always be 0.
+  finite, strictly increasing vector of change-points for the hazard
+  rates. The first element must be 0.
 
 - maxtime:
 

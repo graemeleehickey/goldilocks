@@ -74,6 +74,16 @@
 - `h0` must now be a single finite value, with probability-scale bounds
   enforced for Bayesian analyses
   ([\#50](https://github.com/graemeleehickey/goldilocks/issues/50)).
+- Piecewise model inputs now require finite, strictly increasing
+  cutpoints beginning at zero and a finite study endpoint after the
+  final cutpoint. This validation is shared by simulation and
+  probability helpers
+  ([\#52](https://github.com/graemeleehickey/goldilocks/issues/52)).
+- [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
+  now validates its complete schedule before generating data, including
+  integer sample size, finite positive rates, and finite strictly
+  increasing knots
+  ([\#53](https://github.com/graemeleehickey/goldilocks/issues/53)).
 - Chi-square analyses now error if censored subjects have not been
   followed to `end_of_study` or imputed before analysis.
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)

@@ -12,19 +12,19 @@ enrollment(lambda = 1, N_total, lambda_time = 0)
 
 - lambda:
 
-  vector. Rate parameter(s) for Poisson distribution.
+  finite positive rate parameter(s) for the Poisson distribution.
 
 - N_total:
 
-  integer. Value of total sample size.
+  positive integer total sample size.
 
 - lambda_time:
 
-  vector. Knots (of `length(lambda)`) indicating regions where a
-  specific hazard rate (`lambda`) applies. The first element is always
-  `lambda_time = 0`, denoting the trial start time. Note: final element
-  of `lambda` is assumed to be constant as `lambda_time` tends to
-  infinity.
+  finite, strictly increasing knots (of `length(lambda)`) indicating
+  regions where a specific rate (`lambda`) applies. The first element
+  must be `lambda_time = 0`, denoting the trial start time. The final
+  element of `lambda` is assumed to be constant as `lambda_time` tends
+  to infinity.
 
 ## Value
 
