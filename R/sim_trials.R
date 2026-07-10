@@ -176,6 +176,12 @@ sim_trials <- function(
   return(out)
 }
 
+#' @title Determine a default core count
+#'
+#' @description Reserves one detected logical core for the system and falls
+#'   back to serial execution when the core count is unavailable.
+#'
+#' @noRd
 default_ncores <- function(
   detected = parallel::detectCores(logical = TRUE)
 ) {
@@ -193,6 +199,8 @@ default_ncores <- function(
 }
 
 #' Generate independent random-number streams for trial simulations
+#'
+#' @title Create per-trial random-number streams
 #'
 #' @description Creates one `"L'Ecuyer-CMRG"` random-number stream per
 #'   simulated trial, while preserving the caller's existing RNG kind and

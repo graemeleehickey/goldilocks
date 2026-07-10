@@ -1,5 +1,8 @@
 #' @title Perform the final analysis test/method on the complete data
 #'
+#' @description Dispatches an imputed or complete trial dataset to the selected
+#'   Bayesian or frequentist analysis and returns its success score and effect.
+#'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
 #' @inheritParams haz_to_prop
@@ -179,6 +182,9 @@ analyse_data <- function(
 
 #' @title Bayesian binomial test for complete binary outcomes
 #'
+#' @description Updates Beta priors for one or two treatment arms and calculates
+#'   the posterior probability of the specified binary-outcome hypothesis.
+#'
 #' @inheritParams analyse_data
 #'
 #' @return A list with the posterior probability of success (`success`) and
@@ -254,6 +260,11 @@ bayes_binomial_test <- function(
   list(success = success, effect = effect)
 }
 
+#' @title Validate Bayesian binomial analysis settings
+#'
+#' @description Checks the Beta prior, computational method, and Monte Carlo
+#'   sample size before a Bayesian binomial analysis is run.
+#'
 #' @noRd
 validate_bayes_binomial_args <- function(bin_prior, bin_method, bin_N) {
   if (
@@ -278,6 +289,11 @@ validate_bayes_binomial_args <- function(bin_prior, bin_method, bin_N) {
   }
 }
 
+#' @title Summarize a Beta-binomial posterior
+#'
+#' @description Combines binary outcomes with a Beta prior and returns the
+#'   posterior shape parameters, mean, and variance for one treatment arm.
+#'
 #' @noRd
 beta_binomial_stats <- function(event, prior) {
   if (length(event) == 0) {
@@ -293,6 +309,11 @@ beta_binomial_stats <- function(event, prior) {
   )
 }
 
+#' @title Calculate a posterior tail probability
+#'
+#' @description Calculates the proportion of posterior effect draws satisfying
+#'   a one-sided alternative hypothesis.
+#'
 #' @noRd
 posterior_tail_probability <- function(effect, alternative, h0) {
   if (alternative == "greater") {
@@ -302,6 +323,11 @@ posterior_tail_probability <- function(effect, alternative, h0) {
   }
 }
 
+#' @title Calculate a single-arm Beta-binomial success probability
+#'
+#' @description Uses either a normal approximation or the exact Beta posterior
+#'   distribution to evaluate a single-arm binary endpoint.
+#'
 #' @noRd
 beta_binomial_single_arm_success <- function(
   alpha,
@@ -327,6 +353,11 @@ beta_binomial_single_arm_success <- function(
   }
 }
 
+#' @title Calculate a two-arm Beta-binomial success probability
+#'
+#' @description Numerically integrates independent treatment and control Beta
+#'   posteriors to evaluate a treatment-control difference.
+#'
 #' @noRd
 beta_binomial_difference_success <- function(
   treatment,
@@ -348,6 +379,11 @@ beta_binomial_difference_success <- function(
   integrate(integrand, lower = 0, upper = 1)$value
 }
 
+#' @title Validate complete binary outcomes
+#'
+#' @description Ensures a binary endpoint analysis is supplied only event
+#'   indicators and that censored subjects have complete follow-up.
+#'
 #' @noRd
 assert_complete_binary_outcomes <- function(data, end_of_study, method_label) {
   if (any(!data$event %in% c(0, 1))) {
@@ -363,6 +399,9 @@ assert_complete_binary_outcomes <- function(data, end_of_study, method_label) {
 }
 
 #' @title Calculate the log-rank test very quickly
+#'
+#' @description Calls the compiled log-rank implementation for two groups of
+#'   survival outcomes and event indicators.
 #'
 #' @param groupa vector of group a's survival times
 #' @param groupb vector of group b's survival times
@@ -394,6 +433,12 @@ logrank_test <- function(
   logrank_instance(groupa, groupb, groupacensored, groupbcensored, onlyz)
 }
 
+#' @title Assert that a log-rank result is estimable
+#'
+#' @description Stops with a diagnostic error when a log-rank statistic cannot
+#'   be computed as a finite comparison between treatment groups.
+#'
+#' @noRd
 assert_logrank_estimable <- function(lr) {
   if (
     length(lr) < 3 ||
@@ -411,6 +456,9 @@ assert_logrank_estimable <- function(lr) {
 }
 
 #' @title Fast Cox proportional hazards Wald test for treatment effect
+#'
+#' @description Fits the package's low-overhead Cox model and converts fitter
+#'   warnings into clear non-estimability errors.
 #'
 #' @inheritParams analyse_data
 #'
@@ -439,6 +487,12 @@ cox_wald_test_checked <- function(data) {
   fit
 }
 
+#' @title Assert that a Cox result is estimable
+#'
+#' @description Ensures a Cox treatment-effect estimate and its standard error
+#'   are finite before they are used in an adaptive decision.
+#'
+#' @noRd
 assert_cox_estimable <- function(fit) {
   if (
     length(fit$estimate) != 1 ||
@@ -460,6 +514,12 @@ assert_cox_estimable <- function(fit) {
   invisible(TRUE)
 }
 
+#' @title Fit a low-overhead Cox Wald test
+#'
+#' @description Calls survival's internal Cox fitter directly and returns the
+#'   treatment log hazard ratio with its standard error.
+#'
+#' @noRd
 cox_wald_test <- function(data) {
   y <- Surv(data$time, data$event)
   x <- matrix(as.double(data$treatment), ncol = 1)

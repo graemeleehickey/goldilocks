@@ -86,6 +86,12 @@ posterior <- function(
   return(post)
 }
 
+#' @title Propagate statistics for empty intervals
+#'
+#' @description Replaces empty piecewise intervals with nearby within-arm
+#'   sufficient statistics under the historical propagation policy.
+#'
+#' @noRd
 propagate_empty_intervals <- function(data_summ) {
   for (treatment_value in unique(data_summ$treatment)) {
     treatment_rows <- which(data_summ$treatment == treatment_value)
@@ -124,6 +130,12 @@ propagate_empty_intervals <- function(data_summ) {
   data_summ
 }
 
+#' @title Calculate posterior sufficient statistics
+#'
+#' @description Aggregates exposure time and event counts by treatment arm and
+#'   piecewise interval for conjugate Gamma posterior updates.
+#'
+#' @noRd
 posterior_sufficient_stats <- function(data, cutpoints, single_arm) {
   n_intervals <- length(cutpoints)
   interval_upper <- c(cutpoints[-1], Inf)

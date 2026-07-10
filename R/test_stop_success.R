@@ -1,5 +1,8 @@
 #' @title Run test for whether we should stop enrollment at the interim analysis
 #'
+#' @description Imputes one predictive dataset and evaluates expected success
+#'   at the current and, when requested, maximum sample size.
+#'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
 #' @param check_futility Logical. Does the adaptive design include a test for

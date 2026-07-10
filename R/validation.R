@@ -1,3 +1,9 @@
+#' @title Validate one probability
+#'
+#' @description Checks that an input is a single finite probability, optionally
+#'   excluding one to support distributions with an open upper bound.
+#'
+#' @noRd
 validate_single_probability <- function(x, name, upper_open = FALSE) {
   if (
     length(x) != 1 ||
@@ -15,6 +21,12 @@ validate_single_probability <- function(x, name, upper_open = FALSE) {
   invisible(TRUE)
 }
 
+#' @title Validate a probability vector
+#'
+#' @description Checks that every value in an input vector is a finite
+#'   probability, optionally excluding one.
+#'
+#' @noRd
 validate_probability_vector <- function(x, name, upper_open = FALSE) {
   if (
     !is.numeric(x) ||
@@ -32,6 +44,12 @@ validate_probability_vector <- function(x, name, upper_open = FALSE) {
   invisible(TRUE)
 }
 
+#' @title Validate one positive integer
+#'
+#' @description Checks that an input is a single finite, strictly positive
+#'   integer suitable for a sample size or count.
+#'
+#' @noRd
 validate_positive_integer_scalar <- function(x, name) {
   if (
     length(x) != 1 ||
@@ -47,6 +65,12 @@ validate_positive_integer_scalar <- function(x, name) {
   invisible(TRUE)
 }
 
+#' @title Validate a positive integer vector
+#'
+#' @description Checks that an input vector contains only finite, strictly
+#'   positive integers.
+#'
+#' @noRd
 validate_positive_integer_vector <- function(x, name) {
   if (
     !is.numeric(x) ||
@@ -62,6 +86,12 @@ validate_positive_integer_vector <- function(x, name) {
   invisible(TRUE)
 }
 
+#' @title Validate a Gamma prior
+#'
+#' @description Checks that a Gamma prior supplies two finite, strictly positive
+#'   shape and rate parameters.
+#'
+#' @noRd
 validate_gamma_prior <- function(prior, name = "prior") {
   if (
     !is.numeric(prior) ||
@@ -76,6 +106,12 @@ validate_gamma_prior <- function(prior, name = "prior") {
   invisible(TRUE)
 }
 
+#' @title Validate piecewise cutpoints
+#'
+#' @description Checks that a piecewise model has finite, strictly increasing
+#'   cutpoints beginning at zero.
+#'
+#' @noRd
 validate_cutpoints <- function(cutpoints) {
   if (
     !is.numeric(cutpoints) ||
@@ -99,6 +135,12 @@ validate_cutpoints <- function(cutpoints) {
   invisible(TRUE)
 }
 
+#' @title Validate an endpoint time
+#'
+#' @description Checks that an analysis endpoint is finite and positive and,
+#'   when required, lies after the final piecewise cutpoint.
+#'
+#' @noRd
 validate_endpoint_time <- function(endpoint, cutpoints, name, after_last = TRUE) {
   if (
     length(endpoint) != 1 ||
@@ -117,6 +159,12 @@ validate_endpoint_time <- function(endpoint, cutpoints, name, after_last = TRUE)
   invisible(TRUE)
 }
 
+#' @title Validate a piecewise hazard vector
+#'
+#' @description Checks that a finite non-negative hazard vector has one value
+#'   for every piecewise interval.
+#'
+#' @noRd
 validate_piecewise_hazard <- function(hazard, cutpoints, name = "hazard") {
   if (
     !is.numeric(hazard) ||
@@ -136,6 +184,12 @@ validate_piecewise_hazard <- function(hazard, cutpoints, name = "hazard") {
   invisible(TRUE)
 }
 
+#' @title Validate a matrix of piecewise hazards
+#'
+#' @description Checks that posterior hazard draws form a non-empty finite
+#'   non-negative matrix with one column per piecewise interval.
+#'
+#' @noRd
 validate_hazard_matrix <- function(hazard, cutpoints, name = "hazard") {
   if (
     !is.matrix(hazard) ||
@@ -155,6 +209,12 @@ validate_hazard_matrix <- function(hazard, cutpoints, name = "hazard") {
   invisible(TRUE)
 }
 
+#' @title Validate an enrollment schedule
+#'
+#' @description Checks the target sample size, piecewise enrollment rates, and
+#'   their chronologically ordered knots before simulating accrual.
+#'
+#' @noRd
 validate_enrollment_schedule <- function(lambda, lambda_time, N_total) {
   validate_positive_integer_scalar(N_total, "N_total")
 
@@ -198,6 +258,12 @@ validate_enrollment_schedule <- function(lambda, lambda_time, N_total) {
   invisible(TRUE)
 }
 
+#' @title Validate a null hypothesis value
+#'
+#' @description Checks that a null value is finite and lies within the support
+#'   of Bayesian probability-scale treatment effects when applicable.
+#'
+#' @noRd
 validate_h0 <- function(h0, method, single_arm) {
   if (
     length(h0) != 1 ||
