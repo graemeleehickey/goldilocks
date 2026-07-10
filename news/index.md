@@ -91,6 +91,10 @@
   than averaging chi-square results across multiple imputed final
   datasets without a supported frequentist pooling rule
   ([\#51](https://github.com/graemeleehickey/goldilocks/issues/51)).
+- [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  now defaults to serial execution with `ncores = 1L`, matching its
+  documentation and avoiding unexpected use of available cores
+  ([\#54](https://github.com/graemeleehickey/goldilocks/issues/54)).
 - Chi-square analyses now error if censored subjects have not been
   followed to `end_of_study` or imputed before analysis.
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)

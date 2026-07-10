@@ -74,6 +74,8 @@
 <li>
 <code><a href="../reference/enrollment.html">enrollment()</a></code> now validates its complete schedule before generating data, including integer sample size, finite positive rates, and finite strictly increasing knots (<a href="https://github.com/graemeleehickey/goldilocks/issues/53" class="external-link">#53</a>).</li>
 <li>Chi-square final analyses now require <code>imputed_final = FALSE</code>, rather than averaging chi-square results across multiple imputed final datasets without a supported frequentist pooling rule (<a href="https://github.com/graemeleehickey/goldilocks/issues/51" class="external-link">#51</a>).</li>
+<li>
+<code><a href="../reference/sim_trials.html">sim_trials()</a></code> now defaults to serial execution with <code>ncores = 1L</code>, matching its documentation and avoiding unexpected use of available cores (<a href="https://github.com/graemeleehickey/goldilocks/issues/54" class="external-link">#54</a>).</li>
 <li>Chi-square analyses now error if censored subjects have not been followed to <code>end_of_study</code> or imputed before analysis.</li>
 <li>
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> now works with the documented default success and futility thresholds when <code>interim_look = NULL</code>; thresholds are ignored when there are no interim looks.</li>

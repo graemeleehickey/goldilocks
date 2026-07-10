@@ -247,7 +247,8 @@ sim_trials(
 
 - ncores:
 
-  integer. Number of cores to use for parallel processing.
+  positive integer. Number of cores to use for parallel processing.
+  Defaults to `1L` (serial execution).
 
 - seed:
 
