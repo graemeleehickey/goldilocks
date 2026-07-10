@@ -4,6 +4,11 @@
 
 ### Improvements
 
+- survival_adapt() can now return an optional, tidy interim decision
+  trace with predictive probabilities, thresholds, stopping decisions,
+  arm-level counts, and relevant warnings. New helpers summarize and
+  plot individual traces and simulation stopping outcomes
+  ([\#57](https://github.com/graemeleehickey/goldilocks/issues/57)).
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   now supports reproducible PSOCK parallel execution on Windows and an
   explicit `backend` argument. The default Unix fork path is retained;
@@ -66,6 +71,9 @@
 
 ### Bug fixes
 
+- Piecewise Bayesian analyses now retain the posterior-draw dimension
+  when `N_mcmc = 1`, avoiding a matrix-validation error in probability
+  conversion.
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   now uses the same default alternative hypothesis and futility
   threshold as

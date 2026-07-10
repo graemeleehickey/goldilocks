@@ -42,7 +42,8 @@
 <h2 class="pkg-version" data-toc-text="0.5.0.9000" id="goldilocks-0509000">goldilocks 0.5.0.9000<a class="anchor" aria-label="anchor" href="#goldilocks-0509000"></a></h2>
 <div class="section level3">
 <h3 id="improvements-0-5-0-9000">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-5-0-9000"></a></h3>
-<ul><li>
+<ul><li>survival_adapt() can now return an optional, tidy interim decision trace with predictive probabilities, thresholds, stopping decisions, arm-level counts, and relevant warnings. New helpers summarize and plot individual traces and simulation stopping outcomes (<a href="https://github.com/graemeleehickey/goldilocks/issues/57" class="external-link">#57</a>).</li>
+<li>
 <code><a href="../reference/sim_trials.html">sim_trials()</a></code> now supports reproducible PSOCK parallel execution on Windows and an explicit <code>backend</code> argument. The default Unix fork path is retained; <code>backend = "auto"</code> selects the appropriate implementation for the platform. Seeded simulations now also restore the caller’s RNG state (<a href="https://github.com/graemeleehickey/goldilocks/issues/40" class="external-link">#40</a>).</li>
 <li>Consolidated the Bayesian binomial analysis implementation so its posterior calculations and method-specific branches are co-located in <code>bayes_binomial_test()</code>.</li>
 <li>Renamed the piecewise-exponential Bayesian survival analysis method from <code>method = "bayes"</code> to <code>method = "bayes-surv"</code> to distinguish it from <code>method = "bayes-bin"</code>.</li>
@@ -65,7 +66,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-0-5-0-9000">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-0-9000"></a></h3>
-<ul><li>
+<ul><li>Piecewise Bayesian analyses now retain the posterior-draw dimension when <code>N_mcmc = 1</code>, avoiding a matrix-validation error in probability conversion.</li>
+<li>
 <code><a href="../reference/sim_trials.html">sim_trials()</a></code> now uses the same default alternative hypothesis and futility threshold as <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>, so omitted arguments define the same adaptive design (<a href="https://github.com/graemeleehickey/goldilocks/issues/47" class="external-link">#47</a>).</li>
 <li>
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> now requires interim looks to be strictly increasing, preventing non-chronological or duplicated analyses (<a href="https://github.com/graemeleehickey/goldilocks/issues/48" class="external-link">#48</a>).</li>

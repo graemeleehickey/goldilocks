@@ -18,6 +18,14 @@ designs.
   parameters and treatment effect
 - [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
   : Summarize simulations to get operating characteristics
+- [`summarise_trial_trace()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_trial_trace.md)
+  : Summarize an interim decision path
+- [`plot_trial_trace()`](https://graemeleehickey.github.io/goldilocks/reference/plot_trial_trace.md)
+  : Plot predictive probabilities and enrollment at interim looks
+- [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
+  : Plot stopping outcomes from trial simulations
+- [`print(`*`<goldilocks_trial>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_trial.md)
+  : Print an adaptive trial trace result
 
 ## Trial data generation
 

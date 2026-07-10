@@ -12,6 +12,8 @@
   designs](https://graemeleehickey.github.io/goldilocks/articles/bayesian-binary.md):
 - [Single-arm designs with a performance
   goal](https://graemeleehickey.github.io/goldilocks/articles/single-arm.md):
+- [Inspecting adaptive decision
+  paths](https://graemeleehickey.github.io/goldilocks/articles/decision-traces.md):
 
 ### Developer
 

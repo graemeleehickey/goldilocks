@@ -31,7 +31,8 @@ survival_adapt(
   N_mcmc = 10,
   empty_interval = c("propagate", "prior", "error"),
   method = "logrank",
-  imputed_final = FALSE
+  imputed_final = FALSE,
+  return_trace = FALSE
 )
 ```
 
@@ -238,10 +239,18 @@ survival_adapt(
   `method = "chisq"` because the package does not pool chi-square tests
   over multiple imputed final datasets in a frequentist framework.
 
+- return_trace:
+
+  logical. Should the interim decision path be returned in addition to
+  the usual final summary? The default, FALSE, returns the historical
+  one-row data frame. When TRUE, the result is a goldilocks_trial object
+  with summary, trace, and call elements.
+
 ## Value
 
-A data frame containing some input parameters (arguments) as well as
-statistics from the analysis, including:
+With return_trace = FALSE (the default), a data frame containing some
+input parameters (arguments) as well as statistics from the analysis,
+including:
 
 - `N_treatment`: Number of patients enrolled in the treatment arm.
 
@@ -264,6 +273,13 @@ statistics from the analysis, including:
 
 - `stop_expected_success`: Logical indicator of whether the trial
   stopped early for expected success.
+
+With return_trace = TRUE, a goldilocks_trial object is returned. Its
+summary element is the same data frame and its trace element has one row
+per interim look. The trace records enrollment and observed events by
+arm, predictive probabilities and their thresholds, the decision taken,
+and warnings raised during that look. It deliberately excludes imputed
+data sets and posterior draws to keep the output compact.
 
 ## Details
 

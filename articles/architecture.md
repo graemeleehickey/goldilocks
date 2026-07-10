@@ -33,6 +33,15 @@ The functions fall into three layers:
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md),
   computing operating characteristics such as power, expected sample
   size, and stopping probabilities.
+- **[`summarise_trial_trace()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_trial_trace.md)**:
+  Condenses an optional single-trial interim trace into a one-row
+  stopping-path summary.
+- **[`plot_trial_trace()`](https://graemeleehickey.github.io/goldilocks/reference/plot_trial_trace.md)**:
+  Visualizes predictive probabilities, thresholds, enrollment, and
+  observed events for an optional single-trial trace.
+- **[`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)**:
+  Visualizes stopping outcomes and enrolled sample sizes across
+  simulated trials.
 
 ### Trial engine
 
@@ -41,7 +50,8 @@ The functions fall into three layers:
   [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md),
   conducts interim analyses using `posterior()` and
   `test_stop_success()`, and performs the final analysis via
-  `test_final()`.
+  `test_final()`. With `return_trace = TRUE`, it also retains a compact
+  audit trail for each completed interim look.
 
 ### Data generation and analysis utilities
 
