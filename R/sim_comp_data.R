@@ -5,17 +5,17 @@
 #'   under the treatment arm.
 #' @param hazard_control vector. Finite non-negative constant hazard rates
 #'   under the control arm.
-#' @param cutpoints  vector. Times at which the baseline hazard changes. Default
-#'   is `cutpoints = 0`, which corresponds to a simple (non-piecewise)
-#'   exponential model.
+#' @param cutpoints finite, strictly increasing times at which the baseline
+#'   hazard changes. The first value must be 0. Default is `cutpoints = 0`,
+#'   which corresponds to a simple (non-piecewise) exponential model.
 #' @param N_total integer. Maximum sample size allowable
 #' @param lambda vector. Enrollment rates across simulated enrollment times. See
 #'   [enrollment()] for more details.
 #' @param lambda_time vector. Enrollment time(s) at which the enrollment rates
 #'   change. Must be same length as lambda. See [enrollment()] for
 #'   more details.
-#' @param end_of_study scalar. Length of the study; i.e. time at which endpoint
-#'   will be evaluated.
+#' @param end_of_study finite study endpoint, strictly greater than the last
+#'   cutpoint.
 #' @param block scalar. Block size for generating the randomization schedule.
 #' @param rand_ratio vector. Randomization allocation for the ratio of control
 #'   to treatment. Integer values mapping the size of the block. See
@@ -63,17 +63,14 @@ sim_comp_data <- function(
 
   validate_positive_integer_scalar(N_total, "N_total")
   validate_single_probability(prop_loss, "prop_loss")
+  validate_cutpoints(cutpoints)
+  validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
 
   # Assign: indicator of whether single-arm study
   single_arm <- is.null(hazard_control)
   validate_piecewise_hazard(hazard_treatment, cutpoints, "hazard_treatment")
   if (!single_arm) {
     validate_piecewise_hazard(hazard_control, cutpoints, "hazard_control")
-  }
-
-  # Check: none of the 'cutpoints' exceed 'end_of_study'
-  if (!is.null(cutpoints)) {
-    stopifnot(any(cutpoints < end_of_study))
   }
 
   ##############################################################################

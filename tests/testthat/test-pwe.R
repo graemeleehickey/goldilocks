@@ -57,7 +57,7 @@ test_that("pwe_sim errors when cutpoints don't start at 0", {
 test_that("pwe_sim errors on unsorted cutpoints", {
   expect_error(
     pwe_sim(n = 10, hazard = c(0.01, 0.02, 0.03), cutpoints = c(0, 10, 5)),
-    "increasing"
+    "strictly increasing"
   )
 })
 
@@ -236,5 +236,24 @@ test_that("ppwe errors on mismatched hazard columns and cutpoints", {
   expect_error(
     ppwe(hazard = haz_matrix, end_of_study = 36, cutpoints = c(0, 12)),
     "do not match"
+  )
+})
+
+test_that("piecewise helpers validate cutpoints and endpoint time", {
+  expect_error(
+    pwe_sim(n = 2, hazard = 0.01, cutpoints = NA_real_),
+    "finite numeric"
+  )
+  expect_error(
+    pwe_sim(n = 2, hazard = c(0.01, 0.02), cutpoints = c(0, 0)),
+    "strictly increasing"
+  )
+  expect_error(
+    ppwe(matrix(0.01, ncol = 1), end_of_study = Inf, cutpoints = 0),
+    "end_of_study"
+  )
+  expect_error(
+    ppwe(matrix(c(0.01, 0.02), ncol = 2), end_of_study = 0, cutpoints = c(0, 12)),
+    "end_of_study"
   )
 })

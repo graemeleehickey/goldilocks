@@ -14,9 +14,8 @@ passed \code{maxtime}.}
 exponential failures. If the final rate is zero, \code{maxtime} must be
 supplied so that subjects without an event can be administratively censored.}
 
-\item{cutpoints}{vector. The change-point vector indicating time when the
-hazard rates change. Note the first element of \code{cutpoints} should
-always be 0.}
+\item{cutpoints}{finite, strictly increasing vector of change-points for the
+hazard rates. The first element must be 0.}
 
 \item{maxtime}{scalar. Maximum time before end of study.}
 }

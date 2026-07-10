@@ -40,32 +40,8 @@ prop_to_haz <- function(probs, cutpoints = 0, endtime) {
     stop("'probs' must be non-decreasing over time")
   }
 
-  if (
-    !is.numeric(cutpoints) ||
-      length(cutpoints) == 0 ||
-      any(is.na(cutpoints)) ||
-      any(!is.finite(cutpoints))
-  ) {
-    stop("'cutpoints' must contain finite numeric values")
-  }
-
-  if (cutpoints[1] != 0) {
-    stop("First element of 'cutpoints' should be 0")
-  }
-
-  if (any(diff(cutpoints) <= 0)) {
-    stop("'cutpoints' must be strictly increasing")
-  }
-
-  if (
-    length(endtime) != 1 ||
-      !is.numeric(endtime) ||
-      is.na(endtime) ||
-      !is.finite(endtime) ||
-      endtime <= max(cutpoints)
-  ) {
-    stop("'endtime' must be a finite value greater than the last cutpoint")
-  }
+  validate_cutpoints(cutpoints)
+  validate_endpoint_time(endtime, cutpoints, "endtime")
 
   J <- length(cutpoints)
   if (length(probs) != J) {

@@ -8,9 +8,8 @@
 #' @param hazard vector. Finite non-negative constant hazard rates for
 #'   exponential failures. If the final rate is zero, `maxtime` must be
 #'   supplied so that subjects without an event can be administratively censored.
-#' @param cutpoints vector. The change-point vector indicating time when the
-#'   hazard rates change. Note the first element of `cutpoints` should
-#'   always be 0.
+#' @param cutpoints finite, strictly increasing vector of change-points for the
+#'   hazard rates. The first element must be 0.
 #' @param maxtime scalar. Maximum time before end of study.
 #'
 #' @details See [pwe_impute()] for details.
@@ -27,17 +26,8 @@
 #' y <- pwe_sim(n = 1, hazard = c(2.585924e-02, 3.685254e-09),
 #'              cutpoints = c(0, 12))
 pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
+  validate_cutpoints(cutpoints)
   validate_piecewise_hazard(hazard, cutpoints)
-
-  # Check: first element of 'cutpoints' should be 0
-  if (cutpoints[1] != 0) {
-    stop("First element of 'cutpoints' should be 0")
-  }
-
-  # Check: 'cutpoints' is increasing
-  if (is.unsorted(cutpoints)) {
-    stop("'cutpoints' should be in increasing order")
-  }
 
   # Check: 'maxtime' is positive or NULL
   if (!is.null(maxtime)) {
@@ -106,6 +96,7 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
 #' pwe_impute(time = 19.621870008, hazard = c(2.585924e-02, 3.685254e-09),
 #'            cutpoints = c(0, 12), maxtime = 36)
 pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
+  validate_cutpoints(cutpoints)
   validate_piecewise_hazard(hazard, cutpoints)
 
   # Check: 'time' is positive integer
@@ -169,6 +160,9 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
 #'   columns equal to the length of the `cutpoints` vector. The number of
 #'   rows can be anything, and is typically dictated by the number of MCMC
 #'   draws.
+#' @param end_of_study finite positive time at which the cumulative event
+#'   probability is evaluated. It may fall before later cutpoints, for example
+#'   when evaluating an interim analysis.
 #' @inheritParams pwe_sim
 #' @inheritParams survival_adapt
 #'
@@ -178,6 +172,15 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
 #'
 #' @export
 ppwe <- function(hazard, end_of_study, cutpoints) {
+  validate_cutpoints(cutpoints)
+  # Posterior predictions are also evaluated at interim times, which can
+  # legitimately precede later hazard changes.
+  validate_endpoint_time(
+    end_of_study,
+    cutpoints,
+    "end_of_study",
+    after_last = FALSE
+  )
   validate_hazard_matrix(hazard, cutpoints)
 
   interval_upper <- c(cutpoints[-1], Inf)

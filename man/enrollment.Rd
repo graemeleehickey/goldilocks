@@ -7,15 +7,15 @@
 enrollment(lambda = 1, N_total, lambda_time = 0)
 }
 \arguments{
-\item{lambda}{vector. Rate parameter(s) for Poisson distribution.}
+\item{lambda}{finite positive rate parameter(s) for the Poisson distribution.}
 
-\item{N_total}{integer. Value of total sample size.}
+\item{N_total}{positive integer total sample size.}
 
-\item{lambda_time}{vector. Knots (of \code{length(lambda)}) indicating
-regions where a specific hazard rate (\code{lambda}) applies. The first
-element is always \code{lambda_time = 0}, denoting the trial start time.
-Note: final element of \code{lambda} is assumed to be constant as
-\code{lambda_time} tends to infinity.}
+\item{lambda_time}{finite, strictly increasing knots (of \code{length(lambda)})
+indicating regions where a specific rate (\code{lambda}) applies. The first
+element must be \code{lambda_time = 0}, denoting the trial start time. The final
+element of \code{lambda} is assumed to be constant as \code{lambda_time} tends to
+infinity.}
 }
 \value{
 A vector of enrollment times (from time of first patient enrollment)

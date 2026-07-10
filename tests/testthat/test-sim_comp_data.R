@@ -128,3 +128,24 @@ test_that("sim_comp_data validates treatment-arm hazards", {
     "hazard_control"
   )
 })
+
+test_that("sim_comp_data validates the complete piecewise model", {
+  common_args <- list(
+    hazard_treatment = c(0.01, 0.02),
+    hazard_control = c(0.02, 0.03),
+    cutpoints = c(0, 12),
+    N_total = 50,
+    lambda = 5,
+    lambda_time = 0,
+    end_of_study = 36
+  )
+
+  expect_error(
+    do.call(sim_comp_data, modifyList(common_args, list(cutpoints = c(0, 100)))),
+    "end_of_study"
+  )
+  expect_error(
+    do.call(sim_comp_data, modifyList(common_args, list(cutpoints = c(0, 0)))),
+    "strictly increasing"
+  )
+})

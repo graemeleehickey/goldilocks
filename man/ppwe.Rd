@@ -13,12 +13,12 @@ columns equal to the length of the \code{cutpoints} vector. The number of
 rows can be anything, and is typically dictated by the number of MCMC
 draws.}
 
-\item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
-will be evaluated.}
+\item{end_of_study}{finite positive time at which the cumulative event
+probability is evaluated. It may fall before later cutpoints, for example
+when evaluating an interim analysis.}
 
-\item{cutpoints}{vector. The change-point vector indicating time when the
-hazard rates change. Note the first element of \code{cutpoints} should
-always be 0.}
+\item{cutpoints}{finite, strictly increasing vector of change-points for the
+hazard rates. The first element must be 0.}
 }
 \value{
 A vector of (0, 1) probabilities from evaluation of the PWE

@@ -26,18 +26,18 @@ test_that("enrollment works with piecewise rates", {
 test_that("enrollment errors on non-positive lambda", {
   expect_error(
     enrollment(lambda = -1, N_total = 50, lambda_time = 0),
-    "non-negative"
+    "finite positive"
   )
   expect_error(
     enrollment(lambda = 0, N_total = 50, lambda_time = 0),
-    "non-negative"
+    "finite positive"
   )
 })
 
 test_that("enrollment errors on non-positive N_total", {
   expect_error(
     enrollment(lambda = 1, N_total = 0, lambda_time = 0),
-    "greater than 0"
+    "positive integer"
   )
 })
 
@@ -74,5 +74,28 @@ test_that("enrollment errors on NULL lambda_time", {
   expect_error(
     enrollment(lambda = 1, N_total = 50, lambda_time = NULL),
     "length"
+  )
+})
+
+test_that("enrollment validates all schedule inputs before simulation", {
+  expect_error(
+    enrollment(lambda = Inf, N_total = 50, lambda_time = 0),
+    "finite positive"
+  )
+  expect_error(
+    enrollment(lambda = 1, N_total = 50.5, lambda_time = 0),
+    "positive integer"
+  )
+  expect_error(
+    enrollment(lambda = c(1, 2, 3), N_total = 50, lambda_time = c(0, 20, 10)),
+    "strictly increasing"
+  )
+  expect_error(
+    enrollment(lambda = c(1, 2), N_total = 50, lambda_time = c(0, 0)),
+    "strictly increasing"
+  )
+  expect_error(
+    enrollment(lambda = c(1, 2), N_total = 50, lambda_time = c(0, Inf)),
+    "finite numeric"
   )
 })

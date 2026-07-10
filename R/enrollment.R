@@ -2,13 +2,13 @@
 #'
 #' @description Simulate enrollment time using a piecewise Poisson distribution.
 #'
-#' @param lambda vector. Rate parameter(s) for Poisson distribution.
-#' @param lambda_time vector. Knots (of `length(lambda)`) indicating
-#'   regions where a specific hazard rate (`lambda`) applies. The first
-#'   element is always `lambda_time = 0`, denoting the trial start time.
-#'   Note: final element of `lambda` is assumed to be constant as
-#'   `lambda_time` tends to infinity.
-#' @param N_total integer. Value of total sample size.
+#' @param lambda finite positive rate parameter(s) for the Poisson distribution.
+#' @param lambda_time finite, strictly increasing knots (of `length(lambda)`)
+#'   indicating regions where a specific rate (`lambda`) applies. The first
+#'   element must be `lambda_time = 0`, denoting the trial start time. The final
+#'   element of `lambda` is assumed to be constant as `lambda_time` tends to
+#'   infinity.
+#' @param N_total positive integer total sample size.
 #'
 #' @details Subject recruitment is assumed to follow a (piecewise stationary)
 #'   Poisson process. We assume trial recruitment to be an independent process,
@@ -56,25 +56,7 @@
 #' enrollment(lambda = c(0.3, 0.5, 0.9, 1.2, 2.1), N_total = 200,
 #'            lambda_time = c(0, 20, 30, 40, 60))
 enrollment <- function(lambda = 1, N_total, lambda_time = 0) {
-  if (any(lambda <= 0)) {
-    stop("The lambda(s) for Poisson enrollment rate should be non-negative")
-  }
-
-  if (N_total <= 0) {
-    stop("The sample size for enrollment needs to be greater than 0")
-  }
-
-  if (length(lambda) != length(lambda_time)) {
-    stop("The length of rates should match the length of knots")
-  }
-
-  if (is.null(lambda_time) | any(is.na(lambda_time))) {
-    stop("The lambda_time argument is required")
-  }
-
-  if (lambda_time[1] != 0) {
-    stop("The first cutpoint should always 0")
-  }
+  validate_enrollment_schedule(lambda, lambda_time, N_total)
 
   chunks <- list()
   n_enrolled <- 0

@@ -40,9 +40,9 @@ under the treatment arm.}
 \item{hazard_control}{vector. Finite non-negative constant hazard rates
 under the control arm.}
 
-\item{cutpoints}{vector. Times at which the baseline hazard changes. Default
-is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
-exponential model.}
+\item{cutpoints}{finite, strictly increasing times at which the baseline
+hazard changes. The first value must be 0. Default is \code{cutpoints = 0},
+which corresponds to a simple (non-piecewise) exponential model.}
 
 \item{N_total}{integer. Maximum sample size allowable}
 
@@ -60,8 +60,8 @@ ensuring both treatment groups are present at every interim analysis; a
 smaller look could enroll subjects from one treatment group only, leaving
 the interim posterior undefined for the missing group.}
 
-\item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
-will be evaluated.}
+\item{end_of_study}{finite study endpoint, strictly greater than the last
+cutpoint.}
 
 \item{prior}{vector. The prior distributions for the piecewise hazard rate
 parameters are each \eqn{Gamma(a_0, b_0)}, where \eqn{a_0} is the shape

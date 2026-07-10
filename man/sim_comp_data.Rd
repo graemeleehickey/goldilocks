@@ -25,9 +25,9 @@ under the treatment arm.}
 \item{hazard_control}{vector. Finite non-negative constant hazard rates
 under the control arm.}
 
-\item{cutpoints}{vector. Times at which the baseline hazard changes. Default
-is \code{cutpoints = 0}, which corresponds to a simple (non-piecewise)
-exponential model.}
+\item{cutpoints}{finite, strictly increasing times at which the baseline
+hazard changes. The first value must be 0. Default is \code{cutpoints = 0},
+which corresponds to a simple (non-piecewise) exponential model.}
 
 \item{N_total}{integer. Maximum sample size allowable}
 
@@ -38,8 +38,8 @@ exponential model.}
 change. Must be same length as lambda. See \code{\link[=enrollment]{enrollment()}} for
 more details.}
 
-\item{end_of_study}{scalar. Length of the study; i.e. time at which endpoint
-will be evaluated.}
+\item{end_of_study}{finite study endpoint, strictly greater than the last
+cutpoint.}
 
 \item{block}{scalar. Block size for generating the randomization schedule.}
 
