@@ -4,6 +4,9 @@
 
 ### Improvements
 
+- Consolidated the Bayesian binomial analysis implementation so its
+  posterior calculations and method-specific branches are co-located in
+  `bayes_binomial_test()`.
 - Renamed the piecewise-exponential Bayesian survival analysis method
   from `method = "bayes"` to `method = "bayes-surv"` to distinguish it
   from `method = "bayes-bin"`.
