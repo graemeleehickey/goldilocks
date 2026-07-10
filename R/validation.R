@@ -292,3 +292,34 @@ validate_h0 <- function(h0, method, single_arm) {
 
   invisible(TRUE)
 }
+
+#' @title Validate Bayesian binomial analysis settings
+#'
+#' @description Checks the Beta prior, computational method, and Monte Carlo
+#'   sample size before a Bayesian binomial analysis is run.
+#'
+#' @noRd
+validate_bayes_binomial_args <- function(bin_prior, bin_method, bin_N) {
+  if (
+    length(bin_prior) != 2 ||
+      any(!is.finite(bin_prior)) ||
+      any(bin_prior <= 0)
+  ) {
+    stop("'bin_prior' must contain two positive finite values")
+  }
+  if (!bin_method %in% c("mc", "normal", "quadrature")) {
+    stop("'bin_method' must be one of 'mc', 'normal', or 'quadrature'")
+  }
+  if (
+    length(bin_N) != 1 ||
+      !is.numeric(bin_N) ||
+      is.na(bin_N) ||
+      !is.finite(bin_N) ||
+      bin_N <= 0 ||
+      bin_N != floor(bin_N)
+  ) {
+    stop("'bin_N' must be a single positive integer")
+  }
+
+  invisible(TRUE)
+}

@@ -208,37 +208,77 @@ bayes_binomial_test <- function(
     )
   }
 
-  treatment_stats <- beta_binomial_stats(
-    event = data$event[data$treatment == 1],
-    prior = bin_prior
-  )
+  # Keep the posterior arithmetic next to the analysis that consumes it; the
+  # two helpers capture the only non-trivial repeated calculations.
+  beta_binomial_stats <- function(event) {
+    if (length(event) == 0) {
+      stop("Bayesian binomial analysis requires at least one subject per arm")
+    }
+    alpha <- bin_prior[1] + sum(event)
+    beta <- bin_prior[2] + length(event) - sum(event)
+    list(
+      alpha = alpha,
+      beta = beta,
+      mean = alpha / (alpha + beta),
+      variance = (alpha * beta) / ((alpha + beta)^2 * (alpha + beta + 1))
+    )
+  }
+
+  beta_binomial_difference_success <- function(treatment, control) {
+    integrand <- function(x) {
+      treatment_density <- dbeta(x, treatment$alpha, treatment$beta)
+      control_threshold <- x - h0
+      if (alternative == "greater") {
+        treatment_density * pbeta(control_threshold, control$alpha, control$beta)
+      } else {
+        treatment_density *
+          (1 - pbeta(control_threshold, control$alpha, control$beta))
+      }
+    }
+
+    integrate(integrand, lower = 0, upper = 1)$value
+  }
+
+  treatment_stats <- beta_binomial_stats(data$event[data$treatment == 1])
 
   if (single_arm) {
     if (bin_method == "mc") {
       effect <- rbeta(bin_N, treatment_stats$alpha, treatment_stats$beta)
-      success <- posterior_tail_probability(effect, alternative, h0)
+      success <- if (alternative == "greater") {
+        mean(effect > h0)
+      } else {
+        mean(effect < h0)
+      }
     } else {
       effect <- treatment_stats$mean
-      success <- beta_binomial_single_arm_success(
-        alpha = treatment_stats$alpha,
-        beta = treatment_stats$beta,
-        alternative = alternative,
-        h0 = h0,
-        method = bin_method
-      )
+      if (bin_method == "normal") {
+        effect_se <- sqrt(treatment_stats$variance)
+        success <- if (alternative == "greater") {
+          1 - pnorm(h0, mean = effect, sd = effect_se)
+        } else {
+          pnorm(h0, mean = effect, sd = effect_se)
+        }
+      } else {
+        success <- if (alternative == "greater") {
+          1 - pbeta(h0, treatment_stats$alpha, treatment_stats$beta)
+        } else {
+          pbeta(h0, treatment_stats$alpha, treatment_stats$beta)
+        }
+      }
     }
     return(list(success = success, effect = effect))
   }
 
-  control_stats <- beta_binomial_stats(
-    event = data$event[data$treatment == 0],
-    prior = bin_prior
-  )
+  control_stats <- beta_binomial_stats(data$event[data$treatment == 0])
 
   if (bin_method == "mc") {
     effect <- rbeta(bin_N, treatment_stats$alpha, treatment_stats$beta) -
       rbeta(bin_N, control_stats$alpha, control_stats$beta)
-    success <- posterior_tail_probability(effect, alternative, h0)
+    success <- if (alternative == "greater") {
+      mean(effect > h0)
+    } else {
+      mean(effect < h0)
+    }
   } else if (bin_method == "normal") {
     effect <- treatment_stats$mean - control_stats$mean
     effect_se <- sqrt(treatment_stats$variance + control_stats$variance)
@@ -249,134 +289,10 @@ bayes_binomial_test <- function(
     }
   } else if (bin_method == "quadrature") {
     effect <- treatment_stats$mean - control_stats$mean
-    success <- beta_binomial_difference_success(
-      treatment = treatment_stats,
-      control = control_stats,
-      alternative = alternative,
-      h0 = h0
-    )
+    success <- beta_binomial_difference_success(treatment_stats, control_stats)
   }
 
   list(success = success, effect = effect)
-}
-
-#' @title Validate Bayesian binomial analysis settings
-#'
-#' @description Checks the Beta prior, computational method, and Monte Carlo
-#'   sample size before a Bayesian binomial analysis is run.
-#'
-#' @noRd
-validate_bayes_binomial_args <- function(bin_prior, bin_method, bin_N) {
-  if (
-    length(bin_prior) != 2 ||
-      any(!is.finite(bin_prior)) ||
-      any(bin_prior <= 0)
-  ) {
-    stop("'bin_prior' must contain two positive finite values")
-  }
-  if (!bin_method %in% c("mc", "normal", "quadrature")) {
-    stop("'bin_method' must be one of 'mc', 'normal', or 'quadrature'")
-  }
-  if (
-    length(bin_N) != 1 ||
-      !is.numeric(bin_N) ||
-      is.na(bin_N) ||
-      !is.finite(bin_N) ||
-      bin_N <= 0 ||
-      bin_N != floor(bin_N)
-  ) {
-    stop("'bin_N' must be a single positive integer")
-  }
-}
-
-#' @title Summarize a Beta-binomial posterior
-#'
-#' @description Combines binary outcomes with a Beta prior and returns the
-#'   posterior shape parameters, mean, and variance for one treatment arm.
-#'
-#' @noRd
-beta_binomial_stats <- function(event, prior) {
-  if (length(event) == 0) {
-    stop("Bayesian binomial analysis requires at least one subject per arm")
-  }
-  alpha <- prior[1] + sum(event)
-  beta <- prior[2] + length(event) - sum(event)
-  list(
-    alpha = alpha,
-    beta = beta,
-    mean = alpha / (alpha + beta),
-    variance = (alpha * beta) / ((alpha + beta)^2 * (alpha + beta + 1))
-  )
-}
-
-#' @title Calculate a posterior tail probability
-#'
-#' @description Calculates the proportion of posterior effect draws satisfying
-#'   a one-sided alternative hypothesis.
-#'
-#' @noRd
-posterior_tail_probability <- function(effect, alternative, h0) {
-  if (alternative == "greater") {
-    mean(effect > h0)
-  } else if (alternative == "less") {
-    mean(effect < h0)
-  }
-}
-
-#' @title Calculate a single-arm Beta-binomial success probability
-#'
-#' @description Uses either a normal approximation or the exact Beta posterior
-#'   distribution to evaluate a single-arm binary endpoint.
-#'
-#' @noRd
-beta_binomial_single_arm_success <- function(
-  alpha,
-  beta,
-  alternative,
-  h0,
-  method
-) {
-  if (method == "normal") {
-    effect <- alpha / (alpha + beta)
-    effect_se <- sqrt((alpha * beta) / ((alpha + beta)^2 * (alpha + beta + 1)))
-    if (alternative == "greater") {
-      return(1 - pnorm(h0, mean = effect, sd = effect_se))
-    } else if (alternative == "less") {
-      return(pnorm(h0, mean = effect, sd = effect_se))
-    }
-  }
-
-  if (alternative == "greater") {
-    1 - pbeta(h0, alpha, beta)
-  } else if (alternative == "less") {
-    pbeta(h0, alpha, beta)
-  }
-}
-
-#' @title Calculate a two-arm Beta-binomial success probability
-#'
-#' @description Numerically integrates independent treatment and control Beta
-#'   posteriors to evaluate a treatment-control difference.
-#'
-#' @noRd
-beta_binomial_difference_success <- function(
-  treatment,
-  control,
-  alternative,
-  h0
-) {
-  integrand <- function(x) {
-    treatment_density <- dbeta(x, treatment$alpha, treatment$beta)
-    control_threshold <- x - h0
-    if (alternative == "greater") {
-      treatment_density * pbeta(control_threshold, control$alpha, control$beta)
-    } else if (alternative == "less") {
-      treatment_density *
-        (1 - pbeta(control_threshold, control$alpha, control$beta))
-    }
-  }
-
-  integrate(integrand, lower = 0, upper = 1)$value
 }
 
 #' @title Validate complete binary outcomes

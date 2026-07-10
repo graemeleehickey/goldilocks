@@ -2,6 +2,9 @@
 
 ## Improvements
 
+* Consolidated the Bayesian binomial analysis implementation so its posterior
+  calculations and method-specific branches are co-located in
+  `bayes_binomial_test()`.
 * Renamed the piecewise-exponential Bayesian survival analysis method from `method = "bayes"` to `method = "bayes-surv"` to distinguish it from `method = "bayes-bin"`.
 * Added `method = "bayes-bin"` for Bayesian beta-binomial analysis of complete binary outcomes, with Monte Carlo, normal approximation, and quadrature options for treatment-control differences.
 * Cox model analyses now use a lower-level survival fit for repeated Wald tests, avoiding formula and summary overhead in simulation hot paths.
