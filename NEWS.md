@@ -2,6 +2,10 @@
 
 ## Improvements
 
+* survival_adapt() can now return an optional, tidy interim decision trace with
+  predictive probabilities, thresholds, stopping decisions, arm-level counts,
+  and relevant warnings. New helpers summarize and plot individual traces and
+  simulation stopping outcomes (#57).
 * `sim_trials()` now supports reproducible PSOCK parallel execution on Windows
   and an explicit `backend` argument. The default Unix fork path is retained;
   `backend = "auto"` selects the appropriate implementation for the platform.
@@ -23,6 +27,8 @@
 
 ## Bug fixes
 
+* Piecewise Bayesian analyses now retain the posterior-draw dimension when
+  `N_mcmc = 1`, avoiding a matrix-validation error in probability conversion.
 * `sim_trials()` now uses the same default alternative hypothesis and futility threshold as `survival_adapt()`, so omitted arguments define the same adaptive design (#47).
 * `survival_adapt()` now requires interim looks to be strictly increasing, preventing non-chronological or duplicated analyses (#48).
 * Piecewise hazard inputs are now validated as finite and non-negative across simulation, imputation, and probability helpers. A finite `maxtime` is now required when the final hazard is zero (#49).

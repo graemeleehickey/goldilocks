@@ -47,8 +47,15 @@ haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
     #   q = end_of_study,
     #   x = post[, , 1],
     #   cuts = cutpoints)
+    # Preserve the posterior-draw dimension when N_mcmc = 1. Direct array
+    # slicing drops it to a vector, whereas ppwe() requires a hazard matrix.
+    treatment_hazard <- matrix(
+      post[, , 1],
+      nrow = dim(post)[1],
+      ncol = dim(post)[2]
+    )
     p_treatment <- ppwe(
-      hazard = post[,, 1],
+      hazard = treatment_hazard,
       end_of_study = end_of_study,
       cutpoints = cutpoints
     )
@@ -57,8 +64,13 @@ haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
       #   q = end_of_study,
       #   x = post[, , 2],
       #   cuts = cutpoints)
+      control_hazard <- matrix(
+        post[, , 2],
+        nrow = dim(post)[1],
+        ncol = dim(post)[2]
+      )
       p_control <- ppwe(
-        hazard = post[,, 2],
+        hazard = control_hazard,
         end_of_study = end_of_study,
         cutpoints = cutpoints
       )

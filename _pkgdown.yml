@@ -29,6 +29,9 @@ reference:
       - survival_adapt
       - sim_trials
       - summarise_sims
+      - summarise_trial_trace
+      - plot_trial_trace
+      - plot_sim_stopping
 
   - title: Trial data generation
     desc: >
@@ -57,6 +60,7 @@ articles:
       - bayes-piecewise
       - bayesian-binary
       - single-arm
+      - decision-traces
   - title: Developer
     contents:
       - architecture

@@ -92,6 +92,10 @@
 #'   incorporates right-censoring. This option cannot be used with
 #'   `method = "chisq"` because the package does not pool chi-square tests over
 #'   multiple imputed final datasets in a frequentist framework.
+#' @param return_trace logical. Should the interim decision path be returned in
+#'   addition to the usual final summary? The default, FALSE, returns the
+#'   historical one-row data frame. When TRUE, the result is a
+#'   goldilocks_trial object with summary, trace, and call elements.
 #'
 #' @details Implements the Goldilocks design method described in Broglio et al.
 #'   (2014). At each interim analysis, two probabilities are computed:
@@ -236,8 +240,9 @@
 #'   that they contribute negligible but non-zero exposure to the interim
 #'   posterior. This affects at most one subject per interim look.
 #'
-#' @return A data frame containing some input parameters (arguments) as well as
-#'   statistics from the analysis, including:
+#' @return With return_trace = FALSE (the default), a data frame containing
+#'   some input parameters (arguments) as well as statistics from the analysis,
+#'   including:
 #'
 #'   - `N_treatment`: Number of patients enrolled in the treatment arm.
 #'   - `N_control`: Number of patients enrolled in the control arm.
@@ -254,6 +259,13 @@
 #'     futility.
 #'   - `stop_expected_success`: Logical indicator of whether the trial stopped
 #'     early for expected success.
+#'
+#'   With return_trace = TRUE, a goldilocks_trial object is returned. Its
+#'   summary element is the same data frame and its trace element has one row
+#'   per interim look. The trace records enrollment and observed events by arm,
+#'   predictive probabilities and their thresholds, the decision taken, and
+#'   warnings raised during that look. It deliberately excludes imputed data
+#'   sets and posterior draws to keep the output compact.
 #'
 #' @references
 #' Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks
@@ -313,8 +325,10 @@ survival_adapt <- function(
   N_mcmc = 10,
   empty_interval = c("propagate", "prior", "error"),
   method = "logrank",
-  imputed_final = FALSE
+  imputed_final = FALSE,
+  return_trace = FALSE
 ) {
+  Call <- match.call()
   ##############################################################################
   ### Derive variables
   ##############################################################################
@@ -339,6 +353,9 @@ survival_adapt <- function(
   validate_positive_integer_scalar(N_mcmc, "N_mcmc")
   validate_gamma_prior(prior)
   empty_interval <- match.arg(empty_interval)
+  if (!is.logical(return_trace) || length(return_trace) != 1 || is.na(return_trace)) {
+    stop("'return_trace' must be TRUE or FALSE")
+  }
 
   # Check: 'interim_look' bounded by maximum sample size
   if (!is.null(interim_look)) {
@@ -469,6 +486,7 @@ survival_adapt <- function(
   # Assigning stop_futility and stop_expected_success
   stop_futility <- 0
   stop_expected_success <- 0
+  trace_rows <- if (return_trace) vector("list", max(N_looks - 1L, 0L)) else NULL
 
   if (N_looks > 1) {
     for (i in 1:(N_looks - 1)) {
@@ -517,14 +535,28 @@ survival_adapt <- function(
         select = c(time, event, treatment)
       )
 
+      # Capture warnings for this look while preserving their usual output.
+      warning_messages <- character()
+      capture_warning <- function(warning) {
+        if (return_trace) {
+          warning_messages <<- unique(c(
+            warning_messages,
+            conditionMessage(warning)
+          ))
+        }
+      }
+
       # Posterior distribution of lambdas: current data
-      post_lambda <- posterior(
-        data = data,
-        cutpoints = cutpoints,
-        prior = prior,
-        N_mcmc = N_impute,
-        single_arm = single_arm,
-        empty_interval = empty_interval
+      post_lambda <- withCallingHandlers(
+        posterior(
+          data = data,
+          cutpoints = cutpoints,
+          prior = prior,
+          N_mcmc = N_impute,
+          single_arm = single_arm,
+          empty_interval = empty_interval
+        ),
+        warning = capture_warning
       )
 
       ##########################################################################
@@ -536,22 +568,25 @@ survival_adapt <- function(
       for (j in 1:N_impute) {
         h <- post_lambda[j, , , drop = FALSE]
 
-        stop_check <- test_stop_success(
-          data = data_interim,
-          hazard = h,
-          end_of_study = end_of_study,
-          cutpoints = cutpoints,
-          single_arm = single_arm,
-          prior = prior,
-          N_mcmc = N_mcmc,
-          method = method,
-          alternative = alternative,
-          h0 = h0,
-          bin_prior = bin_prior,
-          bin_method = bin_method,
-          bin_N = bin_N,
-          empty_interval = empty_interval,
-          check_futility = check_futility
+        stop_check <- withCallingHandlers(
+          test_stop_success(
+            data = data_interim,
+            hazard = h,
+            end_of_study = end_of_study,
+            cutpoints = cutpoints,
+            single_arm = single_arm,
+            prior = prior,
+            N_mcmc = N_mcmc,
+            method = method,
+            alternative = alternative,
+            h0 = h0,
+            bin_prior = bin_prior,
+            bin_method = bin_method,
+            bin_N = bin_N,
+            empty_interval = empty_interval,
+            check_futility = check_futility
+          ),
+          warning = capture_warning
         )
 
         # Increment counter if P(efficacy | data) > prob_ha
@@ -572,14 +607,54 @@ survival_adapt <- function(
       # Test if expected success criteria met
       # Note: ppp_success = posterior predictive probability of eventual success
       ppp_success <- expected_success_test / N_impute
-      if (ppp_success > Sn[i]) {
+      ppp_success_at_max <- if (check_futility) {
+        futility_test / N_impute
+      } else {
+        NA_real_
+      }
+
+      decision <- if (ppp_success > Sn[i]) {
+        "stop_expected_success"
+      } else if (check_futility && ppp_success_at_max < Fn[i]) {
+        "stop_futility"
+      } else {
+        "continue"
+      }
+
+      if (return_trace) {
+        trace_rows[[i]] <- data.frame(
+          look = i,
+          planned_N = analysis_at_enrollnumber[i],
+          calendar_time = data_total$enrollment[analysis_at_enrollnumber[i]],
+          N_enrolled = nrow(data),
+          N_treatment = sum(data$treatment == 1),
+          N_control = sum(data$treatment == 0),
+          events_treatment = sum(data$event[data$treatment == 1]),
+          events_control = sum(data$event[data$treatment == 0]),
+          N_pending = sum(
+            data_interim$subject_enrolled &
+              data_interim$subject_impute_success
+          ),
+          N_not_enrolled = sum(data_interim$subject_impute_futility),
+          ppp_stop_now = ppp_success,
+          success_threshold = Sn[i],
+          ppp_success_at_max = ppp_success_at_max,
+          futility_threshold = if (check_futility) Fn[i] else NA_real_,
+          decision = decision,
+          warning_count = length(warning_messages),
+          warning_messages = paste(warning_messages, collapse = " | "),
+          stringsAsFactors = FALSE
+        )
+      }
+
+      if (decision == "stop_expected_success") {
         stop_expected_success <- 1
         stage_trial_stopped <- analysis_at_enrollnumber[i]
         break # No further SS looks
       }
 
       # Test if futility success criteria is met
-      if (futility_test / N_impute < Fn[i]) {
+      if (decision == "stop_futility") {
         stop_futility <- 1
         stage_trial_stopped <- analysis_at_enrollnumber[i]
         break # No further SS looks
@@ -657,6 +732,16 @@ survival_adapt <- function(
     stop_futility = stop_futility,
     stop_expected_success = stop_expected_success
   )
+
+  if (return_trace) {
+    out <- list(
+      summary = results,
+      trace = new_trial_trace(trace_rows),
+      call = Call
+    )
+    class(out) <- "goldilocks_trial"
+    return(out)
+  }
 
   return(results)
 }
