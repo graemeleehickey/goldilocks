@@ -33,6 +33,7 @@ sim_trials(
   imputed_final = FALSE,
   empty_interval = c("propagate", "prior", "error"),
   ncores = 1L,
+  backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL
 )
 }
@@ -185,6 +186,11 @@ driven only by \code{prior}. \code{"error"} stops when any empty interval is fou
 \item{ncores}{positive integer. Number of cores to use for parallel
 processing. Defaults to \code{1L} (serial execution).}
 
+\item{backend}{character. Parallel backend. "auto" (the default) uses
+serial execution for \code{ncores = 1}, the existing fork backend on Unix-like
+platforms, and a PSOCK cluster on Windows. "fork", "psock", and
+"sequential" select a backend explicitly.}
+
 \item{seed}{optional integer. Seed used to generate independent per-trial
 \code{"L'Ecuyer-CMRG"} random-number streams. The default, \code{NULL},
 does not reset the global RNG state, preserving the usual unseeded
@@ -205,16 +211,20 @@ This is basically a wrapper function for
 trials (all with the same input design parameters and treatment effect).
 
 To use multiple cores (where available), the argument \code{ncores}
-can be increased from the default of 1. Note: on Windows machines, it is
-not possible to use \code{\link[parallel:mclapply]{parallel::mclapply()}} with \code{ncores} \eqn{> 1}.
+can be increased from the default of 1. The default \code{backend = "auto"}
+uses \code{\link[pbmcapply:pbmclapply]{pbmcapply::pbmclapply()}} on Unix-like platforms and a PSOCK cluster
+on Windows, where forked processes are unavailable. Set \code{backend}
+explicitly to compare backends or to require serial execution.
 
 Set \code{seed} to make \code{sim_trials()} reproducible. When a seed is
 supplied, \code{sim_trials()} first generates one independent
 \code{"L'Ecuyer-CMRG"} stream for each simulated trial, then each call to
 \code{\link[=survival_adapt]{survival_adapt()}} runs with its own per-trial stream. This avoids
 reusing the same random-number stream across workers when
-\code{ncores > 1}. With \code{seed = NULL}, the function uses R's current
-global RNG state.
+\code{ncores > 1}, and produces identical seeded results across supported
+backends. A seeded call restores the caller's RNG state on exit. With
+\code{seed = NULL}, the function uses and advances R's current global RNG
+state.
 }
 \examples{
 hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
@@ -243,5 +253,6 @@ out <- sim_trials(
   method = "logrank",
   N_trials = 2,
   ncores = 1,
+  backend = "auto",
   seed = 123)
 }

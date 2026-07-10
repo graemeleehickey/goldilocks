@@ -60,7 +60,7 @@ analyse_data <- function(
   validate_h0(h0, method, single_arm)
 
   ####################################################
-  ### Bayesian test
+  ### Bayesian survival estimate test
   ####################################################
 
   # CIF_trt(T) - CIF_con(T) for two-armed trial
@@ -229,7 +229,8 @@ bayes_binomial_test <- function(
       treatment_density <- dbeta(x, treatment$alpha, treatment$beta)
       control_threshold <- x - h0
       if (alternative == "greater") {
-        treatment_density * pbeta(control_threshold, control$alpha, control$beta)
+        treatment_density *
+          pbeta(control_threshold, control$alpha, control$beta)
       } else {
         treatment_density *
           (1 - pbeta(control_threshold, control$alpha, control$beta))

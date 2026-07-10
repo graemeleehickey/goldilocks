@@ -26,6 +26,38 @@ Sys.setenv(GOLDILOCKS_BENCHMARK_OUT = "benchmarks/results.csv")
 source("benchmarks/hot-paths.R")
 ```
 
+## Parallel Backends
+
+The cross-platform parallel benchmark compares serial, PSOCK, and (on Unix-like
+platforms) the existing fork backend over small-overhead, representative
+log-rank, and heavier Bayesian-survival workloads. It records median elapsed
+time, serial-relative speedup, R version, and platform metadata. It also
+records parent-process allocation for the serial baseline; allocation profiling
+is unavailable for parallel rows because bench cannot profile expressions that
+create child processes. PSOCK timings include cluster startup because each
+simulation call creates a cluster.
+
+```r
+source("benchmarks/parallel-backends.R")
+```
+
+By default it evaluates 2, 8, and 32 trials with 1, 2, and 4 workers. Adjust
+the workload with these environment variables:
+
+```r
+Sys.setenv(
+  GOLDILOCKS_PARALLEL_ITERATIONS = "5",
+  GOLDILOCKS_PARALLEL_TRIALS = "8,32",
+  GOLDILOCKS_PARALLEL_WORKERS = "2,4",
+  GOLDILOCKS_BENCHMARK_OUT = "benchmarks/parallel-results.csv"
+)
+source("benchmarks/parallel-backends.R")
+```
+
+The package deliberately retains the established Unix fork path. Replace it
+only when this benchmark shows reproducible results, no material regression
+against the fork baseline, and a consistent capability or speed advantage.
+
 ## Interpreting Results
 
 Runtime and memory allocation depend on hardware, R version, operating system,

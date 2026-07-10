@@ -9,6 +9,10 @@
 #' @param N_trials integer. Number of trials to simulate.
 #' @param ncores positive integer. Number of cores to use for parallel
 #'   processing. Defaults to `1L` (serial execution).
+#' @param backend character. Parallel backend. "auto" (the default) uses
+#'   serial execution for `ncores = 1`, the existing fork backend on Unix-like
+#'   platforms, and a PSOCK cluster on Windows. "fork", "psock", and
+#'   "sequential" select a backend explicitly.
 #' @param seed optional integer. Seed used to generate independent per-trial
 #'   `"L'Ecuyer-CMRG"` random-number streams. The default, `NULL`,
 #'   does not reset the global RNG state, preserving the usual unseeded
@@ -19,16 +23,20 @@
 #'   trials (all with the same input design parameters and treatment effect).
 #'
 #'   To use multiple cores (where available), the argument `ncores`
-#'   can be increased from the default of 1. Note: on Windows machines, it is
-#'   not possible to use [parallel::mclapply()] with `ncores` \eqn{> 1}.
+#'   can be increased from the default of 1. The default `backend = "auto"`
+#'   uses [pbmcapply::pbmclapply()] on Unix-like platforms and a PSOCK cluster
+#'   on Windows, where forked processes are unavailable. Set `backend`
+#'   explicitly to compare backends or to require serial execution.
 #'
 #'   Set `seed` to make `sim_trials()` reproducible. When a seed is
 #'   supplied, `sim_trials()` first generates one independent
 #'   `"L'Ecuyer-CMRG"` stream for each simulated trial, then each call to
 #'   [survival_adapt()] runs with its own per-trial stream. This avoids
 #'   reusing the same random-number stream across workers when
-#'   `ncores > 1`. With `seed = NULL`, the function uses R's current
-#'   global RNG state.
+#'   `ncores > 1`, and produces identical seeded results across supported
+#'   backends. A seeded call restores the caller's RNG state on exit. With
+#'   `seed = NULL`, the function uses and advances R's current global RNG
+#'   state.
 #'
 #' @return Data frame with 1 row per simulated trial and columns for key summary
 #'   statistics. See [survival_adapt()] for details of what is returned in each
@@ -64,6 +72,7 @@
 #'   method = "logrank",
 #'   N_trials = 2,
 #'   ncores = 1,
+#'   backend = "auto",
 #'   seed = 123)
 
 sim_trials <- function(
@@ -94,20 +103,17 @@ sim_trials <- function(
   imputed_final = FALSE,
   empty_interval = c("propagate", "prior", "error"),
   ncores = 1L,
+  backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL
 ) {
   Call <- match.call()
   empty_interval <- match.arg(empty_interval)
+  backend <- match.arg(backend)
 
   validate_positive_integer_scalar(N_trials, "N_trials")
 
   validate_positive_integer_scalar(ncores, "ncores")
-
-  # Check: if Windows and if ncores = 1
-  if (.Platform$OS.type == "Windows" & ncores > 1L) {
-    message("On Windows machines it is required that ncores = 1L")
-    ncores <- 1
-  }
+  backend <- resolve_sim_backend(backend, ncores)
 
   if (!is.null(seed)) {
     if (
@@ -119,16 +125,40 @@ sim_trials <- function(
     ) {
       stop("'seed' must be NULL or a single integer value")
     }
+    old_kind <- RNGkind()
+    old_seed_exists <- exists(
+      ".Random.seed",
+      envir = .GlobalEnv,
+      inherits = FALSE
+    )
+    if (old_seed_exists) {
+      old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+    }
+    on.exit({
+      do.call(RNGkind, as.list(old_kind))
+      if (old_seed_exists) {
+        assign(".Random.seed", old_seed, envir = .GlobalEnv)
+      } else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+        rm(".Random.seed", envir = .GlobalEnv)
+      }
+    }, add = TRUE)
+
     trial_streams <- make_rng_streams(seed, N_trials)
   } else {
     trial_streams <- NULL
+  }
+
+  survival_adapt_fn <- if (backend == "psock") {
+    make_psock_callable("survival_adapt")
+  } else {
+    survival_adapt
   }
 
   survival_adapt_wrapper <- function(x) {
     if (!is.null(trial_streams)) {
       assign(".Random.seed", trial_streams[[x]], envir = .GlobalEnv)
     }
-    survival_adapt(
+    survival_adapt_fn(
       hazard_treatment = hazard_treatment,
       hazard_control = hazard_control,
       cutpoints = cutpoints,
@@ -157,12 +187,92 @@ sim_trials <- function(
     )
   }
 
-  sims <- pbmclapply(1:N_trials, survival_adapt_wrapper, mc.cores = ncores)
+  trial_index <- seq_len(N_trials)
+  sims <- switch(
+    backend,
+    sequential = lapply(trial_index, survival_adapt_wrapper),
+    fork = pbmclapply(trial_index, survival_adapt_wrapper, mc.cores = ncores),
+    psock = {
+      cluster <- parallel::makeCluster(ncores)
+      on.exit(parallel::stopCluster(cluster), add = TRUE)
+      parallel::parLapply(cluster, trial_index, survival_adapt_wrapper)
+    }
+  )
 
   sims <- bind_rows(sims)
   out <- list(sims = sims, call = Call)
 
   return(out)
+}
+
+#' Resolve the execution backend for trial simulation
+#'
+#' @title Resolve a trial-simulation backend
+#'
+#' @description Maps the platform-independent "auto" choice to the serial,
+#'   fork, or PSOCK implementation. Forking is rejected on Windows because R
+#'   does not support it there.
+#'
+#' @param backend Requested backend name.
+#' @param ncores Number of requested workers.
+#'
+#' @return A single backend name.
+#'
+#' @keywords internal
+#' @noRd
+resolve_sim_backend <- function(backend, ncores) {
+  if (backend == "auto") {
+    if (ncores == 1L) {
+      return("sequential")
+    }
+    if (.Platform$OS.type == "windows") {
+      return("psock")
+    }
+    return("fork")
+  }
+
+  if (backend == "fork" && .Platform$OS.type == "windows") {
+    stop("'backend = \"fork\"' is not supported on Windows")
+  }
+
+  backend
+}
+
+#' Prepare a package function for a PSOCK worker
+#'
+#' @title Prepare a package function for PSOCK execution
+#'
+#' @description Re-homes the package's R functions in a serializable
+#'   environment so PSOCK workers use the same source implementation as the
+#'   calling session. The package namespace remains the parent environment to
+#'   provide imported functions and compiled routines.
+#'
+#' @param name Name of the package function to prepare.
+#'
+#' @return A function with all package R dependencies available in its
+#'   enclosing environment.
+#'
+#' @keywords internal
+#' @noRd
+make_psock_callable <- function(name) {
+  source_namespace <- environment(sim_trials)
+  worker_environment <- new.env(parent = source_namespace)
+  function_names <- ls(source_namespace, all.names = TRUE)
+  function_names <- function_names[
+    vapply(
+      function_names,
+      function(x) is.function(get(x, envir = source_namespace)),
+      logical(1)
+    )
+  ]
+
+  for (function_name in function_names) {
+    worker_function <- get(function_name, envir = source_namespace)
+    environment(worker_function) <- worker_environment
+    assign(function_name, worker_function, envir = worker_environment)
+  }
+
+  get(name, envir = worker_environment)
 }
 
 #' Generate independent random-number streams for trial simulations

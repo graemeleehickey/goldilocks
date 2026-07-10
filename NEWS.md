@@ -2,6 +2,10 @@
 
 ## Improvements
 
+* `sim_trials()` now supports reproducible PSOCK parallel execution on Windows
+  and an explicit `backend` argument. The default Unix fork path is retained;
+  `backend = "auto"` selects the appropriate implementation for the platform.
+  Seeded simulations now also restore the caller's RNG state (#40).
 * Consolidated the Bayesian binomial analysis implementation so its posterior
   calculations and method-specific branches are co-located in
   `bayes_binomial_test()`.

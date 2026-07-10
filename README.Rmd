@@ -75,8 +75,8 @@ computationally efficient and fast algorithm is helpful. The
     [`PWEALL`](https://CRAN.R-project.org/package=PWEALL) package, which
     uses a lightweight Fortran implementation
 
--   Simulation of multiple trials can be performed in parallel using the
-    [`pbmcapply`](https://CRAN.R-project.org/package=pbmcapply) package
+-   Simulation of multiple trials can be performed in parallel on Unix-like
+    platforms or Windows using R's parallel backends
 
 ## References
 

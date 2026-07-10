@@ -423,6 +423,8 @@ test_that("survival_adapt-logrank-one-sided", {
 })
 
 test_that("survival_adapt-cox-one-sided-less", {
+  set.seed(1)
+
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
