@@ -28,6 +28,8 @@
 * Chi-square final analyses now require `imputed_final = FALSE`, rather than
   averaging chi-square results across multiple imputed final datasets without a
   supported frequentist pooling rule (#51).
+* `sim_trials()` now defaults to serial execution with `ncores = 1L`, matching
+  its documentation and avoiding unexpected use of available cores (#54).
 * Chi-square analyses now error if censored subjects have not been followed to `end_of_study` or imputed before analysis.
 * `survival_adapt()` now works with the documented default success and futility thresholds when `interim_look = NULL`; thresholds are ignored when there are no interim looks.
 * `survival_adapt()`, `sim_comp_data()`, and `sim_trials()` now validate probability, prior, and positive-integer count arguments up front, avoiding invalid simulations or low-level downstream errors.

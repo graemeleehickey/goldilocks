@@ -7,7 +7,8 @@
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
 #' @param N_trials integer. Number of trials to simulate.
-#' @param ncores integer. Number of cores to use for parallel processing.
+#' @param ncores positive integer. Number of cores to use for parallel
+#'   processing. Defaults to `1L` (serial execution).
 #' @param seed optional integer. Seed used to generate independent per-trial
 #'   `"L'Ecuyer-CMRG"` random-number streams. The default, `NULL`,
 #'   does not reset the global RNG state, preserving the usual unseeded
@@ -33,7 +34,6 @@
 #'   statistics. See [survival_adapt()] for details of what is returned in each
 #'   row.
 #'
-#' @importFrom parallel detectCores
 #' @importFrom pbmcapply pbmclapply
 #' @export
 #'
@@ -101,18 +101,7 @@ sim_trials <- function(
 
   validate_positive_integer_scalar(N_trials, "N_trials")
 
-  # Check: missing 'ncores' defaults to maximum available (spare 1)
-  if (missing(ncores)) {
-    ncores <- default_ncores()
-  } else {
-    validate_positive_integer_scalar(ncores, "ncores")
-  }
-
-  # Check: cannot specify <1 core
-  if (ncores < 1) {
-    warning("Must use at least 1 core... setting ncores = 1")
-    ncores <- 1L
-  }
+  validate_positive_integer_scalar(ncores, "ncores")
 
   # Check: if Windows and if ncores = 1
   if (.Platform$OS.type == "Windows" & ncores > 1L) {
@@ -174,28 +163,6 @@ sim_trials <- function(
   out <- list(sims = sims, call = Call)
 
   return(out)
-}
-
-#' @title Determine a default core count
-#'
-#' @description Reserves one detected logical core for the system and falls
-#'   back to serial execution when the core count is unavailable.
-#'
-#' @noRd
-default_ncores <- function(
-  detected = parallel::detectCores(logical = TRUE)
-) {
-  if (
-    length(detected) != 1 ||
-      !is.numeric(detected) ||
-      is.na(detected) ||
-      !is.finite(detected) ||
-      detected < 2
-  ) {
-    return(1L)
-  }
-
-  max(1L, as.integer(detected) - 1L)
 }
 
 #' Generate independent random-number streams for trial simulations

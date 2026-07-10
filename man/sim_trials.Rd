@@ -182,7 +182,8 @@ interval in the same treatment arm and emits a warning. \code{"prior"} leaves
 the interval at zero exposure time and zero events, so its posterior is
 driven only by \code{prior}. \code{"error"} stops when any empty interval is found.}
 
-\item{ncores}{integer. Number of cores to use for parallel processing.}
+\item{ncores}{positive integer. Number of cores to use for parallel
+processing. Defaults to \code{1L} (serial execution).}
 
 \item{seed}{optional integer. Seed used to generate independent per-trial
 \code{"L'Ecuyer-CMRG"} random-number streams. The default, \code{NULL},

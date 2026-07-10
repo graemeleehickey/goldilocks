@@ -107,7 +107,7 @@ test_that("sim_trials-bayes-bin", {
   expect_s3_class(out$sims, "data.frame")
 })
 
-test_that("sim_trials-zero_cores", {
+test_that("sim_trials rejects invalid ncores", {
   hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
   ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
 
@@ -139,10 +139,8 @@ test_that("sim_trials-zero_cores", {
   )
 })
 
-test_that("default_ncores falls back safely when cores are unavailable", {
-  expect_equal(goldilocks:::default_ncores(NA_real_), 1L)
-  expect_equal(goldilocks:::default_ncores(1L), 1L)
-  expect_equal(goldilocks:::default_ncores(4L), 3L)
+test_that("sim_trials defaults to serial execution", {
+  expect_identical(formals(sim_trials)$ncores, 1L)
 })
 
 test_that("sim_trials uses survival_adapt decision-rule defaults", {
