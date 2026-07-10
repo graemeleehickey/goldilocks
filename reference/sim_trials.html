@@ -254,15 +254,18 @@ follow-up is complete), whether the analysis should be a log-rank
 Wald test (<code>method = "cox"</code>), a fully-Bayesian piecewise-exponential
 analysis (<code>method = "bayes-surv"</code>), a Bayesian beta-binomial analysis of
 complete binary outcomes (<code>method = "bayes-bin"</code>), or a chi-square test
-(<code>method = "chisq"</code>). See Details section.</p></dd>
+(<code>method = "chisq"</code>, which requires <code>imputed_final = FALSE</code>). See Details
+section.</p></dd>
 
 
 <dt id="arg-imputed-final">imputed_final<a class="anchor" aria-label="anchor" href="#arg-imputed-final"></a></dt>
 <dd><p>logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
-<code>end_of_study</code>)? Default is <code>TRUE</code>. Setting to <code>FALSE</code>
-means that the final analysis would incorporate right-censoring.</p></dd>
+<code>end_of_study</code>)? Default is <code>FALSE</code>, which means that the final analysis
+incorporates right-censoring. This option cannot be used with
+<code>method = "chisq"</code> because the package does not pool chi-square tests over
+multiple imputed final datasets in a frequentist framework.</p></dd>
 
 
 <dt id="arg-empty-interval">empty_interval<a class="anchor" aria-label="anchor" href="#arg-empty-interval"></a></dt>

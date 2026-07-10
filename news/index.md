@@ -87,6 +87,10 @@
   integer sample size, finite positive rates, and finite strictly
   increasing knots
   ([\#53](https://github.com/graemeleehickey/goldilocks/issues/53)).
+- Chi-square final analyses now require `imputed_final = FALSE`, rather
+  than averaging chi-square results across multiple imputed final
+  datasets without a supported frequentist pooling rule
+  ([\#51](https://github.com/graemeleehickey/goldilocks/issues/51)).
 - Chi-square analyses now error if censored subjects have not been
   followed to `end_of_study` or imputed before analysis.
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)

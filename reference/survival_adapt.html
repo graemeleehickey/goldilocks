@@ -258,15 +258,18 @@ follow-up is complete), whether the analysis should be a log-rank
 Wald test (<code>method = "cox"</code>), a fully-Bayesian piecewise-exponential
 analysis (<code>method = "bayes-surv"</code>), a Bayesian beta-binomial analysis of
 complete binary outcomes (<code>method = "bayes-bin"</code>), or a chi-square test
-(<code>method = "chisq"</code>). See Details section.</p></dd>
+(<code>method = "chisq"</code>, which requires <code>imputed_final = FALSE</code>). See Details
+section.</p></dd>
 
 
 <dt id="arg-imputed-final">imputed_final<a class="anchor" aria-label="anchor" href="#arg-imputed-final"></a></dt>
 <dd><p>logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
-<code>end_of_study</code>)? Default is <code>TRUE</code>. Setting to <code>FALSE</code>
-means that the final analysis would incorporate right-censoring.</p></dd>
+<code>end_of_study</code>)? Default is <code>FALSE</code>, which means that the final analysis
+incorporates right-censoring. This option cannot be used with
+<code>method = "chisq"</code> because the package does not pool chi-square tests over
+multiple imputed final datasets in a frequentist framework.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -369,7 +372,7 @@ requires complete binary outcomes: censored subjects must either be
 followed to <code>end_of_study</code>, imputed, or excluded when
 <code>imputed_final = FALSE</code>.</p></li>
 <li><p>Chi-square test (<code>method = "chisq"</code>).
-Each (imputed) dataset with both treatment and control arms can be
+The non-imputed final dataset with both treatment and control arms is
 compared using a standard chi-square test on the final event status,
 which discards the event time information. The output is a <em>P</em>-value,
 and there is no treatment effect reported. The function returns \(1 -
@@ -380,9 +383,9 @@ requires <code>post_prob_ha</code> \(&gt; 0.95\). The reason for this is to
 enable simple switching between Bayesian and frequentist paradigms for
 analysis. Because the chi-square test cannot handle right-censored
 observations, subjects lost to follow-up are excluded from the final
-analysis when <code>imputed_final = FALSE</code>. When
-<code>imputed_final = TRUE</code>, LTFU subjects are imputed before the
-test is applied, so all subjects are included.</p></li>
+analysis. <code>imputed_final = TRUE</code> is not supported for this method:
+averaging test results across multiple imputations does not define a
+chi-square test with a clear frequentist interpretation.</p></li>
 <li><p>Imputed final analysis (<code>imputed_final</code>).
 The overall final analysis conducted after accrual is suspended and
 follow-up is complete can be analyzed on imputed datasets (default) or
@@ -392,7 +395,7 @@ to follow-up is not yet known), it would seem most appropriate to
 conduct the trial in the same manner, especially if loss to follow-up
 rates are appreciable. Note, this only applies to subjects who are
 right-censored due to loss to follow-up, which we assume is a
-non-informative process. This can be used with any <code>method</code>.</p></li>
+non-informative process. It cannot be used with <code>method = "chisq"</code>.</p></li>
 </ul><p>When <code>method = "bayes-surv"</code> or <code>method = "bayes-bin"</code> and imputation is
 involved (either at interim
 analyses or via <code>imputed_final = TRUE</code>), a two-stage posterior

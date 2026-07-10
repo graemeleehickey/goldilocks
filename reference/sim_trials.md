@@ -220,15 +220,18 @@ sim_trials(
   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
   analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis
   of complete binary outcomes (`method = "bayes-bin"`), or a chi-square
-  test (`method = "chisq"`). See Details section.
+  test (`method = "chisq"`, which requires `imputed_final = FALSE`). See
+  Details section.
 
 - imputed_final:
 
   logical. Should the final analysis (after all subjects have been
   followed-up to the study end) be based on imputed outcomes for
   subjects who were LTFU (i.e. right-censored with time less than
-  `end_of_study`)? Default is `TRUE`. Setting to `FALSE` means that the
-  final analysis would incorporate right-censoring.
+  `end_of_study`)? Default is `FALSE`, which means that the final
+  analysis incorporates right-censoring. This option cannot be used with
+  `method = "chisq"` because the package does not pool chi-square tests
+  over multiple imputed final datasets in a frequentist framework.
 
 - empty_interval:
 
