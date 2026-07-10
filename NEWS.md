@@ -25,6 +25,9 @@
 * `h0` must now be a single finite value, with probability-scale bounds enforced for Bayesian analyses (#50).
 * Piecewise model inputs now require finite, strictly increasing cutpoints beginning at zero and a finite study endpoint after the final cutpoint. This validation is shared by simulation and probability helpers (#52).
 * `enrollment()` now validates its complete schedule before generating data, including integer sample size, finite positive rates, and finite strictly increasing knots (#53).
+* Chi-square final analyses now require `imputed_final = FALSE`, rather than
+  averaging chi-square results across multiple imputed final datasets without a
+  supported frequentist pooling rule (#51).
 * Chi-square analyses now error if censored subjects have not been followed to `end_of_study` or imputed before analysis.
 * `survival_adapt()` now works with the documented default success and futility thresholds when `interim_look = NULL`; thresholds are ignored when there are no interim looks.
 * `survival_adapt()`, `sim_comp_data()`, and `sim_trials()` now validate probability, prior, and positive-integer count arguments up front, avoiding invalid simulations or low-level downstream errors.

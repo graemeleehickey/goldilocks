@@ -166,13 +166,16 @@ follow-up is complete), whether the analysis should be a log-rank
 Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
 complete binary outcomes (\code{method = "bayes-bin"}), or a chi-square test
-(\code{method = "chisq"}). See Details section.}
+(\code{method = "chisq"}, which requires \code{imputed_final = FALSE}). See Details
+section.}
 
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
-\code{end_of_study})? Default is \code{TRUE}. Setting to \code{FALSE}
-means that the final analysis would incorporate right-censoring.}
+\code{end_of_study})? Default is \code{FALSE}, which means that the final analysis
+incorporates right-censoring. This option cannot be used with
+\code{method = "chisq"} because the package does not pool chi-square tests over
+multiple imputed final datasets in a frequentist framework.}
 }
 \value{
 A data frame containing some input parameters (arguments) as well as
@@ -290,7 +293,7 @@ requires complete binary outcomes: censored subjects must either be
 followed to \code{end_of_study}, imputed, or excluded when
 \code{imputed_final = FALSE}.
 \item Chi-square test (\code{method = "chisq"}).
-Each (imputed) dataset with both treatment and control arms can be
+The non-imputed final dataset with both treatment and control arms is
 compared using a standard chi-square test on the final event status,
 which discards the event time information. The output is a \emph{P}-value,
 and there is no treatment effect reported. The function returns \eqn{1 -
@@ -301,9 +304,9 @@ requires \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to
 enable simple switching between Bayesian and frequentist paradigms for
 analysis. Because the chi-square test cannot handle right-censored
 observations, subjects lost to follow-up are excluded from the final
-analysis when \code{imputed_final = FALSE}. When
-\code{imputed_final = TRUE}, LTFU subjects are imputed before the
-test is applied, so all subjects are included.
+analysis. \code{imputed_final = TRUE} is not supported for this method:
+averaging test results across multiple imputations does not define a
+chi-square test with a clear frequentist interpretation.
 \item Imputed final analysis (\code{imputed_final}).
 The overall final analysis conducted after accrual is suspended and
 follow-up is complete can be analyzed on imputed datasets (default) or
@@ -313,7 +316,7 @@ to follow-up is not yet known), it would seem most appropriate to
 conduct the trial in the same manner, especially if loss to follow-up
 rates are appreciable. Note, this only applies to subjects who are
 right-censored due to loss to follow-up, which we assume is a
-non-informative process. This can be used with any \code{method}.
+non-informative process. It cannot be used with \code{method = "chisq"}.
 }
 
 When \code{method = "bayes-surv"} or \code{method = "bayes-bin"} and imputation is

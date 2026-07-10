@@ -172,6 +172,25 @@ test_that("survival_adapt-chisq excludes LTFU when imputed_final = FALSE", {
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
 })
 
+test_that("survival_adapt-chisq rejects imputed final analyses", {
+  expect_error(
+    survival_adapt(
+      hazard_treatment = -log(0.85) / 36,
+      hazard_control = -log(0.7) / 36,
+      cutpoints = 0,
+      N_total = 200,
+      lambda = 20,
+      lambda_time = 0,
+      interim_look = NULL,
+      end_of_study = 36,
+      alternative = "two.sided",
+      method = "chisq",
+      imputed_final = TRUE
+    ),
+    "no supported frequentist pooling rule"
+  )
+})
+
 test_that("survival_adapt-cox with imputed_final", {
   set.seed(8263)
   out <- survival_adapt(

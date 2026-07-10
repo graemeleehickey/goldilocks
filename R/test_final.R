@@ -52,6 +52,14 @@ test_final <- function(
   empty_interval,
   end_of_study
 ) {
+  if (imputed_final && method == "chisq") {
+    stop(
+      "The chi-square test cannot use 'imputed_final = TRUE' because ",
+      "there is no supported frequentist pooling rule for multiple ",
+      "imputed final datasets"
+    )
+  }
+
   if (imputed_final) {
     # Posterior distribution of lambdas: final data
     post_lambda_final <- posterior(

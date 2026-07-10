@@ -83,12 +83,15 @@
 #'   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
 #'   analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis of
 #'   complete binary outcomes (`method = "bayes-bin"`), or a chi-square test
-#'   (`method = "chisq"`). See Details section.
+#'   (`method = "chisq"`, which requires `imputed_final = FALSE`). See Details
+#'   section.
 #' @param imputed_final logical. Should the final analysis (after all subjects
 #'   have been followed-up to the study end) be based on imputed outcomes for
 #'   subjects who were LTFU (i.e. right-censored with time less than
-#'   `end_of_study`)? Default is `TRUE`. Setting to `FALSE`
-#'   means that the final analysis would incorporate right-censoring.
+#'   `end_of_study`)? Default is `FALSE`, which means that the final analysis
+#'   incorporates right-censoring. This option cannot be used with
+#'   `method = "chisq"` because the package does not pool chi-square tests over
+#'   multiple imputed final datasets in a frequentist framework.
 #'
 #' @details Implements the Goldilocks design method described in Broglio et al.
 #'   (2014). At each interim analysis, two probabilities are computed:
@@ -183,7 +186,7 @@
 #'      `imputed_final = FALSE`.
 #'
 #'  * Chi-square test (`method = "chisq"`).
-#'      Each (imputed) dataset with both treatment and control arms can be
+#'      The non-imputed final dataset with both treatment and control arms is
 #'      compared using a standard chi-square test on the final event status,
 #'      which discards the event time information. The output is a *P*-value,
 #'      and there is no treatment effect reported. The function returns \eqn{1 -
@@ -194,9 +197,9 @@
 #'      enable simple switching between Bayesian and frequentist paradigms for
 #'      analysis. Because the chi-square test cannot handle right-censored
 #'      observations, subjects lost to follow-up are excluded from the final
-#'      analysis when `imputed_final = FALSE`. When
-#'      `imputed_final = TRUE`, LTFU subjects are imputed before the
-#'      test is applied, so all subjects are included.
+#'      analysis. `imputed_final = TRUE` is not supported for this method:
+#'      averaging test results across multiple imputations does not define a
+#'      chi-square test with a clear frequentist interpretation.
 #'
 #'  * Imputed final analysis (`imputed_final`).
 #'      The overall final analysis conducted after accrual is suspended and
@@ -207,7 +210,7 @@
 #'      conduct the trial in the same manner, especially if loss to follow-up
 #'      rates are appreciable. Note, this only applies to subjects who are
 #'      right-censored due to loss to follow-up, which we assume is a
-#'      non-informative process. This can be used with any `method`.
+#'      non-informative process. It cannot be used with `method = "chisq"`.
 #'
 #'   When `method = "bayes-surv"` or `method = "bayes-bin"` and imputation is
 #'   involved (either at interim
@@ -385,6 +388,14 @@ survival_adapt <- function(
   # Check: chi-square test only available as two-sided
   if (alternative != "two.sided" & method == "chisq") {
     stop("The chi-square test can only be applied as a two-sided test")
+  }
+
+  if (imputed_final && method == "chisq") {
+    stop(
+      "The chi-square test cannot use 'imputed_final = TRUE' because ",
+      "there is no supported frequentist pooling rule for multiple ",
+      "imputed final datasets"
+    )
   }
 
   # Check: frequentist tests only available for two-armed trials
