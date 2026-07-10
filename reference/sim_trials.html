@@ -76,6 +76,7 @@ and tidily extract the relevant data to generate operating characteristics.</p>
 <span>  imputed_final <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  empty_interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"propagate"</span>, <span class="st">"prior"</span>, <span class="st">"error"</span><span class="op">)</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  backend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"fork"</span>, <span class="st">"psock"</span>, <span class="st">"sequential"</span><span class="op">)</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -284,6 +285,13 @@ driven only by <code>prior</code>. <code>"error"</code> stops when any empty int
 processing. Defaults to <code>1L</code> (serial execution).</p></dd>
 
 
+<dt id="arg-backend">backend<a class="anchor" aria-label="anchor" href="#arg-backend"></a></dt>
+<dd><p>character. Parallel backend. "auto" (the default) uses
+serial execution for <code>ncores = 1</code>, the existing fork backend on Unix-like
+platforms, and a PSOCK cluster on Windows. "fork", "psock", and
+"sequential" select a backend explicitly.</p></dd>
+
+
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>optional integer. Seed used to generate independent per-trial
 <code>"L'Ecuyer-CMRG"</code> random-number streams. The default, <code>NULL</code>,
@@ -303,15 +311,19 @@ row.</p>
 <code><a href="survival_adapt.html">survival_adapt()</a></code>, whereby we repeatedly run the function for independent
 trials (all with the same input design parameters and treatment effect).</p>
 <p>To use multiple cores (where available), the argument <code>ncores</code>
-can be increased from the default of 1. Note: on Windows machines, it is
-not possible to use <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply()</a></code> with <code>ncores</code> \(&gt; 1\).</p>
+can be increased from the default of 1. The default <code>backend = "auto"</code>
+uses <code><a href="https://rdrr.io/pkg/pbmcapply/man/pbmclapply.html" class="external-link">pbmcapply::pbmclapply()</a></code> on Unix-like platforms and a PSOCK cluster
+on Windows, where forked processes are unavailable. Set <code>backend</code>
+explicitly to compare backends or to require serial execution.</p>
 <p>Set <code>seed</code> to make <code>sim_trials()</code> reproducible. When a seed is
 supplied, <code>sim_trials()</code> first generates one independent
 <code>"L'Ecuyer-CMRG"</code> stream for each simulated trial, then each call to
 <code><a href="survival_adapt.html">survival_adapt()</a></code> runs with its own per-trial stream. This avoids
 reusing the same random-number stream across workers when
-<code>ncores &gt; 1</code>. With <code>seed = NULL</code>, the function uses R's current
-global RNG state.</p>
+<code>ncores &gt; 1</code>, and produces identical seeded results across supported
+backends. A seeded call restores the caller's RNG state on exit. With
+<code>seed = NULL</code>, the function uses and advances R's current global RNG
+state.</p>
     </div>
 
     <div class="section level2">
@@ -342,6 +354,7 @@ global RNG state.</p>
 <span class="r-in"><span>  method <span class="op">=</span> <span class="st">"logrank"</span>,</span></span>
 <span class="r-in"><span>  N_trials <span class="op">=</span> <span class="fl">2</span>,</span></span>
 <span class="r-in"><span>  ncores <span class="op">=</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>  backend <span class="op">=</span> <span class="st">"auto"</span>,</span></span>
 <span class="r-in"><span>  seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>

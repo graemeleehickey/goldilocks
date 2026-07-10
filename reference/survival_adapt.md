@@ -443,7 +443,7 @@ survival_adapt(
  N_mcmc = 10,
  method = "bayes-surv")
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
-#> 1          0.975      0        less         300       300        600   600
+#> 1          0.975      0        less         200       200        400   600
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1            1 -0.1247311         0.8             0                     0
+#> 1            1 -0.2098212           1             0                     1
 ```

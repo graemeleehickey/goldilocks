@@ -42,7 +42,9 @@
 <h2 class="pkg-version" data-toc-text="0.5.0.9000" id="goldilocks-0509000">goldilocks 0.5.0.9000<a class="anchor" aria-label="anchor" href="#goldilocks-0509000"></a></h2>
 <div class="section level3">
 <h3 id="improvements-0-5-0-9000">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-5-0-9000"></a></h3>
-<ul><li>Consolidated the Bayesian binomial analysis implementation so its posterior calculations and method-specific branches are co-located in <code>bayes_binomial_test()</code>.</li>
+<ul><li>
+<code><a href="../reference/sim_trials.html">sim_trials()</a></code> now supports reproducible PSOCK parallel execution on Windows and an explicit <code>backend</code> argument. The default Unix fork path is retained; <code>backend = "auto"</code> selects the appropriate implementation for the platform. Seeded simulations now also restore the caller’s RNG state (<a href="https://github.com/graemeleehickey/goldilocks/issues/40" class="external-link">#40</a>).</li>
+<li>Consolidated the Bayesian binomial analysis implementation so its posterior calculations and method-specific branches are co-located in <code>bayes_binomial_test()</code>.</li>
 <li>Renamed the piecewise-exponential Bayesian survival analysis method from <code>method = "bayes"</code> to <code>method = "bayes-surv"</code> to distinguish it from <code>method = "bayes-bin"</code>.</li>
 <li>Added <code>method = "bayes-bin"</code> for Bayesian beta-binomial analysis of complete binary outcomes, with Monte Carlo, normal approximation, and quadrature options for treatment-control differences.</li>
 <li>Cox model analyses now use a lower-level survival fit for repeated Wald tests, avoiding formula and summary overhead in simulation hot paths.</li>

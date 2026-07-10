@@ -125,8 +125,9 @@ parallelize the simulations over multiple cores.
 - Number of imputations from predictive distribution: `N_impute = 100`
 - Independent prior distribution for each hazard rate parameter:
   `prior = c(0.1, 0.1)`
-- Parallel computation: `ncores = 8` (note: this is not currently
-  possible on Windows machines)
+- Parallel computation: `ncores = 8`. The default `backend = "auto"`
+  uses forked workers on Unix-like platforms and PSOCK workers on
+  Windows.
 - Reproducible simulation streams: `seed = 123`
 
 Similar to above, the parameter `N_mcmc` is not required when using a

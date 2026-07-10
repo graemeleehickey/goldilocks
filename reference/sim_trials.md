@@ -34,6 +34,7 @@ sim_trials(
   imputed_final = FALSE,
   empty_interval = c("propagate", "prior", "error"),
   ncores = 1L,
+  backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL
 )
 ```
@@ -250,6 +251,13 @@ sim_trials(
   positive integer. Number of cores to use for parallel processing.
   Defaults to `1L` (serial execution).
 
+- backend:
+
+  character. Parallel backend. "auto" (the default) uses serial
+  execution for `ncores = 1`, the existing fork backend on Unix-like
+  platforms, and a PSOCK cluster on Windows. "fork", "psock", and
+  "sequential" select a backend explicitly.
+
 - seed:
 
   optional integer. Seed used to generate independent per-trial
@@ -272,18 +280,21 @@ whereby we repeatedly run the function for independent trials (all with
 the same input design parameters and treatment effect).
 
 To use multiple cores (where available), the argument `ncores` can be
-increased from the default of 1. Note: on Windows machines, it is not
-possible to use
-[`parallel::mclapply()`](https://rdrr.io/r/parallel/mclapply.html) with
-`ncores` \\\> 1\\.
+increased from the default of 1. The default `backend = "auto"` uses
+[`pbmcapply::pbmclapply()`](https://rdrr.io/pkg/pbmcapply/man/pbmclapply.html)
+on Unix-like platforms and a PSOCK cluster on Windows, where forked
+processes are unavailable. Set `backend` explicitly to compare backends
+or to require serial execution.
 
 Set `seed` to make `sim_trials()` reproducible. When a seed is supplied,
 `sim_trials()` first generates one independent `"L'Ecuyer-CMRG"` stream
 for each simulated trial, then each call to
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
 runs with its own per-trial stream. This avoids reusing the same
-random-number stream across workers when `ncores > 1`. With
-`seed = NULL`, the function uses R's current global RNG state.
+random-number stream across workers when `ncores > 1`, and produces
+identical seeded results across supported backends. A seeded call
+restores the caller's RNG state on exit. With `seed = NULL`, the
+function uses and advances R's current global RNG state.
 
 ## Examples
 
@@ -314,5 +325,6 @@ out <- sim_trials(
   method = "logrank",
   N_trials = 2,
   ncores = 1,
+  backend = "auto",
   seed = 123)
 ```

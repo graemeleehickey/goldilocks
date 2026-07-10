@@ -4,6 +4,12 @@
 
 ### Improvements
 
+- [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  now supports reproducible PSOCK parallel execution on Windows and an
+  explicit `backend` argument. The default Unix fork path is retained;
+  `backend = "auto"` selects the appropriate implementation for the
+  platform. Seeded simulations now also restore the caller’s RNG state
+  ([\#40](https://github.com/graemeleehickey/goldilocks/issues/40)).
 - Consolidated the Bayesian binomial analysis implementation so its
   posterior calculations and method-specific branches are co-located in
   `bayes_binomial_test()`.

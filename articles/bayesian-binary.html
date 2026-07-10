@@ -218,7 +218,9 @@ sample sizes are small or event probabilities are near 0 or 1.</p>
 <p>As with the survival methods, operating characteristics should be
 evaluated by simulation. The <code>seed</code> argument makes the
 simulation reproducible, including when <code>ncores</code> is greater
-than 1 on platforms that support parallel simulation.</p>
+than 1. With <code>backend = "auto"</code>, <code><a href="../reference/sim_trials.html">sim_trials()</a></code>
+uses forked workers on Unix-like platforms and PSOCK workers on
+Windows.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  N_trials <span class="op">=</span> <span class="fl">1000</span>,</span>

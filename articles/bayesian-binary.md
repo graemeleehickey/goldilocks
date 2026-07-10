@@ -151,8 +151,10 @@ sample sizes are small or event probabilities are near 0 or 1.
 
 As with the survival methods, operating characteristics should be
 evaluated by simulation. The `seed` argument makes the simulation
-reproducible, including when `ncores` is greater than 1 on platforms
-that support parallel simulation.
+reproducible, including when `ncores` is greater than 1. With
+`backend = "auto"`,
+[`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+uses forked workers on Unix-like platforms and PSOCK workers on Windows.
 
 ``` r
 
