@@ -86,6 +86,19 @@ validate_positive_integer_vector <- function(x, name) {
   invisible(TRUE)
 }
 
+#' @title Validate one logical value
+#'
+#' @description Checks that an input is a non-missing scalar logical value.
+#'
+#' @noRd
+validate_logical_scalar <- function(x, name) {
+  if (!is.logical(x) || length(x) != 1 || is.na(x)) {
+    stop("'", name, "' must be TRUE or FALSE")
+  }
+
+  invisible(TRUE)
+}
+
 #' @title Validate a Gamma prior
 #'
 #' @description Checks that a Gamma prior supplies two finite, strictly positive
@@ -154,6 +167,29 @@ validate_endpoint_time <- function(endpoint, cutpoints, name, after_last = TRUE)
 
   if (after_last && endpoint <= max(cutpoints)) {
     stop("'", name, "' must be a finite value greater than the last cutpoint")
+  }
+
+  invisible(TRUE)
+}
+
+#' @title Validate an administrative censoring time
+#'
+#' @description Checks that an optional administrative censoring time is a
+#'   single, finite, strictly positive numeric value.
+#'
+#' @noRd
+validate_maxtime <- function(maxtime) {
+  if (
+    !is.null(maxtime) &&
+      (
+        length(maxtime) != 1 ||
+          !is.numeric(maxtime) ||
+          is.na(maxtime) ||
+          !is.finite(maxtime) ||
+          maxtime <= 0
+      )
+  ) {
+    stop("'maxtime' must be a single finite positive value or NULL")
   }
 
   invisible(TRUE)
@@ -258,6 +294,56 @@ validate_enrollment_schedule <- function(lambda, lambda_time, N_total) {
   invisible(TRUE)
 }
 
+#' @title Validate randomization settings
+#'
+#' @description Checks that a two-arm block-randomization schedule has valid
+#'   block sizes and allocation weights compatible with the target sample size.
+#'
+#' @noRd
+validate_randomization_args <- function(N_total, block, allocation) {
+  validate_positive_integer_scalar(N_total, "N_total")
+
+  if (
+    !is.numeric(block) ||
+      !is.null(dim(block)) ||
+      length(block) == 0 ||
+      any(is.na(block)) ||
+      any(!is.finite(block)) ||
+      any(block %% 1 != 0) ||
+      any(block <= 0)
+  ) {
+    stop("'block' must contain positive integer values")
+  }
+
+  if (length(allocation) != 2) {
+    stop("'allocation' must contain two positive integer values")
+  }
+
+  if (
+    !is.numeric(allocation) ||
+      !is.null(dim(allocation)) ||
+      any(is.na(allocation)) ||
+      any(!is.finite(allocation)) ||
+      any(allocation %% 1 != 0)
+  ) {
+    stop("All values of 'allocation' must be integer values")
+  }
+
+  if (any(allocation <= 0)) {
+    stop("'allocation' must contain two positive integer values")
+  }
+
+  if (any(block %% sum(allocation) != 0)) {
+    stop("Sum of 'allocation' must be a multiple of 'block'")
+  }
+
+  if (N_total < sum(block)) {
+    stop("Number of subjects must be at least the size of 'block'")
+  }
+
+  invisible(TRUE)
+}
+
 #' @title Validate a null hypothesis value
 #'
 #' @description Checks that a null value is finite and lies within the support
@@ -288,6 +374,97 @@ validate_h0 <- function(h0, method, single_arm) {
         " Bayesian analyses"
       )
     }
+  }
+
+  invisible(TRUE)
+}
+
+#' @title Validate analysis-method configuration
+#'
+#' @description Checks the mutually compatible analysis settings shared by
+#'   trial simulation and final analysis.
+#'
+#' @noRd
+validate_analysis_configuration <- function(
+  method,
+  alternative,
+  single_arm,
+  imputed_final
+) {
+  if (
+    length(alternative) != 1 ||
+      !is.character(alternative) ||
+      is.na(alternative) ||
+      !alternative %in% c("two.sided", "greater", "less")
+  ) {
+    stop("'alternative' must be one of 'two.sided', 'greater', or 'less'")
+  }
+
+  if (
+    length(method) != 1 ||
+      !is.character(method) ||
+      is.na(method) ||
+      !method %in% c("bayes-surv", "bayes-bin", "logrank", "cox", "chisq")
+  ) {
+    stop("'method' must be one of 'bayes-surv', 'bayes-bin', 'logrank', 'cox', or 'chisq'")
+  }
+
+  validate_logical_scalar(single_arm, "single_arm")
+  validate_logical_scalar(imputed_final, "imputed_final")
+
+  if (alternative == "two.sided" && method %in% c("bayes-surv", "bayes-bin")) {
+    stop(
+      "Bayesian tests can only be used with alternative equal to 'greater' or 'less'"
+    )
+  }
+
+  if (alternative != "two.sided" && method == "chisq") {
+    stop("The chi-square test can only be applied as a two-sided test")
+  }
+
+  if (imputed_final && method %in% c("logrank", "cox", "chisq")) {
+    stop(
+      "Frequentist methods ('logrank', 'cox', and 'chisq') cannot use ",
+      "'imputed_final = TRUE' because ",
+      "there is no supported frequentist pooling rule for multiple ",
+      "imputed final datasets"
+    )
+  }
+
+  if (single_arm && method %in% c("logrank", "cox", "chisq")) {
+    stop("The selected method can only be used for two-armed trials")
+  }
+
+  invisible(TRUE)
+}
+
+#' @title Validate interim analysis looks
+#'
+#' @description Checks that interim analyses occur at strictly increasing,
+#'   positive enrollment counts below the target sample size and, for two-arm
+#'   block randomization, after at least one complete block.
+#'
+#' @noRd
+validate_interim_looks <- function(interim_look, N_total, min_look = NULL) {
+  validate_positive_integer_vector(interim_look, "interim_look")
+
+  if (any(interim_look >= N_total)) {
+    stop("'interim_look' must contain values strictly less than 'N_total'")
+  }
+
+  if (any(diff(interim_look) <= 0)) {
+    stop("'interim_look' must be strictly increasing without duplicates")
+  }
+
+  if (!is.null(min_look) && any(interim_look < min_look)) {
+    stop(
+      "Each 'interim_look' must be at least the block size (",
+      min_look,
+      ") so that both treatment groups are present at every ",
+      "interim analysis. Smallest 'interim_look' given: ",
+      min(interim_look),
+      "."
+    )
   }
 
   invisible(TRUE)

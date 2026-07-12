@@ -48,6 +48,28 @@ test_that("impute_data updates success rows by index for two-arm data", {
   expect_equal(out$event[control_idx], expected_control$event)
 })
 
+test_that("impute_data requires exactly one posterior hazard draw", {
+  data_in <- data.frame(
+    time = 1,
+    treatment = 1,
+    event = 0,
+    subject_impute_success = TRUE,
+    subject_impute_futility = FALSE
+  )
+
+  expect_error(
+    goldilocks:::impute_data(
+      data_in = data_in,
+      hazard = array(0.04, dim = c(2, 1, 1)),
+      end_of_study = 36,
+      cutpoints = 0,
+      type = "success",
+      single_arm = TRUE
+    ),
+    "exactly one posterior draw"
+  )
+})
+
 test_that("impute_data updates futility rows by index for two-arm data", {
   data_in <- data.frame(
     time = c(2, 4, 6, 8, 10, 12),

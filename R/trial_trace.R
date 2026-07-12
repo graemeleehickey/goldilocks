@@ -130,6 +130,7 @@ summarise_trial_trace <- function(x) {
 #'
 #' @return The trace data frame, invisibly.
 #'
+#' @importFrom graphics plot.new title
 #' @export
 plot_trial_trace <- function(x) {
   trace <- get_trial_trace(x)

@@ -64,7 +64,18 @@ test_that("pwe_sim errors on unsorted cutpoints", {
 test_that("pwe_sim errors on non-positive maxtime", {
   expect_error(
     pwe_sim(n = 10, hazard = 0.01, cutpoints = 0, maxtime = -1),
-    "postive"
+    "positive"
+  )
+})
+
+test_that("pwe utilities require finite scalar maxtime values", {
+  expect_error(
+    pwe_sim(n = 10, hazard = 0.01, cutpoints = 0, maxtime = Inf),
+    "single finite positive"
+  )
+  expect_error(
+    pwe_impute(time = 1, hazard = 0.01, cutpoints = 0, maxtime = c(2, 3)),
+    "single finite positive"
   )
 })
 

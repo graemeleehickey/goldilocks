@@ -16,18 +16,13 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-The `goldilocks` package implements the Goldilocks adaptive trial design
-described in Broglio et al. (2014). This vignette provides a visual overview
-of how the package functions are interconnected.
+The `goldilocks` package implements the Goldilocks adaptive trial design described in Broglio et al. (2014). This vignette provides a visual overview of how the package functions are interconnected.
 
 ## Function dependency diagram
 
-The diagram below shows the call graph from the top-level simulation
-function (`sim_trials()`) down through the core engine
-(`survival_adapt()`) and into the internal analysis pipeline.
+The diagram below shows the call graph from the top-level simulation function (`sim_trials()`) down through the core engine (`survival_adapt()`) and into the internal analysis pipeline.
 
-**Exported functions** are shown in blue. **Internal functions** are shown
-in grey.
+**Exported functions** are shown in blue. **Internal functions** are shown in grey.
 
 ```{r, echo = FALSE, fig.width = 8, fig.height = 8, fig.alt = "Diagram showing the function call dependencies in the goldilocks package."}
 DiagrammeR::grViz("
@@ -103,35 +98,20 @@ The functions fall into three layers:
 
 ### Simulation layer
 
-- **`sim_trials()`**: Top-level entry point. Runs `survival_adapt()`
-  across multiple trials (optionally in parallel) and collates results.
-- **`summarise_sims()`**: Summarizes the output of `sim_trials()`,
-  computing operating characteristics such as power, expected sample
-  size, and stopping probabilities.
-- **`summarise_trial_trace()`**: Condenses an optional single-trial interim
-  trace into a one-row stopping-path summary.
-- **`plot_trial_trace()`**: Visualizes predictive probabilities, thresholds,
-  enrollment, and observed events for an optional single-trial trace.
-- **`plot_sim_stopping()`**: Visualizes stopping outcomes and enrolled sample
-  sizes across simulated trials.
+-   **`sim_comp_data()`**: Generates a complete trial dataset by calling `enrollment()`, `randomization()`, and `pwe_sim()`.
+-   **`survival_adapt()`**: Simulates a single adaptive trial. Generates data via `sim_comp_data()`, conducts interim analyses using `posterior()` and `test_stop_success()`, and performs the final analysis via `test_final()`. With `return_trace = TRUE`, it also retains a compact audit trail for each completed interim look.
+-   **`sim_trials()`**: Top-level entry point. Runs `survival_adapt()` across multiple trials (optionally in parallel) and collates results.
 
-### Trial engine
+### Post-processing functions
 
-- **`survival_adapt()`**: Simulates a single adaptive trial. Generates
-  data via `sim_comp_data()`, conducts interim analyses using
-  `posterior()` and `test_stop_success()`, and performs the final
-  analysis via `test_final()`. With `return_trace = TRUE`, it also retains a
-  compact audit trail for each completed interim look.
+-   **`summarise_sims()`**: Summarizes the output of `sim_trials()`, computing operating characteristics such as power, expected sample size, and stopping probabilities.
+-   **`summarise_trial_trace()`**: Condenses an optional single-trial interim trace into a one-row stopping-path summary.
+-   **`plot_trial_trace()`**: Visualizes predictive probabilities, thresholds, enrollment, and observed events for an optional single-trial trace.
+-   **`plot_sim_stopping()`**: Visualizes stopping outcomes and enrolled sample sizes across simulated trials.
 
 ### Data generation and analysis utilities
 
-- **`sim_comp_data()`**: Generates a complete trial dataset by calling
-  `enrollment()`, `randomization()`, and `pwe_sim()`.
-- **`posterior()`**: Estimates the posterior distribution of piecewise
-  exponential hazard rates using a conjugate Gamma model.
-- **`analyse_data()`**: Applies the chosen analysis method (`logrank`,
-  `cox`, `bayes-surv`, `bayes-bin`, or `chisq`) to an (imputed) dataset.
-- **`impute_data()`**: Imputes missing event times for censored subjects
-  using `pwe_impute()` or `pwe_sim()`.
-- **`haz_to_prop()`**: Converts posterior hazard rate draws to
-  cumulative incidence proportions via `ppwe()`.
+-   **`posterior()`**: Estimates the posterior distribution of piecewise exponential hazard rates using a conjugate Gamma model.
+-   **`analyse_data()`**: Applies the chosen analysis method (`logrank`, `cox`, `bayes-surv`, `bayes-bin`, or `chisq`) to an (imputed) dataset.
+-   **`impute_data()`**: Imputes missing event times for censored subjects using `pwe_impute()` or `pwe_sim()`.
+-   **`haz_to_prop()`**: Converts posterior hazard rate draws to cumulative incidence proportions via `ppwe()`.

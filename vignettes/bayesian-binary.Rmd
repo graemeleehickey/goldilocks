@@ -19,29 +19,25 @@ set.seed(5107)
 library(goldilocks)
 ```
 
-`goldilocks` can analyze completed binary endpoints using
-`method = "bayes-bin"`. This is useful when the final decision is based on the
-event indicator by a fixed endpoint time, rather than the event time itself.
-The trial simulator still uses time-to-event hazards to generate when events
-occur and to impute not-yet-observed outcomes at interim looks, but the final
-analysis reduces each completed dataset to binary event status by
-`end_of_study`.
+`goldilocks` can analyze completed binary endpoints using `method = "bayes-bin"`. This is useful when the final decision is based on the event indicator by a fixed endpoint time, rather than the event time itself. The trial simulator still uses time-to-event hazards to generate when events occur and to impute not-yet-observed outcomes at interim looks, but the final analysis reduces each completed dataset to binary event status by `end_of_study`.
+
+Two distinct priors can therefore enter a Bayesian binary design. The `prior` argument is a Gamma prior on the piecewise-exponential hazards. It is used only for the event-time model that generates predictive imputations at interim looks (and at the final analysis when `imputed_final = TRUE`). The `bin_prior` argument is a Beta prior on the binary endpoint event probability in each arm. It is used for the Bayesian binary analysis of every completed or imputed dataset. Thus, interim predictive probabilities are affected by both priors, whereas a non-imputed final binary analysis is affected by `bin_prior` alone.
+
+For the examples below, we use the default weakly informative Gamma$(0.1, 0.1)$ hazard prior and a uniform Beta$(1, 1)$ binary-endpoint prior:
+
+```{r priors}
+hazard_prior <- c(0.1, 0.1)  # Gamma shape and rate for predictive imputation
+bin_prior <- c(1, 1)         # Beta shapes for the binary endpoint analysis
+```
 
 Two practical consequences follow:
 
-- `method = "bayes-bin"` only supports one-sided alternatives:
-  `alternative = "less"` or `alternative = "greater"`.
-- The final binary analysis requires complete endpoint status. Subjects who are
-  censored before `end_of_study` must be imputed (`imputed_final = TRUE`) or,
-  if `imputed_final = FALSE`, excluded from the final binary analysis.
+-   `method = "bayes-bin"` only supports one-sided alternatives: `alternative = "less"` or `alternative = "greater"`.
+-   The final binary analysis requires complete endpoint status. Subjects who are censored before `end_of_study` must be imputed (`imputed_final = TRUE`) or, if `imputed_final = FALSE`, excluded from the final binary analysis.
 
 ## Two-arm design
 
-Suppose the control event probability by 12 months is 35%, and the treatment is
-expected to reduce this to 25%. We use a beta-binomial final analysis with a
-uniform `Beta(1, 1)` prior in each arm. Since lower event probability is
-beneficial, we use `alternative = "less"` and compare the posterior distribution
-of
+Suppose the control event probability by 12 months is 35%, and the treatment is expected to reduce this to 25%. We use a beta-binomial final analysis with a uniform `Beta(1, 1)` prior in each arm. Since lower event probability is beneficial, we use `alternative = "less"` and compare the posterior distribution of
 
 $$p_{\text{treatment}} - p_{\text{control}}$$
 
@@ -61,7 +57,8 @@ out_two_arm <- survival_adapt(
   lambda_time = 0,
   interim_look = 80,
   end_of_study = end_of_study,
-  bin_prior = c(1, 1),
+  prior = hazard_prior,
+  bin_prior = bin_prior,
   bin_method = "quadrature",
   block = 2,
   rand_ratio = c(1, 1),
@@ -79,21 +76,13 @@ out_two_arm <- survival_adapt(
 out_two_arm
 ```
 
-The output has the same structure as other `survival_adapt()` analyses.
-For `method = "bayes-bin"`, `est_final` is the posterior mean binary effect:
-the treatment event probability minus the control event probability. The
-`post_prob_ha` value is the posterior probability that this difference is below
-`h0` when `alternative = "less"`.
+The output has the same structure as other `survival_adapt()` analyses. For `method = "bayes-bin"`, `est_final` is the posterior mean binary effect: the treatment event probability minus the control event probability. The `post_prob_ha` value is the posterior probability that this difference is below `h0` when `alternative = "less"`.
 
 ## Single-arm design
 
-For a single-arm design, set `hazard_control = NULL`. The comparator is an
-external benchmark event probability supplied through `h0`, often called a
-performance goal (PG) or objective performance criterion (OPC).
+For a single-arm design, set `hazard_control = NULL`. The comparator is an external benchmark event probability supplied through `h0`, often called a performance goal (PG) or objective performance criterion (OPC).
 
-Here the benchmark event probability is 30%, and the target event probability
-is 20%. With `alternative = "less"`, success means the posterior probability
-that the event probability is below 30% exceeds `prob_ha`.
+Here the benchmark event probability is 30%, and the target event probability is 20%. With `alternative = "less"`, success means the posterior probability that the event probability is below 30% exceeds `prob_ha`.
 
 ```{r single_arm_design}
 benchmark <- 0.30
@@ -109,7 +98,8 @@ out_single_arm <- survival_adapt(
   lambda_time = 0,
   interim_look = 50,
   end_of_study = end_of_study,
-  bin_prior = c(1, 1),
+  prior = hazard_prior,
+  bin_prior = bin_prior,
   bin_method = "quadrature",
   prop_loss = 0,
   alternative = "less",
@@ -125,32 +115,21 @@ out_single_arm <- survival_adapt(
 out_single_arm
 ```
 
-In this setting `est_final` is the posterior mean event probability in the
-single arm, and `post_prob_ha` is the posterior probability that this event
-probability is below the benchmark.
+In this setting `est_final` is the posterior mean event probability in the single arm, and `post_prob_ha` is the posterior probability that this event probability is below the benchmark.
 
 ## Choosing `bin_method`
 
 The posterior probability can be calculated in three ways:
 
-- `bin_method = "mc"` draws from the beta posterior directly. Use `bin_N` to
-  control the number of Monte Carlo draws.
-- `bin_method = "normal"` uses a normal approximation to the posterior mean or
-  treatment-control difference.
-- `bin_method = "quadrature"` uses numerical integration for the two-arm
-  posterior difference, and the closed-form beta CDF for single-arm designs.
+-   `bin_method = "mc"` draws from the beta posterior directly. Use `bin_N` to control the number of Monte Carlo draws.
+-   `bin_method = "normal"` uses a normal approximation to the posterior mean or treatment-control difference.
+-   `bin_method = "quadrature"` uses numerical integration for the two-arm posterior difference, and the closed-form beta CDF for single-arm designs.
 
-The Monte Carlo option is usually the most flexible. The quadrature option is
-deterministic and useful for small examples or checks. The normal approximation
-is fastest, but should be used with care when sample sizes are small or event
-probabilities are near 0 or 1.
+The Monte Carlo method has simulation error, controlled by `bin_N`. Quadrature is deterministic (up to numerical integration for a two-arm design) and is a useful high-accuracy default when it is computationally feasible. The normal approximation is fastest in a representative two-arm benchmark, but should be used with care when sample sizes are small or event probabilities are near 0 or 1.
 
 ## Operating characteristics
 
-As with the survival methods, operating characteristics should be evaluated by
-simulation. The `seed` argument makes the simulation reproducible, including
-when `ncores` is greater than 1. With `backend = "auto"`, `sim_trials()` uses
-forked workers on Unix-like platforms and PSOCK workers on Windows.
+As with the survival methods, operating characteristics should be evaluated by simulation. The `seed` argument makes the simulation reproducible, including when `ncores` is greater than 1. With `backend = "auto"`, `sim_trials()` uses forked workers on Unix-like platforms and PSOCK workers on Windows.
 
 ```{r oc, eval=FALSE}
 out_power <- sim_trials(
@@ -163,7 +142,8 @@ out_power <- sim_trials(
   lambda_time = 0,
   interim_look = 80,
   end_of_study = end_of_study,
-  bin_prior = c(1, 1),
+  prior = hazard_prior,
+  bin_prior = bin_prior,
   bin_method = "quadrature",
   block = 2,
   rand_ratio = c(1, 1),
@@ -185,7 +165,4 @@ out_null <- update(out_power, hazard_treatment = hc, seed = 5108)
 summarise_sims(list(out_power$sims, out_null$sims))
 ```
 
-The binary endpoint model is still calibrated through the event-time simulator.
-When the binary endpoint corresponds to event status by `end_of_study`, choose
-hazards that reproduce clinically meaningful endpoint probabilities through
-`prop_to_haz()` and `ppwe()`.
+The binary endpoint model is still calibrated through the event-time simulator. When the binary endpoint corresponds to event status by `end_of_study`, choose hazards that reproduce clinically meaningful endpoint probabilities through `prop_to_haz()` and `ppwe()`.

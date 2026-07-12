@@ -36,7 +36,13 @@ impute_data <- function(
   type,
   single_arm
 ) {
-  stopifnot(dim(hazard)[1] == 1) # otherwise, need to use vectorized ppwe()
+  if (
+    !is.array(hazard) ||
+      length(dim(hazard)) != 3 ||
+      dim(hazard)[1] != 1
+  ) {
+    stop("'hazard' must be a three-dimensional array with exactly one posterior draw")
+  }
 
   # Start from the original data and update only the rows that need imputation.
   # This keeps the incoming row order and avoids rebuilding the full data frame.

@@ -71,6 +71,7 @@ sim_comp_data <- function(
   validate_piecewise_hazard(hazard_treatment, cutpoints, "hazard_treatment")
   if (!single_arm) {
     validate_piecewise_hazard(hazard_control, cutpoints, "hazard_control")
+    validate_randomization_args(N_total, block, rand_ratio)
   }
 
   ##############################################################################

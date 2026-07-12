@@ -56,7 +56,7 @@ reference:
 articles:
   - title: Getting started
     contents:
-      - broglio
+      - two-arm
       - advent
       - bayes-piecewise
       - bayesian-binary

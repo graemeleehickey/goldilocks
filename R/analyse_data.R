@@ -384,20 +384,21 @@ assert_logrank_estimable <- function(lr) {
 #'
 #' @noRd
 cox_wald_test_checked <- function(data) {
-  fit_warning <- NULL
+  fit_state <- new.env(parent = emptyenv())
+  fit_state$warning <- NULL
   fit <- withCallingHandlers(
     cox_wald_test(data),
     warning = function(w) {
-      fit_warning <<- conditionMessage(w)
+      fit_state$warning <- conditionMessage(w)
       invokeRestart("muffleWarning")
     }
   )
 
-  if (!is.null(fit_warning)) {
+  if (!is.null(fit_state$warning)) {
     stop(
       "Cox analysis is non-estimable: the Cox model did not produce a ",
       "reliable Wald statistic. survival::coxph.fit reported: ",
-      fit_warning
+      fit_state$warning
     )
   }
 

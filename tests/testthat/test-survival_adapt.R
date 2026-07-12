@@ -172,53 +172,25 @@ test_that("survival_adapt-chisq excludes LTFU when imputed_final = FALSE", {
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
 })
 
-test_that("survival_adapt-chisq rejects imputed final analyses", {
-  expect_error(
-    survival_adapt(
-      hazard_treatment = -log(0.85) / 36,
-      hazard_control = -log(0.7) / 36,
-      cutpoints = 0,
-      N_total = 200,
-      lambda = 20,
-      lambda_time = 0,
-      interim_look = NULL,
-      end_of_study = 36,
-      alternative = "two.sided",
-      method = "chisq",
-      imputed_final = TRUE
-    ),
-    "no supported frequentist pooling rule"
-  )
-})
-
-test_that("survival_adapt-cox with imputed_final", {
-  set.seed(8263)
-  out <- survival_adapt(
-    hazard_treatment = -log(0.85) / 36,
-    hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
-    N_total = 300,
-    lambda = 20,
-    lambda_time = 0,
-    interim_look = 150,
-    end_of_study = 36,
-    prior = c(0.1, 0.1),
-    block = 2,
-    rand_ratio = c(1, 1),
-    prop_loss = 0,
-    alternative = "two.sided",
-    h0 = 0,
-    Fn = 0.05,
-    Sn = 0.9,
-    prob_ha = 0.975,
-    N_impute = 2,
-    N_mcmc = 2,
-    method = "cox",
-    imputed_final = TRUE
-  )
-
-  expect_s3_class(out, "data.frame")
-  expect_true(!is.na(out$post_prob_ha))
+test_that("survival_adapt rejects imputed frequentist final analyses", {
+  for (method in c("logrank", "cox", "chisq")) {
+    expect_error(
+      survival_adapt(
+        hazard_treatment = -log(0.85) / 36,
+        hazard_control = -log(0.7) / 36,
+        cutpoints = 0,
+        N_total = 200,
+        lambda = 20,
+        lambda_time = 0,
+        interim_look = NULL,
+        end_of_study = 36,
+        alternative = "two.sided",
+        method = method,
+        imputed_final = TRUE
+      ),
+      "no supported frequentist pooling rule"
+    )
+  }
 })
 
 test_that("survival_adapt-complex", {
@@ -657,6 +629,13 @@ test_that("survival_adapt validates interim ordering and h0", {
       modifyList(common_args, list(interim_look = c(150, 100)))
     ),
     "strictly increasing"
+  )
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(common_args, list(interim_look = 200))
+    ),
+    "strictly less than 'N_total'"
   )
   expect_error(
     do.call(

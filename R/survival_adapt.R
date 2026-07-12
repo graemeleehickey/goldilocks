@@ -82,16 +82,16 @@
 #'   (`method = "logrank"`) test, Cox proportional hazards regression model
 #'   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
 #'   analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis of
-#'   complete binary outcomes (`method = "bayes-bin"`), or a chi-square test
-#'   (`method = "chisq"`, which requires `imputed_final = FALSE`). See Details
-#'   section.
+#'   complete binary outcomes (`method = "bayes-bin"`), or a frequentist
+#'   log-rank, Cox, or chi-square test (`method = "logrank"`, `"cox"`, or
+#'   `"chisq"`, which require `imputed_final = FALSE`). See Details section.
 #' @param imputed_final logical. Should the final analysis (after all subjects
 #'   have been followed-up to the study end) be based on imputed outcomes for
 #'   subjects who were LTFU (i.e. right-censored with time less than
 #'   `end_of_study`)? Default is `FALSE`, which means that the final analysis
-#'   incorporates right-censoring. This option cannot be used with
-#'   `method = "chisq"` because the package does not pool chi-square tests over
-#'   multiple imputed final datasets in a frequentist framework.
+#'   incorporates right-censoring. This option cannot be used with frequentist
+#'   methods (`"logrank"`, `"cox"`, or `"chisq"`) because the package does not
+#'   implement a frequentist pooling rule for multiple imputed final datasets.
 #' @param return_trace logical. Should the interim decision path be returned in
 #'   addition to the usual final summary? The default, FALSE, returns the
 #'   historical one-row data frame. When TRUE, the result is a
@@ -201,20 +201,23 @@
 #'      enable simple switching between Bayesian and frequentist paradigms for
 #'      analysis. Because the chi-square test cannot handle right-censored
 #'      observations, subjects lost to follow-up are excluded from the final
-#'      analysis. `imputed_final = TRUE` is not supported for this method:
-#'      averaging test results across multiple imputations does not define a
-#'      chi-square test with a clear frequentist interpretation.
+#'      analysis. Like the other frequentist methods, it cannot use
+#'      `imputed_final = TRUE`: the package does not implement a frequentist
+#'      pooling rule for multiple imputed final datasets.
 #'
 #'  * Imputed final analysis (`imputed_final`).
 #'      The overall final analysis conducted after accrual is suspended and
-#'      follow-up is complete can be analyzed on imputed datasets (default) or
-#'      on the non-imputed dataset. Since the imputations/predictions used
+#'      follow-up is complete can be analyzed on imputed datasets for Bayesian
+#'      methods (`"bayes-surv"` and `"bayes-bin"`) or on the non-imputed
+#'      dataset. Since the imputations/predictions used
 #'      during the interim analyses assume all subjects are imputed (since loss
 #'      to follow-up is not yet known), it would seem most appropriate to
 #'      conduct the trial in the same manner, especially if loss to follow-up
 #'      rates are appreciable. Note, this only applies to subjects who are
 #'      right-censored due to loss to follow-up, which we assume is a
-#'      non-informative process. It cannot be used with `method = "chisq"`.
+#'      non-informative process. It cannot be used with frequentist methods
+#'      (`"logrank"`, `"cox"`, or `"chisq"`) until an appropriate pooling rule
+#'      is implemented.
 #'
 #'   When `method = "bayes-surv"` or `method = "bayes-bin"` and imputation is
 #'   involved (either at interim
@@ -353,71 +356,19 @@ survival_adapt <- function(
   validate_positive_integer_scalar(N_mcmc, "N_mcmc")
   validate_gamma_prior(prior)
   empty_interval <- match.arg(empty_interval)
-  if (!is.logical(return_trace) || length(return_trace) != 1 || is.na(return_trace)) {
-    stop("'return_trace' must be TRUE or FALSE")
+  validate_logical_scalar(return_trace, "return_trace")
+  validate_analysis_configuration(method, alternative, single_arm, imputed_final)
+
+  if (!single_arm) {
+    validate_randomization_args(N_total, block, rand_ratio)
   }
 
-  # Check: 'interim_look' bounded by maximum sample size
   if (!is.null(interim_look)) {
-    validate_positive_integer_vector(interim_look, "interim_look")
-    stopifnot(all(N_total > interim_look))
-    if (any(diff(interim_look) <= 0)) {
-      stop("'interim_look' must be strictly increasing without duplicates")
-    }
-
-    # Check: each interim look is large enough to (with block randomization)
-    # guarantee both treatment groups are represented. A look smaller than one
-    # full block can enroll subjects from one treatment group only, which would
-    # make the interim posterior undefined for the missing group. For two-arm
-    # designs we require each look to be at least the (largest) block size.
-    if (!single_arm) {
-      min_look <- max(block)
-      if (any(interim_look < min_look)) {
-        stop(
-          "Each 'interim_look' must be at least the block size (",
-          min_look,
-          ") so that both treatment groups are present at every ",
-          "interim analysis. Smallest 'interim_look' given: ",
-          min(interim_look),
-          "."
-        )
-      }
-    }
-  }
-
-  # Check: 'alternative' is correctly specified
-  if (!alternative %in% c("two.sided", "greater", "less")) {
-    stop("The input for alternative is wrong")
-  }
-
-  # Check: 'method' is correctly specified
-  if (!method %in% c("bayes-surv", "bayes-bin", "logrank", "cox", "chisq")) {
-    stop("The input for method is wrong")
-  }
-
-  # Check: Bayesian test only available as a one-sided test
-  if (alternative == "two.sided" & method %in% c("bayes-surv", "bayes-bin")) {
-    stop(
-      "Bayesian tests can only be used with alternative equal to 'greater' or 'less'"
+    validate_interim_looks(
+      interim_look,
+      N_total,
+      min_look = if (single_arm) NULL else max(block)
     )
-  }
-
-  # Check: chi-square test only available as two-sided
-  if (alternative != "two.sided" & method == "chisq") {
-    stop("The chi-square test can only be applied as a two-sided test")
-  }
-
-  if (imputed_final && method == "chisq") {
-    stop(
-      "The chi-square test cannot use 'imputed_final = TRUE' because ",
-      "there is no supported frequentist pooling rule for multiple ",
-      "imputed final datasets"
-    )
-  }
-
-  # Check: frequentist tests only available for two-armed trials
-  if (single_arm & method %in% c("logrank", "cox", "chisq")) {
-    stop("The selected method can only be used for two-armed trials")
   }
 
   validate_h0(h0, method, single_arm)
@@ -536,11 +487,12 @@ survival_adapt <- function(
       )
 
       # Capture warnings for this look while preserving their usual output.
-      warning_messages <- character()
+      warning_state <- new.env(parent = emptyenv())
+      warning_state$messages <- character()
       capture_warning <- function(warning) {
         if (return_trace) {
-          warning_messages <<- unique(c(
-            warning_messages,
+          warning_state$messages <- unique(c(
+            warning_state$messages,
             conditionMessage(warning)
           ))
         }
@@ -641,8 +593,8 @@ survival_adapt <- function(
           ppp_success_at_max = ppp_success_at_max,
           futility_threshold = if (check_futility) Fn[i] else NA_real_,
           decision = decision,
-          warning_count = length(warning_messages),
-          warning_messages = paste(warning_messages, collapse = " | "),
+          warning_count = length(warning_state$messages),
+          warning_messages = paste(warning_state$messages, collapse = " | "),
           stringsAsFactors = FALSE
         )
       }

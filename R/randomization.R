@@ -39,43 +39,7 @@
 #' # For complete randomization set the N_total to block size
 #' randomization(N_total = 100, block = 100, allocation = c(1, 1))
 randomization <- function(N_total, block = 2, allocation = c(1, 1)) {
-  validate_positive_integer_scalar(N_total, "N_total")
-
-  if (
-    !is.numeric(block) ||
-      length(block) == 0 ||
-      any(is.na(block)) ||
-      any(!is.finite(block)) ||
-      any(block %% 1 != 0) ||
-      any(block <= 0)
-  ) {
-    stop("'block' must be a non-negative integer")
-  }
-
-  if (length(allocation) != 2) {
-    stop("'allocation' must contain two positive integer values")
-  }
-
-  if (
-    !is.numeric(allocation) ||
-      any(is.na(allocation)) ||
-      any(!is.finite(allocation)) ||
-      any(allocation %% 1 != 0)
-  ) {
-    stop("All values of 'allocation' must be integer values")
-  }
-
-  if (any(allocation <= 0)) {
-    stop("'allocation' must contain two positive integer values")
-  }
-
-  if (any(block %% sum(allocation) != 0)) {
-    stop("Sum of 'allocation' must be a multiple of 'block'")
-  }
-
-  if (N_total < sum(block)) {
-    stop("Number of subjects must be at least the size of 'block'")
-  }
+  validate_randomization_args(N_total, block, allocation)
 
   next_block <- NULL
 

@@ -34,7 +34,7 @@ test_that("randomization works with multiple block sizes", {
 test_that("randomization errors on non-integer block", {
   expect_error(
     randomization(N_total = 100, block = 2.5, allocation = c(1, 1)),
-    "non-negative integer"
+    "positive integer"
   )
 })
 

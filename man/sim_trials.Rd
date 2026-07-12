@@ -162,17 +162,17 @@ follow-up is complete), whether the analysis should be a log-rank
 (\code{method = "logrank"}) test, Cox proportional hazards regression model
 Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
-complete binary outcomes (\code{method = "bayes-bin"}), or a chi-square test
-(\code{method = "chisq"}, which requires \code{imputed_final = FALSE}). See Details
-section.}
+complete binary outcomes (\code{method = "bayes-bin"}), or a frequentist
+log-rank, Cox, or chi-square test (\code{method = "logrank"}, \code{"cox"}, or
+\code{"chisq"}, which require \code{imputed_final = FALSE}). See Details section.}
 
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 \code{end_of_study})? Default is \code{FALSE}, which means that the final analysis
-incorporates right-censoring. This option cannot be used with
-\code{method = "chisq"} because the package does not pool chi-square tests over
-multiple imputed final datasets in a frequentist framework.}
+incorporates right-censoring. This option cannot be used with frequentist
+methods (\code{"logrank"}, \code{"cox"}, or \code{"chisq"}) because the package does not
+implement a frequentist pooling rule for multiple imputed final datasets.}
 
 \item{empty_interval}{character. Policy for empty piecewise-exponential
 intervals in \code{method = "bayes-surv"} posterior calculations. An empty

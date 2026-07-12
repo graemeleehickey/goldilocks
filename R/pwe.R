@@ -19,6 +19,7 @@
 #'
 #' @importFrom PWEALL rpwe qpwe pwe
 #' @importFrom stats rexp
+#' @importFrom utils tail
 #' @export
 #'
 #' @examples
@@ -28,13 +29,7 @@
 pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
   validate_cutpoints(cutpoints)
   validate_piecewise_hazard(hazard, cutpoints)
-
-  # Check: 'maxtime' is positive or NULL
-  if (!is.null(maxtime)) {
-    if (maxtime <= 0 | length(maxtime) > 1) {
-      stop("'maxtime' must be a postive single value")
-    }
-  }
+  validate_maxtime(maxtime)
 
   if (is.null(maxtime) && tail(hazard, 1) == 0) {
     stop("'maxtime' must be supplied when the final hazard rate is zero")
@@ -98,17 +93,14 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
 pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
   validate_cutpoints(cutpoints)
   validate_piecewise_hazard(hazard, cutpoints)
+  validate_maxtime(maxtime)
 
   # Check: 'time' is positive integer
   if (any(time < 0)) {
     stop("'time' must always be positive")
   }
 
-  # Check: 'maxtime' is positive or NULL
   if (!is.null(maxtime)) {
-    if (maxtime <= 0 | length(maxtime) > 1) {
-      stop("'maxtime' must be a postive single value")
-    }
     if (any(maxtime < time)) {
       stop("'maxtime' must be greater than or equal to all observed 'time' values")
     }

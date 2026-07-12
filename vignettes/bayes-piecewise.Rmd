@@ -10,7 +10,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  cache.path = "bayes-piecewise-cache/"
 )
 set.seed(7194)
 ```
@@ -21,8 +22,8 @@ library(goldilocks)
 
 The "Two-arm randomized trials" vignette uses `method = "logrank"` and a single constant hazard for each treatment group. That is convenient when the proportional-hazards assumption is reasonable and the underlying event rate is well-approximated by an exponential distribution. In practice, neither assumption always holds. This vignette shows how to set up a Goldilocks design with:
 
-- a **piecewise-exponential** hazard, in which the constant hazard rate changes at one or more cut-points; and
-- a **Bayesian decision rule** (`method = "bayes-surv"`) using a posterior probability threshold on the cumulative-failure-probability scale.
+-   a **piecewise-exponential** hazard, in which the constant hazard rate changes at one or more cut-points; and
+-   a **Bayesian decision rule** (`method = "bayes-surv"`) using a posterior probability threshold on the cumulative-failure-probability scale.
 
 We use a small example so that the simulation can be run while reading the vignette; the live `survival_adapt()` chunk takes around 10--20 seconds and is cached on first knit.
 
@@ -32,8 +33,8 @@ Survival in many settings -- post-surgical mortality, transplant outcomes, oncol
 
 The package handles piecewise hazards through two related arguments:
 
-- `cutpoints`: the times at which the hazard changes. The first element must be `0` and represents the start of the first interval; subsequent elements are the *internal* cut-points. With `J` intervals there are `J` elements in `cutpoints` and `J` hazard pieces for each treatment group. (So `cutpoints = c(0, 6)` produces *two* intervals, `[0, 6)` and `[6, \infty)`, in contrast to the default `cutpoints = 0` used in the "Two-arm randomized trials" vignette, which produces a single interval and a non-piecewise exponential.)
-- `hazard_treatment` and `hazard_control`: vectors of length `J` giving the constant hazard for each interval.
+-   `cutpoints`: the times at which the hazard changes. The first element must be `0` and represents the start of the first interval; subsequent elements are the *internal* cut-points. With `J` intervals there are `J` elements in `cutpoints` and `J` hazard pieces for each treatment group. (So `cutpoints = c(0, 6)` produces *two* intervals, `[0, 6)` and `[6, \infty)`, in contrast to the default `cutpoints = 0` used in the "Two-arm randomized trials" vignette, which produces a single interval and a non-piecewise exponential.)
+-   `hazard_treatment` and `hazard_control`: vectors of length `J` giving the constant hazard for each interval.
 
 The helper `prop_to_haz()` maps cumulative event probabilities at given times into the corresponding piecewise hazards.
 
@@ -41,13 +42,13 @@ The helper `prop_to_haz()` maps cumulative event probabilities at given times in
 
 Suppose the primary endpoint is overall survival at 24 months. Based on prior data, we expect the **control** arm to have:
 
-- 30% mortality by 6 months (an "early high-risk" window), and
-- 50% mortality by 24 months overall.
+-   30% mortality by 6 months (an "early high-risk" window), and
+-   50% mortality by 24 months overall.
 
 The treatment is hypothesised to attenuate the early-period hazard, leaving the late-period hazard unchanged. Concretely, we target:
 
-- 18% mortality by 6 months in the treatment arm, and
-- 40% mortality by 24 months overall.
+-   18% mortality by 6 months in the treatment arm, and
+-   40% mortality by 24 months overall.
 
 We set the cut-point at 6 months and translate these proportions into piecewise hazards:
 
@@ -88,9 +89,9 @@ $\Pr(\Delta < h_0 \mid \text{data}) \;>\; \texttt{prob\_ha}.$
 
 Because a beneficial treatment has a *lower* failure probability, `alternative = "less"` is the appropriate choice here. (`method = "bayes-surv"` does not allow `alternative = "two.sided"` -- it raises an error.)
 
-The same posterior is also used at each interim look to compute the predictive probability of eventual success. Imputed completions are drawn from the posterior predictive distribution of the piecewise-exponential model for subjects still under follow-up, and the analysis is repeated on each imputed dataset. The fraction of imputations that would declare success at the maximum sample size is the predictive probability of success, which drives the futility and expected-success stopping rules through `Fn` and `Sn`.
+The same posterior is also used at each interim look to compute predictive probabilities of success. Imputed completions are drawn from the posterior predictive distribution of the piecewise-exponential model for subjects still under follow-up, and the analysis is repeated on each imputed dataset. The fraction of imputations that would declare success after enrollment continues to the maximum sample size is compared with `Fn` for the futility rule. Separately, the fraction that would declare success after completing follow-up for the subjects currently enrolled is compared with `Sn` for the expected-success rule.
 
-We use a weakly informative Gamma$(0.1, 0.1)$ prior on every hazard component:
+We use an independent weakly informative Gamma$(0.1, 0.1)$ prior on every hazard component:
 
 ```{r prior}
 prior <- c(0.1, 0.1)   # shape and rate of the Gamma prior on each lambda_j
@@ -132,9 +133,9 @@ The output reports the posterior probability of the alternative at the final (or
 
 Two practical considerations are worth flagging:
 
-1. **Empty intervals at interim looks.** Early interim looks may have no subjects with follow-up reaching the later piecewise intervals. The `empty_interval` argument controls how these intervals are handled. The default, `empty_interval = "propagate"`, preserves historical package behavior by propagating exposure time and event counts from the nearest non-empty interval *within the same treatment group*, and emits a warning when it does so. This supplies a placeholder Gamma posterior for an interval with no information; it is a fallback when an interim look has not yet generated follow-up in later intervals, not a substantive estimate of those intervals' hazards. Use `empty_interval = "prior"` to leave such intervals at zero exposure and zero events, making their posteriors prior-driven, or `empty_interval = "error"` to stop the analysis whenever an empty interval is encountered. By the final analysis, all intervals will typically be populated.
+1.  **Empty intervals at interim looks.** Early interim looks may have no subjects with follow-up reaching the later piecewise intervals. The `empty_interval` argument controls how these intervals are handled. The default, `empty_interval = "propagate"`, preserves historical package behavior by propagating exposure time and event counts from the nearest non-empty interval *within the same treatment group*, and emits a warning when it does so. This supplies a placeholder Gamma posterior for an interval with no information; it is a fallback when an interim look has not yet generated follow-up in later intervals, not a substantive estimate of those intervals' hazards. Use `empty_interval = "prior"` to leave such intervals at zero exposure and zero events, making their posteriors prior-driven, or `empty_interval = "error"` to stop the analysis whenever an empty interval is encountered. By the final analysis, all intervals will typically be populated.
 
-2. **Number of cut-points.** Each additional cut-point adds two hazard parameters to estimate in a two-arm design (one per treatment group). With limited interim data this can make individual interval posteriors diffuse. In our experience, one or two well-motivated cut-points (e.g. tied to a clinical milestone) is usually sufficient; finer partitions tend to add variance without commensurate bias reduction.
+2.  **Number of cut-points.** Each additional cut-point adds two hazard parameters to estimate in a two-arm design (one per treatment group). With limited interim data this can make individual interval posteriors diffuse. In our experience, one or two well-motivated cut-points (e.g., tied to a clinical milestone) is usually sufficient; finer partitions tend to add variance without commensurate bias reduction.
 
 ## Sensitivity to the cut-point specification
 
@@ -173,6 +174,6 @@ Note that this changes both the simulated data-generating process *and* the anal
 
 ## See also
 
-- The "Two-arm randomized trials" vignette covers the same design machinery using a single exponential hazard and a log-rank decision rule.
-- `?survival_adapt` documents all arguments, including the requirement that each `interim_look` in a two-arm design be at least the block size.
-- `?prop_to_haz` and `?ppwe` document the conversion between event proportions and piecewise hazards.
+-   The "Two-arm randomized trials" vignette covers the same design machinery using a single exponential hazard and a log-rank decision rule.
+-   `?survival_adapt` documents all arguments, including the requirement that each `interim_look` in a two-arm design be at least the block size.
+-   `?prop_to_haz` and `?ppwe` document the conversion between event proportions and piecewise hazards.
