@@ -71,9 +71,10 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://graemeleehickey.github.io/goldilocks/">goldilocks</a></span><span class="op">)</span></span></code></pre></div>
 <p>An adaptive trial is easier to assess when the final result can be
 connected back to the interim decisions that led to it. By default,
-survival_adapt() returns its compact, one-row final summary. Set
-return_trace = TRUE to request a goldilocks_trial object with that
-summary and a tidy row for each interim look.</p>
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> returns its compact, one-row final
+summary. Set <code>return_trace = TRUE</code> to request a
+<code>goldilocks_trial</code> object with that summary and a tidy row
+for each interim look.</p>
 <div class="section level2">
 <h2 id="a-traced-trial">A traced trial<a class="anchor" aria-label="anchor" href="#a-traced-trial"></a>
 </h2>
@@ -144,12 +145,13 @@ element is an audit trail of the interim path.</p>
 <span><span class="co">#&gt; 1                       2         2      continue      80                  1</span></span>
 <span><span class="co">#&gt;   ppp_stop_now ppp_success_at_max warning_count</span></span>
 <span><span class="co">#&gt; 1          0.3               0.35             0</span></span></code></pre></div>
-<p>For each completed look, ppp_stop_now is the predictive probability
-of success if enrollment stops at that look. It is compared with
-success_threshold. ppp_success_at_max is the predictive probability of
-success if enrollment continues to the maximum sample size. It is
-compared with futility_threshold. The decision column records whether
-the design continued, stopped for expected success, or stopped for
+<p>For each completed look, <code>ppp_stop_now</code> is the predictive
+probability of success if enrollment stops at that look. It is compared
+with <code>success_threshold</code>. <code>ppp_success_at_max</code> is
+the predictive probability of success if enrollment continues to the
+maximum sample size. It is compared with
+<code>futility_threshold</code>. The decision column records whether the
+design continued, stopped for expected success, or stopped for
 futility.</p>
 <p>The trace does not retain posterior draws or completed imputed data
 sets. That keeps a traced trial small enough to inspect and share while
@@ -164,17 +166,17 @@ leaving the underlying random-number path unchanged.</p>
 <p>The first two panels show the two predictive probabilities alongside
 their decision thresholds. The final panel shows enrollment and observed
 events by arm at each look. Warnings raised during a look, such as
-empty-interval handling, are recorded in warning_messages and remain
-visible as ordinary R warnings.</p>
+empty-interval handling, are recorded in <code>warning_messages</code>
+and remain visible as ordinary R warnings.</p>
 </div>
 <div class="section level2">
 <h2 id="summarizing-many-simulated-trials">Summarizing many simulated trials<a class="anchor" aria-label="anchor" href="#summarizing-many-simulated-trials"></a>
 </h2>
 <p>Traces are intended for examining individual trial paths.
-sim_trials() keeps its compact result data frame, which is more suitable
-for large operating characteristic simulations. plot_sim_stopping()
-provides a quick visual summary of stopping outcomes and enrolled sample
-sizes.</p>
+<code><a href="../reference/sim_trials.html">sim_trials()</a></code> keeps its compact result data frame, which is
+more suitable for large operating characteristic simulations.
+<code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> provides a quick visual summary of
+stopping outcomes and enrolled sample sizes.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sims</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">hazard_treatment</span>,</span>
@@ -203,11 +205,11 @@ sizes.</p>
 <span></span>
 <span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="va">sims</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">sims</span><span class="op">)</span></span></code></pre></div>
-<p>For reproducible simulations, set seed in sim_trials(). The per-trial
-random streams make the compact simulation results reproducible across
-supported parallel backends. For a detailed explanation of the decision
-algorithm and calibration, see the Technical details of the Goldilocks
-design vignette.</p>
+<p>For reproducible simulations, set seed in <code><a href="../reference/sim_trials.html">sim_trials()</a></code>.
+The per-trial random streams make the compact simulation results
+reproducible across supported parallel backends. For a detailed
+explanation of the decision algorithm and calibration, see the
+“Technical details of the Goldilocks design” vignette.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

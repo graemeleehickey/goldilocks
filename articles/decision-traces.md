@@ -7,9 +7,10 @@ library(goldilocks)
 
 An adaptive trial is easier to assess when the final result can be
 connected back to the interim decisions that led to it. By default,
-survival_adapt() returns its compact, one-row final summary. Set
-return_trace = TRUE to request a goldilocks_trial object with that
-summary and a tidy row for each interim look.
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+returns its compact, one-row final summary. Set `return_trace = TRUE` to
+request a `goldilocks_trial` object with that summary and a tidy row for
+each interim look.
 
 ## A traced trial
 
@@ -88,11 +89,11 @@ summarise_trial_trace(trial)
 #> 1          0.3               0.35             0
 ```
 
-For each completed look, ppp_stop_now is the predictive probability of
+For each completed look, `ppp_stop_now` is the predictive probability of
 success if enrollment stops at that look. It is compared with
-success_threshold. ppp_success_at_max is the predictive probability of
-success if enrollment continues to the maximum sample size. It is
-compared with futility_threshold. The decision column records whether
+`success_threshold`. `ppp_success_at_max` is the predictive probability
+of success if enrollment continues to the maximum sample size. It is
+compared with `futility_threshold`. The decision column records whether
 the design continued, stopped for expected success, or stopped for
 futility.
 
@@ -112,15 +113,18 @@ plot_trial_trace(trial)
 The first two panels show the two predictive probabilities alongside
 their decision thresholds. The final panel shows enrollment and observed
 events by arm at each look. Warnings raised during a look, such as
-empty-interval handling, are recorded in warning_messages and remain
+empty-interval handling, are recorded in `warning_messages` and remain
 visible as ordinary R warnings.
 
 ## Summarizing many simulated trials
 
-Traces are intended for examining individual trial paths. sim_trials()
+Traces are intended for examining individual trial paths.
+[`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
 keeps its compact result data frame, which is more suitable for large
-operating characteristic simulations. plot_sim_stopping() provides a
-quick visual summary of stopping outcomes and enrolled sample sizes.
+operating characteristic simulations.
+[`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
+provides a quick visual summary of stopping outcomes and enrolled sample
+sizes.
 
 ``` r
 
@@ -153,8 +157,9 @@ summarise_sims(sims$sims)
 plot_sim_stopping(sims)
 ```
 
-For reproducible simulations, set seed in sim_trials(). The per-trial
-random streams make the compact simulation results reproducible across
-supported parallel backends. For a detailed explanation of the decision
-algorithm and calibration, see the Technical details of the Goldilocks
-design vignette.
+For reproducible simulations, set seed in
+[`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md).
+The per-trial random streams make the compact simulation results
+reproducible across supported parallel backends. For a detailed
+explanation of the decision algorithm and calibration, see the
+“Technical details of the Goldilocks design” vignette.

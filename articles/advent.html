@@ -108,7 +108,7 @@ below.</p>
 </colgroup>
 <thead><tr class="header">
 <th align="left">Feature</th>
-<th align="left">Reported_ADVENT_design</th>
+<th align="left">Reported ADVENT design</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -214,23 +214,6 @@ in each arm. On the event scale used in the code, that corresponds to a
 35% failure probability in each arm.</p>
 <p>For the safety endpoint, the event is already an adverse event. The
 target scenario was an 8% primary safety event rate in each arm.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">endpoint_map</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  Endpoint <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Effectiveness"</span>, <span class="st">"Safety"</span><span class="op">)</span>,</span>
-<span>  Published_scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="st">"Treatment success by 12 months"</span>,</span>
-<span>    <span class="st">"Primary safety event by 12 months"</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  Code_event <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="st">"Failure to meet treatment success"</span>,</span>
-<span>    <span class="st">"Primary safety event"</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  Target_event_probability <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.35</span>, <span class="fl">0.08</span><span class="op">)</span>,</span>
-<span>  Noninferiority_margin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">0.08</span><span class="op">)</span>,</span>
-<span>  Posterior_threshold <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.956</span>, <span class="fl">0.966</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">endpoint_map</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
 <col width="9%">
@@ -242,11 +225,11 @@ target scenario was an 8% primary safety event rate in each arm.</p>
 </colgroup>
 <thead><tr class="header">
 <th align="left">Endpoint</th>
-<th align="left">Published_scale</th>
-<th align="left">Code_event</th>
-<th align="right">Target_event_probability</th>
-<th align="right">Noninferiority_margin</th>
-<th align="right">Posterior_threshold</th>
+<th align="left">Published scale</th>
+<th align="left">Code event</th>
+<th align="right">Target event probability</th>
+<th align="right">Noninferiority margin</th>
+<th align="right">Posterior threshold</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -270,7 +253,7 @@ target scenario was an 8% primary safety event rate in each arm.</p>
 <p>The ADVENT primary analyses used Bayesian beta-binomial endpoint
 models with noninformative <code>Beta(0.5, 0.5)</code> priors. In
 <code>goldilocks</code>, this is specified with:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bin_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 <p>The <code>prior</code> argument still appears in the code below
 because <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> uses a time-to-event model to
@@ -280,7 +263,7 @@ paper reports the beta-binomial prior for the completed binary endpoint
 analysis, but the main paper does not provide the exact Gamma
 hyperparameters used for the time-to-event predictive imputation model.
 We therefore use the package default:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span></span></code></pre></div>
 <p>That distinction is important: <code>bin_prior</code> is the
 ADVENT-aligned endpoint prior; <code>prior</code> is the package’s
@@ -294,7 +277,7 @@ reduces each imputed or completed dataset to binary endpoint status when
 <code>method = "bayes-bin"</code>. For a simple vignette, we use
 constant hazards that reproduce the target event probabilities at 12
 months.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">end_of_study</span> <span class="op">&lt;-</span> <span class="fl">12</span></span>
 <span></span>
 <span><span class="va">haz_eff_fail</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.35</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
@@ -303,7 +286,7 @@ months.</p>
 <span><span class="va">prob_check</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  Endpoint <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Effectiveness failure"</span>, <span class="st">"Safety event"</span><span class="op">)</span>,</span>
 <span>  Hazard <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">haz_eff_fail</span>, <span class="va">haz_safety</span><span class="op">)</span>,</span>
-<span>  Event_probability_at_12_months <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  `Event probability at 12 months` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="../reference/ppwe.html">ppwe</a></span><span class="op">(</span></span>
 <span>      hazard <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">haz_eff_fail</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>      end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
@@ -314,7 +297,8 @@ months.</p>
 <span>      end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
 <span>      cutpoints <span class="op">=</span> <span class="fl">0</span></span>
 <span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">prob_check</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
@@ -322,7 +306,7 @@ months.</p>
 <thead><tr class="header">
 <th align="left">Endpoint</th>
 <th align="right">Hazard</th>
-<th align="right">Event_probability_at_12_months</th>
+<th align="right">Event probability at 12 months</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -373,7 +357,7 @@ randomized subjects per month. We use <code>lambda = 40</code> to make
 the simulated calendar-time information broadly comparable. Accrual
 speed is worth sensitivity checking: fast accrual can reduce the amount
 of observed endpoint information available at interim looks.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4601</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">advent_effectiveness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
@@ -418,7 +402,7 @@ because the current sample size appeared adequate.</li>
 <code>stop_futility</code>: whether enrollment stopped because
 success looked unlikely even at the maximum sample size.</li>
 <li>
-<code>est_final</code>: the posterior mean of (p_{} - p_{}).</li>
+<code>est_final</code>: the posterior mean of ($p_{} - p_{}$).</li>
 <li>
 <code>post_prob_ha</code>: the final posterior probability that the
 binary endpoint effect is below the noninferiority margin.</li>
@@ -434,7 +418,7 @@ threshold. Success in the code means:</p>
 \Pr(p_{\text{PFA safety event}} - p_{\text{thermal safety event}} &lt; 0.08
 \mid \text{data}) &gt; 0.966.
 </annotation></semantics></math></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4602</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">advent_safety</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
@@ -480,7 +464,7 @@ endpoint-specific Bayesian rule maps to
 </h2>
 <p>For simulations, it is helpful to collect the common design settings
 once and then vary only the endpoint-specific values.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">advent_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="va">N_total</span>,</span>
@@ -561,7 +545,7 @@ once and then vary only the endpoint-specific values.</p>
 <span><span class="co">#&gt; $ncores</span></span>
 <span><span class="co">#&gt; [1] 1</span></span></code></pre></div>
 <p>Then the endpoint-specific simulation calls become short:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4610</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">eff_target</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trials</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -651,7 +635,7 @@ and the imputation hazard model.</p>
 </h2>
 <p>The following code is closer to what one would run outside the
 vignette build. It is not evaluated here.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">advent_common_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">advent_common</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  N_impute <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">8</span></span>
@@ -744,7 +728,6 @@ effectiveness and 0.966 for safety.</li>
 with a joint stopping recommendation.</li>
 <li>It does not model site stratification or the exact randomly varying
 block randomization scheme.</li>
-<li>It ignores nonrandomized roll-in subjects.</li>
 <li>It uses constant hazards to reproduce the target 12-month event
 probabilities. The real composite endpoints include acute and chronic
 components.</li>

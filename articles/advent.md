@@ -38,7 +38,7 @@ either radiofrequency ablation or cryoballoon ablation depending on
 site. The first 1 to 3 subjects at each site were nonrandomized roll-in
 subjects and are not part of the randomized comparison modeled below.
 
-| Feature | Reported_ADVENT_design |
+| Feature | Reported ADVENT design |
 |:---|:---|
 | Population | Drug-resistant paroxysmal atrial fibrillation |
 | Treatment arm | Pulsed field ablation |
@@ -116,27 +116,7 @@ failure probability in each arm.
 For the safety endpoint, the event is already an adverse event. The
 target scenario was an 8% primary safety event rate in each arm.
 
-``` r
-
-endpoint_map <- data.frame(
-  Endpoint = c("Effectiveness", "Safety"),
-  Published_scale = c(
-    "Treatment success by 12 months",
-    "Primary safety event by 12 months"
-  ),
-  Code_event = c(
-    "Failure to meet treatment success",
-    "Primary safety event"
-  ),
-  Target_event_probability = c(0.35, 0.08),
-  Noninferiority_margin = c(0.15, 0.08),
-  Posterior_threshold = c(0.956, 0.966)
-)
-
-knitr::kable(endpoint_map, digits = 3)
-```
-
-| Endpoint | Published_scale | Code_event | Target_event_probability | Noninferiority_margin | Posterior_threshold |
+| Endpoint | Published scale | Code event | Target event probability | Noninferiority margin | Posterior threshold |
 |:---|:---|:---|---:|---:|---:|
 | Effectiveness | Treatment success by 12 months | Failure to meet treatment success | 0.35 | 0.15 | 0.956 |
 | Safety | Primary safety event by 12 months | Primary safety event | 0.08 | 0.08 | 0.966 |
@@ -185,7 +165,7 @@ haz_safety <- prop_to_haz(0.08, endtime = end_of_study)
 prob_check <- data.frame(
   Endpoint = c("Effectiveness failure", "Safety event"),
   Hazard = c(haz_eff_fail, haz_safety),
-  Event_probability_at_12_months = c(
+  `Event probability at 12 months` = c(
     ppwe(
       hazard = matrix(haz_eff_fail, nrow = 1),
       end_of_study = end_of_study,
@@ -196,13 +176,14 @@ prob_check <- data.frame(
       end_of_study = end_of_study,
       cutpoints = 0
     )
-  )
+  ),
+  check.names = FALSE
 )
 
 knitr::kable(prob_check, digits = 4)
 ```
 
-| Endpoint              | Hazard | Event_probability_at_12_months |
+| Endpoint              | Hazard | Event probability at 12 months |
 |:----------------------|-------:|-------------------------------:|
 | Effectiveness failure | 0.0359 |                           0.35 |
 | Safety event          | 0.0069 |                           0.08 |
@@ -290,7 +271,7 @@ The most important columns are:
   current sample size appeared adequate.
 - `stop_futility`: whether enrollment stopped because success looked
   unlikely even at the maximum sample size.
-- `est_final`: the posterior mean of (p\_{} - p\_{}).
+- `est_final`: the posterior mean of (\$p\_{} - p\_{}\$).
 - `post_prob_ha`: the final posterior probability that the binary
   endpoint effect is below the noninferiority margin.
 
@@ -587,7 +568,6 @@ The code simplifies the reported trial in these ways:
   recommendation.
 - It does not model site stratification or the exact randomly varying
   block randomization scheme.
-- It ignores nonrandomized roll-in subjects.
 - It uses constant hazards to reproduce the target 12-month event
   probabilities. The real composite endpoints include acute and chronic
   components.
