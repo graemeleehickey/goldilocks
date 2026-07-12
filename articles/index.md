@@ -3,7 +3,7 @@
 ### Getting started
 
 - [Two-arm randomized
-  trials](https://graemeleehickey.github.io/goldilocks/articles/broglio.md):
+  trials](https://graemeleehickey.github.io/goldilocks/articles/two-arm.md):
 - [ADVENT: a published Goldilocks
   design](https://graemeleehickey.github.io/goldilocks/articles/advent.md):
 - [Bayesian piecewise-exponential

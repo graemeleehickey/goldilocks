@@ -135,17 +135,18 @@ Because a beneficial treatment has a *lower* failure probability,
 (`method = "bayes-surv"` does not allow `alternative = "two.sided"` – it
 raises an error.)
 
-The same posterior is also used at each interim look to compute the
-predictive probability of eventual success. Imputed completions are
-drawn from the posterior predictive distribution of the
-piecewise-exponential model for subjects still under follow-up, and the
-analysis is repeated on each imputed dataset. The fraction of
-imputations that would declare success at the maximum sample size is the
-predictive probability of success, which drives the futility and
-expected-success stopping rules through `Fn` and `Sn`.
+The same posterior is also used at each interim look to compute
+predictive probabilities of success. Imputed completions are drawn from
+the posterior predictive distribution of the piecewise-exponential model
+for subjects still under follow-up, and the analysis is repeated on each
+imputed dataset. The fraction of imputations that would declare success
+after enrollment continues to the maximum sample size is compared with
+`Fn` for the futility rule. Separately, the fraction that would declare
+success after completing follow-up for the subjects currently enrolled
+is compared with `Sn` for the expected-success rule.
 
-We use a weakly informative Gamma$`(0.1, 0.1)`$ prior on every hazard
-component:
+We use an independent weakly informative Gamma$`(0.1, 0.1)`$ prior on
+every hazard component:
 
 ``` r
 
@@ -221,7 +222,7 @@ Two practical considerations are worth flagging:
     parameters to estimate in a two-arm design (one per treatment
     group). With limited interim data this can make individual interval
     posteriors diffuse. In our experience, one or two well-motivated
-    cut-points (e.g. tied to a clinical milestone) is usually
+    cut-points (e.g., tied to a clinical milestone) is usually
     sufficient; finer partitions tend to add variance without
     commensurate bias reduction.
 

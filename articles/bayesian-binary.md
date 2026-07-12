@@ -13,6 +13,26 @@ generate when events occur and to impute not-yet-observed outcomes at
 interim looks, but the final analysis reduces each completed dataset to
 binary event status by `end_of_study`.
 
+Two distinct priors can therefore enter a Bayesian binary design. The
+`prior` argument is a Gamma prior on the piecewise-exponential hazards.
+It is used only for the event-time model that generates predictive
+imputations at interim looks (and at the final analysis when
+`imputed_final = TRUE`). The `bin_prior` argument is a Beta prior on the
+binary endpoint event probability in each arm. It is used for the
+Bayesian binary analysis of every completed or imputed dataset. Thus,
+interim predictive probabilities are affected by both priors, whereas a
+non-imputed final binary analysis is affected by `bin_prior` alone.
+
+For the examples below, we use the default weakly informative
+Gamma$`(0.1, 0.1)`$ hazard prior and a uniform Beta$`(1, 1)`$
+binary-endpoint prior:
+
+``` r
+
+hazard_prior <- c(0.1, 0.1)  # Gamma shape and rate for predictive imputation
+bin_prior <- c(1, 1)         # Beta shapes for the binary endpoint analysis
+```
+
 Two practical consequences follow:
 
 - `method = "bayes-bin"` only supports one-sided alternatives:
@@ -51,7 +71,8 @@ out_two_arm <- survival_adapt(
   lambda_time = 0,
   interim_look = 80,
   end_of_study = end_of_study,
-  bin_prior = c(1, 1),
+  prior = hazard_prior,
+  bin_prior = bin_prior,
   bin_method = "quadrature",
   block = 2,
   rand_ratio = c(1, 1),
@@ -106,7 +127,8 @@ out_single_arm <- survival_adapt(
   lambda_time = 0,
   interim_look = 50,
   end_of_study = end_of_study,
-  bin_prior = c(1, 1),
+  prior = hazard_prior,
+  bin_prior = bin_prior,
   bin_method = "quadrature",
   prop_loss = 0,
   alternative = "less",
@@ -142,10 +164,12 @@ The posterior probability can be calculated in three ways:
   posterior difference, and the closed-form beta CDF for single-arm
   designs.
 
-The Monte Carlo option is usually the most flexible. The quadrature
-option is deterministic and useful for small examples or checks. The
-normal approximation is fastest, but should be used with care when
-sample sizes are small or event probabilities are near 0 or 1.
+The Monte Carlo method has simulation error, controlled by `bin_N`.
+Quadrature is deterministic (up to numerical integration for a two-arm
+design) and is a useful high-accuracy default when it is computationally
+feasible. The normal approximation is fastest in a representative
+two-arm benchmark, but should be used with care when sample sizes are
+small or event probabilities are near 0 or 1.
 
 ## Operating characteristics
 
@@ -168,7 +192,8 @@ out_power <- sim_trials(
   lambda_time = 0,
   interim_look = 80,
   end_of_study = end_of_study,
-  bin_prior = c(1, 1),
+  prior = hazard_prior,
+  bin_prior = bin_prior,
   bin_method = "quadrature",
   block = 2,
   rand_ratio = c(1, 1),

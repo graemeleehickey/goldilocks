@@ -220,9 +220,10 @@ sim_trials(
   (`method = "logrank"`) test, Cox proportional hazards regression model
   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
   analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis
-  of complete binary outcomes (`method = "bayes-bin"`), or a chi-square
-  test (`method = "chisq"`, which requires `imputed_final = FALSE`). See
-  Details section.
+  of complete binary outcomes (`method = "bayes-bin"`), or a frequentist
+  log-rank, Cox, or chi-square test (`method = "logrank"`, `"cox"`, or
+  `"chisq"`, which require `imputed_final = FALSE`). See Details
+  section.
 
 - imputed_final:
 
@@ -231,8 +232,9 @@ sim_trials(
   subjects who were LTFU (i.e. right-censored with time less than
   `end_of_study`)? Default is `FALSE`, which means that the final
   analysis incorporates right-censoring. This option cannot be used with
-  `method = "chisq"` because the package does not pool chi-square tests
-  over multiple imputed final datasets in a frequentist framework.
+  frequentist methods (`"logrank"`, `"cox"`, or `"chisq"`) because the
+  package does not implement a frequentist pooling rule for multiple
+  imputed final datasets.
 
 - empty_interval:
 

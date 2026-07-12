@@ -258,9 +258,9 @@ follow-up is complete), whether the analysis should be a log-rank
 (<code>method = "logrank"</code>) test, Cox proportional hazards regression model
 Wald test (<code>method = "cox"</code>), a fully-Bayesian piecewise-exponential
 analysis (<code>method = "bayes-surv"</code>), a Bayesian beta-binomial analysis of
-complete binary outcomes (<code>method = "bayes-bin"</code>), or a chi-square test
-(<code>method = "chisq"</code>, which requires <code>imputed_final = FALSE</code>). See Details
-section.</p></dd>
+complete binary outcomes (<code>method = "bayes-bin"</code>), or a frequentist
+log-rank, Cox, or chi-square test (<code>method = "logrank"</code>, <code>"cox"</code>, or
+<code>"chisq"</code>, which require <code>imputed_final = FALSE</code>). See Details section.</p></dd>
 
 
 <dt id="arg-imputed-final">imputed_final<a class="anchor" aria-label="anchor" href="#arg-imputed-final"></a></dt>
@@ -268,9 +268,9 @@ section.</p></dd>
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 <code>end_of_study</code>)? Default is <code>FALSE</code>, which means that the final analysis
-incorporates right-censoring. This option cannot be used with
-<code>method = "chisq"</code> because the package does not pool chi-square tests over
-multiple imputed final datasets in a frequentist framework.</p></dd>
+incorporates right-censoring. This option cannot be used with frequentist
+methods (<code>"logrank"</code>, <code>"cox"</code>, or <code>"chisq"</code>) because the package does not
+implement a frequentist pooling rule for multiple imputed final datasets.</p></dd>
 
 
 <dt id="arg-return-trace">return_trace<a class="anchor" aria-label="anchor" href="#arg-return-trace"></a></dt>
@@ -398,19 +398,22 @@ requires <code>post_prob_ha</code> \(&gt; 0.95\). The reason for this is to
 enable simple switching between Bayesian and frequentist paradigms for
 analysis. Because the chi-square test cannot handle right-censored
 observations, subjects lost to follow-up are excluded from the final
-analysis. <code>imputed_final = TRUE</code> is not supported for this method:
-averaging test results across multiple imputations does not define a
-chi-square test with a clear frequentist interpretation.</p></li>
+analysis. Like the other frequentist methods, it cannot use
+<code>imputed_final = TRUE</code>: the package does not implement a frequentist
+pooling rule for multiple imputed final datasets.</p></li>
 <li><p>Imputed final analysis (<code>imputed_final</code>).
 The overall final analysis conducted after accrual is suspended and
-follow-up is complete can be analyzed on imputed datasets (default) or
-on the non-imputed dataset. Since the imputations/predictions used
+follow-up is complete can be analyzed on imputed datasets for Bayesian
+methods (<code>"bayes-surv"</code> and <code>"bayes-bin"</code>) or on the non-imputed
+dataset. Since the imputations/predictions used
 during the interim analyses assume all subjects are imputed (since loss
 to follow-up is not yet known), it would seem most appropriate to
 conduct the trial in the same manner, especially if loss to follow-up
 rates are appreciable. Note, this only applies to subjects who are
 right-censored due to loss to follow-up, which we assume is a
-non-informative process. It cannot be used with <code>method = "chisq"</code>.</p></li>
+non-informative process. It cannot be used with frequentist methods
+(<code>"logrank"</code>, <code>"cox"</code>, or <code>"chisq"</code>) until an appropriate pooling rule
+is implemented.</p></li>
 </ul><p>When <code>method = "bayes-surv"</code> or <code>method = "bayes-bin"</code> and imputation is
 involved (either at interim
 analyses or via <code>imputed_final = TRUE</code>), a two-stage posterior

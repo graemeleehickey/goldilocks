@@ -77,6 +77,24 @@ time-to-event hazards to generate when events occur and to impute
 not-yet-observed outcomes at interim looks, but the final analysis
 reduces each completed dataset to binary event status by
 <code>end_of_study</code>.</p>
+<p>Two distinct priors can therefore enter a Bayesian binary design. The
+<code>prior</code> argument is a Gamma prior on the
+piecewise-exponential hazards. It is used only for the event-time model
+that generates predictive imputations at interim looks (and at the final
+analysis when <code>imputed_final = TRUE</code>). The
+<code>bin_prior</code> argument is a Beta prior on the binary endpoint
+event probability in each arm. It is used for the Bayesian binary
+analysis of every completed or imputed dataset. Thus, interim predictive
+probabilities are affected by both priors, whereas a non-imputed final
+binary analysis is affected by <code>bin_prior</code> alone.</p>
+<p>For the examples below, we use the default weakly informative
+Gamma<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>0.1</mn><mo>,</mo><mn>0.1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(0.1, 0.1)</annotation></semantics></math>
+hazard prior and a uniform
+Beta<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1, 1)</annotation></semantics></math>
+binary-endpoint prior:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hazard_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>  <span class="co"># Gamma shape and rate for predictive imputation</span></span>
+<span><span class="va">bin_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>         <span class="co"># Beta shapes for the binary endpoint analysis</span></span></code></pre></div>
 <p>Two practical consequences follow:</p>
 <ul>
 <li>
@@ -100,7 +118,7 @@ Since lower event probability is beneficial, we use
 of</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub></mrow><annotation encoding="application/x-tex">p_{\text{treatment}} - p_{\text{control}}</annotation></semantics></math></p>
 <p>against <code>h0 = 0</code>.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">end_of_study</span> <span class="op">&lt;-</span> <span class="fl">12</span></span>
 <span><span class="va">hc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.35</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
 <span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.25</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
@@ -114,7 +132,8 @@ of</p>
 <span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="fl">80</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>  bin_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  prior <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
+<span>  bin_prior <span class="op">=</span> <span class="va">bin_prior</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"quadrature"</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -153,7 +172,7 @@ performance criterion (OPC).</p>
 probability is 20%. With <code>alternative = "less"</code>, success
 means the posterior probability that the event probability is below 30%
 exceeds <code>prob_ha</code>.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fl">0.30</span></span>
 <span><span class="va">target</span> <span class="op">&lt;-</span> <span class="fl">0.20</span></span>
 <span><span class="va">ht_single</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="va">target</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
@@ -167,7 +186,8 @@ exceeds <code>prob_ha</code>.</p>
 <span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>  bin_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  prior <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
+<span>  bin_prior <span class="op">=</span> <span class="va">bin_prior</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"quadrature"</span>,</span>
 <span>  prop_loss <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  alternative <span class="op">=</span> <span class="st">"less"</span>,</span>
@@ -207,9 +227,11 @@ the posterior mean or treatment-control difference.</li>
 for the two-arm posterior difference, and the closed-form beta CDF for
 single-arm designs.</li>
 </ul>
-<p>The Monte Carlo option is usually the most flexible. The quadrature
-option is deterministic and useful for small examples or checks. The
-normal approximation is fastest, but should be used with care when
+<p>The Monte Carlo method has simulation error, controlled by
+<code>bin_N</code>. Quadrature is deterministic (up to numerical
+integration for a two-arm design) and is a useful high-accuracy default
+when it is computationally feasible. The normal approximation is fastest
+in a representative two-arm benchmark, but should be used with care when
 sample sizes are small or event probabilities are near 0 or 1.</p>
 </div>
 <div class="section level2">
@@ -221,7 +243,7 @@ simulation reproducible, including when <code>ncores</code> is greater
 than 1. With <code>backend = "auto"</code>, <code><a href="../reference/sim_trials.html">sim_trials()</a></code>
 uses forked workers on Unix-like platforms and PSOCK workers on
 Windows.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  N_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
@@ -232,7 +254,8 @@ Windows.</p>
 <span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="fl">80</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>  bin_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  prior <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
+<span>  bin_prior <span class="op">=</span> <span class="va">bin_prior</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"quadrature"</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>

@@ -97,9 +97,26 @@ pipeline.</p>
 </h3>
 <ul>
 <li>
+<strong><code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code></strong>: Generates a complete
+trial dataset by calling <code><a href="../reference/enrollment.html">enrollment()</a></code>,
+<code><a href="../reference/randomization.html">randomization()</a></code>, and <code><a href="../reference/pwe_sim.html">pwe_sim()</a></code>.</li>
+<li>
+<strong><code><a href="../reference/survival_adapt.html">survival_adapt()</a></code></strong>: Simulates a single
+adaptive trial. Generates data via <code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code>,
+conducts interim analyses using <code>posterior()</code> and
+<code>test_stop_success()</code>, and performs the final analysis via
+<code>test_final()</code>. With <code>return_trace = TRUE</code>, it
+also retains a compact audit trail for each completed interim look.</li>
+<li>
 <strong><code><a href="../reference/sim_trials.html">sim_trials()</a></code></strong>: Top-level entry point.
 Runs <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> across multiple trials (optionally in
 parallel) and collates results.</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="post-processing-functions">Post-processing functions<a class="anchor" aria-label="anchor" href="#post-processing-functions"></a>
+</h3>
+<ul>
 <li>
 <strong><code><a href="../reference/summarise_sims.html">summarise_sims()</a></code></strong>: Summarizes the
 output of <code><a href="../reference/sim_trials.html">sim_trials()</a></code>, computing operating characteristics
@@ -119,26 +136,9 @@ trials.</li>
 </ul>
 </div>
 <div class="section level3">
-<h3 id="trial-engine">Trial engine<a class="anchor" aria-label="anchor" href="#trial-engine"></a>
-</h3>
-<ul>
-<li>
-<strong><code><a href="../reference/survival_adapt.html">survival_adapt()</a></code></strong>: Simulates a single
-adaptive trial. Generates data via <code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code>,
-conducts interim analyses using <code>posterior()</code> and
-<code>test_stop_success()</code>, and performs the final analysis via
-<code>test_final()</code>. With <code>return_trace = TRUE</code>, it
-also retains a compact audit trail for each completed interim look.</li>
-</ul>
-</div>
-<div class="section level3">
 <h3 id="data-generation-and-analysis-utilities">Data generation and analysis utilities<a class="anchor" aria-label="anchor" href="#data-generation-and-analysis-utilities"></a>
 </h3>
 <ul>
-<li>
-<strong><code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code></strong>: Generates a complete
-trial dataset by calling <code><a href="../reference/enrollment.html">enrollment()</a></code>,
-<code><a href="../reference/randomization.html">randomization()</a></code>, and <code><a href="../reference/pwe_sim.html">pwe_sim()</a></code>.</li>
 <li>
 <strong><code>posterior()</code></strong>: Estimates the posterior
 distribution of piecewise exponential hazard rates using a conjugate

@@ -73,14 +73,14 @@
 adaptive sample size design. ADVENT compared pulsed field ablation (PFA)
 with conventional thermal ablation for patients with drug-resistant
 paroxysmal atrial fibrillation. It was registered as <a href="https://clinicaltrials.gov/study/NCT04612244" class="external-link">NCT04612244</a>, its
-design was published in <em>Heart Rhythm O2</em>, and its primary
-results were published in <em>The New England Journal of
-Medicine</em>.</p>
+design was published in <em>Heart Rhythm O2</em> (Reddy et al., 2023),
+and its primary results were published in <em>The New England Journal of
+Medicine</em> (Reddy et al., 2023).</p>
 <p>The design paper states that the randomized sample size was
-determined adaptively using a Goldilocks design, citing Broglio, Connor,
-and Berry (2014). The possible randomized sample sizes were 350, 450,
-550, 650, and 750. At each enrollment milestone, the trial calculated
-the predictive probability that the trial would eventually show
+determined adaptively using a Goldilocks design, citing Broglio et
+al. (2014). The possible randomized sample sizes were 350, 450, 550,
+650, and 750. At each enrollment milestone, the trial calculated the
+predictive probability that the trial would eventually show
 noninferiority for both primary endpoints. The trial could then stop
 enrollment for predicted success, stop for futility, or continue to the
 next milestone.</p>
@@ -418,8 +418,7 @@ because the current sample size appeared adequate.</li>
 <code>stop_futility</code>: whether enrollment stopped because
 success looked unlikely even at the maximum sample size.</li>
 <li>
-<code>est_final</code>: the posterior mean of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">PFA failure</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">thermal failure</mtext></msub></mrow><annotation encoding="application/x-tex">p_{\text{PFA failure}} - p_{\text{thermal failure}}</annotation></semantics></math>.</li>
+<code>est_final</code>: the posterior mean of (p_{} - p_{}).</li>
 <li>
 <code>post_prob_ha</code>: the final posterior probability that the
 binary endpoint effect is below the noninferiority margin.</li>

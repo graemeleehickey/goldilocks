@@ -777,20 +777,20 @@ when <code>bin_method = "mc"</code>.</p>
 final analysis, <code>imputed_final</code> controls whether subjects
 lost to follow-up are also imputed.</p>
 <p>If <code>imputed_final = TRUE</code>, the final analysis mirrors the
-interim predictive framework: each imputed completed dataset is
-analyzed, yielding a value of the success probability scale
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(\mathcal{D})</annotation></semantics></math>
-(posterior probability for <code>method = "bayes-surv"</code> or
-<code>method = "bayes-bin"</code>, or transformed P-value for
-frequentist methods), and <code>post_prob_ha</code> is the average of
-those values across imputations. If <code>imputed_final = FALSE</code>,
-the final analysis uses observed right-censored data for methods that
-can handle censoring (<code>logrank</code>, <code>cox</code>, and
-<code>bayes-surv</code>). For <code>chisq</code> and
-<code>bayes-bin</code>, lost-to-follow-up subjects are excluded when
-<code>imputed_final = FALSE</code> because these methods require
-complete binary outcomes and have no mechanism for right-censored
-observations.</p>
+interim predictive framework for Bayesian methods
+(<code>method = "bayes-surv"</code> or
+<code>method = "bayes-bin"</code>): each imputed completed dataset is
+analyzed and <code>post_prob_ha</code> is the average posterior
+probability across imputations. <code>imputed_final = TRUE</code> is not
+currently available for frequentist methods (<code>logrank</code>,
+<code>cox</code>, or <code>chisq</code>) because the package does not
+implement an appropriate pooling rule for multiple imputed final
+datasets. If <code>imputed_final = FALSE</code>, the final analysis uses
+observed right-censored data for methods that can handle censoring
+(<code>logrank</code>, <code>cox</code>, and <code>bayes-surv</code>).
+For <code>chisq</code> and <code>bayes-bin</code>, lost-to-follow-up
+subjects are excluded because these methods require complete binary
+outcomes and have no mechanism for right-censored observations.</p>
 <p>The loss-to-follow-up mechanism in the simulator is non-informative.
 Designs where dropout may depend on prognosis should be assessed with
 sensitivity analyses outside the default data-generating mechanism.</p>

@@ -6,11 +6,11 @@ articles:
   architecture: architecture.html
   bayes-piecewise: bayes-piecewise.html
   bayesian-binary: bayesian-binary.html
-  broglio: broglio.html
   decision-traces: decision-traces.html
   single-arm: single-arm.html
   technical-methods: technical-methods.html
-last_built: 2026-07-12T06:49Z
+  two-arm: two-arm.html
+last_built: 2026-07-12T10:24Z
 urls:
   reference: https://graemeleehickey.github.io/goldilocks/reference
   article: https://graemeleehickey.github.io/goldilocks/articles

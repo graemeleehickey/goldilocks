@@ -5,12 +5,14 @@
 library(goldilocks)
 ```
 
-The other vignettes describe two-arm randomized designs. Single-arm
-trials – in which every subject receives the experimental therapy and
-the comparator is an external benchmark, often called a performance goal
-(PG) or objective performance criterion (OPC) – are common in
-early-phase oncology, rare-disease, and proof-of-concept studies. This
-vignette shows how to set up a Goldilocks single-arm design with
+Several other vignettes focus on two-arm randomized designs, although
+the Bayesian binary outcome vignette also includes a single-arm example.
+Single-arm trials – in which every subject receives the experimental
+therapy and the comparator is an external benchmark, often called a
+performance goal (PG) or objective performance criterion (OPC) – are
+common in early-phase oncology, rare-disease, and proof-of-concept
+studies. This vignette shows how to set up a Goldilocks single-arm
+design with
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
 
 Two practical constraints on single-arm designs in this package:
@@ -87,8 +89,6 @@ out <- survival_adapt(
   interim_look     = 50,
   end_of_study     = end_of_study,
   prior            = c(0.1, 0.1),       # Gamma(0.1, 0.1) on the hazard
-  block            = 2,                 # default; inert in single-arm mode
-  rand_ratio       = c(1, 1),           # default; inert in single-arm mode
   prop_loss        = 0.05,
   alternative      = "less",
   h0               = benchmark,         # benchmark failure probability
@@ -106,6 +106,9 @@ out
 #> 1       0.9985 0.1689997        0.86             0                     0
 ```
 
+There is no need to supply `block` or `rand_ratio`: they are redundant
+in a single-arm design because no randomization is performed.
+
 A few points to highlight in the output:
 
 - `N_control = 0`: no concurrent control was simulated.
@@ -116,18 +119,6 @@ A few points to highlight in the output:
   `end_of_study`, *not* a treatment effect relative to control.
 - `post_prob_ha` is the posterior probability that
   $`p_{\text{treatment}} < h_0`$.
-
-## Why `block` and `rand_ratio` still appear
-
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-shares its trial-data simulator with the two-arm case. In single-arm
-mode the simulator skips
-[`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
-entirely and assigns every subject to the treatment arm; `block` and
-`rand_ratio` are therefore inert and can be left at their defaults. The
-minimum-`interim_look` rule (`interim_look >= max(block)`) only applies
-to two-arm designs, so a single-arm trial can use any `interim_look`
-strictly less than `N_total`.
 
 ## Operating characteristics
 
@@ -152,8 +143,6 @@ out_power <- sim_trials(
   interim_look     = 50,
   end_of_study     = end_of_study,
   prior            = c(0.1, 0.1),
-  block            = 2,
-  rand_ratio       = c(1, 1),
   prop_loss        = 0.05,
   alternative      = "less",
   h0               = benchmark,
@@ -178,8 +167,6 @@ out_t1error <- sim_trials(
   interim_look     = 50,
   end_of_study     = end_of_study,
   prior            = c(0.1, 0.1),
-  block            = 2,
-  rand_ratio       = c(1, 1),
   prop_loss        = 0.05,
   alternative      = "less",
   h0               = benchmark,

@@ -198,16 +198,17 @@ when</p>
 probability, <code>alternative = "less"</code> is the appropriate choice
 here. (<code>method = "bayes-surv"</code> does not allow
 <code>alternative = "two.sided"</code> – it raises an error.)</p>
-<p>The same posterior is also used at each interim look to compute the
-predictive probability of eventual success. Imputed completions are
-drawn from the posterior predictive distribution of the
-piecewise-exponential model for subjects still under follow-up, and the
-analysis is repeated on each imputed dataset. The fraction of
-imputations that would declare success at the maximum sample size is the
-predictive probability of success, which drives the futility and
-expected-success stopping rules through <code>Fn</code> and
-<code>Sn</code>.</p>
-<p>We use a weakly informative
+<p>The same posterior is also used at each interim look to compute
+predictive probabilities of success. Imputed completions are drawn from
+the posterior predictive distribution of the piecewise-exponential model
+for subjects still under follow-up, and the analysis is repeated on each
+imputed dataset. The fraction of imputations that would declare success
+after enrollment continues to the maximum sample size is compared with
+<code>Fn</code> for the futility rule. Separately, the fraction that
+would declare success after completing follow-up for the subjects
+currently enrolled is compared with <code>Sn</code> for the
+expected-success rule.</p>
+<p>We use an independent weakly informative
 Gamma<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>0.1</mn><mo>,</mo><mn>0.1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(0.1, 0.1)</annotation></semantics></math>
 prior on every hazard component:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -281,9 +282,9 @@ typically be populated.</p></li>
 adds two hazard parameters to estimate in a two-arm design (one per
 treatment group). With limited interim data this can make individual
 interval posteriors diffuse. In our experience, one or two
-well-motivated cut-points (e.g. tied to a clinical milestone) is usually
-sufficient; finer partitions tend to add variance without commensurate
-bias reduction.</p></li>
+well-motivated cut-points (e.g., tied to a clinical milestone) is
+usually sufficient; finer partitions tend to add variance without
+commensurate bias reduction.</p></li>
 </ol>
 </div>
 <div class="section level2">

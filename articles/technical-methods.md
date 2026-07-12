@@ -588,17 +588,17 @@ analysis, `imputed_final` controls whether subjects lost to follow-up
 are also imputed.
 
 If `imputed_final = TRUE`, the final analysis mirrors the interim
-predictive framework: each imputed completed dataset is analyzed,
-yielding a value of the success probability scale $`Q(\mathcal{D})`$
-(posterior probability for `method = "bayes-surv"` or
-`method = "bayes-bin"`, or transformed P-value for frequentist methods),
-and `post_prob_ha` is the average of those values across imputations. If
-`imputed_final = FALSE`, the final analysis uses observed right-censored
-data for methods that can handle censoring (`logrank`, `cox`, and
-`bayes-surv`). For `chisq` and `bayes-bin`, lost-to-follow-up subjects
-are excluded when `imputed_final = FALSE` because these methods require
-complete binary outcomes and have no mechanism for right-censored
-observations.
+predictive framework for Bayesian methods (`method = "bayes-surv"` or
+`method = "bayes-bin"`): each imputed completed dataset is analyzed and
+`post_prob_ha` is the average posterior probability across imputations.
+`imputed_final = TRUE` is not currently available for frequentist
+methods (`logrank`, `cox`, or `chisq`) because the package does not
+implement an appropriate pooling rule for multiple imputed final
+datasets. If `imputed_final = FALSE`, the final analysis uses observed
+right-censored data for methods that can handle censoring (`logrank`,
+`cox`, and `bayes-surv`). For `chisq` and `bayes-bin`, lost-to-follow-up
+subjects are excluded because these methods require complete binary
+outcomes and have no mechanism for right-censored observations.
 
 The loss-to-follow-up mechanism in the simulator is non-informative.
 Designs where dropout may depend on prognosis should be assessed with

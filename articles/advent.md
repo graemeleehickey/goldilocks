@@ -10,17 +10,17 @@ sample size design. ADVENT compared pulsed field ablation (PFA) with
 conventional thermal ablation for patients with drug-resistant
 paroxysmal atrial fibrillation. It was registered as
 [NCT04612244](https://clinicaltrials.gov/study/NCT04612244), its design
-was published in *Heart Rhythm O2*, and its primary results were
-published in *The New England Journal of Medicine*.
+was published in *Heart Rhythm O2* (Reddy et al., 2023), and its primary
+results were published in *The New England Journal of Medicine* (Reddy
+et al., 2023).
 
 The design paper states that the randomized sample size was determined
-adaptively using a Goldilocks design, citing Broglio, Connor, and Berry
-(2014). The possible randomized sample sizes were 350, 450, 550, 650,
-and 750. At each enrollment milestone, the trial calculated the
-predictive probability that the trial would eventually show
-noninferiority for both primary endpoints. The trial could then stop
-enrollment for predicted success, stop for futility, or continue to the
-next milestone.
+adaptively using a Goldilocks design, citing Broglio et al. (2014). The
+possible randomized sample sizes were 350, 450, 550, 650, and 750. At
+each enrollment milestone, the trial calculated the predictive
+probability that the trial would eventually show noninferiority for both
+primary endpoints. The trial could then stop enrollment for predicted
+success, stop for futility, or continue to the next milestone.
 
 This vignette uses ADVENT as a worked example for `goldilocks`. It
 focuses on how the published design maps to package arguments. The goal
@@ -290,8 +290,7 @@ The most important columns are:
   current sample size appeared adequate.
 - `stop_futility`: whether enrollment stopped because success looked
   unlikely even at the maximum sample size.
-- `est_final`: the posterior mean of
-  $`p_{\text{PFA failure}} - p_{\text{thermal failure}}`$.
+- `est_final`: the posterior mean of (p\_{} - p\_{}).
 - `post_prob_ha`: the final posterior probability that the binary
   endpoint effect is below the noninferiority margin.
 
