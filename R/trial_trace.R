@@ -142,10 +142,12 @@ plot_trial_trace <- function(x) {
 
   old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par), add = TRUE)
-  graphics::par(mfrow = c(3, 1), mar = c(3.5, 4, 2.5, 1))
+  # Leave room for each panel's x-axis title on compact graphics devices.
+  graphics::par(mfrow = c(3, 1), mar = c(5.1, 4, 2.5, 1))
 
   look <- trace$look
   xlim <- if (length(look) == 1) look + c(-0.5, 0.5) else range(look)
+  x_ticks <- seq.int(ceiling(xlim[1]), floor(xlim[2]))
   stop_rows <- trace$decision != "continue"
 
   graphics::plot(
@@ -154,12 +156,14 @@ plot_trial_trace <- function(x) {
     type = "b",
     ylim = c(0, 1),
     xlim = xlim,
+    xaxt = "n",
     xlab = "Interim look",
     ylab = "Predictive probability",
     main = "Success if accrual stops now",
     col = "#0072B2",
     pch = 16
   )
+  graphics::axis(1, at = x_ticks)
   graphics::lines(
     look,
     trace$success_threshold,
@@ -190,10 +194,12 @@ plot_trial_trace <- function(x) {
     type = "n",
     ylim = c(0, 1),
     xlim = xlim,
+    xaxt = "n",
     xlab = "Interim look",
     ylab = "Predictive probability",
     main = "Success if accrual continues to maximum sample size"
   )
+  graphics::axis(1, at = x_ticks)
   if (any(is.finite(trace$ppp_success_at_max))) {
     graphics::lines(
       look,
@@ -238,12 +244,14 @@ plot_trial_trace <- function(x) {
     type = "b",
     ylim = c(0, y_max),
     xlim = xlim,
+    xaxt = "n",
     xlab = "Interim look",
     ylab = "Subjects",
     main = "Enrollment and observed events by arm",
     col = "#0072B2",
     pch = 16
   )
+  graphics::axis(1, at = x_ticks)
   graphics::lines(look, trace$N_control, type = "b", col = "#D55E00", pch = 16)
   graphics::lines(
     look,

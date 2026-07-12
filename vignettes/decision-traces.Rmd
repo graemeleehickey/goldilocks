@@ -16,16 +16,11 @@ set.seed(5701)
 library(goldilocks)
 ```
 
-An adaptive trial is easier to assess when the final result can be connected
-back to the interim decisions that led to it. By default, survival_adapt()
-returns its compact, one-row final summary. Set return_trace = TRUE to request
-a goldilocks_trial object with that summary and a tidy row for each interim
-look.
+An adaptive trial is easier to assess when the final result can be connected back to the interim decisions that led to it. By default, `survival_adapt()` returns its compact, one-row final summary. Set `return_trace = TRUE` to request a `goldilocks_trial` object with that summary and a tidy row for each interim look.
 
 ## A traced trial
 
-This small Bayesian survival design has two interim looks. The treatment arm is
-assumed to have a lower cumulative failure probability by 24 months.
+This small Bayesian survival design has two interim looks. The treatment arm is assumed to have a lower cumulative failure probability by 24 months.
 
 ```{r traced-trial}
 end_of_study <- 24
@@ -60,8 +55,7 @@ trial <- survival_adapt(
 trial
 ```
 
-The summary element is the familiar final analysis output. The trace element
-is an audit trail of the interim path.
+The summary element is the familiar final analysis output. The trace element is an audit trail of the interim path.
 
 ```{r trace-table}
 trial$summary
@@ -69,16 +63,9 @@ trial$trace
 summarise_trial_trace(trial)
 ```
 
-For each completed look, ppp_stop_now is the predictive probability of success
-if enrollment stops at that look. It is compared with success_threshold.
-ppp_success_at_max is the predictive probability of success if enrollment
-continues to the maximum sample size. It is compared with futility_threshold.
-The decision column records whether the design continued, stopped for expected
-success, or stopped for futility.
+For each completed look, `ppp_stop_now` is the predictive probability of success if enrollment stops at that look. It is compared with `success_threshold`. `ppp_success_at_max` is the predictive probability of success if enrollment continues to the maximum sample size. It is compared with `futility_threshold`. The decision column records whether the design continued, stopped for expected success, or stopped for futility.
 
-The trace does not retain posterior draws or completed imputed data sets. That
-keeps a traced trial small enough to inspect and share while leaving the
-underlying random-number path unchanged.
+The trace does not retain posterior draws or completed imputed data sets. That keeps a traced trial small enough to inspect and share while leaving the underlying random-number path unchanged.
 
 ## Visualizing the path
 
@@ -86,18 +73,11 @@ underlying random-number path unchanged.
 plot_trial_trace(trial)
 ```
 
-The first two panels show the two predictive probabilities alongside their
-decision thresholds. The final panel shows enrollment and observed events by
-arm at each look. Warnings raised during a look, such as empty-interval
-handling, are recorded in warning_messages and remain visible as ordinary R
-warnings.
+The first two panels show the two predictive probabilities alongside their decision thresholds. The final panel shows enrollment and observed events by arm at each look. Warnings raised during a look, such as empty-interval handling, are recorded in `warning_messages` and remain visible as ordinary R warnings.
 
 ## Summarizing many simulated trials
 
-Traces are intended for examining individual trial paths. sim_trials() keeps
-its compact result data frame, which is more suitable for large operating
-characteristic simulations. plot_sim_stopping() provides a quick visual
-summary of stopping outcomes and enrolled sample sizes.
+Traces are intended for examining individual trial paths. `sim_trials()` keeps its compact result data frame, which is more suitable for large operating characteristic simulations. `plot_sim_stopping()` provides a quick visual summary of stopping outcomes and enrolled sample sizes.
 
 ```{r simulation-summary, eval = FALSE}
 sims <- sim_trials(
@@ -129,7 +109,4 @@ summarise_sims(sims$sims)
 plot_sim_stopping(sims)
 ```
 
-For reproducible simulations, set seed in sim_trials(). The per-trial random
-streams make the compact simulation results reproducible across supported
-parallel backends. For a detailed explanation of the decision algorithm and
-calibration, see the Technical details of the Goldilocks design vignette.
+For reproducible simulations, set seed in `sim_trials()`. The per-trial random streams make the compact simulation results reproducible across supported parallel backends. For a detailed explanation of the decision algorithm and calibration, see the "Technical details of the Goldilocks design" vignette.

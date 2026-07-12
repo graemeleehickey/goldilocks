@@ -45,7 +45,7 @@ trial_summary <- data.frame(
     "Primary effectiveness endpoint",
     "Primary safety endpoint"
   ),
-  Reported_ADVENT_design = c(
+  `Reported ADVENT design` = c(
     "Drug-resistant paroxysmal atrial fibrillation",
     "Pulsed field ablation",
     "Thermal ablation by radiofrequency or cryoballoon ablation",
@@ -60,7 +60,8 @@ trial_summary <- data.frame(
       "Composite device- or procedure-related serious adverse events,",
       "including selected acute and chronic events"
     )
-  )
+  ),
+  check.names = FALSE
 )
 
 knitr::kable(trial_summary)
@@ -171,20 +172,21 @@ The design paper reports a target scenario with 65% treatment success in each ar
 
 For the safety endpoint, the event is already an adverse event. The target scenario was an 8% primary safety event rate in each arm.
 
-```{r endpoint-table}
+```{r endpoint-table, echo=FALSE}
 endpoint_map <- data.frame(
   Endpoint = c("Effectiveness", "Safety"),
-  Published_scale = c(
+  `Published scale` = c(
     "Treatment success by 12 months",
     "Primary safety event by 12 months"
   ),
-  Code_event = c(
+  `Code event` = c(
     "Failure to meet treatment success",
     "Primary safety event"
   ),
-  Target_event_probability = c(0.35, 0.08),
-  Noninferiority_margin = c(0.15, 0.08),
-  Posterior_threshold = c(0.956, 0.966)
+  `Target event probability` = c(0.35, 0.08),
+  `Noninferiority margin` = c(0.15, 0.08),
+  `Posterior threshold` = c(0.956, 0.966),
+  check.names = FALSE
 )
 
 knitr::kable(endpoint_map, digits = 3)
@@ -217,7 +219,7 @@ haz_safety <- prop_to_haz(0.08, endtime = end_of_study)
 prob_check <- data.frame(
   Endpoint = c("Effectiveness failure", "Safety event"),
   Hazard = c(haz_eff_fail, haz_safety),
-  Event_probability_at_12_months = c(
+  `Event probability at 12 months` = c(
     ppwe(
       hazard = matrix(haz_eff_fail, nrow = 1),
       end_of_study = end_of_study,
@@ -228,7 +230,8 @@ prob_check <- data.frame(
       end_of_study = end_of_study,
       cutpoints = 0
     )
-  )
+  ),
+  check.names = FALSE
 )
 
 knitr::kable(prob_check, digits = 4)
@@ -289,7 +292,7 @@ The most important columns are:
 -   `N_enrolled`: the selected sample size for this simulated trial.
 -   `stop_expected_success`: whether enrollment stopped because the current sample size appeared adequate.
 -   `stop_futility`: whether enrollment stopped because success looked unlikely even at the maximum sample size.
--   `est_final`: the posterior mean of (p\_{\text{PFA failure}} - p\_{\text{thermal failure}}).
+-   `est_final`: the posterior mean of (\$p\_{\text{PFA failure}} - p\_{\text{thermal failure}}\$).
 -   `post_prob_ha`: the final posterior probability that the binary endpoint effect is below the noninferiority margin.
 
 ## Safety endpoint
@@ -487,7 +490,6 @@ The code simplifies the reported trial in these ways:
 
 -   It models effectiveness and safety as separate endpoint-specific `survival_adapt()` runs. ADVENT used co-primary endpoints with a joint stopping recommendation.
 -   It does not model site stratification or the exact randomly varying block randomization scheme.
--   It ignores nonrandomized roll-in subjects.
 -   It uses constant hazards to reproduce the target 12-month event probabilities. The real composite endpoints include acute and chronic components.
 -   It uses the package default Gamma prior for the time-to-event imputation model because the main design paper reports the beta-binomial endpoint prior but not all imputation-model hyperparameters.
 -   It approximates incomplete follow-up with `prop_loss = 0.04`.
