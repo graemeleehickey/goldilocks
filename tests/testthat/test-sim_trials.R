@@ -86,7 +86,6 @@ test_that("sim_trials-bayes-bin", {
     prior = c(0.1, 0.1),
     bin_prior = c(1, 1),
     bin_method = "normal",
-    bin_N = 100,
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,

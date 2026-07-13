@@ -48,7 +48,6 @@ test_final <- function(
   h0,
   bin_prior,
   bin_method,
-  bin_N,
   empty_interval,
   end_of_study
 ) {
@@ -64,12 +63,8 @@ test_final <- function(
       single_arm = single_arm,
       empty_interval = empty_interval
     )
-    # Effect matrix + posterior probability
-    effect_rows <- ifelse(method == "bayes-surv", N_mcmc, 1)
-    if (method == "bayes-bin" && bin_method == "mc") {
-      effect_rows <- bin_N
-    }
-    effect_final_mat <- matrix(nrow = effect_rows, ncol = N_impute)
+    # Effect estimate + posterior probability for each imputed dataset
+    effect_final <- rep(NA_real_, N_impute)
     post_paa <- vector(length = N_impute)
     # Impute multiple data sets
     for (j in 1:N_impute) {
@@ -102,18 +97,17 @@ test_final <- function(
         h0 = h0,
         bin_prior = bin_prior,
         bin_method = bin_method,
-        bin_N = bin_N,
         empty_interval = empty_interval
       )
 
       post_paa[j] <- success$success
       if (method %in% c("cox", "bayes-surv", "bayes-bin")) {
-        effect_final_mat[, j] <- success$effect # See Gelman et al. (2004, p. 520)
+        effect_final[j] <- success$effect # See Gelman et al. (2004, p. 520)
       }
     }
     # Average over imputations
     post_paa <- mean(post_paa)
-    est_final <- mean(effect_final_mat)
+    est_final <- mean(effect_final)
   } else {
     # Apply primary analysis to final data (without imputation)
     # Chi-square test cannot handle censored (LTFU) subjects, so exclude them
@@ -134,12 +128,11 @@ test_final <- function(
       h0 = h0,
       bin_prior = bin_prior,
       bin_method = bin_method,
-      bin_N = bin_N,
       empty_interval = empty_interval
     )
 
     post_paa <- success$success
-    est_final <- mean(success$effect)
+    est_final <- success$effect
   }
 
   return(c(post_paa, est_final))

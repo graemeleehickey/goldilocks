@@ -476,7 +476,7 @@ validate_interim_looks <- function(interim_look, N_total, min_look = NULL) {
 #'   sample size before a Bayesian binomial analysis is run.
 #'
 #' @noRd
-validate_bayes_binomial_args <- function(bin_prior, bin_method, bin_N) {
+validate_bayes_binomial_args <- function(bin_prior, bin_method, N_mcmc) {
   if (
     length(bin_prior) != 2 ||
       any(!is.finite(bin_prior)) ||
@@ -488,14 +488,14 @@ validate_bayes_binomial_args <- function(bin_prior, bin_method, bin_N) {
     stop("'bin_method' must be one of 'mc', 'normal', or 'quadrature'")
   }
   if (
-    length(bin_N) != 1 ||
-      !is.numeric(bin_N) ||
-      is.na(bin_N) ||
-      !is.finite(bin_N) ||
-      bin_N <= 0 ||
-      bin_N != floor(bin_N)
+    length(N_mcmc) != 1 ||
+      !is.numeric(N_mcmc) ||
+      is.na(N_mcmc) ||
+      !is.finite(N_mcmc) ||
+      N_mcmc <= 0 ||
+      N_mcmc != floor(N_mcmc)
   ) {
-    stop("'bin_N' must be a single positive integer")
+    stop("'N_mcmc' must be a single positive integer")
   }
 
   invisible(TRUE)

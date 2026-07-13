@@ -128,7 +128,7 @@ test_that("analyse_data works with method = 'bayes-surv' (two-arm)", {
   expect_type(res, "list")
   expect_named(res, c("success", "effect"))
   expect_true(res$success >= 0 && res$success <= 1)
-  expect_length(res$effect, 100)
+  expect_length(res$effect, 1)
 })
 
 test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less'", {
@@ -226,20 +226,20 @@ test_that("analyse_data works with method = 'bayes-bin' and Monte Carlo", {
     cutpoints = 0,
     end_of_study = 36,
     prior = c(0.1, 0.1),
-    N_mcmc = 10,
+    N_mcmc = 5000,
     single_arm = FALSE,
     method = "bayes-bin",
     alternative = "greater",
     h0 = 0,
     bin_prior = c(1, 1),
-    bin_method = "mc",
-    bin_N = 5000
+    bin_method = "mc"
   )
 
   expect_type(res, "list")
   expect_named(res, c("success", "effect"))
   expect_true(res$success >= 0 && res$success <= 1)
-  expect_length(res$effect, 5000)
+  expect_length(res$effect, 1)
+  expect_equal(res$effect, 20 / 52, tolerance = 0.02)
   expect_true(res$success > 0.9)
 })
 
@@ -259,8 +259,7 @@ test_that("analyse_data method = 'bayes-bin' quadrature tails sum to 1", {
     method = "bayes-bin",
     h0 = 0,
     bin_prior = c(1, 1),
-    bin_method = "quadrature",
-    bin_N = 1000
+    bin_method = "quadrature"
   )
 
   res_less <- do.call(analyse_data, c(args, alternative = "less"))
@@ -281,7 +280,7 @@ test_that("analyse_data method = 'bayes-bin' engines agree on stable data", {
     cutpoints = 0,
     end_of_study = 36,
     prior = c(0.1, 0.1),
-    N_mcmc = 10,
+    N_mcmc = 50000,
     single_arm = FALSE,
     method = "bayes-bin",
     alternative = "greater",
@@ -290,14 +289,14 @@ test_that("analyse_data method = 'bayes-bin' engines agree on stable data", {
   )
 
   set.seed(3319)
-  res_mc <- do.call(analyse_data, c(args, bin_method = "mc", bin_N = 50000))
+  res_mc <- do.call(analyse_data, c(args, bin_method = "mc"))
   res_normal <- do.call(
     analyse_data,
-    c(args, bin_method = "normal", bin_N = 1000)
+    c(args, bin_method = "normal")
   )
   res_quadrature <- do.call(
     analyse_data,
-    c(args, bin_method = "quadrature", bin_N = 1000)
+    c(args, bin_method = "quadrature")
   )
 
   expect_equal(res_mc$success, res_quadrature$success, tolerance = 0.01)
@@ -316,14 +315,13 @@ test_that("analyse_data method = 'bayes-bin' works for single-arm data", {
     cutpoints = 0,
     end_of_study = 36,
     prior = c(0.1, 0.1),
-    N_mcmc = 10,
+    N_mcmc = 1000,
     single_arm = TRUE,
     method = "bayes-bin",
     alternative = "less",
     h0 = 0.4,
     bin_prior = c(1, 1),
-    bin_method = "quadrature",
-    bin_N = 1000
+    bin_method = "quadrature"
   )
 
   expect_true(res$success > 0.9)
@@ -343,14 +341,13 @@ test_that("analyse_data method = 'bayes-bin' rejects incomplete censored outcome
       cutpoints = 0,
       end_of_study = 36,
       prior = c(0.1, 0.1),
-      N_mcmc = 10,
+      N_mcmc = 1000,
       single_arm = FALSE,
       method = "bayes-bin",
       alternative = "greater",
       h0 = 0,
       bin_prior = c(1, 1),
-      bin_method = "mc",
-      bin_N = 1000
+      bin_method = "mc"
     ),
     "requires all censored subjects"
   )
@@ -376,7 +373,7 @@ test_that("analyse_data works with method = 'bayes-surv' (single-arm)", {
   )
   expect_type(res, "list")
   expect_true(res$success >= 0 && res$success <= 1)
-  expect_length(res$effect, 100)
+  expect_length(res$effect, 1)
 })
 
 test_that("analyse_data works with piecewise cutpoints", {
@@ -522,8 +519,7 @@ test_that("analyse_data validates h0 before Bayesian analysis", {
     method = "bayes-bin",
     alternative = "greater",
     bin_prior = c(1, 1),
-    bin_method = "quadrature",
-    bin_N = 10
+    bin_method = "quadrature"
   )
 
   expect_error(

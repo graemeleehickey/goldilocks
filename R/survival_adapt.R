@@ -22,8 +22,6 @@
 #'   probability for `method = "bayes-bin"`, must be one of `"mc"` (Monte Carlo
 #'   sampling), `"normal"` (normal approximation), or `"quadrature"` (numerical
 #'   integration). The default is `"mc"`.
-#' @param bin_N integer. Number of Monte Carlo draws from the beta posterior
-#'   when `method = "bayes-bin"` and `bin_method = "mc"`.
 #' @param alternative character. The string specifying the alternative
 #'   hypothesis, must be one of `"greater"` (default), `"less"` or
 #'   `"two.sided"`. One-sided alternatives (`"greater"` and `"less"`) are
@@ -67,8 +65,9 @@
 #'   hypothesis.
 #' @param N_impute integer. Number of imputations for Monte Carlo simulation of
 #'   missing data.
-#' @param N_mcmc integer. Number of samples to draw from the posterior
-#'   distribution when using a Bayesian test (`method = "bayes-surv"`).
+#' @param N_mcmc integer. Number of posterior samples used by
+#'   `method = "bayes-surv"` and by `method = "bayes-bin"` when
+#'   `bin_method = "mc"`.
 #' @param empty_interval character. Policy for empty piecewise-exponential
 #'   intervals in `method = "bayes-surv"` posterior calculations. An empty
 #'   interval is an interval with no exposed subjects in a treatment arm at the
@@ -315,7 +314,6 @@ survival_adapt <- function(
   prior = c(0.1, 0.1),
   bin_prior = c(1, 1),
   bin_method = "mc",
-  bin_N = 10000,
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss = 0,
@@ -375,7 +373,7 @@ survival_adapt <- function(
 
   # Check: Bayesian binomial test arguments
   if (method == "bayes-bin") {
-    validate_bayes_binomial_args(bin_prior, bin_method, bin_N)
+    validate_bayes_binomial_args(bin_prior, bin_method, N_mcmc)
   }
 
   # Assign: if no interim looks, set thresholds to 0, as they are not needed
@@ -408,8 +406,8 @@ survival_adapt <- function(
     check_futility <- any(Fn != 0)
   }
 
-  # If not using piecewise-exponential Bayesian test, then set N_mcmc = 1
-  if (method != "bayes-surv") {
+  # Posterior samples are not used by frequentist methods
+  if (!method %in% c("bayes-surv", "bayes-bin")) {
     N_mcmc <- 1
   }
 
@@ -534,7 +532,6 @@ survival_adapt <- function(
             h0 = h0,
             bin_prior = bin_prior,
             bin_method = bin_method,
-            bin_N = bin_N,
             empty_interval = empty_interval,
             check_futility = check_futility
           ),
@@ -655,7 +652,6 @@ survival_adapt <- function(
     h0 = h0,
     bin_prior = bin_prior,
     bin_method = bin_method,
-    bin_N = bin_N,
     empty_interval = empty_interval,
     end_of_study = end_of_study
   )

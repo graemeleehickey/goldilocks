@@ -29,12 +29,10 @@
 #'       `alternative = "greater"`, or less than `h0` when
 #'       `alternative = "less"`;
 #'     - if `method = "chisq"`, 1 minus the chi-square test *P*-value.
-#'   - `effect`: Sample vector from the posterior distribution of the effect
-#'     size for `method = "bayes-surv"` and for `method = "bayes-bin"` with
-#'     `bin_method = "mc"`, the posterior mean effect for `method =
-#'     "bayes-bin"` with `bin_method = "normal"` or `"quadrature"`, the
-#'     estimated log hazard ratio for `method = "cox"`, the chi-square
-#'     statistic for `method = "chisq"`, or `NA` for `method = "logrank"`.
+#'   - `effect`: Posterior mean effect for `method = "bayes-surv"` or
+#'     `method = "bayes-bin"`, the estimated log hazard ratio for `method =
+#'     "cox"`, the chi-square statistic for `method = "chisq"`, or `NA` for
+#'     `method = "logrank"`.
 #'
 #' @importFrom stats dbeta integrate pbeta pchisq pnorm rbeta
 #' @import Rcpp
@@ -54,7 +52,6 @@ analyse_data <- function(
   h0,
   bin_prior = c(1, 1),
   bin_method = "mc",
-  bin_N = N_mcmc,
   empty_interval = "propagate"
 ) {
   validate_h0(h0, method, single_arm)
@@ -84,12 +81,13 @@ analyse_data <- function(
       single_arm = single_arm
     )
 
-    effect <- post_imp$effect
+    effect_draws <- post_imp$effect
     if (alternative == "greater") {
-      success <- mean(effect > h0)
+      success <- mean(effect_draws > h0)
     } else if (alternative == "less") {
-      success <- mean(effect < h0)
+      success <- mean(effect_draws < h0)
     }
+    effect <- mean(effect_draws)
   }
 
   ####################################################
@@ -105,7 +103,7 @@ analyse_data <- function(
       h0 = h0,
       bin_prior = bin_prior,
       bin_method = bin_method,
-      bin_N = bin_N
+      N_mcmc = N_mcmc
     )
     success <- bin_res$success
     effect <- bin_res$effect
@@ -188,7 +186,7 @@ analyse_data <- function(
 #' @inheritParams analyse_data
 #'
 #' @return A list with the posterior probability of success (`success`) and
-#'   posterior treatment effect (`effect`).
+#'   posterior mean treatment effect (`effect`).
 #'
 #' @noRd
 bayes_binomial_test <- function(
@@ -198,9 +196,9 @@ bayes_binomial_test <- function(
   h0,
   bin_prior,
   bin_method,
-  bin_N
+  N_mcmc
 ) {
-  validate_bayes_binomial_args(bin_prior, bin_method, bin_N)
+  validate_bayes_binomial_args(bin_prior, bin_method, N_mcmc)
   if (alternative == "two.sided") {
     stop(
       "Bayesian binomial analysis can only be used with alternative equal ",
@@ -244,12 +242,17 @@ bayes_binomial_test <- function(
 
   if (single_arm) {
     if (bin_method == "mc") {
-      effect <- rbeta(bin_N, treatment_stats$alpha, treatment_stats$beta)
+      effect_draws <- rbeta(
+        N_mcmc,
+        treatment_stats$alpha,
+        treatment_stats$beta
+      )
       success <- if (alternative == "greater") {
-        mean(effect > h0)
+        mean(effect_draws > h0)
       } else {
-        mean(effect < h0)
+        mean(effect_draws < h0)
       }
+      effect <- mean(effect_draws)
     } else {
       effect <- treatment_stats$mean
       if (bin_method == "normal") {
@@ -273,13 +276,15 @@ bayes_binomial_test <- function(
   control_stats <- beta_binomial_stats(data$event[data$treatment == 0])
 
   if (bin_method == "mc") {
-    effect <- rbeta(bin_N, treatment_stats$alpha, treatment_stats$beta) -
-      rbeta(bin_N, control_stats$alpha, control_stats$beta)
+    effect_draws <-
+      rbeta(N_mcmc, treatment_stats$alpha, treatment_stats$beta) -
+      rbeta(N_mcmc, control_stats$alpha, control_stats$beta)
     success <- if (alternative == "greater") {
-      mean(effect > h0)
+      mean(effect_draws > h0)
     } else {
-      mean(effect < h0)
+      mean(effect_draws < h0)
     }
+    effect <- mean(effect_draws)
   } else if (bin_method == "normal") {
     effect <- treatment_stats$mean - control_stats$mean
     effect_se <- sqrt(treatment_stats$variance + control_stats$variance)

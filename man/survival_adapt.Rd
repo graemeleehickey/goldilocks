@@ -17,7 +17,6 @@ survival_adapt(
   prior = c(0.1, 0.1),
   bin_prior = c(1, 1),
   bin_method = "mc",
-  bin_N = 10000,
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss = 0,
@@ -80,9 +79,6 @@ groups. The default non-informative prior distribution used is
 probability for \code{method = "bayes-bin"}, must be one of \code{"mc"} (Monte Carlo
 sampling), \code{"normal"} (normal approximation), or \code{"quadrature"} (numerical
 integration). The default is \code{"mc"}.}
-
-\item{bin_N}{integer. Number of Monte Carlo draws from the beta posterior
-when \code{method = "bayes-bin"} and \code{bin_method = "mc"}.}
 
 \item{block}{scalar. Block size for generating the randomization schedule.}
 
@@ -149,8 +145,9 @@ hypothesis.}
 \item{N_impute}{integer. Number of imputations for Monte Carlo simulation of
 missing data.}
 
-\item{N_mcmc}{integer. Number of samples to draw from the posterior
-distribution when using a Bayesian test (\code{method = "bayes-surv"}).}
+\item{N_mcmc}{integer. Number of posterior samples used by
+\code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
+\code{bin_method = "mc"}.}
 
 \item{empty_interval}{character. Policy for empty piecewise-exponential
 intervals in \code{method = "bayes-surv"} posterior calculations. An empty

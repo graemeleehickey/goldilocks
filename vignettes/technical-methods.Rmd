@@ -350,7 +350,7 @@ $$\Pr(\Delta_{\mathrm{bin}} > h_0 \mid \mathcal{D}) >
 
 In a single-arm design, the estimand is (\pi\_1) and `h0` is the external benchmark event probability. Thus, `alternative = "less"` declares success when (\Pr(\pi\_1 \< h_0 \mid \mathcal{D}) \>) `prob_ha`.
 
-The posterior probability can be computed in three ways. With `bin_method = "mc"`, the package draws from the beta posterior directly. With `bin_method = "normal"`, it uses a normal approximation to the posterior mean or treatment-control difference. With `bin_method = "quadrature"`, it uses numerical integration for the two-arm posterior difference. The argument `bin_N` controls the number of Monte Carlo beta draws only when `bin_method = "mc"`.
+The posterior probability can be computed in three ways. With `bin_method = "mc"`, the package draws from the beta posterior directly. With `bin_method = "normal"`, it uses a normal approximation to the posterior mean or treatment-control difference. With `bin_method = "quadrature"`, it uses numerical integration for the two-arm posterior difference. The argument `N_mcmc` controls the number of Monte Carlo beta draws only when `bin_method = "mc"`.
 
 ### 6.4 Loss to follow-up at the final analysis
 
