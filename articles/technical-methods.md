@@ -565,7 +565,7 @@ The posterior probability can be computed in three ways. With
 With `bin_method = "normal"`, it uses a normal approximation to the
 posterior mean or treatment-control difference. With
 `bin_method = "quadrature"`, it uses numerical integration for the
-two-arm posterior difference. The argument `bin_N` controls the number
+two-arm posterior difference. The argument `N_mcmc` controls the number
 of Monte Carlo beta draws only when `bin_method = "mc"`.
 
 ### 6.4 Loss to follow-up at the final analysis

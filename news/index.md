@@ -4,6 +4,10 @@
 
 ### Improvements
 
+- Bayesian survival and Monte Carlo beta-binomial analyses now use the
+  shared `N_mcmc` argument for posterior sampling; the separate `bin_N`
+  argument has been removed. Their internal analysis results return the
+  posterior mean effect instead of all posterior draws.
 - survival_adapt() can now return an optional, tidy interim decision
   trace with predictive probabilities, thresholds, stopping decisions,
   arm-level counts, and relevant warnings. New helpers summarize and

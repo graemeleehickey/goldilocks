@@ -60,7 +60,6 @@ time-to-event endpoint</p>
 <span>  prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
 <span>  bin_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"mc"</span>,</span>
-<span>  bin_N <span class="op">=</span> <span class="fl">10000</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  prop_loss <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -150,11 +149,6 @@ sampling), <code>"normal"</code> (normal approximation), or <code>"quadrature"</
 integration). The default is <code>"mc"</code>.</p></dd>
 
 
-<dt id="arg-bin-n">bin_N<a class="anchor" aria-label="anchor" href="#arg-bin-n"></a></dt>
-<dd><p>integer. Number of Monte Carlo draws from the beta posterior
-when <code>method = "bayes-bin"</code> and <code>bin_method = "mc"</code>.</p></dd>
-
-
 <dt id="arg-block">block<a class="anchor" aria-label="anchor" href="#arg-block"></a></dt>
 <dd><p>scalar. Block size for generating the randomization schedule.</p></dd>
 
@@ -237,8 +231,9 @@ missing data.</p></dd>
 
 
 <dt id="arg-n-mcmc">N_mcmc<a class="anchor" aria-label="anchor" href="#arg-n-mcmc"></a></dt>
-<dd><p>integer. Number of samples to draw from the posterior
-distribution when using a Bayesian test (<code>method = "bayes-surv"</code>).</p></dd>
+<dd><p>integer. Number of posterior samples used by
+<code>method = "bayes-surv"</code> and by <code>method = "bayes-bin"</code> when
+<code>bin_method = "mc"</code>.</p></dd>
 
 
 <dt id="arg-empty-interval">empty_interval<a class="anchor" aria-label="anchor" href="#arg-empty-interval"></a></dt>

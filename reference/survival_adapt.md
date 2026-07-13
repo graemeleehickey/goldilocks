@@ -18,7 +18,6 @@ survival_adapt(
   prior = c(0.1, 0.1),
   bin_prior = c(1, 1),
   bin_method = "mc",
-  bin_N = 10000,
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss = 0,
@@ -109,11 +108,6 @@ survival_adapt(
   `"normal"` (normal approximation), or `"quadrature"` (numerical
   integration). The default is `"mc"`.
 
-- bin_N:
-
-  integer. Number of Monte Carlo draws from the beta posterior when
-  `method = "bayes-bin"` and `bin_method = "mc"`.
-
 - block:
 
   scalar. Block size for generating the randomization schedule.
@@ -203,8 +197,8 @@ survival_adapt(
 
 - N_mcmc:
 
-  integer. Number of samples to draw from the posterior distribution
-  when using a Bayesian test (`method = "bayes-surv"`).
+  integer. Number of posterior samples used by `method = "bayes-surv"`
+  and by `method = "bayes-bin"` when `bin_method = "mc"`.
 
 - empty_interval:
 

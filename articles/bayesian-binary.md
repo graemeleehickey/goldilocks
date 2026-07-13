@@ -157,14 +157,14 @@ this event probability is below the benchmark.
 The posterior probability can be calculated in three ways:
 
 - `bin_method = "mc"` draws from the beta posterior directly. Use
-  `bin_N` to control the number of Monte Carlo draws.
+  `N_mcmc` to control the number of Monte Carlo draws.
 - `bin_method = "normal"` uses a normal approximation to the posterior
   mean or treatment-control difference.
 - `bin_method = "quadrature"` uses numerical integration for the two-arm
   posterior difference, and the closed-form beta CDF for single-arm
   designs.
 
-The Monte Carlo method has simulation error, controlled by `bin_N`.
+The Monte Carlo method has simulation error, controlled by `N_mcmc`.
 Quadrature is deterministic (up to numerical integration for a two-arm
 design) and is a useful high-accuracy default when it is computationally
 feasible. The normal approximation is fastest in a representative

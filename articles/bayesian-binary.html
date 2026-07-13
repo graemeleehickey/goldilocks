@@ -217,7 +217,7 @@ benchmark.</p>
 <ul>
 <li>
 <code>bin_method = "mc"</code> draws from the beta posterior
-directly. Use <code>bin_N</code> to control the number of Monte Carlo
+directly. Use <code>N_mcmc</code> to control the number of Monte Carlo
 draws.</li>
 <li>
 <code>bin_method = "normal"</code> uses a normal approximation to
@@ -228,7 +228,7 @@ for the two-arm posterior difference, and the closed-form beta CDF for
 single-arm designs.</li>
 </ul>
 <p>The Monte Carlo method has simulation error, controlled by
-<code>bin_N</code>. Quadrature is deterministic (up to numerical
+<code>N_mcmc</code>. Quadrature is deterministic (up to numerical
 integration for a two-arm design) and is a useful high-accuracy default
 when it is computationally feasible. The normal approximation is fastest
 in a representative two-arm benchmark, but should be used with care when
