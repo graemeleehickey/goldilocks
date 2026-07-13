@@ -283,9 +283,11 @@ plot_trial_trace <- function(x) {
 
 #' @title Plot stopping outcomes from trial simulations
 #'
-#' @description Draws a bar chart of expected-success, futility, and
-#'   maximum-sample-size outcomes together with a histogram of enrolled sample
-#'   sizes. The input can be the sims element returned by sim_trials or the
+#' @description Draws a stacked bar chart of final enrolled sample sizes, with
+#'   colours distinguishing expected-success, futility, and maximum-sample-size
+#'   outcomes. Each bar is labelled with its marginal percentage of simulated
+#'   trials. A histogram of enrolled sample sizes is shown alongside the bar
+#'   chart. The input can be the sims element returned by sim_trials or the
 #'   complete sim_trials result.
 #'
 #' @param x A simulation result data frame or the list returned by sim_trials.
@@ -315,17 +317,33 @@ plot_sim_stopping <- function(x) {
     outcome,
     levels = c("Expected success", "Futility", "Maximum sample size")
   )
-  probabilities <- prop.table(table(outcome))
+  sample_size <- factor(
+    sims$N_enrolled,
+    levels = sort(unique(sims$N_enrolled))
+  )
+  probabilities <- prop.table(table(outcome, sample_size))
+  marginal_probabilities <- colSums(probabilities)
 
   old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par), add = TRUE)
   graphics::par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
-  graphics::barplot(
+  bar_midpoints <- graphics::barplot(
     probabilities,
-    ylim = c(0, 1),
+    ylim = c(0, 1.08),
+    xlab = "Final enrolled sample size",
     ylab = "Proportion of trials",
-    main = "Stopping outcomes",
-    col = c("#009E73", "#D55E00", "#999999")
+    main = "Stopping outcomes by sample size",
+    col = c("#009E73", "#D55E00", "#999999"),
+    border = NA,
+    legend.text = rownames(probabilities),
+    args.legend = list(x = "topright", bty = "n")
+  )
+  graphics::text(
+    bar_midpoints,
+    marginal_probabilities,
+    labels = sprintf("%.1f%%", 100 * marginal_probabilities),
+    pos = 3,
+    offset = 0.25
   )
   graphics::hist(
     sims$N_enrolled,

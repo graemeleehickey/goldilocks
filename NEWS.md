@@ -10,6 +10,8 @@
   predictive probabilities, thresholds, stopping decisions, arm-level counts,
   and relevant warnings. New helpers summarize and plot individual traces and
   simulation stopping outcomes (#57).
+* `plot_sim_stopping()` now stacks stopping outcomes by final enrolled sample
+  size and labels each bar with its marginal percentage of simulated trials.
 * `sim_trials()` now supports reproducible PSOCK parallel execution on Windows
   and an explicit `backend` argument. The default Unix fork path is retained;
   `backend = "auto"` selects the appropriate implementation for the platform.

@@ -13,8 +13,10 @@ plot_sim_stopping(x)
 The simulation result data frame, invisibly.
 }
 \description{
-Draws a bar chart of expected-success, futility, and
-maximum-sample-size outcomes together with a histogram of enrolled sample
-sizes. The input can be the sims element returned by sim_trials or the
+Draws a stacked bar chart of final enrolled sample sizes, with
+colours distinguishing expected-success, futility, and maximum-sample-size
+outcomes. Each bar is labelled with its marginal percentage of simulated
+trials. A histogram of enrolled sample sizes is shown alongside the bar
+chart. The input can be the sims element returned by sim_trials or the
 complete sim_trials result.
 }

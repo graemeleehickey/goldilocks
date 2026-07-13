@@ -127,3 +127,36 @@ test_that("trace summaries and plots accept trial outputs", {
   expect_silent(plot_trial_trace(out))
   expect_silent(plot_sim_stopping(sim_data))
 })
+
+test_that("simulation stopping plot stacks outcomes by sample size", {
+  sim_data <- data.frame(
+    stop_expected_success = c(TRUE, FALSE, FALSE, TRUE, FALSE),
+    stop_futility = c(FALSE, TRUE, FALSE, FALSE, TRUE),
+    N_enrolled = c(40, 40, 80, 80, 80)
+  )
+  file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(file)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  captured <- new.env(parent = emptyenv())
+  local_mocked_bindings(
+    barplot = function(height, ...) {
+      captured$height <- height
+      seq_len(ncol(height))
+    },
+    text = function(x, y, labels, ...) {
+      captured$text_x <- x
+      captured$text_y <- y
+      captured$labels <- labels
+    },
+    hist = function(...) invisible(NULL),
+    .package = "graphics"
+  )
+
+  expect_silent(plot_sim_stopping(sim_data))
+  expect_equal(
+    unname(captured$height),
+    matrix(c(0.2, 0.2, 0, 0.2, 0.2, 0.2), nrow = 3)
+  )
+  expect_equal(unname(captured$text_y), c(0.4, 0.6))
+  expect_identical(captured$labels, c("40.0%", "60.0%"))
+})
