@@ -102,7 +102,7 @@ test_final <- function(
 
       post_paa[j] <- success$success
       if (method %in% c("cox", "bayes-surv", "bayes-bin")) {
-        effect_final[j] <- success$effect # See Gelman et al. (2004, p. 520)
+        effect_final[j] <- success$effect
       }
     }
     # Average over imputations
@@ -110,7 +110,8 @@ test_final <- function(
     est_final <- mean(effect_final)
   } else {
     # Apply primary analysis to final data (without imputation)
-    # Chi-square test cannot handle censored (LTFU) subjects, so exclude them
+    # Chi-square and Bayesian binomial test cannot handle censored (LTFU) 
+    # subjects, so exclude them
     if (
       method %in% c("chisq", "bayes-bin") && "loss_to_fu" %in% names(data_in)
     ) {
