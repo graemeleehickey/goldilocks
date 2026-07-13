@@ -140,9 +140,63 @@ test_that("sim_trials rejects invalid ncores", {
 
 test_that("sim_trials defaults to serial execution", {
   expect_identical(formals(sim_trials)$ncores, 1L)
+  expect_identical(formals(sim_trials)$return_trace, FALSE)
   expect_equal(
     as.character(formals(sim_trials)$backend)[-1],
     c("auto", "fork", "psock", "sequential")
+  )
+})
+
+test_that("sim_trials optionally retains traces without changing summaries", {
+  args <- list(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    cutpoints = 0,
+    N_total = 80,
+    lambda = 20,
+    lambda_time = 0,
+    interim_look = c(40, 60),
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    block = 2,
+    rand_ratio = c(1, 1),
+    prop_loss = 0.05,
+    alternative = "less",
+    h0 = 0,
+    Fn = c(0.05, 0.05),
+    Sn = c(0.95, 0.9),
+    prob_ha = 0.95,
+    N_impute = 2,
+    N_mcmc = 2,
+    N_trials = 2,
+    method = "bayes-surv",
+    ncores = 1,
+    seed = 4102
+  )
+
+  compact <- do.call(sim_trials, args)
+  traced <- do.call(sim_trials, c(args, list(return_trace = TRUE)))
+
+  expect_equal(traced$sims, compact$sims)
+  expect_named(traced, c("sims", "traces", "call"))
+  expect_s3_class(traced$traces, "data.frame")
+  expect_true(all(c(
+    "trial", "look", "ppp_stop_now", "ppp_success_at_max", "decision"
+  ) %in% names(traced$traces)))
+  expect_setequal(unique(traced$traces$trial), 1:2)
+})
+
+test_that("sim_trials validates return_trace", {
+  expect_error(
+    sim_trials(
+      hazard_treatment = -log(0.85) / 36,
+      hazard_control = -log(0.7) / 36,
+      N_total = 40,
+      interim_look = 20,
+      end_of_study = 36,
+      return_trace = NA
+    ),
+    "return_trace"
   )
 })
 
@@ -240,12 +294,16 @@ test_that("sim_trials uses reproducible per-trial streams in parallel", {
       N_mcmc = 2,
       N_trials = 2,
       method = "logrank",
+      return_trace = TRUE,
       ncores = ncores,
       seed = 4101
     )
   }
 
-  expect_equal(run_with_cores(1)$sims, run_with_cores(2)$sims)
+  sequential <- run_with_cores(1)
+  parallel <- run_with_cores(2)
+  expect_equal(sequential$sims, parallel$sims)
+  expect_equal(sequential$traces, parallel$traces)
 })
 
 test_that("sim_trials produces identical seeded PSOCK results", {
@@ -275,16 +333,17 @@ test_that("sim_trials produces identical seeded PSOCK results", {
       N_mcmc = 2,
       N_trials = 2,
       method = "logrank",
+      return_trace = TRUE,
       ncores = ncores,
       backend = backend,
       seed = 4101
     )
   }
 
-  expect_equal(
-    run_with_backend("sequential", 1)$sims,
-    run_with_backend("psock", 2)$sims
-  )
+  sequential <- run_with_backend("sequential", 1)
+  psock <- run_with_backend("psock", 2)
+  expect_equal(sequential$sims, psock$sims)
+  expect_equal(sequential$traces, psock$traces)
 })
 
 test_that("sim_trials auto backend selects the platform default", {

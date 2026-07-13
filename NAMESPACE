@@ -2,6 +2,8 @@
 
 S3method(print,goldilocks_trial)
 export(enrollment)
+export(plot_sim_decisions)
+export(plot_sim_ocs)
 export(plot_sim_stopping)
 export(plot_trial_trace)
 export(ppwe)

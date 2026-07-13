@@ -148,7 +148,6 @@ test_that("simulation stopping plot stacks outcomes by sample size", {
       captured$text_y <- y
       captured$labels <- labels
     },
-    hist = function(...) invisible(NULL),
     .package = "graphics"
   )
 

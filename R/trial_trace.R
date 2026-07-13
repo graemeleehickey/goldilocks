@@ -286,8 +286,7 @@ plot_trial_trace <- function(x) {
 #' @description Draws a stacked bar chart of final enrolled sample sizes, with
 #'   colours distinguishing expected-success, futility, and maximum-sample-size
 #'   outcomes. Each bar is labelled with its marginal percentage of simulated
-#'   trials. A histogram of enrolled sample sizes is shown alongside the bar
-#'   chart. The input can be the sims element returned by sim_trials or the
+#'   trials. The input can be the sims element returned by sim_trials or the
 #'   complete sim_trials result.
 #'
 #' @param x A simulation result data frame or the list returned by sim_trials.
@@ -326,7 +325,7 @@ plot_sim_stopping <- function(x) {
 
   old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par), add = TRUE)
-  graphics::par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+  graphics::par(mfrow = c(1, 1), mar = c(4, 4, 3, 1))
   bar_midpoints <- graphics::barplot(
     probabilities,
     ylim = c(0, 1.08),
@@ -344,13 +343,6 @@ plot_sim_stopping <- function(x) {
     labels = sprintf("%.1f%%", 100 * marginal_probabilities),
     pos = 3,
     offset = 0.25
-  )
-  graphics::hist(
-    sims$N_enrolled,
-    xlab = "Enrolled sample size",
-    main = "Final enrolled sample size",
-    col = "#56B4E9",
-    border = "white"
   )
 
   invisible(sims)

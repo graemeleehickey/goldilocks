@@ -380,6 +380,7 @@ eff_target <- do.call(sim_trials, c(
     hazard_control = haz_eff_fail,
     h0 = 0.15,
     prob_ha = 0.956,
+    return_trace = TRUE,
     seed = 4610
   )
 ))
@@ -405,6 +406,39 @@ knitr::kable(oc_small, digits = 3)
 ```
 
 This table is intentionally small so the vignette can build quickly. It checks that the code runs and shows the workflow for comparing a target scenario with a boundary scenario. It should not be interpreted as a stable estimate of power or type I error. For design work, increase `N_trials`, increase `N_impute`, and run sensitivity analyses over accrual speed, loss to follow-up, event rates, and the imputation hazard model.
+
+## Visualizing the simulated design
+
+The plotting helpers answer complementary design questions. First,
+`plot_sim_ocs()` compares operating characteristics across the target and
+noninferiority-margin scenarios. The true PFA event probability is supplied as
+the effect scale.
+
+```{r advent-oc-plot, fig.width=9, fig.height=4.5}
+oc_small$true_pfa_event_probability <- c(0.35, 0.50)
+plot_sim_ocs(
+  oc_small,
+  effect = "true_pfa_event_probability",
+  xlab = "True 12-month PFA event probability"
+)
+```
+
+Within the target scenario, `plot_sim_stopping()` shows how often each sample
+size is selected and why enrollment stops.
+
+```{r advent-stopping-plot, fig.width=7, fig.height=5}
+plot_sim_stopping(eff_target)
+```
+
+Because `eff_target` was simulated with `return_trace = TRUE`, its interim
+decision geometry can also be inspected. Each displayed panel corresponds to
+an ADVENT enrollment milestone reached in at least one simulated trial; larger
+bubbles represent predictive-probability pairs reached by more simulated
+trials.
+
+```{r advent-decision-plot, fig.width=9, fig.height=8}
+plot_sim_decisions(eff_target)
+```
 
 ## Full calibration template
 

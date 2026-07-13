@@ -12,6 +12,11 @@
   simulation stopping outcomes (#57).
 * `plot_sim_stopping()` now stacks stopping outcomes by final enrolled sample
   size and labels each bar with its marginal percentage of simulated trials.
+* New `plot_sim_ocs()` plots success and stopping probabilities together with
+  expected sample size across treatment-effect simulation scenarios.
+* `sim_trials(return_trace = TRUE)` now retains compact interim traces across
+  simulations, and new `plot_sim_decisions()` visualizes their predictive-
+  probability decision regions by interim look.
 * `sim_trials()` now supports reproducible PSOCK parallel execution on Windows
   and an explicit `backend` argument. The default Unix fork path is retained;
   `backend = "auto"` selects the appropriate implementation for the platform.
@@ -59,6 +64,8 @@
 
 ## Documentation
 
+* Expanded the simulation, design, and technical vignettes with examples of
+  `plot_sim_ocs()`, `plot_sim_stopping()`, and `plot_sim_decisions()`.
 * Modernized roxygen2 source comments to use markdown tables, links, code spans, and emphasis in place of older Rd markup where appropriate.
 * Added a new vignette, "Technical details of the Goldilocks design", documenting the design notation, piecewise-exponential event-time model, Gamma posterior updating, posterior predictive probabilities, interim decision rules, final analysis options, and simulation-based calibration.
 * Added a new vignette, "Bayesian binary outcome designs", documenting `method = "bayes-bin"` for two-arm and single-arm complete binary endpoint analyses.

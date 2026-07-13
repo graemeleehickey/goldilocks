@@ -31,6 +31,7 @@ sim_trials(
   method = "logrank",
   imputed_final = FALSE,
   empty_interval = c("propagate", "prior", "error"),
+  return_trace = FALSE,
   ncores = 1L,
   backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL
@@ -180,6 +181,12 @@ interval in the same treatment arm and emits a warning. \code{"prior"} leaves
 the interval at zero exposure time and zero events, so its posterior is
 driven only by \code{prior}. \code{"error"} stops when any empty interval is found.}
 
+\item{return_trace}{logical. Should the compact interim decision trace from
+every simulated trial be retained? The default, \code{FALSE}, preserves the
+compact output. When \code{TRUE}, the returned list also contains a \code{traces}
+data frame with a \code{trial} column linking each trace row to the corresponding
+row of \code{sims}.}
+
 \item{ncores}{positive integer. Number of cores to use for parallel
 processing. Defaults to \code{1L} (serial execution).}
 
@@ -194,9 +201,11 @@ does not reset the global RNG state, preserving the usual unseeded
 simulation behavior.}
 }
 \value{
-Data frame with 1 row per simulated trial and columns for key summary
-statistics. See \code{\link[=survival_adapt]{survival_adapt()}} for details of what is returned in each
-row.
+A list containing \code{sims}, a data frame with one row per simulated
+trial, and \code{call}. When \code{return_trace = TRUE}, the list also contains
+\code{traces}, a data frame with one row per completed interim look and a
+\code{trial} identifier. See \code{\link[=survival_adapt]{survival_adapt()}} for details of the summary and
+trace columns.
 }
 \description{
 Simulate multiple clinical trials with fixed input parameters,

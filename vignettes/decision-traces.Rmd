@@ -77,7 +77,12 @@ The first two panels show the two predictive probabilities alongside their decis
 
 ## Summarizing many simulated trials
 
-Traces are intended for examining individual trial paths. `sim_trials()` keeps its compact result data frame, which is more suitable for large operating characteristic simulations. `plot_sim_stopping()` provides a quick visual summary of stopping outcomes and enrolled sample sizes.
+Traces are intended for examining individual trial paths. By default,
+`sim_trials()` keeps only its compact result data frame, which is more suitable
+for large operating characteristic simulations. Set `return_trace = TRUE` to
+retain the interim paths across simulations. `plot_sim_stopping()` summarizes
+where and why enrollment stopped, while `plot_sim_decisions()` shows how the
+two predictive probabilities map to the decision regions at each look.
 
 ```{r simulation-summary, eval = FALSE}
 sims <- sim_trials(
@@ -102,11 +107,35 @@ sims <- sim_trials(
   N_mcmc = 20,
   N_trials = 500,
   method = "bayes-surv",
+  return_trace = TRUE,
   seed = 5702
 )
 
 summarise_sims(sims$sims)
 plot_sim_stopping(sims)
+plot_sim_decisions(sims)
+```
+
+The three simulation plots answer different questions. `plot_sim_stopping()`
+describes the terminal sample-size distribution for one scenario;
+`plot_sim_decisions()` explains how interim predictive probabilities produced
+those decisions. To compare operating characteristics across a grid of true
+treatment effects, summarize the scenarios together and supply their numeric
+effect values to `plot_sim_ocs()`:
+
+```{r simulation-oc-curve, eval = FALSE}
+scenario_oc <- summarise_sims(list(
+  "null" = sims_null$sims,
+  "moderate" = sims_moderate$sims,
+  "target" = sims$sims
+))
+scenario_oc$true_event_probability_difference <- c(0, -0.05, -0.10)
+
+plot_sim_ocs(
+  scenario_oc,
+  effect = "true_event_probability_difference",
+  xlab = "True treatment-control event-probability difference"
+)
 ```
 
 For reproducible simulations, set seed in `sim_trials()`. The per-trial random streams make the compact simulation results reproducible across supported parallel backends. For a detailed explanation of the decision algorithm and calibration, see the "Technical details of the Goldilocks design" vignette.

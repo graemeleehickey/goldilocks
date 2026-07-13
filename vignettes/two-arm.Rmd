@@ -142,14 +142,56 @@ out_t1error2 <- update(out_power2, hazard_treatment = hc, seed = 125)
 ```
 
 ```{r summarise_sims_p0.04}
+oc_calibrated <- summarise_sims(list(
+  "target: treatment OS 50%" = out_power2$sims,
+  "null: treatment OS 30%" = out_t1error2$sims
+))
 knitr::kable(
-  summarise_sims(list(out_power2$sims, out_t1error2$sims)),
+  oc_calibrated,
   digits = 3,
   caption = "Operating characteristics with the more stringent P < 0.04 threshold (`prob_ha = 0.96`)."
 )
 ```
 
 In the cached 500-trial simulation, assuming the treatment arm has an OS rate of 50% at 12 months, 89.0% of trials stopped early for expected success, 4.4% stopped early for futility, and the mean sample size was 175.35. Overall power was 92.0%. When the treatment-arm OS rate equalled the control-arm rate, 86.8% of trials stopped early for futility. These Monte Carlo estimates have simulation error; larger calibration runs are appropriate for final design decisions.
+
+The same results can be viewed graphically. `plot_sim_ocs()` compares final
+success, stopping behavior, and expected sample size across the treatment-effect
+scenarios. Because the meaning and direction of an effect depends on the chosen
+analysis, the effect scale is supplied explicitly; here it is the true 12-month
+treatment survival probability.
+
+```{r plot-ocs, fig.width=9, fig.height=4.5}
+oc_calibrated$true_treatment_survival <- c(0.50, 0.30)
+plot_sim_ocs(
+  oc_calibrated,
+  effect = "true_treatment_survival",
+  xlab = "True 12-month treatment survival probability"
+)
+```
+
+For a single scenario, `plot_sim_stopping()` shows the marginal probability of
+stopping at each enrolled sample size, with the fill identifying expected
+success, futility, or reaching the maximum sample size.
+
+```{r plot-stopping, fig.width=7, fig.height=5}
+plot_sim_stopping(out_power2)
+```
+
+The predictive-probability decision map requires traces from every simulated
+trial. These are opt-in because they increase the size of the simulation
+result:
+
+```{r plot-decisions, eval=FALSE}
+out_power2_traced <- update(out_power2, return_trace = TRUE)
+plot_sim_decisions(out_power2_traced)
+```
+
+Each decision-map panel represents an interim look. The horizontal coordinate
+is the predictive probability of success after continuing to the maximum sample
+size; the vertical coordinate is the predictive probability if enrollment
+stops now. Shading and dashed lines show the continuation, futility, and
+expected-success regions.
 
 Once we have identified a suitable design, we would typically re-run the simulations using a larger number of simulations and, perhaps, imputations.
 

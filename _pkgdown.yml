@@ -29,6 +29,8 @@ reference:
       - survival_adapt
       - sim_trials
       - summarise_sims
+      - plot_sim_ocs
+      - plot_sim_decisions
       - summarise_trial_trace
       - plot_trial_trace
       - plot_sim_stopping

@@ -17,6 +17,11 @@
 #'   `"L'Ecuyer-CMRG"` random-number streams. The default, `NULL`,
 #'   does not reset the global RNG state, preserving the usual unseeded
 #'   simulation behavior.
+#' @param return_trace logical. Should the compact interim decision trace from
+#'   every simulated trial be retained? The default, `FALSE`, preserves the
+#'   compact output. When `TRUE`, the returned list also contains a `traces`
+#'   data frame with a `trial` column linking each trace row to the corresponding
+#'   row of `sims`.
 #'
 #' @details This is basically a wrapper function for
 #'   [survival_adapt()], whereby we repeatedly run the function for independent
@@ -38,9 +43,11 @@
 #'   `seed = NULL`, the function uses and advances R's current global RNG
 #'   state.
 #'
-#' @return Data frame with 1 row per simulated trial and columns for key summary
-#'   statistics. See [survival_adapt()] for details of what is returned in each
-#'   row.
+#' @return A list containing `sims`, a data frame with one row per simulated
+#'   trial, and `call`. When `return_trace = TRUE`, the list also contains
+#'   `traces`, a data frame with one row per completed interim look and a
+#'   `trial` identifier. See [survival_adapt()] for details of the summary and
+#'   trace columns.
 #'
 #' @importFrom pbmcapply pbmclapply
 #' @export
@@ -101,6 +108,7 @@ sim_trials <- function(
   method = "logrank",
   imputed_final = FALSE,
   empty_interval = c("propagate", "prior", "error"),
+  return_trace = FALSE,
   ncores = 1L,
   backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL
@@ -110,6 +118,7 @@ sim_trials <- function(
   backend <- match.arg(backend)
 
   validate_positive_integer_scalar(N_trials, "N_trials")
+  validate_logical_scalar(return_trace, "return_trace")
 
   validate_positive_integer_scalar(ncores, "ncores")
   backend <- resolve_sim_backend(backend, ncores)
@@ -181,12 +190,13 @@ sim_trials <- function(
       N_mcmc = N_mcmc,
       method = method,
       imputed_final = imputed_final,
-      empty_interval = empty_interval
+      empty_interval = empty_interval,
+      return_trace = return_trace
     )
   }
 
   trial_index <- seq_len(N_trials)
-  sims <- switch(
+  trial_results <- switch(
     backend,
     sequential = lapply(trial_index, survival_adapt_wrapper),
     fork = pbmclapply(trial_index, survival_adapt_wrapper, mc.cores = ncores),
@@ -197,8 +207,18 @@ sim_trials <- function(
     }
   )
 
-  sims <- bind_rows(sims)
-  out <- list(sims = sims, call = Call)
+  if (return_trace) {
+    sims <- bind_rows(lapply(trial_results, function(x) x$summary))
+    traces <- bind_rows(lapply(seq_along(trial_results), function(i) {
+      trace <- trial_results[[i]]$trace
+      trace$trial <- rep.int(i, nrow(trace))
+      trace[c("trial", setdiff(names(trace), "trial"))]
+    }))
+    out <- list(sims = sims, traces = traces, call = Call)
+  } else {
+    sims <- bind_rows(trial_results)
+    out <- list(sims = sims, call = Call)
+  }
 
   return(out)
 }
