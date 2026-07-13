@@ -172,11 +172,14 @@ and remain visible as ordinary R warnings.</p>
 <div class="section level2">
 <h2 id="summarizing-many-simulated-trials">Summarizing many simulated trials<a class="anchor" aria-label="anchor" href="#summarizing-many-simulated-trials"></a>
 </h2>
-<p>Traces are intended for examining individual trial paths.
-<code><a href="../reference/sim_trials.html">sim_trials()</a></code> keeps its compact result data frame, which is
-more suitable for large operating characteristic simulations.
-<code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> provides a quick visual summary of
-stopping outcomes and enrolled sample sizes.</p>
+<p>Traces are intended for examining individual trial paths. By default,
+<code><a href="../reference/sim_trials.html">sim_trials()</a></code> keeps only its compact result data frame,
+which is more suitable for large operating characteristic simulations.
+Set <code>return_trace = TRUE</code> to retain the interim paths across
+simulations. <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> summarizes where and why
+enrollment stopped, while <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code> shows how
+the two predictive probabilities map to the decision regions at each
+look.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sims</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">hazard_treatment</span>,</span>
@@ -200,11 +203,33 @@ stopping outcomes and enrolled sample sizes.</p>
 <span>  N_mcmc <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  N_trials <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"bayes-surv"</span>,</span>
+<span>  return_trace <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">5702</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="va">sims</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">sims</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">sims</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">sims</span><span class="op">)</span></span></code></pre></div>
+<p>The three simulation plots answer different questions.
+<code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> describes the terminal sample-size
+distribution for one scenario; <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code>
+explains how interim predictive probabilities produced those decisions.
+To compare operating characteristics across a grid of true treatment
+effects, summarize the scenarios together and supply their numeric
+effect values to <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code>:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">scenario_oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="st">"null"</span> <span class="op">=</span> <span class="va">sims_null</span><span class="op">$</span><span class="va">sims</span>,</span>
+<span>  <span class="st">"moderate"</span> <span class="op">=</span> <span class="va">sims_moderate</span><span class="op">$</span><span class="va">sims</span>,</span>
+<span>  <span class="st">"target"</span> <span class="op">=</span> <span class="va">sims</span><span class="op">$</span><span class="va">sims</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">scenario_oc</span><span class="op">$</span><span class="va">true_event_probability_difference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="op">-</span><span class="fl">0.05</span>, <span class="op">-</span><span class="fl">0.10</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plot_sim_ocs.html">plot_sim_ocs</a></span><span class="op">(</span></span>
+<span>  <span class="va">scenario_oc</span>,</span>
+<span>  effect <span class="op">=</span> <span class="st">"true_event_probability_difference"</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="st">"True treatment-control event-probability difference"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>For reproducible simulations, set seed in <code><a href="../reference/sim_trials.html">sim_trials()</a></code>.
 The per-trial random streams make the compact simulation results
 reproducible across supported parallel backends. For a detailed

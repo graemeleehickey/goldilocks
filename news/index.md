@@ -16,6 +16,15 @@
 - [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
   now stacks stopping outcomes by final enrolled sample size and labels
   each bar with its marginal percentage of simulated trials.
+- New
+  [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)
+  plots success and stopping probabilities together with expected sample
+  size across treatment-effect simulation scenarios.
+- `sim_trials(return_trace = TRUE)` now retains compact interim traces
+  across simulations, and new
+  [`plot_sim_decisions()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_decisions.md)
+  visualizes their predictive- probability decision regions by interim
+  look.
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   now supports reproducible PSOCK parallel execution on Windows and an
   explicit `backend` argument. The default Unix fork path is retained;
@@ -157,6 +166,12 @@
 
 ### Documentation
 
+- Expanded the simulation, design, and technical vignettes with examples
+  of
+  [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md),
+  [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md),
+  and
+  [`plot_sim_decisions()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_decisions.md).
 - Modernized roxygen2 source comments to use markdown tables, links,
   code spans, and emphasis in place of older Rd markup where
   appropriate.

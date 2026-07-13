@@ -692,6 +692,56 @@ out <- sim_trials(
 summarise_sims(out$sims)
 ```
 
+### 7.1 Visual diagnostics
+
+The simulation plotting functions expose three different levels of the
+design:
+
+- [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)
+  compares final success, stopping probabilities, and mean sample size
+  across data-generating scenarios.
+- [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
+  expands one scenario into the distribution of selected sample sizes
+  and stopping reasons.
+- [`plot_sim_decisions()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_decisions.md)
+  examines the joint interim predictive probabilities and the decision
+  thresholds at each look.
+
+For operating-characteristic curves, first attach a numeric effect scale
+to the scenario summary. The package does not infer this automatically
+because the appropriate scale may be a hazard ratio, risk difference,
+survival probability, or event probability depending on the analysis:
+
+``` r
+
+scenario_oc <- summarise_sims(list(
+  "null" = null_sims$sims,
+  "moderate" = moderate_sims$sims,
+  "target" = target_sims$sims
+))
+scenario_oc$true_effect <- c(0, -0.10, -0.20)
+
+plot_sim_ocs(
+  scenario_oc,
+  effect = "true_effect",
+  xlab = "True treatment-control event-probability difference"
+)
+plot_sim_stopping(target_sims)
+```
+
+Decision maps require the optional simulation traces:
+
+``` r
+
+target_sims_traced <- update(target_sims, return_trace = TRUE)
+plot_sim_decisions(target_sims_traced)
+```
+
+Retaining traces does not change the trial summaries or random-number
+path, but it increases the output size. It is therefore usually most
+useful for selected scenarios after a broad operating-characteristic
+grid has been screened.
+
 Broglio et al. emphasize that type I error for this class of adaptive
 design should be examined across the null space, not only at one
 convenient null scenario. For time-to-event endpoints, the relevant null

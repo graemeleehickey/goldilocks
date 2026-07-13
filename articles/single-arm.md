@@ -152,6 +152,7 @@ out_power <- sim_trials(
   N_impute         = 50,
   N_mcmc           = 2000,
   method           = "bayes-surv",
+  return_trace     = TRUE,
   seed             = 3082)
 
 # Type I error: simulate under the null (true rate = benchmark/PG/OPC = 0.30)
@@ -178,8 +179,29 @@ out_t1error <- sim_trials(
   method           = "bayes-surv",
   seed             = 3083)
 
-summarise_sims(list(out_power$sims, out_t1error$sims))
+oc <- summarise_sims(list(
+  "target event probability" = out_power$sims,
+  "benchmark event probability" = out_t1error$sims
+))
+oc$true_event_probability <- c(target, benchmark)
+
+oc
+plot_sim_ocs(
+  oc,
+  effect = "true_event_probability",
+  xlab = "True treatment event probability"
+)
+plot_sim_stopping(out_power)
+plot_sim_decisions(out_power)
 ```
+
+The operating-characteristic plot compares scenarios on the clinically
+natural event-probability scale. The stopping plot then expands one
+scenario to show where enrollment ends and why. Finally, the decision
+map uses the retained traces to show how interim predictive
+probabilities fall relative to the expected-success and futility
+thresholds. For large calibration grids, retain traces only for
+scenarios whose interim behavior needs closer inspection.
 
 Calibration proceeds the same way as for two-arm designs: if the type I
 error under the null (where the true rate equals the benchmark) is above

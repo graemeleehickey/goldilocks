@@ -556,6 +556,7 @@ once and then vary only the endpoint-specific values.</p>
 <span>    hazard_control <span class="op">=</span> <span class="va">haz_eff_fail</span>,</span>
 <span>    h0 <span class="op">=</span> <span class="fl">0.15</span>,</span>
 <span>    prob_ha <span class="op">=</span> <span class="fl">0.956</span>,</span>
+<span>    return_trace <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    seed <span class="op">=</span> <span class="fl">4610</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
@@ -631,11 +632,41 @@ sensitivity analyses over accrual speed, loss to follow-up, event rates,
 and the imputation hazard model.</p>
 </div>
 <div class="section level2">
+<h2 id="visualizing-the-simulated-design">Visualizing the simulated design<a class="anchor" aria-label="anchor" href="#visualizing-the-simulated-design"></a>
+</h2>
+<p>The plotting helpers answer complementary design questions. First,
+<code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code> compares operating characteristics across
+the target and noninferiority-margin scenarios. The true PFA event
+probability is supplied as the effect scale.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">oc_small</span><span class="op">$</span><span class="va">true_pfa_event_probability</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.35</span>, <span class="fl">0.50</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_ocs.html">plot_sim_ocs</a></span><span class="op">(</span></span>
+<span>  <span class="va">oc_small</span>,</span>
+<span>  effect <span class="op">=</span> <span class="st">"true_pfa_event_probability"</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="st">"True 12-month PFA event probability"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="advent_files/figure-html/advent-oc-plot-1.png" class="r-plt" alt="" width="864"></p>
+<p>Within the target scenario, <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> shows
+how often each sample size is selected and why enrollment stops.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">eff_target</span><span class="op">)</span></span></code></pre></div>
+<p><img src="advent_files/figure-html/advent-stopping-plot-1.png" class="r-plt" alt="" width="672"></p>
+<p>Because <code>eff_target</code> was simulated with
+<code>return_trace = TRUE</code>, its interim decision geometry can also
+be inspected. Each displayed panel corresponds to an ADVENT enrollment
+milestone reached in at least one simulated trial; larger bubbles
+represent predictive-probability pairs reached by more simulated
+trials.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">eff_target</span><span class="op">)</span></span></code></pre></div>
+<p><img src="advent_files/figure-html/advent-decision-plot-1.png" class="r-plt" alt="" width="864"></p>
+</div>
+<div class="section level2">
 <h2 id="full-calibration-template">Full calibration template<a class="anchor" aria-label="anchor" href="#full-calibration-template"></a>
 </h2>
 <p>The following code is closer to what one would run outside the
 vignette build. It is not evaluated here.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">advent_common_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">advent_common</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  N_impute <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">8</span></span>

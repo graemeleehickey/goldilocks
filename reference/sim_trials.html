@@ -74,6 +74,7 @@ and tidily extract the relevant data to generate operating characteristics.</p>
 <span>  method <span class="op">=</span> <span class="st">"logrank"</span>,</span>
 <span>  imputed_final <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  empty_interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"propagate"</span>, <span class="st">"prior"</span>, <span class="st">"error"</span><span class="op">)</span>,</span>
+<span>  return_trace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  backend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"fork"</span>, <span class="st">"psock"</span>, <span class="st">"sequential"</span><span class="op">)</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -275,6 +276,14 @@ the interval at zero exposure time and zero events, so its posterior is
 driven only by <code>prior</code>. <code>"error"</code> stops when any empty interval is found.</p></dd>
 
 
+<dt id="arg-return-trace">return_trace<a class="anchor" aria-label="anchor" href="#arg-return-trace"></a></dt>
+<dd><p>logical. Should the compact interim decision trace from
+every simulated trial be retained? The default, <code>FALSE</code>, preserves the
+compact output. When <code>TRUE</code>, the returned list also contains a <code>traces</code>
+data frame with a <code>trial</code> column linking each trace row to the corresponding
+row of <code>sims</code>.</p></dd>
+
+
 <dt id="arg-ncores">ncores<a class="anchor" aria-label="anchor" href="#arg-ncores"></a></dt>
 <dd><p>positive integer. Number of cores to use for parallel
 processing. Defaults to <code>1L</code> (serial execution).</p></dd>
@@ -296,9 +305,11 @@ simulation behavior.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Data frame with 1 row per simulated trial and columns for key summary
-statistics. See <code><a href="survival_adapt.html">survival_adapt()</a></code> for details of what is returned in each
-row.</p>
+    <p>A list containing <code>sims</code>, a data frame with one row per simulated
+trial, and <code>call</code>. When <code>return_trace = TRUE</code>, the list also contains
+<code>traces</code>, a data frame with one row per completed interim look and a
+<code>trial</code> identifier. See <code><a href="survival_adapt.html">survival_adapt()</a></code> for details of the summary and
+trace columns.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

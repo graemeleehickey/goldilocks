@@ -3,8 +3,7 @@
 Draws a stacked bar chart of final enrolled sample sizes, with colours
 distinguishing expected-success, futility, and maximum-sample-size
 outcomes. Each bar is labelled with its marginal percentage of simulated
-trials. A histogram of enrolled sample sizes is shown alongside the bar
-chart. The input can be the sims element returned by sim_trials or the
+trials. The input can be the sims element returned by sim_trials or the
 complete sim_trials result.
 
 ## Usage

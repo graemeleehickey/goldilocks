@@ -268,13 +268,34 @@ Windows.</p>
 <span>  N_impute <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"bayes-bin"</span>,</span>
 <span>  imputed_final <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  return_trace <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">5107</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">out_null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span>, seed <span class="op">=</span> <span class="fl">5108</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power</span><span class="op">$</span><span class="va">sims</span>, <span class="va">out_null</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="st">"target: treatment event probability 25%"</span> <span class="op">=</span> <span class="va">out_power</span><span class="op">$</span><span class="va">sims</span>,</span>
+<span>  <span class="st">"null: treatment event probability 35%"</span> <span class="op">=</span> <span class="va">out_null</span><span class="op">$</span><span class="va">sims</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">oc</span><span class="op">$</span><span class="va">true_treatment_event_probability</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.35</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">oc</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_ocs.html">plot_sim_ocs</a></span><span class="op">(</span></span>
+<span>  <span class="va">oc</span>,</span>
+<span>  effect <span class="op">=</span> <span class="st">"true_treatment_event_probability"</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="st">"True treatment event probability"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">out_power</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">out_power</span><span class="op">)</span></span></code></pre></div>
+<p>These plots separate three complementary questions: how operating
+characteristics change with the true binary event probability, where
+enrollment stops within one scenario, and how the pair of predictive
+probabilities drives each interim decision. Set
+<code>return_trace = TRUE</code> only for scenarios where the decision
+map is needed; it does not change the compact <code>sims</code>
+summary.</p>
 <p>The binary endpoint model is still calibrated through the event-time
 simulator. When the binary endpoint corresponds to event status by
 <code>end_of_study</code>, choose hazards that reproduce clinically

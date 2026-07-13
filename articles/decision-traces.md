@@ -118,13 +118,16 @@ visible as ordinary R warnings.
 
 ## Summarizing many simulated trials
 
-Traces are intended for examining individual trial paths.
+Traces are intended for examining individual trial paths. By default,
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
-keeps its compact result data frame, which is more suitable for large
-operating characteristic simulations.
+keeps only its compact result data frame, which is more suitable for
+large operating characteristic simulations. Set `return_trace = TRUE` to
+retain the interim paths across simulations.
 [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
-provides a quick visual summary of stopping outcomes and enrolled sample
-sizes.
+summarizes where and why enrollment stopped, while
+[`plot_sim_decisions()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_decisions.md)
+shows how the two predictive probabilities map to the decision regions
+at each look.
 
 ``` r
 
@@ -150,11 +153,39 @@ sims <- sim_trials(
   N_mcmc = 20,
   N_trials = 500,
   method = "bayes-surv",
+  return_trace = TRUE,
   seed = 5702
 )
 
 summarise_sims(sims$sims)
 plot_sim_stopping(sims)
+plot_sim_decisions(sims)
+```
+
+The three simulation plots answer different questions.
+[`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
+describes the terminal sample-size distribution for one scenario;
+[`plot_sim_decisions()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_decisions.md)
+explains how interim predictive probabilities produced those decisions.
+To compare operating characteristics across a grid of true treatment
+effects, summarize the scenarios together and supply their numeric
+effect values to
+[`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md):
+
+``` r
+
+scenario_oc <- summarise_sims(list(
+  "null" = sims_null$sims,
+  "moderate" = sims_moderate$sims,
+  "target" = sims$sims
+))
+scenario_oc$true_event_probability_difference <- c(0, -0.05, -0.10)
+
+plot_sim_ocs(
+  scenario_oc,
+  effect = "true_event_probability_difference",
+  xlab = "True treatment-control event-probability difference"
+)
 ```
 
 For reproducible simulations, set seed in

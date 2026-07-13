@@ -46,6 +46,9 @@
 <li>survival_adapt() can now return an optional, tidy interim decision trace with predictive probabilities, thresholds, stopping decisions, arm-level counts, and relevant warnings. New helpers summarize and plot individual traces and simulation stopping outcomes (<a href="https://github.com/graemeleehickey/goldilocks/issues/57" class="external-link">#57</a>).</li>
 <li>
 <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> now stacks stopping outcomes by final enrolled sample size and labels each bar with its marginal percentage of simulated trials.</li>
+<li>New <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code> plots success and stopping probabilities together with expected sample size across treatment-effect simulation scenarios.</li>
+<li>
+<code>sim_trials(return_trace = TRUE)</code> now retains compact interim traces across simulations, and new <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code> visualizes their predictive- probability decision regions by interim look.</li>
 <li>
 <code><a href="../reference/sim_trials.html">sim_trials()</a></code> now supports reproducible PSOCK parallel execution on Windows and an explicit <code>backend</code> argument. The default Unix fork path is retained; <code>backend = "auto"</code> selects the appropriate implementation for the platform. Seeded simulations now also restore the caller’s RNG state (<a href="https://github.com/graemeleehickey/goldilocks/issues/40" class="external-link">#40</a>).</li>
 <li>Consolidated the Bayesian binomial analysis implementation so its posterior calculations and method-specific branches are co-located in <code>bayes_binomial_test()</code>.</li>
@@ -104,7 +107,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="documentation-0-5-0-9000">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-5-0-9000"></a></h3>
-<ul><li>Modernized roxygen2 source comments to use markdown tables, links, code spans, and emphasis in place of older Rd markup where appropriate.</li>
+<ul><li>Expanded the simulation, design, and technical vignettes with examples of <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code>, <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code>, and <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code>.</li>
+<li>Modernized roxygen2 source comments to use markdown tables, links, code spans, and emphasis in place of older Rd markup where appropriate.</li>
 <li>Added a new vignette, “Technical details of the Goldilocks design”, documenting the design notation, piecewise-exponential event-time model, Gamma posterior updating, posterior predictive probabilities, interim decision rules, final analysis options, and simulation-based calibration.</li>
 <li>Added a new vignette, “Bayesian binary outcome designs”, documenting <code>method = "bayes-bin"</code> for two-arm and single-arm complete binary endpoint analyses.</li>
 <li>Added a new vignette, “ADVENT: a published Goldilocks design”, showing how the published ADVENT pulsed field ablation trial maps to <code>method = "bayes-bin"</code> with beta-binomial non-inferiority endpoints, adaptive sample-size thresholds, and cached simulation examples.</li>

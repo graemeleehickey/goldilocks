@@ -32,6 +32,7 @@ sim_trials(
   method = "logrank",
   imputed_final = FALSE,
   empty_interval = c("propagate", "prior", "error"),
+  return_trace = FALSE,
   ncores = 1L,
   backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL
@@ -242,6 +243,14 @@ sim_trials(
   so its posterior is driven only by `prior`. `"error"` stops when any
   empty interval is found.
 
+- return_trace:
+
+  logical. Should the compact interim decision trace from every
+  simulated trial be retained? The default, `FALSE`, preserves the
+  compact output. When `TRUE`, the returned list also contains a
+  `traces` data frame with a `trial` column linking each trace row to
+  the corresponding row of `sims`.
+
 - ncores:
 
   positive integer. Number of cores to use for parallel processing.
@@ -263,10 +272,12 @@ sim_trials(
 
 ## Value
 
-Data frame with 1 row per simulated trial and columns for key summary
-statistics. See
+A list containing `sims`, a data frame with one row per simulated trial,
+and `call`. When `return_trace = TRUE`, the list also contains `traces`,
+a data frame with one row per completed interim look and a `trial`
+identifier. See
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-for details of what is returned in each row.
+for details of the summary and trace columns.
 
 ## Details
 

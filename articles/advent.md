@@ -432,6 +432,7 @@ eff_target <- do.call(sim_trials, c(
     hazard_control = haz_eff_fail,
     h0 = 0.15,
     prob_ha = 0.956,
+    return_trace = TRUE,
     seed = 4610
   )
 ))
@@ -468,6 +469,50 @@ stable estimate of power or type I error. For design work, increase
 `N_trials`, increase `N_impute`, and run sensitivity analyses over
 accrual speed, loss to follow-up, event rates, and the imputation hazard
 model.
+
+## Visualizing the simulated design
+
+The plotting helpers answer complementary design questions. First,
+[`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)
+compares operating characteristics across the target and
+noninferiority-margin scenarios. The true PFA event probability is
+supplied as the effect scale.
+
+``` r
+
+oc_small$true_pfa_event_probability <- c(0.35, 0.50)
+plot_sim_ocs(
+  oc_small,
+  effect = "true_pfa_event_probability",
+  xlab = "True 12-month PFA event probability"
+)
+```
+
+![](advent_files/figure-html/advent-oc-plot-1.png)
+
+Within the target scenario,
+[`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
+shows how often each sample size is selected and why enrollment stops.
+
+``` r
+
+plot_sim_stopping(eff_target)
+```
+
+![](advent_files/figure-html/advent-stopping-plot-1.png)
+
+Because `eff_target` was simulated with `return_trace = TRUE`, its
+interim decision geometry can also be inspected. Each displayed panel
+corresponds to an ADVENT enrollment milestone reached in at least one
+simulated trial; larger bubbles represent predictive-probability pairs
+reached by more simulated trials.
+
+``` r
+
+plot_sim_decisions(eff_target)
+```
+
+![](advent_files/figure-html/advent-decision-plot-1.png)
 
 ## Full calibration template
 

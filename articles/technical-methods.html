@@ -710,6 +710,50 @@ the final analysis does not meet the success criterion.</p>
 <span>  seed             <span class="op">=</span> <span class="fl">12345</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="visual-diagnostics">7.1 Visual diagnostics<a class="anchor" aria-label="anchor" href="#visual-diagnostics"></a>
+</h3>
+<p>The simulation plotting functions expose three different levels of
+the design:</p>
+<ul>
+<li>
+<code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code> compares final success, stopping
+probabilities, and mean sample size across data-generating
+scenarios.</li>
+<li>
+<code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> expands one scenario into the
+distribution of selected sample sizes and stopping reasons.</li>
+<li>
+<code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code> examines the joint interim
+predictive probabilities and the decision thresholds at each look.</li>
+</ul>
+<p>For operating-characteristic curves, first attach a numeric effect
+scale to the scenario summary. The package does not infer this
+automatically because the appropriate scale may be a hazard ratio, risk
+difference, survival probability, or event probability depending on the
+analysis:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">scenario_oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="st">"null"</span> <span class="op">=</span> <span class="va">null_sims</span><span class="op">$</span><span class="va">sims</span>,</span>
+<span>  <span class="st">"moderate"</span> <span class="op">=</span> <span class="va">moderate_sims</span><span class="op">$</span><span class="va">sims</span>,</span>
+<span>  <span class="st">"target"</span> <span class="op">=</span> <span class="va">target_sims</span><span class="op">$</span><span class="va">sims</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">scenario_oc</span><span class="op">$</span><span class="va">true_effect</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="op">-</span><span class="fl">0.10</span>, <span class="op">-</span><span class="fl">0.20</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plot_sim_ocs.html">plot_sim_ocs</a></span><span class="op">(</span></span>
+<span>  <span class="va">scenario_oc</span>,</span>
+<span>  effect <span class="op">=</span> <span class="st">"true_effect"</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="st">"True treatment-control event-probability difference"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">target_sims</span><span class="op">)</span></span></code></pre></div>
+<p>Decision maps require the optional simulation traces:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">target_sims_traced</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">target_sims</span>, return_trace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">target_sims_traced</span><span class="op">)</span></span></code></pre></div>
+<p>Retaining traces does not change the trial summaries or random-number
+path, but it increases the output size. It is therefore usually most
+useful for selected scenarios after a broad operating-characteristic
+grid has been screened.</p>
 <p>Broglio et al. emphasize that type I error for this class of adaptive
 design should be examined across the null space, not only at one
 convenient null scenario. For time-to-event endpoints, the relevant null
@@ -725,6 +769,7 @@ analysis.</p>
 relative to the decision being made. Small values are appropriate for
 examples and package tests, but final design calibration usually
 requires many more trials and imputations.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="threshold-selection">8. Threshold selection<a class="anchor" aria-label="anchor" href="#threshold-selection"></a>

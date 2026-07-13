@@ -236,8 +236,12 @@ out_t1error2 <- update(out_power2, hazard_treatment = hc, seed = 125)
 
 ``` r
 
+oc_calibrated <- summarise_sims(list(
+  "target: treatment OS 50%" = out_power2$sims,
+  "null: treatment OS 30%" = out_t1error2$sims
+))
 knitr::kable(
-  summarise_sims(list(out_power2$sims, out_t1error2$sims)),
+  oc_calibrated,
   digits = 3,
   caption = "Operating characteristics with the more stringent P < 0.04 threshold (`prob_ha = 0.96`)."
 )
@@ -245,8 +249,8 @@ knitr::kable(
 
 | scenario | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
 |:---|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 0.920 | 0.890 | 0.044 | 0.066 | 175.35 | 56.213 | 0.02 |
-| 2 | 0.048 | 0.042 | 0.868 | 0.090 | 202.80 | 46.760 | 0.01 |
+| null: treatment OS 30% | 0.048 | 0.042 | 0.868 | 0.090 | 202.80 | 46.760 | 0.01 |
+| target: treatment OS 50% | 0.920 | 0.890 | 0.044 | 0.066 | 175.35 | 56.213 | 0.02 |
 
 Operating characteristics with the more stringent P \< 0.04 threshold
 (`prob_ha = 0.96`). {.table style="width:100%;"}
@@ -258,6 +262,55 @@ success, 4.4% stopped early for futility, and the mean sample size was
 the control-arm rate, 86.8% of trials stopped early for futility. These
 Monte Carlo estimates have simulation error; larger calibration runs are
 appropriate for final design decisions.
+
+The same results can be viewed graphically.
+[`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)
+compares final success, stopping behavior, and expected sample size
+across the treatment-effect scenarios. Because the meaning and direction
+of an effect depends on the chosen analysis, the effect scale is
+supplied explicitly; here it is the true 12-month treatment survival
+probability.
+
+``` r
+
+oc_calibrated$true_treatment_survival <- c(0.50, 0.30)
+plot_sim_ocs(
+  oc_calibrated,
+  effect = "true_treatment_survival",
+  xlab = "True 12-month treatment survival probability"
+)
+```
+
+![](two-arm_files/figure-html/plot-ocs-1.png)
+
+For a single scenario,
+[`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
+shows the marginal probability of stopping at each enrolled sample size,
+with the fill identifying expected success, futility, or reaching the
+maximum sample size.
+
+``` r
+
+plot_sim_stopping(out_power2)
+```
+
+![](two-arm_files/figure-html/plot-stopping-1.png)
+
+The predictive-probability decision map requires traces from every
+simulated trial. These are opt-in because they increase the size of the
+simulation result:
+
+``` r
+
+out_power2_traced <- update(out_power2, return_trace = TRUE)
+plot_sim_decisions(out_power2_traced)
+```
+
+Each decision-map panel represents an interim look. The horizontal
+coordinate is the predictive probability of success after continuing to
+the maximum sample size; the vertical coordinate is the predictive
+probability if enrollment stops now. Shading and dashed lines show the
+continuation, futility, and expected-success regions.
 
 Once we have identified a suitable design, we would typically re-run the
 simulations using a larger number of simulations and, perhaps,

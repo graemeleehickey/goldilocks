@@ -213,6 +213,7 @@ workflow:</p>
 <span>  N_impute         <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  N_mcmc           <span class="op">=</span> <span class="fl">2000</span>,</span>
 <span>  method           <span class="op">=</span> <span class="st">"bayes-surv"</span>,</span>
+<span>  return_trace     <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  seed             <span class="op">=</span> <span class="fl">3082</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Type I error: simulate under the null (true rate = benchmark/PG/OPC = 0.30)</span></span>
@@ -239,7 +240,27 @@ workflow:</p>
 <span>  method           <span class="op">=</span> <span class="st">"bayes-surv"</span>,</span>
 <span>  seed             <span class="op">=</span> <span class="fl">3083</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power</span><span class="op">$</span><span class="va">sims</span>, <span class="va">out_t1error</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="st">"target event probability"</span> <span class="op">=</span> <span class="va">out_power</span><span class="op">$</span><span class="va">sims</span>,</span>
+<span>  <span class="st">"benchmark event probability"</span> <span class="op">=</span> <span class="va">out_t1error</span><span class="op">$</span><span class="va">sims</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">oc</span><span class="op">$</span><span class="va">true_event_probability</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">target</span>, <span class="va">benchmark</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">oc</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_ocs.html">plot_sim_ocs</a></span><span class="op">(</span></span>
+<span>  <span class="va">oc</span>,</span>
+<span>  effect <span class="op">=</span> <span class="st">"true_event_probability"</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="st">"True treatment event probability"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">out_power</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">out_power</span><span class="op">)</span></span></code></pre></div>
+<p>The operating-characteristic plot compares scenarios on the
+clinically natural event-probability scale. The stopping plot then
+expands one scenario to show where enrollment ends and why. Finally, the
+decision map uses the retained traces to show how interim predictive
+probabilities fall relative to the expected-success and futility
+thresholds. For large calibration grids, retain traces only for
+scenarios whose interim behavior needs closer inspection.</p>
 <p>Calibration proceeds the same way as for two-arm designs: if the type
 I error under the null (where the true rate equals the benchmark) is
 above the desired level, raise <code>prob_ha</code>; if power is too

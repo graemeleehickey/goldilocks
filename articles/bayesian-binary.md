@@ -206,14 +206,35 @@ out_power <- sim_trials(
   N_impute = 20,
   method = "bayes-bin",
   imputed_final = FALSE,
+  return_trace = TRUE,
   ncores = 2,
   seed = 5107
 )
 
 out_null <- update(out_power, hazard_treatment = hc, seed = 5108)
 
-summarise_sims(list(out_power$sims, out_null$sims))
+oc <- summarise_sims(list(
+  "target: treatment event probability 25%" = out_power$sims,
+  "null: treatment event probability 35%" = out_null$sims
+))
+oc$true_treatment_event_probability <- c(0.25, 0.35)
+
+oc
+plot_sim_ocs(
+  oc,
+  effect = "true_treatment_event_probability",
+  xlab = "True treatment event probability"
+)
+plot_sim_stopping(out_power)
+plot_sim_decisions(out_power)
 ```
+
+These plots separate three complementary questions: how operating
+characteristics change with the true binary event probability, where
+enrollment stops within one scenario, and how the pair of predictive
+probabilities drives each interim decision. Set `return_trace = TRUE`
+only for scenarios where the decision map is needed; it does not change
+the compact `sims` summary.
 
 The binary endpoint model is still calibrated through the event-time
 simulator. When the binary endpoint corresponds to event status by

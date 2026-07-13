@@ -353,8 +353,12 @@ operating characteristics are more acceptable.</p>
 <code class="sourceCode R"><span><span class="va">out_power2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, prob_ha <span class="op">=</span> <span class="fl">0.96</span><span class="op">)</span></span>
 <span><span class="va">out_t1error2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power2</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span>, seed <span class="op">=</span> <span class="fl">125</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power2</span><span class="op">$</span><span class="va">sims</span>, <span class="va">out_t1error2</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span><span class="op">)</span>,</span>
+<code class="sourceCode R"><span><span class="va">oc_calibrated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="st">"target: treatment OS 50%"</span> <span class="op">=</span> <span class="va">out_power2</span><span class="op">$</span><span class="va">sims</span>,</span>
+<span>  <span class="st">"null: treatment OS 30%"</span> <span class="op">=</span> <span class="va">out_t1error2</span><span class="op">$</span><span class="va">sims</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="va">oc_calibrated</span>,</span>
 <span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  caption <span class="op">=</span> <span class="st">"Operating characteristics with the more stringent P &lt; 0.04 threshold (`prob_ha = 0.96`)."</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -362,14 +366,14 @@ operating characteristics are more acceptable.</p>
 <caption>Operating characteristics with the more stringent P &lt; 0.04
 threshold (<code>prob_ha = 0.96</code>).</caption>
 <colgroup>
+<col width="25%">
+<col width="6%">
+<col width="13%">
+<col width="14%">
 <col width="11%">
 <col width="7%">
-<col width="16%">
-<col width="17%">
-<col width="13%">
-<col width="8%">
-<col width="8%">
-<col width="17%">
+<col width="7%">
+<col width="14%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">scenario</th>
@@ -383,17 +387,7 @@ threshold (<code>prob_ha = 0.96</code>).</caption>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">1</td>
-<td align="right">0.920</td>
-<td align="right">0.890</td>
-<td align="right">0.044</td>
-<td align="right">0.066</td>
-<td align="right">175.35</td>
-<td align="right">56.213</td>
-<td align="right">0.02</td>
-</tr>
-<tr class="even">
-<td align="left">2</td>
+<td align="left">null: treatment OS 30%</td>
 <td align="right">0.048</td>
 <td align="right">0.042</td>
 <td align="right">0.868</td>
@@ -401,6 +395,16 @@ threshold (<code>prob_ha = 0.96</code>).</caption>
 <td align="right">202.80</td>
 <td align="right">46.760</td>
 <td align="right">0.01</td>
+</tr>
+<tr class="even">
+<td align="left">target: treatment OS 50%</td>
+<td align="right">0.920</td>
+<td align="right">0.890</td>
+<td align="right">0.044</td>
+<td align="right">0.066</td>
+<td align="right">175.35</td>
+<td align="right">56.213</td>
+<td align="right">0.02</td>
 </tr>
 </tbody>
 </table>
@@ -411,6 +415,38 @@ success, 4.4% stopped early for futility, and the mean sample size was
 the control-arm rate, 86.8% of trials stopped early for futility. These
 Monte Carlo estimates have simulation error; larger calibration runs are
 appropriate for final design decisions.</p>
+<p>The same results can be viewed graphically.
+<code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code> compares final success, stopping behavior,
+and expected sample size across the treatment-effect scenarios. Because
+the meaning and direction of an effect depends on the chosen analysis,
+the effect scale is supplied explicitly; here it is the true 12-month
+treatment survival probability.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">oc_calibrated</span><span class="op">$</span><span class="va">true_treatment_survival</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.50</span>, <span class="fl">0.30</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_ocs.html">plot_sim_ocs</a></span><span class="op">(</span></span>
+<span>  <span class="va">oc_calibrated</span>,</span>
+<span>  effect <span class="op">=</span> <span class="st">"true_treatment_survival"</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="st">"True 12-month treatment survival probability"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="two-arm_files/figure-html/plot-ocs-1.png" class="r-plt" alt="" width="864"></p>
+<p>For a single scenario, <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> shows the
+marginal probability of stopping at each enrolled sample size, with the
+fill identifying expected success, futility, or reaching the maximum
+sample size.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">out_power2</span><span class="op">)</span></span></code></pre></div>
+<p><img src="two-arm_files/figure-html/plot-stopping-1.png" class="r-plt" alt="" width="672"></p>
+<p>The predictive-probability decision map requires traces from every
+simulated trial. These are opt-in because they increase the size of the
+simulation result:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">out_power2_traced</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power2</span>, return_trace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">out_power2_traced</span><span class="op">)</span></span></code></pre></div>
+<p>Each decision-map panel represents an interim look. The horizontal
+coordinate is the predictive probability of success after continuing to
+the maximum sample size; the vertical coordinate is the predictive
+probability if enrollment stops now. Shading and dashed lines show the
+continuation, futility, and expected-success regions.</p>
 <p>Once we have identified a suitable design, we would typically re-run
 the simulations using a larger number of simulations and, perhaps,
 imputations.</p>
