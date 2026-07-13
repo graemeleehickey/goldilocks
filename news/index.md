@@ -13,6 +13,9 @@
   arm-level counts, and relevant warnings. New helpers summarize and
   plot individual traces and simulation stopping outcomes
   ([\#57](https://github.com/graemeleehickey/goldilocks/issues/57)).
+- [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
+  now stacks stopping outcomes by final enrolled sample size and labels
+  each bar with its marginal percentage of simulated trials.
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   now supports reproducible PSOCK parallel execution on Windows and an
   explicit `backend` argument. The default Unix fork path is retained;
