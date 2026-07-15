@@ -4,18 +4,41 @@
 \alias{plot_sim_stopping}
 \title{Plot stopping outcomes from trial simulations}
 \usage{
-plot_sim_stopping(x)
+plot_sim_stopping(
+  x,
+  type = c("marginal", "conditional", "cumulative", "flowchart")
+)
 }
 \arguments{
 \item{x}{A simulation result data frame or the list returned by sim_trials.}
+
+\item{type}{Character string specifying the percentages to plot. \code{"marginal"}
+shows the percentage of all simulated trials ending at each sample size;
+its bars sum to 100 percent across sample sizes. \code{"conditional"} shows the
+percentage stopping at each look among trials still active at the start of
+that look. \code{"cumulative"} shows the status of all simulated trials after
+each look; every bar sums to 100 percent and includes trials continuing to
+the next look. \code{"flowchart"} starts with all simulated trials and branches
+at each look into futility, continued enrollment, and expected-success
+nodes labelled with trial counts.}
 }
 \value{
-The simulation result data frame, invisibly.
+For bar-chart types, the simulation result data frame, invisibly.
+For \code{type = "flowchart"}, a \code{DiagrammeR} \code{grViz} htmlwidget.
 }
 \description{
-Draws a stacked bar chart of final enrolled sample sizes, with
-colours distinguishing expected-success, futility, and maximum-sample-size
-outcomes. Each bar is labelled with its marginal percentage of simulated
-trials. The input can be the sims element returned by sim_trials or the
-complete sim_trials result.
+Draws a stacked bar chart of stopping outcomes by enrolled
+sample size, with colours distinguishing expected-success, futility, and
+maximum-sample-size outcomes. The \code{type} argument controls whether the
+function draws marginal, conditional, or cumulative bars, or a flowchart
+through successive interim looks. Bar-chart subtitles state the
+denominator used by the selected view. The input can be the \code{sims} element
+returned by \code{\link[=sim_trials]{sim_trials()}} or the complete \code{sim_trials()} result.
+}
+\details{
+The flowchart requires the \code{N_max} column and uses interim sample
+sizes observed in \code{N_enrolled}. When the complete result from
+\code{sim_trials(return_trace = TRUE)} is supplied, sample sizes recorded in
+\code{traces} are also included, so looks at which no trial stopped still
+appear. The flowchart is rendered with \code{\link[DiagrammeR:grViz]{DiagrammeR::grViz()}}.
 }

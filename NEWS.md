@@ -10,8 +10,11 @@
   predictive probabilities, thresholds, stopping decisions, arm-level counts,
   and relevant warnings. New helpers summarize and plot individual traces and
   simulation stopping outcomes (#57).
-* `plot_sim_stopping()` now stacks stopping outcomes by final enrolled sample
-  size and labels each bar with its marginal percentage of simulated trials.
+* `plot_sim_stopping()` now offers marginal, conditional, cumulative, and
+  flowchart views of stopping outcomes by enrolled sample size. Plot subtitles
+  state bar-chart denominators explicitly, while the flowchart shows trial
+  counts branching through futility, continued enrollment, and early success
+  at successive looks.
 * New `plot_sim_ocs()` plots success and stopping probabilities together with
   expected sample size across treatment-effect simulation scenarios.
 * `sim_trials(return_trace = TRUE)` now retains compact interim traces across

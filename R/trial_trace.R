@@ -283,18 +283,40 @@ plot_trial_trace <- function(x) {
 
 #' @title Plot stopping outcomes from trial simulations
 #'
-#' @description Draws a stacked bar chart of final enrolled sample sizes, with
-#'   colours distinguishing expected-success, futility, and maximum-sample-size
-#'   outcomes. Each bar is labelled with its marginal percentage of simulated
-#'   trials. The input can be the sims element returned by sim_trials or the
-#'   complete sim_trials result.
+#' @description Draws a stacked bar chart of stopping outcomes by enrolled
+#'   sample size, with colours distinguishing expected-success, futility, and
+#'   maximum-sample-size outcomes. The `type` argument controls whether the
+#'   function draws marginal, conditional, or cumulative bars, or a flowchart
+#'   through successive interim looks. Bar-chart subtitles state the
+#'   denominator used by the selected view. The input can be the `sims` element
+#'   returned by [sim_trials()] or the complete `sim_trials()` result.
 #'
 #' @param x A simulation result data frame or the list returned by sim_trials.
+#' @param type Character string specifying the percentages to plot. `"marginal"`
+#'   shows the percentage of all simulated trials ending at each sample size;
+#'   its bars sum to 100 percent across sample sizes. `"conditional"` shows the
+#'   percentage stopping at each look among trials still active at the start of
+#'   that look. `"cumulative"` shows the status of all simulated trials after
+#'   each look; every bar sums to 100 percent and includes trials continuing to
+#'   the next look. `"flowchart"` starts with all simulated trials and branches
+#'   at each look into futility, continued enrollment, and expected-success
+#'   nodes labelled with trial counts.
 #'
-#' @return The simulation result data frame, invisibly.
+#' @details The flowchart requires the `N_max` column and uses interim sample
+#'   sizes observed in `N_enrolled`. When the complete result from
+#'   `sim_trials(return_trace = TRUE)` is supplied, sample sizes recorded in
+#'   `traces` are also included, so looks at which no trial stopped still
+#'   appear. The flowchart is rendered with [DiagrammeR::grViz()].
+#'
+#' @return For bar-chart types, the simulation result data frame, invisibly.
+#'   For `type = "flowchart"`, a `DiagrammeR` `grViz` htmlwidget.
 #'
 #' @export
-plot_sim_stopping <- function(x) {
+plot_sim_stopping <- function(
+  x,
+  type = c("marginal", "conditional", "cumulative", "flowchart")
+) {
+  type <- match.arg(type)
   sims <- if (is.list(x) && !is.data.frame(x) && "sims" %in% names(x)) {
     x$sims
   } else {
@@ -307,6 +329,10 @@ plot_sim_stopping <- function(x) {
     )
   }
 
+  if (type == "flowchart") {
+    return(plot_sim_stopping_flowchart(sims, simulation_result = x))
+  }
+
   outcome <- ifelse(
     sims$stop_expected_success,
     "Expected success",
@@ -316,34 +342,282 @@ plot_sim_stopping <- function(x) {
     outcome,
     levels = c("Expected success", "Futility", "Maximum sample size")
   )
-  sample_size <- factor(
-    sims$N_enrolled,
-    levels = sort(unique(sims$N_enrolled))
-  )
-  probabilities <- prop.table(table(outcome, sample_size))
-  marginal_probabilities <- colSums(probabilities)
+  sample_sizes <- sort(unique(sims$N_enrolled))
+  sample_size <- factor(sims$N_enrolled, levels = sample_sizes)
+  counts <- unclass(table(outcome, sample_size))
+
+  if (type == "marginal") {
+    probabilities <- counts / nrow(sims)
+    bar_percentages <- colSums(probabilities)
+    subtitle <- paste(
+      "Marginal percentage of all simulated trials;",
+      "bars sum to 100% across sample sizes"
+    )
+    ylab <- "Proportion of all simulated trials"
+    xlab <- "Final enrolled sample size"
+    main <- "Stopping outcomes by sample size"
+  } else if (type == "conditional") {
+    risk_set <- vapply(
+      sample_sizes,
+      function(size) sum(sims$N_enrolled >= size),
+      numeric(1)
+    )
+    probabilities <- sweep(counts, 2, risk_set, "/")
+    bar_percentages <- colSums(probabilities)
+    subtitle <- paste(
+      "Conditional percentage among trials still active",
+      "at the start of each look"
+    )
+    ylab <- "Proportion of trials entering the look"
+    xlab <- "Enrolled sample size at look"
+    main <- "Stopping outcomes by sample size"
+  } else {
+    cumulative_outcomes <- counts
+    for (outcome_row in seq_len(nrow(cumulative_outcomes))) {
+      cumulative_outcomes[outcome_row, ] <- cumsum(counts[outcome_row, ])
+    }
+    cumulative_outcomes <- cumulative_outcomes / nrow(sims)
+    continue <- pmax(0, 1 - colSums(cumulative_outcomes))
+    probabilities <- rbind(
+      cumulative_outcomes,
+      "Continue to next look" = continue
+    )
+    subtitle <- paste(
+      "Cumulative status after each look;",
+      "every bar sums to 100% of simulated trials"
+    )
+    ylab <- "Cumulative proportion of all simulated trials"
+    xlab <- "Enrolled sample size at look"
+    main <- "Cumulative stopping outcomes by sample size"
+  }
 
   old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par), add = TRUE)
-  graphics::par(mfrow = c(1, 1), mar = c(4, 4, 3, 1))
+  graphics::par(mfrow = c(1, 1), mar = c(5, 4, 4, 10))
   bar_midpoints <- graphics::barplot(
     probabilities,
     ylim = c(0, 1.08),
-    xlab = "Final enrolled sample size",
-    ylab = "Proportion of trials",
-    main = "Stopping outcomes by sample size",
-    col = c("#009E73", "#D55E00", "#999999"),
+    xlab = xlab,
+    ylab = ylab,
+    main = main,
+    col = c("#009E73", "#D55E00", "#999999", "#56B4E9"),
     border = NA,
     legend.text = rownames(probabilities),
-    args.legend = list(x = "topright", bty = "n")
+    args.legend = list(
+      x = "topright",
+      inset = c(-0.35, 0),
+      xpd = NA,
+      bty = "n"
+    )
   )
-  graphics::text(
-    bar_midpoints,
-    marginal_probabilities,
-    labels = sprintf("%.1f%%", 100 * marginal_probabilities),
-    pos = 3,
-    offset = 0.25
-  )
+  graphics::mtext(subtitle, side = 3, line = 0.2, cex = 0.85)
+  if (type == "cumulative") {
+    segment_midpoints <- apply(probabilities, 2, cumsum) - probabilities / 2
+    segment_labels <- ifelse(
+      probabilities > 0,
+      sprintf("%.1f%%", 100 * probabilities),
+      ""
+    )
+    graphics::text(
+      rep(bar_midpoints, each = nrow(probabilities)),
+      as.vector(segment_midpoints),
+      labels = as.vector(segment_labels)
+    )
+  } else {
+    graphics::text(
+      bar_midpoints,
+      bar_percentages,
+      labels = sprintf("%.1f%%", 100 * bar_percentages),
+      pos = 3,
+      offset = 0.25
+    )
+  }
 
   invisible(sims)
+}
+
+#' Draw a stopping flowchart for simulated trials
+#'
+#' @param sims Simulation summary data frame.
+#' @param simulation_result Original input supplied to `plot_sim_stopping()`.
+#'
+#' @return A `DiagrammeR` `grViz` htmlwidget.
+#'
+#' @noRd
+plot_sim_stopping_flowchart <- function(sims, simulation_result) {
+  if (!requireNamespace("DiagrammeR", quietly = TRUE)) {
+    stop(
+      "Package 'DiagrammeR' is required for type = 'flowchart'. ",
+      "Install it with install.packages('DiagrammeR')."
+    )
+  }
+
+  trace_sizes <- numeric()
+  if (
+    is.list(simulation_result) &&
+      !is.data.frame(simulation_result) &&
+      "traces" %in% names(simulation_result) &&
+      is.data.frame(simulation_result$traces) &&
+      "N_enrolled" %in% names(simulation_result$traces)
+  ) {
+    trace_sizes <- simulation_result$traces$N_enrolled
+  }
+
+  if (!"N_max" %in% names(sims)) {
+    stop("type = 'flowchart' requires the N_max simulation column")
+  }
+  planned_max <- unique(sims$N_max)
+  if (length(planned_max) != 1L || !is.finite(planned_max)) {
+    stop("flowcharts require simulations from a single maximum sample size")
+  }
+
+  sample_sizes <- sort(unique(c(
+    sims$N_enrolled,
+    trace_sizes,
+    planned_max
+  )))
+  sample_sizes <- sample_sizes[is.finite(sample_sizes)]
+  if (length(sample_sizes) == 0L) {
+    stop("flowcharts require at least one observed sample size")
+  }
+  if (any(sample_sizes > planned_max)) {
+    stop("interim sample sizes cannot exceed N_max")
+  }
+
+  reached_max <- !sims$stop_expected_success & !sims$stop_futility
+  if (any(sims$N_enrolled[reached_max] != planned_max)) {
+    stop("maximum-sample-size outcomes must share the same N_max")
+  }
+  stopped_early <- sims$stop_expected_success | sims$stop_futility
+  if (any(sims$N_enrolled[stopped_early] >= planned_max)) {
+    stop("early-stopping outcomes must occur before N_max")
+  }
+  interim_sizes <- sample_sizes[sample_sizes < planned_max]
+
+  node_statements <- sprintf(
+    paste0(
+      "total [label=\"All simulated trials\\nn = %d\", ",
+      "fillcolor=\"#F2F2F2\", color=\"#666666\", penwidth=1.4]"
+    ),
+    nrow(sims)
+  )
+  edge_statements <- character()
+  rank_statements <- character()
+  previous_continue <- "total"
+
+  for (look_index in seq_along(interim_sizes)) {
+    sample_size <- interim_sizes[look_index]
+    size_label <- format(sample_size, trim = TRUE, scientific = FALSE)
+    look_label <- paste("Look", look_index)
+    stopped_futility <- sum(
+      sims$N_enrolled == sample_size & sims$stop_futility
+    )
+    stopped_success <- sum(
+      sims$N_enrolled == sample_size & sims$stop_expected_success
+    )
+    center_count <- sum(sims$N_enrolled > sample_size)
+
+    futility_id <- paste0("futility_", look_index)
+    continue_id <- paste0("continue_", look_index)
+    success_id <- paste0("success_", look_index)
+    node_statements <- c(
+      node_statements,
+      sprintf(
+        paste0(
+          "%s [label=\"%s (N = %s)\\nStop for futility\\nn = %d\", ",
+          "fillcolor=\"#F6DED4\", color=\"#D55E00\"]"
+        ),
+        futility_id,
+        look_label,
+        size_label,
+        stopped_futility
+      ),
+      sprintf(
+        paste0(
+          "%s [label=\"%s (N = %s)\\n%s\\nn = %d\", ",
+          "fillcolor=\"%s\", color=\"%s\"]"
+        ),
+        continue_id,
+        look_label,
+        size_label,
+        "Continue enrolling",
+        center_count,
+        "#D8EEF8",
+        "#56B4E9"
+      ),
+      sprintf(
+        paste0(
+          "%s [label=\"%s (N = %s)\\nStop for early success\\nn = %d\", ",
+          "fillcolor=\"#D5F1E7\", color=\"#009E73\"]"
+        ),
+        success_id,
+        look_label,
+        size_label,
+        stopped_success
+      )
+    )
+    edge_statements <- c(
+      edge_statements,
+      sprintf(
+        "%s -> {%s %s %s}",
+        previous_continue,
+        futility_id,
+        continue_id,
+        success_id
+      ),
+      sprintf("%s -> %s [style=invis]", futility_id, continue_id),
+      sprintf("%s -> %s [style=invis]", continue_id, success_id)
+    )
+    rank_statements <- c(
+      rank_statements,
+      sprintf(
+        "{rank=same; %s; %s; %s}",
+        futility_id,
+        continue_id,
+        success_id
+      )
+    )
+    previous_continue <- continue_id
+  }
+
+  max_label <- format(planned_max, trim = TRUE, scientific = FALSE)
+  node_statements <- c(
+    node_statements,
+    sprintf(
+      paste0(
+        "maximum [label=\"Maximum sample size (N = %s)\\n",
+        "Reach maximum sample size\\nn = %d\", ",
+        "fillcolor=\"#E6E6E6\", color=\"#777777\", penwidth=1.4]"
+      ),
+      max_label,
+      sum(reached_max)
+    )
+  )
+  edge_statements <- c(
+    edge_statements,
+    sprintf("%s -> maximum", previous_continue)
+  )
+
+  dot <- paste(
+    "digraph stopping_flow {",
+    paste0(
+      "graph [rankdir=TB, bgcolor=\"transparent\", ranksep=0.65, ",
+      "nodesep=0.35, pad=0.2]"
+    ),
+    paste0(
+      "node [shape=box, style=\"rounded,filled\", fontname=\"Helvetica\", ",
+      "fontsize=11, fontcolor=\"#222222\", margin=\"0.15,0.10\"]"
+    ),
+    paste0(
+      "edge [color=\"#777777\", penwidth=1.2, arrowsize=0.7, ",
+      "fontname=\"Helvetica\"]"
+    ),
+    paste(node_statements, collapse = "\n"),
+    paste(edge_statements, collapse = "\n"),
+    paste(rank_statements, collapse = "\n"),
+    "}",
+    sep = "\n"
+  )
+
+  DiagrammeR::grViz(dot)
 }

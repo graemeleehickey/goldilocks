@@ -170,12 +170,28 @@ plot_sim_ocs(
 )
 ```
 
-For a single scenario, `plot_sim_stopping()` shows the marginal probability of
-stopping at each enrolled sample size, with the fill identifying expected
-success, futility, or reaching the maximum sample size.
+For a single scenario, `plot_sim_stopping()` can show three complementary
+views. The default marginal view gives each outcome as a percentage of all
+simulated trials. The conditional view uses only trials still active when each
+look begins as its denominator, while the cumulative view shows the status of
+all trials after every look and includes those continuing to the next look. A
+fourth flowchart view displays counts moving from the total simulation set
+through futility, continued enrollment, and early success at successive looks.
 
 ```{r plot-stopping, fig.width=7, fig.height=5}
 plot_sim_stopping(out_power2)
+```
+
+```{r plot-stopping-conditional, fig.width=7, fig.height=5}
+plot_sim_stopping(out_power2, type = "conditional")
+```
+
+```{r plot-stopping-cumulative, fig.width=7, fig.height=5}
+plot_sim_stopping(out_power2, type = "cumulative")
+```
+
+```{r plot-stopping-flowchart}
+plot_sim_stopping(out_power2, type = "flowchart")
 ```
 
 The predictive-probability decision map requires traces from every simulated

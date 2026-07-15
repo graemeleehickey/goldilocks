@@ -148,6 +148,7 @@ test_that("simulation stopping plot stacks outcomes by sample size", {
       captured$text_y <- y
       captured$labels <- labels
     },
+    mtext = function(...) NULL,
     .package = "graphics"
   )
 
@@ -158,4 +159,152 @@ test_that("simulation stopping plot stacks outcomes by sample size", {
   )
   expect_equal(unname(captured$text_y), c(0.4, 0.6))
   expect_identical(captured$labels, c("40.0%", "60.0%"))
+})
+
+test_that("simulation stopping plot supports conditional percentages", {
+  sim_data <- data.frame(
+    stop_expected_success = c(TRUE, FALSE, FALSE, TRUE, FALSE),
+    stop_futility = c(FALSE, TRUE, FALSE, FALSE, TRUE),
+    N_enrolled = c(40, 40, 80, 80, 80)
+  )
+  file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(file)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  captured <- new.env(parent = emptyenv())
+  local_mocked_bindings(
+    barplot = function(height, ...) {
+      captured$height <- height
+      captured$args <- list(...)
+      seq_len(ncol(height))
+    },
+    text = function(x, y, labels, ...) {
+      captured$text_y <- y
+      captured$labels <- labels
+    },
+    mtext = function(text, ...) {
+      captured$subtitle <- text
+    },
+    .package = "graphics"
+  )
+
+  expect_silent(plot_sim_stopping(sim_data, type = "conditional"))
+  expect_equal(
+    unname(captured$height),
+    matrix(c(0.2, 0.2, 0, 1 / 3, 1 / 3, 1 / 3), nrow = 3)
+  )
+  expect_equal(unname(captured$text_y), c(0.4, 1))
+  expect_identical(captured$labels, c("40.0%", "100.0%"))
+  expect_match(captured$subtitle, "still active")
+})
+
+test_that("simulation stopping plot supports cumulative percentages", {
+  sim_data <- data.frame(
+    stop_expected_success = c(TRUE, FALSE, FALSE, TRUE, FALSE),
+    stop_futility = c(FALSE, TRUE, FALSE, FALSE, TRUE),
+    N_enrolled = c(40, 40, 80, 80, 80)
+  )
+  file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(file)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  captured <- new.env(parent = emptyenv())
+  local_mocked_bindings(
+    barplot = function(height, ...) {
+      captured$height <- height
+      captured$args <- list(...)
+      seq_len(ncol(height))
+    },
+    text = function(x, y, labels, ...) {
+      captured$labels <- labels
+    },
+    mtext = function(text, ...) {
+      captured$subtitle <- text
+    },
+    .package = "graphics"
+  )
+
+  expect_silent(plot_sim_stopping(sim_data, type = "cumulative"))
+  expect_equal(
+    unname(captured$height),
+    matrix(c(0.2, 0.2, 0, 0.6, 0.4, 0.4, 0.2, 0), nrow = 4)
+  )
+  expect_identical(
+    rownames(captured$height),
+    c(
+      "Expected success", "Futility", "Maximum sample size",
+      "Continue to next look"
+    )
+  )
+  expect_equal(unname(colSums(captured$height)), c(1, 1))
+  expect_true(all(apply(captured$height[1:3, , drop = FALSE], 1, function(x) {
+    all(diff(x) >= 0)
+  })))
+  expect_match(captured$subtitle, "every bar sums to 100%")
+  expect_true(all(c("20.0%", "40.0%", "60.0%") %in% captured$labels))
+})
+
+test_that("simulation stopping plot validates its type", {
+  sim_data <- data.frame(
+    stop_expected_success = FALSE,
+    stop_futility = FALSE,
+    N_enrolled = 80
+  )
+
+  expect_error(plot_sim_stopping(sim_data, type = "unknown"), "arg")
+})
+
+test_that("simulation stopping plot types handle one observed sample size", {
+  sim_data <- data.frame(
+    stop_expected_success = c(FALSE, FALSE),
+    stop_futility = c(FALSE, FALSE),
+    N_enrolled = c(80, 80)
+  )
+  file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(file)
+  on.exit(grDevices::dev.off(), add = TRUE)
+
+  expect_silent(plot_sim_stopping(sim_data, type = "marginal"))
+  expect_silent(plot_sim_stopping(sim_data, type = "conditional"))
+  expect_silent(plot_sim_stopping(sim_data, type = "cumulative"))
+})
+
+test_that("simulation stopping flowchart follows counts through every look", {
+  skip_if_not_installed("DiagrammeR")
+  sim_data <- data.frame(
+    stop_expected_success = c(TRUE, FALSE, TRUE, FALSE, FALSE),
+    stop_futility = c(FALSE, TRUE, FALSE, TRUE, FALSE),
+    N_enrolled = c(40, 40, 80, 80, 100),
+    N_max = 100
+  )
+  simulation_result <- list(
+    sims = sim_data,
+    traces = data.frame(N_enrolled = c(40, 60, 80))
+  )
+
+  flowchart <- plot_sim_stopping(simulation_result, type = "flowchart")
+  dot <- flowchart$x$diagram
+
+  expect_s3_class(flowchart, "grViz")
+  expect_match(dot, "All simulated trials\\nn = 5", fixed = TRUE)
+  expect_match(
+    dot,
+    "Look 1 (N = 40)\\nContinue enrolling\\nn = 3",
+    fixed = TRUE
+  )
+  expect_match(
+    dot,
+    "Look 2 (N = 60)\\nContinue enrolling\\nn = 3",
+    fixed = TRUE
+  )
+  expect_match(
+    dot,
+    "Look 3 (N = 80)\\nContinue enrolling\\nn = 1",
+    fixed = TRUE
+  )
+  expect_match(
+    dot,
+    "Maximum sample size (N = 100)\\nReach maximum sample size\\nn = 1",
+    fixed = TRUE
+  )
+  expect_match(dot, "Stop for futility\\nn = 1", fixed = TRUE)
+  expect_match(dot, "Stop for early success\\nn = 1", fixed = TRUE)
 })
