@@ -185,15 +185,15 @@ through futility, continued enrollment, and early success at successive looks.
 Because `out_power2` retains simulation traces, the latter three views include
 reached looks even when no trial stopped at that look.
 
-```{r plot-stopping, fig.width=7, fig.height=5}
+```{r plot-stopping, fig.width=8, fig.height=5.5, out.width='100%'}
 plot_sim_stopping(out_power2)
 ```
 
-```{r plot-stopping-conditional, fig.width=7, fig.height=5}
+```{r plot-stopping-conditional, fig.width=8, fig.height=5.5, out.width='100%'}
 plot_sim_stopping(out_power2, type = "conditional")
 ```
 
-```{r plot-stopping-cumulative, fig.width=7, fig.height=5}
+```{r plot-stopping-cumulative, fig.width=8, fig.height=5.5, out.width='100%'}
 plot_sim_stopping(out_power2, type = "cumulative")
 ```
 

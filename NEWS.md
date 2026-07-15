@@ -16,9 +16,11 @@
   counts branching through futility, continued enrollment, and early success
   at successive looks. Bar-chart legends are placed beyond the plotting region
   with margins sized to their labels, avoiding overlap across device themes and
-  text sizes. When retained simulation traces are supplied, conditional,
-  cumulative, and flowchart views include reached looks at which no trial
-  stopped.
+  text sizes. Subtitles are left-aligned so long denominator descriptions stay
+  visible, and the cumulative view uses a compact y-axis label that remains
+  clear of its title. When retained simulation traces are supplied,
+  conditional, cumulative, and flowchart views include reached looks at which
+  no trial stopped.
 * New `plot_sim_ocs()` plots success and stopping probabilities together with
   expected sample size across treatment-effect simulation scenarios.
 * `sim_trials(return_trace = TRUE)` now retains compact interim traces across

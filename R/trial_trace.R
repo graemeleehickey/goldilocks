@@ -392,7 +392,7 @@ plot_sim_stopping <- function(
       "Cumulative status after each look;",
       "every bar sums to 100% of simulated trials"
     )
-    ylab <- "Cumulative proportion of all simulated trials"
+    ylab <- "Cumulative proportion of trials"
     xlab <- "Enrolled sample size at look"
     main <- "Cumulative stopping outcomes by sample size"
   }
@@ -424,7 +424,13 @@ plot_sim_stopping <- function(
     col = bar_colours,
     border = NA
   )
-  graphics::mtext(subtitle, side = 3, line = 0.2, cex = 0.85)
+  graphics::mtext(
+    subtitle,
+    side = 3,
+    line = 0.2,
+    adj = 0,
+    cex = 0.85
+  )
   plot_region <- graphics::par("usr")
   graphics::legend(
     x = plot_region[2] + 0.04 * diff(plot_region[1:2]),
