@@ -147,6 +147,7 @@ test_that("simulation stopping plot stacks outcomes by sample size", {
       captured$text_x <- x
       captured$text_y <- y
       captured$labels <- labels
+      captured$text_args <- list(...)
     },
     mtext = function(text, ...) {
       captured$subtitle <- text
@@ -163,6 +164,7 @@ test_that("simulation stopping plot stacks outcomes by sample size", {
   )
   expect_equal(unname(captured$text_y), c(0.4, 0.6))
   expect_identical(captured$labels, c("40.0%", "60.0%"))
+  expect_identical(captured$text_args$cex, 0.75)
   expect_match(captured$subtitle, "^Marginal percentage")
   expect_identical(captured$subtitle_args$adj, 0)
 })
@@ -222,6 +224,7 @@ test_that("simulation stopping plot supports cumulative percentages", {
     },
     text = function(x, y, labels, ...) {
       captured$labels <- labels
+      captured$text_args <- list(...)
     },
     mtext = function(text, ...) {
       captured$subtitle <- text
@@ -248,6 +251,7 @@ test_that("simulation stopping plot supports cumulative percentages", {
   })))
   expect_match(captured$subtitle, "every bar sums to 100%")
   expect_identical(captured$args$ylab, "Cumulative proportion of trials")
+  expect_identical(captured$text_args$cex, 0.75)
   expect_true(all(c("20.0%", "40.0%", "60.0%") %in% captured$labels))
 })
 

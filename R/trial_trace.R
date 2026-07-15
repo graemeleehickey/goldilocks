@@ -398,6 +398,7 @@ plot_sim_stopping <- function(
   }
 
   bar_colours <- c("#009E73", "#D55E00", "#999999", "#56B4E9")
+  percentage_cex <- 0.75
   legend_order <- rev(seq_len(nrow(probabilities)))
   legend_cex <- 0.9
   legend_width <- max(graphics::strwidth(
@@ -454,7 +455,8 @@ plot_sim_stopping <- function(
     graphics::text(
       rep(bar_midpoints, each = nrow(probabilities)),
       as.vector(segment_midpoints),
-      labels = as.vector(segment_labels)
+      labels = as.vector(segment_labels),
+      cex = percentage_cex
     )
   } else {
     graphics::text(
@@ -462,7 +464,8 @@ plot_sim_stopping <- function(
       bar_percentages,
       labels = sprintf("%.1f%%", 100 * bar_percentages),
       pos = 3,
-      offset = 0.25
+      offset = 0.25,
+      cex = percentage_cex
     )
   }
 

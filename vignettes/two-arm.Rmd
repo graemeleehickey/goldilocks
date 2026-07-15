@@ -184,6 +184,8 @@ flowchart view displays counts moving from the total simulation set
 through futility, continued enrollment, and early success at successive looks.
 Because `out_power2` retains simulation traces, the latter three views include
 reached looks even when no trial stopped at that look.
+Percentage labels use a compact size so values at adjacent looks remain
+visually distinct.
 
 ```{r plot-stopping, fig.width=8, fig.height=5.5, out.width='100%'}
 plot_sim_stopping(out_power2)
