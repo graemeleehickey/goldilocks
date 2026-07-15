@@ -124,10 +124,12 @@ keeps only its compact result data frame, which is more suitable for
 large operating characteristic simulations. Set `return_trace = TRUE` to
 retain the interim paths across simulations.
 [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
-summarizes where and why enrollment stopped, while
+summarizes where and why enrollment stopped through marginal,
+conditional, cumulative, or flowchart views, while
 [`plot_sim_decisions()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_decisions.md)
 shows how the two predictive probabilities map to the decision regions
-at each look.
+at each look. Supplying the complete traced result ensures that stopping
+views include reached looks at which no trial stopped.
 
 ``` r
 
@@ -159,12 +161,14 @@ sims <- sim_trials(
 
 summarise_sims(sims$sims)
 plot_sim_stopping(sims)
+plot_sim_stopping(sims, type = "flowchart")
 plot_sim_decisions(sims)
 ```
 
-The three simulation plots answer different questions.
+The three simulation plotting functions answer different questions.
 [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
-describes the terminal sample-size distribution for one scenario;
+describes the terminal sample-size distribution and can re-express the
+same stopping paths conditionally, cumulatively, or as a flow;
 [`plot_sim_decisions()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_decisions.md)
 explains how interim predictive probabilities produced those decisions.
 To compare operating characteristics across a grid of true treatment

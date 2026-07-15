@@ -701,8 +701,9 @@ design:
   compares final success, stopping probabilities, and mean sample size
   across data-generating scenarios.
 - [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
-  expands one scenario into the distribution of selected sample sizes
-  and stopping reasons.
+  expands one scenario into marginal, conditional, or cumulative
+  stopping summaries, or a count-based flowchart through successive
+  looks.
 - [`plot_sim_decisions()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_decisions.md)
   examines the joint interim predictive probabilities and the decision
   thresholds at each look.
@@ -734,13 +735,16 @@ Decision maps require the optional simulation traces:
 ``` r
 
 target_sims_traced <- update(target_sims, return_trace = TRUE)
+plot_sim_stopping(target_sims_traced, type = "flowchart")
 plot_sim_decisions(target_sims_traced)
 ```
 
 Retaining traces does not change the trial summaries or random-number
-path, but it increases the output size. It is therefore usually most
-useful for selected scenarios after a broad operating-characteristic
-grid has been screened.
+path, but it increases the output size. Trace-recorded sample sizes also
+let conditional, cumulative, and flowchart stopping views display
+reached looks at which no trial stopped. Traces are therefore usually
+most useful for selected scenarios after a broad
+operating-characteristic grid has been screened.
 
 Broglio et al. emphasize that type I error for this class of adaptive
 design should be examined across the null space, not only at one

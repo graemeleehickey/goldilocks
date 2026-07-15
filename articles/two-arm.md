@@ -207,8 +207,8 @@ knitr::kable(
 
 | scenario | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
 |:---|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 0.934 | 0.916 | 0.040 | 0.044 | 171.4 | 53.294 | 0.016 |
-| 2 | 0.068 | 0.056 | 0.846 | 0.098 | 209.8 | 47.602 | 0.008 |
+| 1 | 0.928 | 0.880 | 0.038 | 0.082 | 173.55 | 56.750 | 0.014 |
+| 2 | 0.064 | 0.058 | 0.828 | 0.114 | 211.45 | 48.398 | 0.006 |
 
 Operating characteristics with a two-sided log-rank test at the 0.05
 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is
@@ -230,8 +230,13 @@ acceptable.
 
 ``` r
 
-out_power2 <- update(out_power, prob_ha = 0.96)
-out_t1error2 <- update(out_power2, hazard_treatment = hc, seed = 125)
+out_power2 <- update(out_power, prob_ha = 0.96, return_trace = TRUE)
+out_t1error2 <- update(
+  out_power2,
+  hazard_treatment = hc,
+  return_trace = FALSE,
+  seed = 125
+)
 ```
 
 ``` r
@@ -249,17 +254,17 @@ knitr::kable(
 
 | scenario | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
 |:---|---:|---:|---:|---:|---:|---:|---:|
-| null: treatment OS 30% | 0.048 | 0.042 | 0.868 | 0.090 | 202.80 | 46.760 | 0.01 |
-| target: treatment OS 50% | 0.920 | 0.890 | 0.044 | 0.066 | 175.35 | 56.213 | 0.02 |
+| null: treatment OS 30% | 0.036 | 0.038 | 0.888 | 0.074 | 205.05 | 46.826 | 0.014 |
+| target: treatment OS 50% | 0.914 | 0.866 | 0.046 | 0.088 | 175.70 | 57.825 | 0.016 |
 
 Operating characteristics with the more stringent P \< 0.04 threshold
 (`prob_ha = 0.96`). {.table style="width:100%;"}
 
 In the cached 500-trial simulation, assuming the treatment arm has an OS
-rate of 50% at 12 months, 89.0% of trials stopped early for expected
-success, 4.4% stopped early for futility, and the mean sample size was
-175.35. Overall power was 92.0%. When the treatment-arm OS rate equalled
-the control-arm rate, 86.8% of trials stopped early for futility. These
+rate of 50% at 12 months, 86.6% of trials stopped early for expected
+success, 4.6% stopped early for futility, and the mean sample size was
+175.7. Overall power was 91.4%. When the treatment-arm OS rate equalled
+the control-arm rate, 88.8% of trials stopped early for futility. These
 Monte Carlo estimates have simulation error; larger calibration runs are
 appropriate for final design decisions.
 
@@ -285,13 +290,15 @@ plot_sim_ocs(
 
 For a single scenario,
 [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
-can show three complementary views. The default marginal view gives each
+can show four complementary views. The default marginal view gives each
 outcome as a percentage of all simulated trials. The conditional view
 uses only trials still active when each look begins as its denominator,
 while the cumulative view shows the status of all trials after every
-look and includes those continuing to the next look. A fourth flowchart
-view displays counts moving from the total simulation set through
-futility, continued enrollment, and early success at successive looks.
+look and includes those continuing to the next look. A flowchart view
+displays counts moving from the total simulation set through futility,
+continued enrollment, and early success at successive looks. Because
+`out_power2` retains simulation traces, the latter three views include
+reached looks even when no trial stopped at that look.
 
 ``` r
 
@@ -325,8 +332,7 @@ simulation result:
 
 ``` r
 
-out_power2_traced <- update(out_power2, return_trace = TRUE)
-plot_sim_decisions(out_power2_traced)
+plot_sim_decisions(out_power2)
 ```
 
 Each decision-map panel represents an interim look. The horizontal

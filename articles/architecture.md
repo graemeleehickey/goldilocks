@@ -56,8 +56,8 @@ The functions fall into three layers:
   Visualizes predictive probabilities, thresholds, enrollment, and
   observed events for an optional single-trial trace.
 - **[`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)**:
-  Visualizes stopping outcomes and enrolled sample sizes across
-  simulated trials.
+  Visualizes marginal, conditional, cumulative, or flowchart stopping
+  outcomes and enrolled sample sizes across simulated trials.
 - **[`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)**:
   Compares success, stopping, and expected-sample-size operating
   characteristics across treatment-effect scenarios.

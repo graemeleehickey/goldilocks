@@ -177,9 +177,11 @@ and remain visible as ordinary R warnings.</p>
 which is more suitable for large operating characteristic simulations.
 Set <code>return_trace = TRUE</code> to retain the interim paths across
 simulations. <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> summarizes where and why
-enrollment stopped, while <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code> shows how
-the two predictive probabilities map to the decision regions at each
-look.</p>
+enrollment stopped through marginal, conditional, cumulative, or
+flowchart views, while <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code> shows how the
+two predictive probabilities map to the decision regions at each look.
+Supplying the complete traced result ensures that stopping views include
+reached looks at which no trial stopped.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sims</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">hazard_treatment</span>,</span>
@@ -209,12 +211,14 @@ look.</p>
 <span></span>
 <span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="va">sims</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">sims</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">sims</span>, type <span class="op">=</span> <span class="st">"flowchart"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">sims</span><span class="op">)</span></span></code></pre></div>
-<p>The three simulation plots answer different questions.
+<p>The three simulation plotting functions answer different questions.
 <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> describes the terminal sample-size
-distribution for one scenario; <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code>
-explains how interim predictive probabilities produced those decisions.
-To compare operating characteristics across a grid of true treatment
+distribution and can re-express the same stopping paths conditionally,
+cumulatively, or as a flow; <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code> explains
+how interim predictive probabilities produced those decisions. To
+compare operating characteristics across a grid of true treatment
 effects, summarize the scenarios together and supply their numeric
 effect values to <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">

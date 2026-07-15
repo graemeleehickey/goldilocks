@@ -47,9 +47,10 @@ For bar-chart types, the simulation result data frame, invisibly. For
 
 ## Details
 
-The flowchart requires the `N_max` column and uses interim sample sizes
-observed in `N_enrolled`. When the complete result from
-`sim_trials(return_trace = TRUE)` is supplied, sample sizes recorded in
-`traces` are also included, so looks at which no trial stopped still
-appear. The flowchart is rendered with
+The marginal view uses terminal sample sizes observed in `N_enrolled`.
+When the complete result from `sim_trials(return_trace = TRUE)` is
+supplied, the conditional, cumulative, and flowchart views also include
+sample sizes recorded in `traces`, so reached looks at which no trial
+stopped still appear. The flowchart requires the `N_max` column and is
+rendered with
 [`DiagrammeR::grViz()`](https://rich-iannone.github.io/DiagrammeR/reference/grViz.html).

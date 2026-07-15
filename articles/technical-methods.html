@@ -721,8 +721,9 @@ the design:</p>
 probabilities, and mean sample size across data-generating
 scenarios.</li>
 <li>
-<code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> expands one scenario into the
-distribution of selected sample sizes and stopping reasons.</li>
+<code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> expands one scenario into marginal,
+conditional, or cumulative stopping summaries, or a count-based
+flowchart through successive looks.</li>
 <li>
 <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code> examines the joint interim
 predictive probabilities and the decision thresholds at each look.</li>
@@ -749,11 +750,14 @@ analysis:</p>
 <p>Decision maps require the optional simulation traces:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">target_sims_traced</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">target_sims</span>, return_trace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">target_sims_traced</span>, type <span class="op">=</span> <span class="st">"flowchart"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">target_sims_traced</span><span class="op">)</span></span></code></pre></div>
 <p>Retaining traces does not change the trial summaries or random-number
-path, but it increases the output size. It is therefore usually most
-useful for selected scenarios after a broad operating-characteristic
-grid has been screened.</p>
+path, but it increases the output size. Trace-recorded sample sizes also
+let conditional, cumulative, and flowchart stopping views display
+reached looks at which no trial stopped. Traces are therefore usually
+most useful for selected scenarios after a broad
+operating-characteristic grid has been screened.</p>
 <p>Broglio et al. emphasize that type I error for this class of adaptive
 design should be examined across the null space, not only at one
 convenient null scenario. For time-to-event endpoints, the relevant null

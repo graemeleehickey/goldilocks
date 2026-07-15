@@ -96,11 +96,12 @@ For <code>type = "flowchart"</code>, a <code>DiagrammeR</code> <code>grViz</code
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The flowchart requires the <code>N_max</code> column and uses interim sample
-sizes observed in <code>N_enrolled</code>. When the complete result from
-<code>sim_trials(return_trace = TRUE)</code> is supplied, sample sizes recorded in
-<code>traces</code> are also included, so looks at which no trial stopped still
-appear. The flowchart is rendered with <code><a href="https://rich-iannone.github.io/DiagrammeR/reference/grViz.html" class="external-link">DiagrammeR::grViz()</a></code>.</p>
+    <p>The marginal view uses terminal sample sizes observed in
+<code>N_enrolled</code>. When the complete result from
+<code>sim_trials(return_trace = TRUE)</code> is supplied, the conditional, cumulative,
+and flowchart views also include sample sizes recorded in <code>traces</code>, so
+reached looks at which no trial stopped still appear. The flowchart
+requires the <code>N_max</code> column and is rendered with <code><a href="https://rich-iannone.github.io/DiagrammeR/reference/grViz.html" class="external-link">DiagrammeR::grViz()</a></code>.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

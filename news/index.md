@@ -18,7 +18,11 @@
   stopping outcomes by enrolled sample size. Plot subtitles state
   bar-chart denominators explicitly, while the flowchart shows trial
   counts branching through futility, continued enrollment, and early
-  success at successive looks.
+  success at successive looks. Bar-chart legends are placed beyond the
+  plotting region with margins sized to their labels, avoiding overlap
+  across device themes and text sizes. When retained simulation traces
+  are supplied, conditional, cumulative, and flowchart views include
+  reached looks at which no trial stopped.
 - New
   [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)
   plots success and stopping probabilities together with expected sample
