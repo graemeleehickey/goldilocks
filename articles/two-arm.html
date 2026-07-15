@@ -54,8 +54,9 @@
 
 
 
-
-<div class="row">
+<link href="two-arm_files/htmltools-fill-0.5.9/fill.css" rel="stylesheet">
+<script src="two-arm_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="two-arm_files/viz-1.8.2/viz.js"></script><link href="two-arm_files/DiagrammeR-styles-0.2/styles.css" rel="stylesheet">
+<script src="two-arm_files/grViz-binding-1.0.12/grViz.js"></script><div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Two-arm randomized trials</h1>
@@ -429,17 +430,30 @@ treatment survival probability.</p>
 <span>  xlab <span class="op">=</span> <span class="st">"True 12-month treatment survival probability"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="two-arm_files/figure-html/plot-ocs-1.png" class="r-plt" alt="" width="864"></p>
-<p>For a single scenario, <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> shows the
-marginal probability of stopping at each enrolled sample size, with the
-fill identifying expected success, futility, or reaching the maximum
-sample size.</p>
+<p>For a single scenario, <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> can show
+three complementary views. The default marginal view gives each outcome
+as a percentage of all simulated trials. The conditional view uses only
+trials still active when each look begins as its denominator, while the
+cumulative view shows the status of all trials after every look and
+includes those continuing to the next look. A fourth flowchart view
+displays counts moving from the total simulation set through futility,
+continued enrollment, and early success at successive looks.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">out_power2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="two-arm_files/figure-html/plot-stopping-1.png" class="r-plt" alt="" width="672"></p>
-<p>The predictive-probability decision map requires traces from every
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">out_power2</span>, type <span class="op">=</span> <span class="st">"conditional"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="two-arm_files/figure-html/plot-stopping-conditional-1.png" class="r-plt" alt="" width="672"></p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">out_power2</span>, type <span class="op">=</span> <span class="st">"cumulative"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="two-arm_files/figure-html/plot-stopping-cumulative-1.png" class="r-plt" alt="" width="672"></p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">out_power2</span>, type <span class="op">=</span> <span class="st">"flowchart"</span><span class="op">)</span></span></code></pre></div>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:700px;height:432.632880098888px;"></div>
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"digraph stopping_flow {\ngraph [rankdir=TB, bgcolor=\"transparent\", ranksep=0.65, nodesep=0.35, pad=0.2]\nnode [shape=box, style=\"rounded,filled\", fontname=\"Helvetica\", fontsize=11, fontcolor=\"#222222\", margin=\"0.15,0.10\"]\nedge [color=\"#777777\", penwidth=1.2, arrowsize=0.7, fontname=\"Helvetica\"]\ntotal [label=\"All simulated trials\\nn = 500\", fillcolor=\"#F2F2F2\", color=\"#666666\", penwidth=1.4]\nfutility_1 [label=\"Look 1 (N = 125)\\nStop for futility\\nn = 0\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_1 [label=\"Look 1 (N = 125)\\nContinue enrolling\\nn = 305\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_1 [label=\"Look 1 (N = 125)\\nStop for early success\\nn = 195\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_2 [label=\"Look 2 (N = 150)\\nStop for futility\\nn = 5\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_2 [label=\"Look 2 (N = 150)\\nContinue enrolling\\nn = 227\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_2 [label=\"Look 2 (N = 150)\\nStop for early success\\nn = 73\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_3 [label=\"Look 3 (N = 175)\\nStop for futility\\nn = 4\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_3 [label=\"Look 3 (N = 175)\\nContinue enrolling\\nn = 175\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_3 [label=\"Look 3 (N = 175)\\nStop for early success\\nn = 48\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_4 [label=\"Look 4 (N = 200)\\nStop for futility\\nn = 1\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_4 [label=\"Look 4 (N = 200)\\nContinue enrolling\\nn = 126\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_4 [label=\"Look 4 (N = 200)\\nStop for early success\\nn = 48\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_5 [label=\"Look 5 (N = 225)\\nStop for futility\\nn = 6\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_5 [label=\"Look 5 (N = 225)\\nContinue enrolling\\nn = 86\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_5 [label=\"Look 5 (N = 225)\\nStop for early success\\nn = 34\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_6 [label=\"Look 6 (N = 250)\\nStop for futility\\nn = 4\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_6 [label=\"Look 6 (N = 250)\\nContinue enrolling\\nn = 55\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_6 [label=\"Look 6 (N = 250)\\nStop for early success\\nn = 27\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_7 [label=\"Look 7 (N = 275)\\nStop for futility\\nn = 2\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_7 [label=\"Look 7 (N = 275)\\nContinue enrolling\\nn = 33\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_7 [label=\"Look 7 (N = 275)\\nStop for early success\\nn = 20\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nmaximum [label=\"Maximum sample size (N = 300)\\nReach maximum sample size\\nn = 33\", fillcolor=\"#E6E6E6\", color=\"#777777\", penwidth=1.4]\ntotal -> {futility_1 continue_1 success_1}\nfutility_1 -> continue_1 [style=invis]\ncontinue_1 -> success_1 [style=invis]\ncontinue_1 -> {futility_2 continue_2 success_2}\nfutility_2 -> continue_2 [style=invis]\ncontinue_2 -> success_2 [style=invis]\ncontinue_2 -> {futility_3 continue_3 success_3}\nfutility_3 -> continue_3 [style=invis]\ncontinue_3 -> success_3 [style=invis]\ncontinue_3 -> {futility_4 continue_4 success_4}\nfutility_4 -> continue_4 [style=invis]\ncontinue_4 -> success_4 [style=invis]\ncontinue_4 -> {futility_5 continue_5 success_5}\nfutility_5 -> continue_5 [style=invis]\ncontinue_5 -> success_5 [style=invis]\ncontinue_5 -> {futility_6 continue_6 success_6}\nfutility_6 -> continue_6 [style=invis]\ncontinue_6 -> success_6 [style=invis]\ncontinue_6 -> {futility_7 continue_7 success_7}\nfutility_7 -> continue_7 [style=invis]\ncontinue_7 -> success_7 [style=invis]\ncontinue_7 -> maximum\n{rank=same; futility_1; continue_1; success_1}\n{rank=same; futility_2; continue_2; success_2}\n{rank=same; futility_3; continue_3; success_3}\n{rank=same; futility_4; continue_4; success_4}\n{rank=same; futility_5; continue_5; success_5}\n{rank=same; futility_6; continue_6; success_6}\n{rank=same; futility_7; continue_7; success_7}\n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>The predictive-probability decision map requires traces from every
 simulated trial. These are opt-in because they increase the size of the
 simulation result:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_power2_traced</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power2</span>, return_trace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">out_power2_traced</span><span class="op">)</span></span></code></pre></div>
 <p>Each decision-map panel represents an interim look. The horizontal

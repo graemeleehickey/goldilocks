@@ -285,9 +285,13 @@ plot_sim_ocs(
 
 For a single scenario,
 [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
-shows the marginal probability of stopping at each enrolled sample size,
-with the fill identifying expected success, futility, or reaching the
-maximum sample size.
+can show three complementary views. The default marginal view gives each
+outcome as a percentage of all simulated trials. The conditional view
+uses only trials still active when each look begins as its denominator,
+while the cumulative view shows the status of all trials after every
+look and includes those continuing to the next look. A fourth flowchart
+view displays counts moving from the total simulation set through
+futility, continued enrollment, and early success at successive looks.
 
 ``` r
 
@@ -295,6 +299,25 @@ plot_sim_stopping(out_power2)
 ```
 
 ![](two-arm_files/figure-html/plot-stopping-1.png)
+
+``` r
+
+plot_sim_stopping(out_power2, type = "conditional")
+```
+
+![](two-arm_files/figure-html/plot-stopping-conditional-1.png)
+
+``` r
+
+plot_sim_stopping(out_power2, type = "cumulative")
+```
+
+![](two-arm_files/figure-html/plot-stopping-cumulative-1.png)
+
+``` r
+
+plot_sim_stopping(out_power2, type = "flowchart")
+```
 
 The predictive-probability decision map requires traces from every
 simulated trial. These are opt-in because they increase the size of the
