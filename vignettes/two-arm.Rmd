@@ -137,8 +137,13 @@ The type I error under this design (scenario 2, `power` column) is slightly too 
 In practice, we need to use a more stringent threshold in order to control the overall type I error. This can be achieved by trial and error. For example, if we use $P < 0.04$ (applied using the argument `prob_ha = 0.96`), we find the operating characteristics are more acceptable.
 
 ```{r example_p0.04, eval=FALSE}
-out_power2 <- update(out_power, prob_ha = 0.96)
-out_t1error2 <- update(out_power2, hazard_treatment = hc, seed = 125)
+out_power2 <- update(out_power, prob_ha = 0.96, return_trace = TRUE)
+out_t1error2 <- update(
+  out_power2,
+  hazard_treatment = hc,
+  return_trace = FALSE,
+  seed = 125
+)
 ```
 
 ```{r summarise_sims_p0.04}
@@ -153,7 +158,7 @@ knitr::kable(
 )
 ```
 
-In the cached 500-trial simulation, assuming the treatment arm has an OS rate of 50% at 12 months, 89.0% of trials stopped early for expected success, 4.4% stopped early for futility, and the mean sample size was 175.35. Overall power was 92.0%. When the treatment-arm OS rate equalled the control-arm rate, 86.8% of trials stopped early for futility. These Monte Carlo estimates have simulation error; larger calibration runs are appropriate for final design decisions.
+In the cached 500-trial simulation, assuming the treatment arm has an OS rate of 50% at 12 months, 86.6% of trials stopped early for expected success, 4.6% stopped early for futility, and the mean sample size was 175.7. Overall power was 91.4%. When the treatment-arm OS rate equalled the control-arm rate, 88.8% of trials stopped early for futility. These Monte Carlo estimates have simulation error; larger calibration runs are appropriate for final design decisions.
 
 The same results can be viewed graphically. `plot_sim_ocs()` compares final
 success, stopping behavior, and expected sample size across the treatment-effect
@@ -170,13 +175,15 @@ plot_sim_ocs(
 )
 ```
 
-For a single scenario, `plot_sim_stopping()` can show three complementary
+For a single scenario, `plot_sim_stopping()` can show four complementary
 views. The default marginal view gives each outcome as a percentage of all
 simulated trials. The conditional view uses only trials still active when each
 look begins as its denominator, while the cumulative view shows the status of
 all trials after every look and includes those continuing to the next look. A
-fourth flowchart view displays counts moving from the total simulation set
+flowchart view displays counts moving from the total simulation set
 through futility, continued enrollment, and early success at successive looks.
+Because `out_power2` retains simulation traces, the latter three views include
+reached looks even when no trial stopped at that look.
 
 ```{r plot-stopping, fig.width=7, fig.height=5}
 plot_sim_stopping(out_power2)
@@ -190,7 +197,7 @@ plot_sim_stopping(out_power2, type = "conditional")
 plot_sim_stopping(out_power2, type = "cumulative")
 ```
 
-```{r plot-stopping-flowchart}
+```{r plot-stopping-flowchart, fig.width=7, fig.height=12, out.width='100%'}
 plot_sim_stopping(out_power2, type = "flowchart")
 ```
 
@@ -199,8 +206,7 @@ trial. These are opt-in because they increase the size of the simulation
 result:
 
 ```{r plot-decisions, eval=FALSE}
-out_power2_traced <- update(out_power2, return_trace = TRUE)
-plot_sim_decisions(out_power2_traced)
+plot_sim_decisions(out_power2)
 ```
 
 Each decision-map panel represents an interim look. The horizontal coordinate

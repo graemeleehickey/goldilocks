@@ -36,9 +36,10 @@ denominator used by the selected view. The input can be the \code{sims} element
 returned by \code{\link[=sim_trials]{sim_trials()}} or the complete \code{sim_trials()} result.
 }
 \details{
-The flowchart requires the \code{N_max} column and uses interim sample
-sizes observed in \code{N_enrolled}. When the complete result from
-\code{sim_trials(return_trace = TRUE)} is supplied, sample sizes recorded in
-\code{traces} are also included, so looks at which no trial stopped still
-appear. The flowchart is rendered with \code{\link[DiagrammeR:grViz]{DiagrammeR::grViz()}}.
+The marginal view uses terminal sample sizes observed in
+\code{N_enrolled}. When the complete result from
+\code{sim_trials(return_trace = TRUE)} is supplied, the conditional, cumulative,
+and flowchart views also include sample sizes recorded in \code{traces}, so
+reached looks at which no trial stopped still appear. The flowchart
+requires the \code{N_max} column and is rendered with \code{\link[DiagrammeR:grViz]{DiagrammeR::grViz()}}.
 }

@@ -149,6 +149,7 @@ test_that("simulation stopping plot stacks outcomes by sample size", {
       captured$labels <- labels
     },
     mtext = function(...) NULL,
+    legend = function(...) NULL,
     .package = "graphics"
   )
 
@@ -184,6 +185,7 @@ test_that("simulation stopping plot supports conditional percentages", {
     mtext = function(text, ...) {
       captured$subtitle <- text
     },
+    legend = function(...) NULL,
     .package = "graphics"
   )
 
@@ -219,6 +221,7 @@ test_that("simulation stopping plot supports cumulative percentages", {
     mtext = function(text, ...) {
       captured$subtitle <- text
     },
+    legend = function(...) NULL,
     .package = "graphics"
   )
 
@@ -250,6 +253,67 @@ test_that("simulation stopping plot validates its type", {
   )
 
   expect_error(plot_sim_stopping(sim_data, type = "unknown"), "arg")
+})
+
+test_that("simulation stopping legend starts beyond the plotting region", {
+  sim_data <- data.frame(
+    stop_expected_success = c(TRUE, FALSE, FALSE, TRUE, FALSE),
+    stop_futility = c(FALSE, TRUE, FALSE, FALSE, TRUE),
+    N_enrolled = c(40, 40, 80, 80, 80)
+  )
+  file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(file)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  captured <- new.env(parent = emptyenv())
+  local_mocked_bindings(
+    legend = function(x, ...) {
+      captured$x <- x
+      captured$plot_right <- graphics::par("usr")[2]
+    },
+    .package = "graphics"
+  )
+
+  expect_silent(plot_sim_stopping(sim_data, type = "cumulative"))
+  expect_gt(captured$x, captured$plot_right)
+})
+
+test_that("conditional and cumulative views include trace-recorded looks", {
+  simulation_result <- list(
+    sims = data.frame(
+      stop_expected_success = c(TRUE, FALSE, FALSE, TRUE, FALSE),
+      stop_futility = c(FALSE, TRUE, FALSE, FALSE, TRUE),
+      N_enrolled = c(40, 40, 80, 80, 80)
+    ),
+    traces = data.frame(N_enrolled = c(20, 40, 80))
+  )
+  file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(file)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  captured <- new.env(parent = emptyenv())
+  captured$heights <- list()
+  local_mocked_bindings(
+    barplot = function(height, ...) {
+      captured$heights[[length(captured$heights) + 1L]] <- height
+      seq_len(ncol(height))
+    },
+    text = function(...) NULL,
+    mtext = function(...) NULL,
+    legend = function(...) NULL,
+    .package = "graphics"
+  )
+
+  graphics::plot.new()
+  expect_silent(plot_sim_stopping(simulation_result, type = "conditional"))
+  graphics::plot.new()
+  expect_silent(plot_sim_stopping(simulation_result, type = "cumulative"))
+
+  conditional <- captured$heights[[1]]
+  cumulative <- captured$heights[[2]]
+  expect_identical(colnames(conditional), c("20", "40", "80"))
+  expect_equal(unname(colSums(conditional)), c(0, 0.4, 1))
+  expect_identical(colnames(cumulative), c("20", "40", "80"))
+  expect_equal(unname(cumulative[, 1]), c(0, 0, 0, 1))
+  expect_equal(unname(colSums(cumulative)), c(1, 1, 1))
 })
 
 test_that("simulation stopping plot types handle one observed sample size", {

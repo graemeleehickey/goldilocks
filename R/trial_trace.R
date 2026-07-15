@@ -302,11 +302,12 @@ plot_trial_trace <- function(x) {
 #'   at each look into futility, continued enrollment, and expected-success
 #'   nodes labelled with trial counts.
 #'
-#' @details The flowchart requires the `N_max` column and uses interim sample
-#'   sizes observed in `N_enrolled`. When the complete result from
-#'   `sim_trials(return_trace = TRUE)` is supplied, sample sizes recorded in
-#'   `traces` are also included, so looks at which no trial stopped still
-#'   appear. The flowchart is rendered with [DiagrammeR::grViz()].
+#' @details The marginal view uses terminal sample sizes observed in
+#'   `N_enrolled`. When the complete result from
+#'   `sim_trials(return_trace = TRUE)` is supplied, the conditional, cumulative,
+#'   and flowchart views also include sample sizes recorded in `traces`, so
+#'   reached looks at which no trial stopped still appear. The flowchart
+#'   requires the `N_max` column and is rendered with [DiagrammeR::grViz()].
 #'
 #' @return For bar-chart types, the simulation result data frame, invisibly.
 #'   For `type = "flowchart"`, a `DiagrammeR` `grViz` htmlwidget.
@@ -328,9 +329,10 @@ plot_sim_stopping <- function(
       "'x' must be a simulation result with stopping indicators and N_enrolled"
     )
   }
+  trace_sizes <- sim_stopping_trace_sizes(x)
 
   if (type == "flowchart") {
-    return(plot_sim_stopping_flowchart(sims, simulation_result = x))
+    return(plot_sim_stopping_flowchart(sims, trace_sizes = trace_sizes))
   }
 
   outcome <- ifelse(
@@ -342,7 +344,11 @@ plot_sim_stopping <- function(
     outcome,
     levels = c("Expected success", "Futility", "Maximum sample size")
   )
-  sample_sizes <- sort(unique(sims$N_enrolled))
+  sample_sizes <- if (type == "marginal") {
+    sort(unique(sims$N_enrolled))
+  } else {
+    sort(unique(c(sims$N_enrolled, trace_sizes)))
+  }
   sample_size <- factor(sims$N_enrolled, levels = sample_sizes)
   counts <- unclass(table(outcome, sample_size))
 
@@ -391,26 +397,47 @@ plot_sim_stopping <- function(
     main <- "Cumulative stopping outcomes by sample size"
   }
 
+  bar_colours <- c("#009E73", "#D55E00", "#999999", "#56B4E9")
+  legend_order <- rev(seq_len(nrow(probabilities)))
+  legend_cex <- 0.9
+  legend_width <- max(graphics::strwidth(
+    rownames(probabilities)[legend_order],
+    units = "inches",
+    cex = legend_cex
+  ))
+  legend_margin <- ceiling(
+    (legend_width + 0.5) / graphics::par("csi")
+  )
+
   old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par), add = TRUE)
-  graphics::par(mfrow = c(1, 1), mar = c(5, 4, 4, 10))
+  graphics::par(
+    mfrow = c(1, 1),
+    mar = c(5, 4, 4, max(6, legend_margin))
+  )
   bar_midpoints <- graphics::barplot(
     probabilities,
     ylim = c(0, 1.08),
     xlab = xlab,
     ylab = ylab,
     main = main,
-    col = c("#009E73", "#D55E00", "#999999", "#56B4E9"),
-    border = NA,
-    legend.text = rownames(probabilities),
-    args.legend = list(
-      x = "topright",
-      inset = c(-0.35, 0),
-      xpd = NA,
-      bty = "n"
-    )
+    col = bar_colours,
+    border = NA
   )
   graphics::mtext(subtitle, side = 3, line = 0.2, cex = 0.85)
+  plot_region <- graphics::par("usr")
+  graphics::legend(
+    x = plot_region[2] + 0.04 * diff(plot_region[1:2]),
+    y = plot_region[4],
+    legend = rownames(probabilities)[legend_order],
+    fill = bar_colours[legend_order],
+    border = NA,
+    bty = "n",
+    xjust = 0,
+    yjust = 1,
+    xpd = NA,
+    cex = legend_cex
+  )
   if (type == "cumulative") {
     segment_midpoints <- apply(probabilities, 2, cumsum) - probabilities / 2
     segment_labels <- ifelse(
@@ -436,23 +463,14 @@ plot_sim_stopping <- function(
   invisible(sims)
 }
 
-#' Draw a stopping flowchart for simulated trials
+#' Extract sample sizes from retained simulation traces
 #'
-#' @param sims Simulation summary data frame.
 #' @param simulation_result Original input supplied to `plot_sim_stopping()`.
 #'
-#' @return A `DiagrammeR` `grViz` htmlwidget.
+#' @return A numeric vector of trace-recorded enrolled sample sizes.
 #'
 #' @noRd
-plot_sim_stopping_flowchart <- function(sims, simulation_result) {
-  if (!requireNamespace("DiagrammeR", quietly = TRUE)) {
-    stop(
-      "Package 'DiagrammeR' is required for type = 'flowchart'. ",
-      "Install it with install.packages('DiagrammeR')."
-    )
-  }
-
-  trace_sizes <- numeric()
+sim_stopping_trace_sizes <- function(simulation_result) {
   if (
     is.list(simulation_result) &&
       !is.data.frame(simulation_result) &&
@@ -460,7 +478,27 @@ plot_sim_stopping_flowchart <- function(sims, simulation_result) {
       is.data.frame(simulation_result$traces) &&
       "N_enrolled" %in% names(simulation_result$traces)
   ) {
-    trace_sizes <- simulation_result$traces$N_enrolled
+    sizes <- simulation_result$traces$N_enrolled
+    return(sizes[is.finite(sizes)])
+  }
+
+  numeric()
+}
+
+#' Draw a stopping flowchart for simulated trials
+#'
+#' @param sims Simulation summary data frame.
+#' @param trace_sizes Sample sizes from retained simulation traces.
+#'
+#' @return A `DiagrammeR` `grViz` htmlwidget.
+#'
+#' @noRd
+plot_sim_stopping_flowchart <- function(sims, trace_sizes) {
+  if (!requireNamespace("DiagrammeR", quietly = TRUE)) {
+    stop(
+      "Package 'DiagrammeR' is required for type = 'flowchart'. ",
+      "Install it with install.packages('DiagrammeR')."
+    )
   }
 
   if (!"N_max" %in% names(sims)) {

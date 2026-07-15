@@ -111,7 +111,7 @@ The functions fall into three layers:
 -   **`summarise_sims()`**: Summarizes the output of `sim_trials()`, computing operating characteristics such as power, expected sample size, and stopping probabilities.
 -   **`summarise_trial_trace()`**: Condenses an optional single-trial interim trace into a one-row stopping-path summary.
 -   **`plot_trial_trace()`**: Visualizes predictive probabilities, thresholds, enrollment, and observed events for an optional single-trial trace.
--   **`plot_sim_stopping()`**: Visualizes stopping outcomes and enrolled sample sizes across simulated trials.
+-   **`plot_sim_stopping()`**: Visualizes marginal, conditional, cumulative, or flowchart stopping outcomes and enrolled sample sizes across simulated trials.
 -   **`plot_sim_ocs()`**: Compares success, stopping, and expected-sample-size operating characteristics across treatment-effect scenarios.
 -   **`plot_sim_decisions()`**: Maps simulated predictive probabilities into expected-success, continuation, and futility regions at each interim look.
 

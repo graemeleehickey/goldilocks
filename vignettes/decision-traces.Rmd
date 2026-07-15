@@ -81,8 +81,11 @@ Traces are intended for examining individual trial paths. By default,
 `sim_trials()` keeps only its compact result data frame, which is more suitable
 for large operating characteristic simulations. Set `return_trace = TRUE` to
 retain the interim paths across simulations. `plot_sim_stopping()` summarizes
-where and why enrollment stopped, while `plot_sim_decisions()` shows how the
-two predictive probabilities map to the decision regions at each look.
+where and why enrollment stopped through marginal, conditional, cumulative, or
+flowchart views, while `plot_sim_decisions()` shows how the two predictive
+probabilities map to the decision regions at each look. Supplying the complete
+traced result ensures that stopping views include reached looks at which no
+trial stopped.
 
 ```{r simulation-summary, eval = FALSE}
 sims <- sim_trials(
@@ -113,11 +116,13 @@ sims <- sim_trials(
 
 summarise_sims(sims$sims)
 plot_sim_stopping(sims)
+plot_sim_stopping(sims, type = "flowchart")
 plot_sim_decisions(sims)
 ```
 
-The three simulation plots answer different questions. `plot_sim_stopping()`
-describes the terminal sample-size distribution for one scenario;
+The three simulation plotting functions answer different questions.
+`plot_sim_stopping()` describes the terminal sample-size distribution and can
+re-express the same stopping paths conditionally, cumulatively, or as a flow;
 `plot_sim_decisions()` explains how interim predictive probabilities produced
 those decisions. To compare operating characteristics across a grid of true
 treatment effects, summarize the scenarios together and supply their numeric
