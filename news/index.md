@@ -22,9 +22,11 @@
   plotting region with margins sized to their labels, avoiding overlap
   across device themes and text sizes. Subtitles are left-aligned so
   long denominator descriptions stay visible, and the cumulative view
-  uses a compact y-axis label that remains clear of its title. When
-  retained simulation traces are supplied, conditional, cumulative, and
-  flowchart views include reached looks at which no trial stopped.
+  uses a compact y-axis label that remains clear of its title.
+  Percentage labels use a compact, consistent size across bar-chart
+  views to avoid collisions between adjacent looks. When retained
+  simulation traces are supplied, conditional, cumulative, and flowchart
+  views include reached looks at which no trial stopped.
 - New
   [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)
   plots success and stopping probabilities together with expected sample

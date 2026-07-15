@@ -298,7 +298,8 @@ look and includes those continuing to the next look. A flowchart view
 displays counts moving from the total simulation set through futility,
 continued enrollment, and early success at successive looks. Because
 `out_power2` retains simulation traces, the latter three views include
-reached looks even when no trial stopped at that look.
+reached looks even when no trial stopped at that look. Percentage labels
+use a compact size so values at adjacent looks remain visually distinct.
 
 ``` r
 
