@@ -458,6 +458,36 @@ For `method = "chisq"`, the final event indicator is compared between
 arms using a chi-square test. This discards event-time information and
 is available only for two-arm designs with `alternative = "two.sided"`.
 
+When a Cox final analysis uses multiple imputation, the model is fitted
+separately to each completed dataset. Let (\_m) and (U_m) be the log
+hazard ratio and its estimated variance from imputation (m = 1,,M).
+Rubin’s scalar pooling rules give
+
+``` math
+\bar{\eta} = \frac{1}{M}\sum_{m=1}^{M}\widehat{\eta}_m, \qquad
+\bar{U} = \frac{1}{M}\sum_{m=1}^{M}U_m,
+```
+
+``` math
+B = \frac{1}{M-1}\sum_{m=1}^{M}
+  (\widehat{\eta}_m - \bar{\eta})^2, \qquad
+T = \bar{U} + \left(1 + \frac{1}{M}\right)B.
+```
+
+The pooled Wald statistic is (({} - h_0) / ). Its P-value uses a (t)
+reference distribution with Rubin’s large-sample degrees of freedom
+
+``` math
+\nu = (M-1)\left(1 + \frac{1}{r}\right)^2, \qquad
+r = \frac{(1 + 1/M)B}{\bar{U}}.
+```
+
+When (B = 0), (= ) and the reference distribution reduces to the
+standard normal distribution. At least two imputations are therefore
+required. The returned `est_final` is ({}), while `post_prob_ha` is
+(1-p) from this pooled test with the direction determined by
+`alternative`.
+
 ### 6.2 Bayesian survival final test
 
 For `method = "bayes-surv"`, posterior hazard draws are mapped to
@@ -574,18 +604,24 @@ Interim predictions impute outcomes that are not yet known. At the final
 analysis, `imputed_final` controls whether subjects lost to follow-up
 are also imputed.
 
-If `imputed_final = TRUE`, the final analysis mirrors the interim
-predictive framework for Bayesian methods (`method = "bayes-surv"` or
-`method = "bayes-bin"`): each imputed completed dataset is analyzed and
-`post_prob_ha` is the average posterior probability across imputations.
-`imputed_final = TRUE` is not currently available for frequentist
-methods (`logrank`, `cox`, or `chisq`) because the package does not
-implement an appropriate pooling rule for multiple imputed final
-datasets. If `imputed_final = FALSE`, the final analysis uses observed
-right-censored data for methods that can handle censoring (`logrank`,
-`cox`, and `bayes-surv`). For `chisq` and `bayes-bin`, lost-to-follow-up
-subjects are excluded because these methods require complete binary
-outcomes and have no mechanism for right-censored observations.
+If `imputed_final = TRUE`, Bayesian methods (`method = "bayes-surv"` or
+`method = "bayes-bin"`) analyze each imputed completed dataset and
+average the resulting posterior summaries. Cox regression instead pools
+the completed-data log hazard ratios and variances using Rubin’s rules
+as described above; `N_impute` must be at least two. Imputed final
+analyses remain unavailable for `method = "logrank"` and
+`method = "chisq"` because no pooling rule is implemented for those
+tests.
+
+If `imputed_final = FALSE`, the final analysis is unchanged: it uses
+observed right-censored data for methods that can handle censoring
+(`logrank`, `cox`, and `bayes-surv`). For `chisq` and `bayes-bin`,
+lost-to-follow-up subjects are excluded because these methods require
+complete binary outcomes and have no mechanism for right-censored
+observations. Rubin pooling applies only to the imputed Cox final
+analysis; it does not alter the interim posterior-predictive
+calculation, where each simulated completed trial is tested separately
+before the success indicators are averaged.
 
 The loss-to-follow-up mechanism in the simulator is non-informative.
 Designs where dropout may depend on prognosis should be assessed with

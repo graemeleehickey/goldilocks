@@ -137,10 +137,11 @@ Similar to above, the parameter `N_mcmc` is not required when using a
 log-rank test, meaning we do not need to enter a value for this
 argument. Since we do not allow for attrition, the data at the final
 analysis will be complete, and we can set `imputed_final = FALSE`. If
-attrition occurred, `imputed_final = TRUE` is not currently available
-for frequentist methods (`logrank`, `cox`, or `chisq`), because the
-package does not implement an appropriate pooling rule for multiple
-imputed final datasets.
+attrition occurred and `method = "cox"` were selected,
+`imputed_final = TRUE` would fit the Cox model to each completed dataset
+and pool the log hazard ratios and variances using Rubin’s rules; at
+least two imputations are required. Imputed final analyses are not
+currently available for `method = "logrank"` or `method = "chisq"`.
 
 Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is

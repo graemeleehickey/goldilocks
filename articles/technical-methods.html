@@ -515,6 +515,24 @@ the sign convention of the package’s log-rank statistic.</p>
 compared between arms using a chi-square test. This discards event-time
 information and is available only for two-arm designs with
 <code>alternative = "two.sided"</code>.</p>
+<p>When a Cox final analysis uses multiple imputation, the model is
+fitted separately to each completed dataset. Let (_m) and (U_m) be the
+log hazard ratio and its estimated variance from imputation (m = 1,,M).
+Rubin’s scalar pooling rules give</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>η</mi><mo accent="true">‾</mo></mover><mo>=</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><msub><mover><mi>η</mi><mo accent="true">̂</mo></mover><mi>m</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><mover><mi>U</mi><mo accent="true">‾</mo></mover><mo>=</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><msub><mi>U</mi><mi>m</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\bar{\eta} = \frac{1}{M}\sum_{m=1}^{M}\widehat{\eta}_m, \qquad
+\bar{U} = \frac{1}{M}\sum_{m=1}^{M}U_m,</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mfrac><mn>1</mn><mrow><mi>M</mi><mo>−</mo><mn>1</mn></mrow></mfrac><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>η</mi><mo accent="true">̂</mo></mover><mi>m</mi></msub><mo>−</mo><mover><mi>η</mi><mo accent="true">‾</mo></mover><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo>,</mo><mspace width="2.0em"></mspace><mi>T</mi><mo>=</mo><mover><mi>U</mi><mo accent="true">‾</mo></mover><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>B</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">B = \frac{1}{M-1}\sum_{m=1}^{M}
+  (\widehat{\eta}_m - \bar{\eta})^2, \qquad
+T = \bar{U} + \left(1 + \frac{1}{M}\right)B.</annotation></semantics></math></p>
+<p>The pooled Wald statistic is (({} - h_0) / ). Its P-value uses a (t)
+reference distribution with Rubin’s large-sample degrees of freedom</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mn>1</mn><mi>r</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>,</mo><mspace width="2.0em"></mspace><mi>r</mi><mo>=</mo><mfrac><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mn>1</mn><mi>/</mi><mi>M</mi><mo stretchy="false" form="postfix">)</mo><mi>B</mi></mrow><mover><mi>U</mi><mo accent="true">‾</mo></mover></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">\nu = (M-1)\left(1 + \frac{1}{r}\right)^2, \qquad
+r = \frac{(1 + 1/M)B}{\bar{U}}.</annotation></semantics></math></p>
+<p>When (B = 0), (= ) and the reference distribution reduces to the
+standard normal distribution. At least two imputations are therefore
+required. The returned <code>est_final</code> is ({}), while
+<code>post_prob_ha</code> is (1-p) from this pooled test with the
+direction determined by <code>alternative</code>.</p>
 </div>
 <div class="section level3">
 <h3 id="bayesian-survival-final-test">6.2 Bayesian survival final test<a class="anchor" aria-label="anchor" href="#bayesian-survival-final-test"></a>
@@ -599,21 +617,25 @@ when <code>bin_method = "mc"</code>.</p>
 <p>Interim predictions impute outcomes that are not yet known. At the
 final analysis, <code>imputed_final</code> controls whether subjects
 lost to follow-up are also imputed.</p>
-<p>If <code>imputed_final = TRUE</code>, the final analysis mirrors the
-interim predictive framework for Bayesian methods
+<p>If <code>imputed_final = TRUE</code>, Bayesian methods
 (<code>method = "bayes-surv"</code> or
-<code>method = "bayes-bin"</code>): each imputed completed dataset is
-analyzed and <code>post_prob_ha</code> is the average posterior
-probability across imputations. <code>imputed_final = TRUE</code> is not
-currently available for frequentist methods (<code>logrank</code>,
-<code>cox</code>, or <code>chisq</code>) because the package does not
-implement an appropriate pooling rule for multiple imputed final
-datasets. If <code>imputed_final = FALSE</code>, the final analysis uses
-observed right-censored data for methods that can handle censoring
-(<code>logrank</code>, <code>cox</code>, and <code>bayes-surv</code>).
-For <code>chisq</code> and <code>bayes-bin</code>, lost-to-follow-up
-subjects are excluded because these methods require complete binary
-outcomes and have no mechanism for right-censored observations.</p>
+<code>method = "bayes-bin"</code>) analyze each imputed completed
+dataset and average the resulting posterior summaries. Cox regression
+instead pools the completed-data log hazard ratios and variances using
+Rubin’s rules as described above; <code>N_impute</code> must be at least
+two. Imputed final analyses remain unavailable for
+<code>method = "logrank"</code> and <code>method = "chisq"</code>
+because no pooling rule is implemented for those tests.</p>
+<p>If <code>imputed_final = FALSE</code>, the final analysis is
+unchanged: it uses observed right-censored data for methods that can
+handle censoring (<code>logrank</code>, <code>cox</code>, and
+<code>bayes-surv</code>). For <code>chisq</code> and
+<code>bayes-bin</code>, lost-to-follow-up subjects are excluded because
+these methods require complete binary outcomes and have no mechanism for
+right-censored observations. Rubin pooling applies only to the imputed
+Cox final analysis; it does not alter the interim posterior-predictive
+calculation, where each simulated completed trial is tested separately
+before the success indicators are averaged.</p>
 <p>The loss-to-follow-up mechanism in the simulator is non-informative.
 Designs where dropout may depend on prognosis should be assessed with
 sensitivity analyses outside the default data-generating mechanism.</p>

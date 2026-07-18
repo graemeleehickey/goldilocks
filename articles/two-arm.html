@@ -234,11 +234,13 @@ and PSOCK workers on Windows.</li>
 when using a log-rank test, meaning we do not need to enter a value for
 this argument. Since we do not allow for attrition, the data at the
 final analysis will be complete, and we can set
-<code>imputed_final = FALSE</code>. If attrition occurred,
-<code>imputed_final = TRUE</code> is not currently available for
-frequentist methods (<code>logrank</code>, <code>cox</code>, or
-<code>chisq</code>), because the package does not implement an
-appropriate pooling rule for multiple imputed final datasets.</p>
+<code>imputed_final = FALSE</code>. If attrition occurred and
+<code>method = "cox"</code> were selected,
+<code>imputed_final = TRUE</code> would fit the Cox model to each
+completed dataset and pool the log hazard ratios and variances using
+Rubin’s rules; at least two imputations are required. Imputed final
+analyses are not currently available for <code>method = "logrank"</code>
+or <code>method = "chisq"</code>.</p>
 <p>Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is
 50%.</p>

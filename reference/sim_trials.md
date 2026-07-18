@@ -197,7 +197,7 @@ sim_trials(
 - N_impute:
 
   integer. Number of imputations for Monte Carlo simulation of missing
-  data.
+  data. An imputed Cox final analysis requires at least two.
 
 - N_mcmc:
 
@@ -217,8 +217,7 @@ sim_trials(
   analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis
   of complete binary outcomes (`method = "bayes-bin"`), or a frequentist
   log-rank, Cox, or chi-square test (`method = "logrank"`, `"cox"`, or
-  `"chisq"`, which require `imputed_final = FALSE`). See Details
-  section.
+  `"chisq"`). See Details section.
 
 - imputed_final:
 
@@ -226,10 +225,12 @@ sim_trials(
   followed-up to the study end) be based on imputed outcomes for
   subjects who were LTFU (i.e. right-censored with time less than
   `end_of_study`)? Default is `FALSE`, which means that the final
-  analysis incorporates right-censoring. This option cannot be used with
-  frequentist methods (`"logrank"`, `"cox"`, or `"chisq"`) because the
-  package does not implement a frequentist pooling rule for multiple
-  imputed final datasets.
+  analysis incorporates right-censoring. With `method = "cox"`, setting
+  this to `TRUE` fits the Cox model to each imputed dataset and pools
+  the log hazard ratios and variances using Rubin's rules; this requires
+  `N_impute >= 2`. Imputed final analyses remain unavailable for
+  `method = "logrank"` and `method = "chisq"` because no pooling rule is
+  implemented for them.
 
 - empty_interval:
 
