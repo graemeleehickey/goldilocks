@@ -143,7 +143,7 @@ recycled.}
 hypothesis.}
 
 \item{N_impute}{integer. Number of imputations for Monte Carlo simulation of
-missing data.}
+missing data. An imputed Cox final analysis requires at least two.}
 
 \item{N_mcmc}{integer. Number of posterior samples used by
 \code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
@@ -165,15 +165,17 @@ Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
 complete binary outcomes (\code{method = "bayes-bin"}), or a frequentist
 log-rank, Cox, or chi-square test (\code{method = "logrank"}, \code{"cox"}, or
-\code{"chisq"}, which require \code{imputed_final = FALSE}). See Details section.}
+\code{"chisq"}). See Details section.}
 
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 \code{end_of_study})? Default is \code{FALSE}, which means that the final analysis
-incorporates right-censoring. This option cannot be used with frequentist
-methods (\code{"logrank"}, \code{"cox"}, or \code{"chisq"}) because the package does not
-implement a frequentist pooling rule for multiple imputed final datasets.}
+incorporates right-censoring. With \code{method = "cox"}, setting this to
+\code{TRUE} fits the Cox model to each imputed dataset and pools the log hazard
+ratios and variances using Rubin's rules; this requires \code{N_impute >= 2}.
+Imputed final analyses remain unavailable for \code{method = "logrank"} and
+\code{method = "chisq"} because no pooling rule is implemented for them.}
 
 \item{return_trace}{logical. Should the interim decision path be returned in
 addition to the usual final summary? The default, FALSE, returns the
@@ -192,10 +194,11 @@ analysis occurs when either the maximum sample size is reached and
 follow-up is complete, or the interim analysis triggered early stopping
 of enrollment/accrual and follow-up for those subjects is complete.
 \item \code{post_prob_ha}: Posterior probability from the final analysis. If
-\code{imputed_final} is \code{TRUE}, this is calculated for each imputed
-final-analysis dataset and averaged over \code{N_impute} imputations. If
-\code{method = "logrank"}, the value represents \eqn{1 - P}, where \eqn{P}
-is the frequentist \emph{P}-value.
+a Bayesian method uses \code{imputed_final = TRUE}, this is calculated for
+each imputed final-analysis dataset and averaged over \code{N_impute}
+imputations. For an imputed Cox analysis it is \eqn{1 - P} from the
+Rubin-pooled Wald test. For non-imputed log-rank and Cox analyses it is
+\eqn{1 - P} from the corresponding frequentist test.
 \item \code{stop_futility}: Logical indicator of whether the trial stopped early for
 futility.
 \item \code{stop_expected_success}: Logical indicator of whether the trial stopped
@@ -264,7 +267,12 @@ Similar to the log-rank test, a \emph{P}-value is calculated and
 ratio. When \code{alternative = "less"} or
 \code{"greater"}, a one-sided \emph{P}-value is derived from the Wald
 z-statistic relative to \code{h0}. The treatment effect (log hazard
-ratio) is also reported.
+ratio) is also reported. When \code{imputed_final = TRUE}, the Cox model is
+fitted separately to each of at least two imputed datasets. The log
+hazard ratios and their within-imputation variances are combined using
+Rubin's rules; the pooled Wald test uses Rubin's large-sample degrees of
+freedom. When \code{imputed_final = FALSE}, the existing single Cox model is
+fitted directly to the observed right-censored data.
 \item Bayesian absolute difference (\code{method = "bayes-surv"}).
 Each imputed dataset is used to update the conjugate Gamma prior
 (defined by \code{prior}), yielding a posterior distribution for the
@@ -315,22 +323,23 @@ requires \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to
 enable simple switching between Bayesian and frequentist paradigms for
 analysis. Because the chi-square test cannot handle right-censored
 observations, subjects lost to follow-up are excluded from the final
-analysis. Like the other frequentist methods, it cannot use
+analysis. Like the log-rank method, it cannot use
 \code{imputed_final = TRUE}: the package does not implement a frequentist
 pooling rule for multiple imputed final datasets.
 \item Imputed final analysis (\code{imputed_final}).
 The overall final analysis conducted after accrual is suspended and
 follow-up is complete can be analyzed on imputed datasets for Bayesian
-methods (\code{"bayes-surv"} and \code{"bayes-bin"}) or on the non-imputed
-dataset. Since the imputations/predictions used
+methods (\code{"bayes-surv"} and \code{"bayes-bin"}) and for Cox regression, or
+on the non-imputed dataset. Since the imputations/predictions used
 during the interim analyses assume all subjects are imputed (since loss
 to follow-up is not yet known), it would seem most appropriate to
 conduct the trial in the same manner, especially if loss to follow-up
 rates are appreciable. Note, this only applies to subjects who are
 right-censored due to loss to follow-up, which we assume is a
-non-informative process. It cannot be used with frequentist methods
-(\code{"logrank"}, \code{"cox"}, or \code{"chisq"}) until an appropriate pooling rule
-is implemented.
+non-informative process. For Cox regression the final estimates and
+variances are pooled with Rubin's rules. It cannot be used with
+\code{method = "logrank"} or \code{method = "chisq"} until an appropriate pooling
+rule is implemented for those methods.
 }
 
 When \code{method = "bayes-surv"} or \code{method = "bayes-bin"} and imputation is
@@ -345,9 +354,10 @@ posterior for \code{method = "bayes-bin"}. This posterior is used for
 inference. This is consistent with the predictive probability framework
 described in Broglio et al. (2014), but users should be aware that the
 imputation model's posterior influences the analysis posterior. For
-frequentist methods (\code{"logrank"}, \code{"cox"}, \code{"chisq"}), the second stage
-uses a standard test rather than a posterior, so this feedback loop does
-not arise.
+frequentist methods (\code{"logrank"}, \code{"cox"}, \code{"chisq"}), each completed
+dataset uses a standard test rather than a posterior, so this feedback loop
+does not arise. Imputed Cox final analyses then pool the completed-data
+estimates and variances using Rubin's rules.
 
 At each interim look, follow-up times are masked (censored) to reflect
 the calendar time of the analysis. The package treats enrollment and

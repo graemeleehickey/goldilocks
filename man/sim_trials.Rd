@@ -147,7 +147,7 @@ recycled.}
 hypothesis.}
 
 \item{N_impute}{integer. Number of imputations for Monte Carlo simulation of
-missing data.}
+missing data. An imputed Cox final analysis requires at least two.}
 
 \item{N_mcmc}{integer. Number of posterior samples used by
 \code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
@@ -162,15 +162,17 @@ Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
 complete binary outcomes (\code{method = "bayes-bin"}), or a frequentist
 log-rank, Cox, or chi-square test (\code{method = "logrank"}, \code{"cox"}, or
-\code{"chisq"}, which require \code{imputed_final = FALSE}). See Details section.}
+\code{"chisq"}). See Details section.}
 
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 \code{end_of_study})? Default is \code{FALSE}, which means that the final analysis
-incorporates right-censoring. This option cannot be used with frequentist
-methods (\code{"logrank"}, \code{"cox"}, or \code{"chisq"}) because the package does not
-implement a frequentist pooling rule for multiple imputed final datasets.}
+incorporates right-censoring. With \code{method = "cox"}, setting this to
+\code{TRUE} fits the Cox model to each imputed dataset and pools the log hazard
+ratios and variances using Rubin's rules; this requires \code{N_impute >= 2}.
+Imputed final analyses remain unavailable for \code{method = "logrank"} and
+\code{method = "chisq"} because no pooling rule is implemented for them.}
 
 \item{empty_interval}{character. Policy for empty piecewise-exponential
 intervals in \code{method = "bayes-surv"} posterior calculations. An empty

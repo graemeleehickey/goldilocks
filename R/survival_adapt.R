@@ -64,7 +64,7 @@
 #' @param prob_ha scalar value between 0 and 1. Probability threshold of alternative
 #'   hypothesis.
 #' @param N_impute integer. Number of imputations for Monte Carlo simulation of
-#'   missing data.
+#'   missing data. An imputed Cox final analysis requires at least two.
 #' @param N_mcmc integer. Number of posterior samples used by
 #'   `method = "bayes-surv"` and by `method = "bayes-bin"` when
 #'   `bin_method = "mc"`.
@@ -83,14 +83,16 @@
 #'   analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis of
 #'   complete binary outcomes (`method = "bayes-bin"`), or a frequentist
 #'   log-rank, Cox, or chi-square test (`method = "logrank"`, `"cox"`, or
-#'   `"chisq"`, which require `imputed_final = FALSE`). See Details section.
+#'   `"chisq"`). See Details section.
 #' @param imputed_final logical. Should the final analysis (after all subjects
 #'   have been followed-up to the study end) be based on imputed outcomes for
 #'   subjects who were LTFU (i.e. right-censored with time less than
 #'   `end_of_study`)? Default is `FALSE`, which means that the final analysis
-#'   incorporates right-censoring. This option cannot be used with frequentist
-#'   methods (`"logrank"`, `"cox"`, or `"chisq"`) because the package does not
-#'   implement a frequentist pooling rule for multiple imputed final datasets.
+#'   incorporates right-censoring. With `method = "cox"`, setting this to
+#'   `TRUE` fits the Cox model to each imputed dataset and pools the log hazard
+#'   ratios and variances using Rubin's rules; this requires `N_impute >= 2`.
+#'   Imputed final analyses remain unavailable for `method = "logrank"` and
+#'   `method = "chisq"` because no pooling rule is implemented for them.
 #' @param return_trace logical. Should the interim decision path be returned in
 #'   addition to the usual final summary? The default, FALSE, returns the
 #'   historical one-row data frame. When TRUE, the result is a
@@ -146,7 +148,12 @@
 #'      ratio. When `alternative = "less"` or
 #'      `"greater"`, a one-sided *P*-value is derived from the Wald
 #'      z-statistic relative to `h0`. The treatment effect (log hazard
-#'      ratio) is also reported.
+#'      ratio) is also reported. When `imputed_final = TRUE`, the Cox model is
+#'      fitted separately to each of at least two imputed datasets. The log
+#'      hazard ratios and their within-imputation variances are combined using
+#'      Rubin's rules; the pooled Wald test uses Rubin's large-sample degrees of
+#'      freedom. When `imputed_final = FALSE`, the existing single Cox model is
+#'      fitted directly to the observed right-censored data.
 #'
 #'   * Bayesian absolute difference (`method = "bayes-surv"`).
 #'      Each imputed dataset is used to update the conjugate Gamma prior
@@ -200,23 +207,24 @@
 #'      enable simple switching between Bayesian and frequentist paradigms for
 #'      analysis. Because the chi-square test cannot handle right-censored
 #'      observations, subjects lost to follow-up are excluded from the final
-#'      analysis. Like the other frequentist methods, it cannot use
+#'      analysis. Like the log-rank method, it cannot use
 #'      `imputed_final = TRUE`: the package does not implement a frequentist
 #'      pooling rule for multiple imputed final datasets.
 #'
 #'  * Imputed final analysis (`imputed_final`).
 #'      The overall final analysis conducted after accrual is suspended and
 #'      follow-up is complete can be analyzed on imputed datasets for Bayesian
-#'      methods (`"bayes-surv"` and `"bayes-bin"`) or on the non-imputed
-#'      dataset. Since the imputations/predictions used
+#'      methods (`"bayes-surv"` and `"bayes-bin"`) and for Cox regression, or
+#'      on the non-imputed dataset. Since the imputations/predictions used
 #'      during the interim analyses assume all subjects are imputed (since loss
 #'      to follow-up is not yet known), it would seem most appropriate to
 #'      conduct the trial in the same manner, especially if loss to follow-up
 #'      rates are appreciable. Note, this only applies to subjects who are
 #'      right-censored due to loss to follow-up, which we assume is a
-#'      non-informative process. It cannot be used with frequentist methods
-#'      (`"logrank"`, `"cox"`, or `"chisq"`) until an appropriate pooling rule
-#'      is implemented.
+#'      non-informative process. For Cox regression the final estimates and
+#'      variances are pooled with Rubin's rules. It cannot be used with
+#'      `method = "logrank"` or `method = "chisq"` until an appropriate pooling
+#'      rule is implemented for those methods.
 #'
 #'   When `method = "bayes-surv"` or `method = "bayes-bin"` and imputation is
 #'   involved (either at interim
@@ -230,9 +238,10 @@
 #'   inference. This is consistent with the predictive probability framework
 #'   described in Broglio et al. (2014), but users should be aware that the
 #'   imputation model's posterior influences the analysis posterior. For
-#'   frequentist methods (`"logrank"`, `"cox"`, `"chisq"`), the second stage
-#'   uses a standard test rather than a posterior, so this feedback loop does
-#'   not arise.
+#'   frequentist methods (`"logrank"`, `"cox"`, `"chisq"`), each completed
+#'   dataset uses a standard test rather than a posterior, so this feedback loop
+#'   does not arise. Imputed Cox final analyses then pool the completed-data
+#'   estimates and variances using Rubin's rules.
 #'
 #'   At each interim look, follow-up times are masked (censored) to reflect
 #'   the calendar time of the analysis. The package treats enrollment and
@@ -253,10 +262,11 @@
 #'     follow-up is complete, or the interim analysis triggered early stopping
 #'     of enrollment/accrual and follow-up for those subjects is complete.
 #'   - `post_prob_ha`: Posterior probability from the final analysis. If
-#'     `imputed_final` is `TRUE`, this is calculated for each imputed
-#'     final-analysis dataset and averaged over `N_impute` imputations. If
-#'     `method = "logrank"`, the value represents \eqn{1 - P}, where \eqn{P}
-#'     is the frequentist *P*-value.
+#'     a Bayesian method uses `imputed_final = TRUE`, this is calculated for
+#'     each imputed final-analysis dataset and averaged over `N_impute`
+#'     imputations. For an imputed Cox analysis it is \eqn{1 - P} from the
+#'     Rubin-pooled Wald test. For non-imputed log-rank and Cox analyses it is
+#'     \eqn{1 - P} from the corresponding frequentist test.
 #'   - `stop_futility`: Logical indicator of whether the trial stopped early for
 #'     futility.
 #'   - `stop_expected_success`: Logical indicator of whether the trial stopped
@@ -356,6 +366,12 @@ survival_adapt <- function(
   empty_interval <- match.arg(empty_interval)
   validate_logical_scalar(return_trace, "return_trace")
   validate_analysis_configuration(method, alternative, single_arm, imputed_final)
+  if (imputed_final && method == "cox" && N_impute < 2) {
+    stop(
+      "Cox final-analysis imputation requires at least two imputations ",
+      "to apply Rubin's rules"
+    )
+  }
 
   if (!single_arm) {
     validate_randomization_args(N_total, block, rand_ratio)

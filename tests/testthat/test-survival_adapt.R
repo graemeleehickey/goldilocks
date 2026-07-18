@@ -171,8 +171,57 @@ test_that("survival_adapt-chisq excludes LTFU when imputed_final = FALSE", {
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
 })
 
-test_that("survival_adapt rejects imputed frequentist final analyses", {
-  for (method in c("logrank", "cox", "chisq")) {
+test_that("survival_adapt pools imputed Cox final analyses", {
+  set.seed(8263)
+  out <- survival_adapt(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    cutpoints = 0,
+    N_total = 200,
+    lambda = 20,
+    lambda_time = 0,
+    interim_look = NULL,
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    block = 2,
+    rand_ratio = c(1, 1),
+    prop_loss = 0.30,
+    alternative = "less",
+    h0 = 0,
+    prob_ha = 0.95,
+    N_impute = 5,
+    method = "cox",
+    imputed_final = TRUE
+  )
+
+  expect_s3_class(out, "data.frame")
+  expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
+  expect_true(is.finite(out$est_final))
+})
+
+test_that("survival_adapt requires multiple imputations for pooled Cox analysis", {
+  expect_error(
+    survival_adapt(
+      hazard_treatment = -log(0.85) / 36,
+      hazard_control = -log(0.7) / 36,
+      cutpoints = 0,
+      N_total = 200,
+      lambda = 20,
+      lambda_time = 0,
+      interim_look = NULL,
+      end_of_study = 36,
+      prop_loss = 0.30,
+      alternative = "less",
+      method = "cox",
+      N_impute = 1,
+      imputed_final = TRUE
+    ),
+    "at least two imputations"
+  )
+})
+
+test_that("survival_adapt still rejects imputed log-rank and chi-square final analyses", {
+  for (method in c("logrank", "chisq")) {
     expect_error(
       survival_adapt(
         hazard_treatment = -log(0.85) / 36,

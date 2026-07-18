@@ -2,6 +2,11 @@
 
 ## Improvements
 
+* Cox regression now supports `imputed_final = TRUE`. The final log hazard
+  ratios and within-imputation variances are combined using Rubin's rules, and
+  `post_prob_ha` reports `1 - P` from the pooled Wald test. Non-imputed Cox
+  analyses are unchanged; imputed log-rank and chi-square final analyses remain
+  unsupported (#56).
 * Bayesian survival and Monte Carlo beta-binomial analyses now use the shared
   `N_mcmc` argument for posterior sampling; the separate `bin_N` argument has
   been removed. Their internal analysis results return the posterior mean

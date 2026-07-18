@@ -422,9 +422,9 @@ validate_analysis_configuration <- function(
     stop("The chi-square test can only be applied as a two-sided test")
   }
 
-  if (imputed_final && method %in% c("logrank", "cox", "chisq")) {
+  if (imputed_final && method %in% c("logrank", "chisq")) {
     stop(
-      "Frequentist methods ('logrank', 'cox', and 'chisq') cannot use ",
+      "The 'logrank' and 'chisq' methods cannot use ",
       "'imputed_final = TRUE' because ",
       "there is no supported frequentist pooling rule for multiple ",
       "imputed final datasets"

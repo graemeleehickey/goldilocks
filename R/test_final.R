@@ -33,7 +33,10 @@
 #'   analyses cannot handle right-censored observations.
 #'
 #' @return Vector with 1) posterior probability (or P-value equivalent) for
-#'   alternative hypothesis, and 2) mean posterior treatment effect.
+#'   the alternative hypothesis, and 2) the treatment effect. For an imputed
+#'   Cox analysis these are the Rubin-pooled Wald-test result and pooled log
+#'   hazard ratio; Bayesian imputed analyses average their summaries over
+#'   imputations.
 #' @noRd
 test_final <- function(
   data_in,
@@ -54,6 +57,13 @@ test_final <- function(
   validate_analysis_configuration(method, alternative, single_arm, imputed_final)
 
   if (imputed_final) {
+    if (method == "cox" && N_impute < 2) {
+      stop(
+        "Cox final-analysis imputation requires at least two imputations ",
+        "to apply Rubin's rules"
+      )
+    }
+
     # Posterior distribution of lambdas: final data
     post_lambda_final <- posterior(
       data = data_in,
@@ -63,9 +73,12 @@ test_final <- function(
       single_arm = single_arm,
       empty_interval = empty_interval
     )
-    # Effect estimate + posterior probability for each imputed dataset
+    # Effect estimate + posterior probability for each imputed dataset. Cox
+    # analyses additionally retain the within-imputation variance required by
+    # Rubin's rules.
     effect_final <- rep(NA_real_, N_impute)
-    post_paa <- vector(length = N_impute)
+    post_paa <- rep(NA_real_, N_impute)
+    cox_variance_final <- rep(NA_real_, N_impute)
     # Impute multiple data sets
     for (j in 1:N_impute) {
       # Single imputed data set
@@ -84,33 +97,52 @@ test_final <- function(
       treatment <- NULL
       data <- subset(data_success_impute, select = c(time, event, treatment))
 
-      # Apply primary analysis to imputed data
-      success <- analyse_data(
-        data = data,
-        cutpoints = cutpoints,
-        end_of_study = end_of_study,
-        prior = prior,
-        N_mcmc = N_mcmc,
-        single_arm = single_arm,
-        method = method,
-        alternative = alternative,
-        h0 = h0,
-        bin_prior = bin_prior,
-        bin_method = bin_method,
-        empty_interval = empty_interval
-      )
+      if (method == "cox") {
+        fit_cox <- cox_wald_test_checked(data)
+        assert_cox_estimable(fit_cox)
+        effect_final[j] <- fit_cox$estimate
+        cox_variance_final[j] <- fit_cox$std_error^2
+      } else {
+        # Apply primary analysis to imputed data
+        success <- analyse_data(
+          data = data,
+          cutpoints = cutpoints,
+          end_of_study = end_of_study,
+          prior = prior,
+          N_mcmc = N_mcmc,
+          single_arm = single_arm,
+          method = method,
+          alternative = alternative,
+          h0 = h0,
+          bin_prior = bin_prior,
+          bin_method = bin_method,
+          empty_interval = empty_interval
+        )
 
-      post_paa[j] <- success$success
-      if (method %in% c("cox", "bayes-surv", "bayes-bin")) {
-        effect_final[j] <- success$effect
+        post_paa[j] <- success$success
+        if (method %in% c("bayes-surv", "bayes-bin")) {
+          effect_final[j] <- success$effect
+        }
       }
     }
-    # Average over imputations
-    post_paa <- mean(post_paa)
-    est_final <- mean(effect_final)
+
+    if (method == "cox") {
+      pooled_cox <- pool_cox_rubin(
+        estimates = effect_final,
+        variances = cox_variance_final,
+        alternative = alternative,
+        h0 = h0
+      )
+      post_paa <- pooled_cox$success
+      est_final <- pooled_cox$estimate
+    } else {
+      # Average Bayesian summaries over imputations
+      post_paa <- mean(post_paa)
+      est_final <- mean(effect_final)
+    }
   } else {
     # Apply primary analysis to final data (without imputation)
-    # Chi-square and Bayesian binomial test cannot handle censored (LTFU) 
+    # Chi-square and Bayesian binomial test cannot handle censored (LTFU)
     # subjects, so exclude them
     if (
       method %in% c("chisq", "bayes-bin") && "loss_to_fu" %in% names(data_in)
@@ -137,4 +169,62 @@ test_final <- function(
   }
 
   return(c(post_paa, est_final))
+}
+
+#' @title Pool Cox treatment effects using Rubin's rules
+#'
+#' @description Combines log hazard ratio estimates and their
+#'   within-imputation variances, then evaluates the pooled estimate against the
+#'   null log hazard ratio using Rubin's large-sample degrees of freedom.
+#'
+#' @param estimates Numeric vector of per-imputation log hazard ratio estimates.
+#' @param variances Numeric vector of corresponding within-imputation variances.
+#' @inheritParams survival_adapt
+#'
+#' @return A list containing the pooled success score, log hazard ratio,
+#'   standard error, and degrees of freedom.
+#'
+#' @importFrom stats pt var
+#' @noRd
+pool_cox_rubin <- function(estimates, variances, alternative, h0) {
+  m <- length(estimates)
+  if (m < 2 || length(variances) != m) {
+    stop("Rubin pooling requires at least two paired estimates and variances")
+  }
+  if (
+    anyNA(estimates) ||
+      anyNA(variances) ||
+      any(!is.finite(estimates)) ||
+      any(!is.finite(variances)) ||
+      any(variances <= 0)
+  ) {
+    stop("Rubin pooling requires finite estimates and positive variances")
+  }
+
+  estimate <- mean(estimates)
+  within_variance <- mean(variances)
+  between_variance <- var(estimates)
+  total_variance <- within_variance + (1 + 1 / m) * between_variance
+
+  relative_increase <- (1 + 1 / m) * between_variance / within_variance
+  degrees_freedom <- if (relative_increase == 0) {
+    Inf
+  } else {
+    (m - 1) * (1 + 1 / relative_increase)^2
+  }
+
+  statistic <- (estimate - h0) / sqrt(total_variance)
+  success <- switch(
+    alternative,
+    "less" = 1 - pt(statistic, df = degrees_freedom),
+    "greater" = pt(statistic, df = degrees_freedom),
+    "two.sided" = 1 - 2 * pt(-abs(statistic), df = degrees_freedom)
+  )
+
+  list(
+    success = success,
+    estimate = estimate,
+    std_error = sqrt(total_variance),
+    degrees_freedom = degrees_freedom
+  )
 }
