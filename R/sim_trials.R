@@ -53,16 +53,16 @@
 #' @export
 #'
 #' @examples
-#' hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
-#' ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
+#' hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
+#' ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
 #'
 #' out <- sim_trials(
 #'   hazard_treatment = ht,
 #'   hazard_control = hc,
-#'   cutpoints = c(0, 12),
+#'   cutpoints = 12,
 #'   N_total = 600,
 #'   lambda = 20,
-#'   lambda_time = 0,
+#'   lambda_time = NULL,
 #'   interim_look = c(400, 500),
 #'   end_of_study = 36,
 #'   prior = c(0.1, 0.1),
@@ -85,10 +85,10 @@
 sim_trials <- function(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total,
   lambda = 0.3,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
@@ -142,14 +142,19 @@ sim_trials <- function(
     if (old_seed_exists) {
       old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
     }
-    on.exit({
-      do.call(RNGkind, as.list(old_kind))
-      if (old_seed_exists) {
-        assign(".Random.seed", old_seed, envir = .GlobalEnv)
-      } else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
-        rm(".Random.seed", envir = .GlobalEnv)
-      }
-    }, add = TRUE)
+    on.exit(
+      {
+        do.call(RNGkind, as.list(old_kind))
+        if (old_seed_exists) {
+          assign(".Random.seed", old_seed, envir = .GlobalEnv)
+        } else if (
+          exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+        ) {
+          rm(".Random.seed", envir = .GlobalEnv)
+        }
+      },
+      add = TRUE
+    )
 
     trial_streams <- make_rng_streams(seed, N_trials)
   } else {

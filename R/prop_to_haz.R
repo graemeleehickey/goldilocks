@@ -6,16 +6,16 @@
 #'   closed-form formulae. This utility function can be useful when simulating
 #'   trial datasets with plausible event rates.
 #'
-#' @param probs vector. Probabilities of the event (i.e. cumulative incidence
-#'   probabilities) at one or more time point. If only a single value is given,
-#'   then it is assumed that this is the probability at `endtime`.
-#' @param cutpoints vector. Times at which the baseline hazard changes. Default
-#'   is `cutpoints = 0`, which corresponds to a simple (non-piecewise)
-#'   exponential model.
+#' @param probs vector. Cumulative event probabilities at each cutpoint and at
+#'   `endtime`, in that order. Its length must be one greater than the number of
+#'   cutpoints. With no cutpoints, supply a single probability at `endtime`.
+#' @param cutpoints finite, positive, strictly increasing vector of interior
+#'   times at which the baseline hazard changes. Default is `NULL`, which
+#'   corresponds to a simple (non-piecewise) exponential model.
 #' @param endtime scalar. Time at which final element in `probs`
 #'   corresponds to. Typically this would be the study endpoint time.
 #'
-#' @details Given \eqn{J-1} internal cut-points, then there are J intervals
+#' @details Given \eqn{J-1} interior cutpoints, then there are J intervals
 #'   defined as: \eqn{[s_0, s_1)}, \eqn{[s_1, s_2)}, \eqn{\dots}, \eqn{[s_{J-1},
 #'   s_{J})}, with conditions that \eqn{s_0 = 0} and \eqn{s_J = \infty}. Each
 #'   interval corresponds to constant hazard \eqn{\lambda_j}.
@@ -30,10 +30,10 @@
 #' all.equal(pexp(36, lambda), 0.15)
 #'
 #' # 15% probability at 12-months, and 30% at 24-months
-#' prop_to_haz(c(0.15, 0.30), c(0, 12), 24)
-#' PWEALL::pwe(12, prop_to_haz(c(0.15, 0.30), c(0, 12), 24), c(0, 12))$dist
-#' PWEALL::pwe(24, prop_to_haz(c(0.15, 0.30), c(0, 12), 24), c(0, 12))$dist
-prop_to_haz <- function(probs, cutpoints = 0, endtime) {
+#' prop_to_haz(c(0.15, 0.30), 12, 24)
+#' PWEALL::pwe(12, prop_to_haz(c(0.15, 0.30), 12, 24), c(0, 12))$dist
+#' PWEALL::pwe(24, prop_to_haz(c(0.15, 0.30), 12, 24), c(0, 12))$dist
+prop_to_haz <- function(probs, cutpoints = NULL, endtime) {
   validate_probability_vector(probs, "probs", upper_open = TRUE)
 
   if (any(diff(probs) < 0)) {
@@ -43,9 +43,9 @@ prop_to_haz <- function(probs, cutpoints = 0, endtime) {
   validate_cutpoints(cutpoints)
   validate_endpoint_time(endtime, cutpoints, "endtime")
 
-  J <- length(cutpoints)
+  J <- length(cutpoints) + 1L
   if (length(probs) != J) {
-    stop("'probs' must have the same length as 'cutpoints'")
+    stop("Length of 'probs' must be one greater than length of 'cutpoints'")
   }
 
   lambda <- vector(length = J)
@@ -53,7 +53,7 @@ prop_to_haz <- function(probs, cutpoints = 0, endtime) {
   if (J == 1) {
     lambda <- -log(1 - probs) / endtime
   } else {
-    s <- c(cutpoints, endtime)
+    s <- c(0, cutpoints, endtime)
     s_diff <- diff(s)
     lambda[1] <- -log(1 - probs[1]) / s_diff[1]
     for (j in 2:J) {

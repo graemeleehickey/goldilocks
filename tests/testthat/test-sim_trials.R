@@ -1,14 +1,14 @@
 test_that("sim_trials-logrank", {
-  hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
-  ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
+  hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
+  ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
 
   out <- sim_trials(
     hazard_treatment = ht,
     hazard_control = hc,
-    cutpoints = c(0, 12),
+    cutpoints = 12,
     N_total = 600,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = c(400, 500),
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -35,16 +35,16 @@ test_that("sim_trials-logrank", {
 })
 
 test_that("sim_trials-bayes-surv", {
-  hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
-  ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
+  hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
+  ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
 
   out <- sim_trials(
     hazard_treatment = ht,
     hazard_control = hc,
-    cutpoints = c(0, 12),
+    cutpoints = 12,
     N_total = 600,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = c(400, 500),
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -77,10 +77,10 @@ test_that("sim_trials-bayes-bin", {
   out <- sim_trials(
     hazard_treatment = ht,
     hazard_control = hc,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 200,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 100,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -107,17 +107,17 @@ test_that("sim_trials-bayes-bin", {
 })
 
 test_that("sim_trials rejects invalid ncores", {
-  hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
-  ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
+  hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
+  ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
 
   expect_error(
     sim_trials(
       hazard_treatment = ht,
       hazard_control = hc,
-      cutpoints = c(0, 12),
+      cutpoints = 12,
       N_total = 600,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = c(400, 500),
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -151,10 +151,10 @@ test_that("sim_trials optionally retains traces without changing summaries", {
   args <- list(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 80,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = c(40, 60),
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -180,9 +180,16 @@ test_that("sim_trials optionally retains traces without changing summaries", {
   expect_equal(traced$sims, compact$sims)
   expect_named(traced, c("sims", "traces", "call"))
   expect_s3_class(traced$traces, "data.frame")
-  expect_true(all(c(
-    "trial", "look", "ppp_stop_now", "ppp_success_at_max", "decision"
-  ) %in% names(traced$traces)))
+  expect_true(all(
+    c(
+      "trial",
+      "look",
+      "ppp_stop_now",
+      "ppp_success_at_max",
+      "decision"
+    ) %in%
+      names(traced$traces)
+  ))
   expect_setequal(unique(traced$traces$trial), 1:2)
 })
 
@@ -216,10 +223,10 @@ test_that("sim_trials validates N_trials", {
     sim_trials(
       hazard_treatment = ht,
       hazard_control = hc,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 50,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = NULL,
       end_of_study = 36,
       N_trials = 1.5,
@@ -238,10 +245,10 @@ test_that("sim_trials is reproducible with seed and ncores = 1", {
     sim_trials(
       hazard_treatment = ht,
       hazard_control = hc,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 200,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = 100,
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -275,10 +282,10 @@ test_that("sim_trials uses reproducible per-trial streams in parallel", {
     sim_trials(
       hazard_treatment = ht,
       hazard_control = hc,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 200,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = 100,
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -314,10 +321,10 @@ test_that("sim_trials produces identical seeded PSOCK results", {
     sim_trials(
       hazard_treatment = ht,
       hazard_control = hc,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 100,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = 50,
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -336,7 +343,7 @@ test_that("sim_trials produces identical seeded PSOCK results", {
       return_trace = TRUE,
       ncores = ncores,
       backend = backend,
-      seed = 4101
+      seed = 4102
     )
   }
 
@@ -360,10 +367,10 @@ test_that("sim_trials preserves the caller RNG state when seeded", {
   sim_trials(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 50,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = NULL,
     end_of_study = 36,
     N_trials = 1,
@@ -384,10 +391,10 @@ test_that("sim_trials validates seed", {
     sim_trials(
       hazard_treatment = ht,
       hazard_control = hc,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 200,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = 100,
       end_of_study = 36,
       prior = c(0.1, 0.1),

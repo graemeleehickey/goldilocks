@@ -8,10 +8,10 @@ time-to-event endpoint}
 survival_adapt(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total,
   lambda = 0.3,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
@@ -40,18 +40,20 @@ under the treatment arm.}
 \item{hazard_control}{vector. Finite non-negative constant hazard rates
 under the control arm.}
 
-\item{cutpoints}{finite, strictly increasing times at which the baseline
-hazard changes. The first value must be 0. Default is \code{cutpoints = 0},
-which corresponds to a simple (non-piecewise) exponential model.}
+\item{cutpoints}{finite, positive, strictly increasing interior times at
+which the baseline hazard changes. The number of hazards for each arm must
+be one greater than the number of cutpoints. Default is \code{NULL}, which
+corresponds to a simple (non-piecewise) exponential model.}
 
 \item{N_total}{integer. Maximum sample size allowable}
 
-\item{lambda}{vector. Enrollment rates across simulated enrollment times. See
-\code{\link[=enrollment]{enrollment()}} for more details.}
+\item{lambda}{finite positive enrollment rates per unit time. Supply one rate
+for each interval defined by \code{lambda_time}. See \code{\link[=enrollment]{enrollment()}} for the
+precise continuous-time process and time-origin convention.}
 
-\item{lambda_time}{vector. Enrollment time(s) at which the enrollment rates
-change. Must be same length as lambda. See \code{\link[=enrollment]{enrollment()}} for
-more details.}
+\item{lambda_time}{\code{NULL}, or finite, positive, strictly increasing internal
+times at which the enrollment rate changes. The initial boundary at zero
+is implicit, so \code{length(lambda)} must equal \code{length(lambda_time) + 1}.}
 
 \item{interim_look}{vector. Sample size for each interim look. Note: the
 maximum sample size should not be included. For two-arm designs, each
@@ -374,10 +376,10 @@ posterior. This affects at most one subject per interim look.
 survival_adapt(
  hazard_treatment = -log(0.85) / 36,
  hazard_control = -log(0.7) / 36,
- cutpoints = 0,
+ cutpoints = NULL,
  N_total = 600,
  lambda = 20,
- lambda_time = 0,
+ lambda_time = NULL,
  interim_look = 400,
  end_of_study = 36,
  prior = c(0.1, 0.1),

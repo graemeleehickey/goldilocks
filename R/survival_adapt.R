@@ -294,10 +294,10 @@
 #' survival_adapt(
 #'  hazard_treatment = -log(0.85) / 36,
 #'  hazard_control = -log(0.7) / 36,
-#'  cutpoints = 0,
+#'  cutpoints = NULL,
 #'  N_total = 600,
 #'  lambda = 20,
-#'  lambda_time = 0,
+#'  lambda_time = NULL,
 #'  interim_look = 400,
 #'  end_of_study = 36,
 #'  prior = c(0.1, 0.1),
@@ -315,10 +315,10 @@
 survival_adapt <- function(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total,
   lambda = 0.3,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
@@ -365,7 +365,12 @@ survival_adapt <- function(
   validate_gamma_prior(prior)
   empty_interval <- match.arg(empty_interval)
   validate_logical_scalar(return_trace, "return_trace")
-  validate_analysis_configuration(method, alternative, single_arm, imputed_final)
+  validate_analysis_configuration(
+    method,
+    alternative,
+    single_arm,
+    imputed_final
+  )
   if (imputed_final && method == "cox" && N_impute < 2) {
     stop(
       "Cox final-analysis imputation requires at least two imputations ",
@@ -451,7 +456,11 @@ survival_adapt <- function(
   # Assigning stop_futility and stop_expected_success
   stop_futility <- 0
   stop_expected_success <- 0
-  trace_rows <- if (return_trace) vector("list", max(N_looks - 1L, 0L)) else NULL
+  trace_rows <- if (return_trace) {
+    vector("list", max(N_looks - 1L, 0L))
+  } else {
+    NULL
+  }
 
   if (N_looks > 1) {
     for (i in 1:(N_looks - 1)) {

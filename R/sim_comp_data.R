@@ -5,15 +5,17 @@
 #'   under the treatment arm.
 #' @param hazard_control vector. Finite non-negative constant hazard rates
 #'   under the control arm.
-#' @param cutpoints finite, strictly increasing times at which the baseline
-#'   hazard changes. The first value must be 0. Default is `cutpoints = 0`,
-#'   which corresponds to a simple (non-piecewise) exponential model.
+#' @param cutpoints finite, positive, strictly increasing interior times at
+#'   which the baseline hazard changes. The number of hazards for each arm must
+#'   be one greater than the number of cutpoints. Default is `NULL`, which
+#'   corresponds to a simple (non-piecewise) exponential model.
 #' @param N_total integer. Maximum sample size allowable
-#' @param lambda vector. Enrollment rates across simulated enrollment times. See
-#'   [enrollment()] for more details.
-#' @param lambda_time vector. Enrollment time(s) at which the enrollment rates
-#'   change. Must be same length as lambda. See [enrollment()] for
-#'   more details.
+#' @param lambda finite positive enrollment rates per unit time. Supply one rate
+#'   for each interval defined by `lambda_time`. See [enrollment()] for the
+#'   precise continuous-time process and time-origin convention.
+#' @param lambda_time `NULL`, or finite, positive, strictly increasing internal
+#'   times at which the enrollment rate changes. The initial boundary at zero
+#'   is implicit, so `length(lambda)` must equal `length(lambda_time) + 1`.
 #' @param end_of_study finite study endpoint, strictly greater than the last
 #'   cutpoint.
 #' @param block scalar. Block size for generating the randomization schedule.
@@ -27,6 +29,19 @@
 #'   event or censoring time. Since the LTFU time is always less than
 #'   `t`, the event has not yet occurred at dropout and the subject is
 #'   right-censored. Defaults to zero.
+#'
+#' @details Enrollment is simulated directly in continuous time by
+#'   [enrollment()]. The first patient is placed at time zero and all subsequent
+#'   enrollment times are measured from first patient in. No uniform jitter is
+#'   added in `sim_comp_data()`.
+#'
+#'   `lambda_time` and `cutpoints` both contain internal change times, but they
+#'   describe different clocks. `lambda_time` describes changes in the trial's
+#'   calendar-time enrollment rate measured from first patient in. `cutpoints`
+#'   describes changes in an individual subject's event hazard measured from
+#'   that subject's enrollment. They need not have the same values or length.
+#'   All time quantities supplied to a simulation should nevertheless use one
+#'   common unit, such as days or months.
 #'
 #' @return A data frame with 1 row per subject and columns:
 #'
@@ -48,10 +63,10 @@
 sim_comp_data <- function(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total,
   lambda = 0.3,
-  lambda_time = 0,
+  lambda_time = NULL,
   end_of_study,
   block = 2,
   rand_ratio = c(1, 1),
@@ -84,8 +99,6 @@ sim_comp_data <- function(
     N_total = N_total,
     lambda_time = lambda_time
   )
-  enrollment <- enrollment + runif(length(enrollment))
-  enrollment <- sort(enrollment)
 
   # Simulate treatment assignment. The data convention is treatment = 1 for the
   # treatment arm and treatment = 0 for the control arm.

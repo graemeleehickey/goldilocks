@@ -192,7 +192,7 @@ endpoint_map <- data.frame(
 knitr::kable(endpoint_map, digits = 3)
 ```
 
-The ADVENT primary analyses used Bayesian beta-binomial endpoint models with noninformative `Beta(0.5, 0.5)` priors. In `goldilocks`, this is specified with:
+The ADVENT primary analyses used Bayesian beta-binomial endpoint models with noninformative $\operatorname{Beta}(0.5, 0.5)$ priors. In `goldilocks`, this is specified with:
 
 ```{r beta-prior}
 bin_prior <- c(0.5, 0.5)
@@ -223,12 +223,12 @@ prob_check <- data.frame(
     ppwe(
       hazard = matrix(haz_eff_fail, nrow = 1),
       end_of_study = end_of_study,
-      cutpoints = 0
+      cutpoints = NULL
     ),
     ppwe(
       hazard = matrix(haz_safety, nrow = 1),
       end_of_study = end_of_study,
-      cutpoints = 0
+      cutpoints = NULL
     )
   ),
   check.names = FALSE
@@ -262,10 +262,10 @@ set.seed(4601)
 advent_effectiveness <- survival_adapt(
   hazard_treatment = haz_eff_fail,
   hazard_control = haz_eff_fail,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = N_total,
   lambda = 40,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = interim_look,
   end_of_study = end_of_study,
   prior = prior,
@@ -292,7 +292,7 @@ The most important columns are:
 -   `N_enrolled`: the selected sample size for this simulated trial.
 -   `stop_expected_success`: whether enrollment stopped because the current sample size appeared adequate.
 -   `stop_futility`: whether enrollment stopped because success looked unlikely even at the maximum sample size.
--   `est_final`: the posterior mean of (\$p\_{\text{PFA failure}} - p\_{\text{thermal failure}}\$).
+-   `est_final`: the posterior mean of $p_{\text{PFA failure}} - p_{\text{thermal failure}}$.
 -   `post_prob_ha`: the final posterior probability that the binary endpoint effect is below the noninferiority margin.
 
 ## Safety endpoint
@@ -310,10 +310,10 @@ set.seed(4602)
 advent_safety <- survival_adapt(
   hazard_treatment = haz_safety,
   hazard_control = haz_safety,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = N_total,
   lambda = 40,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = interim_look,
   end_of_study = end_of_study,
   prior = prior,
@@ -343,10 +343,10 @@ For simulations, it is helpful to collect the common design settings once and th
 
 ```{r common-design}
 advent_common <- list(
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = N_total,
   lambda = 40,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = interim_look,
   end_of_study = end_of_study,
   prior = prior,
@@ -515,7 +515,7 @@ The code above is intentionally close to the reported design in the following wa
 -   It uses the published Goldilocks sample-size options: 350, 450, 550, 650, and 750.
 -   It uses the published predicted-success thresholds: 0.95, 0.90, 0.85, and 0.80.
 -   It uses the published futility thresholds: 0.05, 0.10, 0.10, and 0.10.
--   It uses the published beta-binomial endpoint prior, `Beta(0.5, 0.5)`, via `bin_prior = c(0.5, 0.5)`.
+-   It uses the published beta-binomial endpoint prior, $\operatorname{Beta}(0.5, 0.5)$, via `bin_prior = c(0.5, 0.5)`.
 -   It uses the published noninferiority margins: 15 percentage points for effectiveness and 8 percentage points for safety.
 -   It uses the published posterior probability thresholds: 0.956 for effectiveness and 0.966 for safety.
 -   It uses a 12-month endpoint window.

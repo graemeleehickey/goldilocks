@@ -10,10 +10,10 @@ ht <- prop_to_haz(0.5, endtime = 12)
 out_power <- sim_trials(
   hazard_treatment = ht,
   hazard_control = hc,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = 300,
   lambda = 5,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = seq(100, 275, 25),
   end_of_study = 12,
   prior = c(0.1, 0.1),
@@ -28,7 +28,8 @@ out_power <- sim_trials(
   N_trials = 500,
   method = "logrank",
   ncores = 8,
-  seed = 123)
+  seed = 123
+)
 
 # Type I error
 out_t1error <- update(out_power, hazard_treatment = hc, seed = 124)

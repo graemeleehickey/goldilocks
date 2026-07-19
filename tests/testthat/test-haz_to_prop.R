@@ -6,7 +6,7 @@ test_that("haz_to_prop preserves dimensions for one piecewise posterior draw", {
 
   out <- haz_to_prop(
     post = post,
-    cutpoints = c(0, 12),
+    cutpoints = 12,
     end_of_study = 24,
     single_arm = FALSE
   )

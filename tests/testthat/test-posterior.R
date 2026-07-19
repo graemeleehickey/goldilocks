@@ -7,7 +7,7 @@ test_that("posterior returns correct dimensions (two-arm, single interval)", {
   )
   res <- posterior(
     data,
-    cutpoints = 0,
+    cutpoints = NULL,
     prior = c(0.1, 0.1),
     N_mcmc = 50,
     single_arm = FALSE
@@ -27,7 +27,7 @@ test_that("posterior returns correct dimensions (two-arm, piecewise)", {
   )
   res <- posterior(
     data,
-    cutpoints = c(0, 12, 24),
+    cutpoints = c(12, 24),
     prior = c(0.1, 0.1),
     N_mcmc = 30,
     single_arm = FALSE
@@ -44,7 +44,7 @@ test_that("posterior returns correct dimensions (single-arm)", {
   )
   res <- posterior(
     data,
-    cutpoints = 0,
+    cutpoints = NULL,
     prior = c(0.1, 0.1),
     N_mcmc = 40,
     single_arm = TRUE
@@ -68,7 +68,7 @@ test_that("posterior warns on zero-exposure interval", {
   expect_warning(
     posterior(
       data,
-      cutpoints = c(0, 10),
+      cutpoints = 10,
       prior = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE
@@ -90,7 +90,7 @@ test_that("posterior propagates zero-exposure intervals within treatment group",
   res <- suppressWarnings(
     posterior(
       data,
-      cutpoints = c(0, 10, 20),
+      cutpoints = c(10, 20),
       prior = c(0.1, 0.1),
       N_mcmc = 4000,
       single_arm = FALSE
@@ -115,7 +115,7 @@ test_that("posterior can leave zero-exposure intervals prior-driven", {
   set.seed(1429)
   res <- posterior(
     data,
-    cutpoints = c(0, 10, 20),
+    cutpoints = c(10, 20),
     prior = c(2, 0.5),
     N_mcmc = 10000,
     single_arm = FALSE,
@@ -137,7 +137,7 @@ test_that("posterior can error on zero-exposure intervals", {
   expect_error(
     posterior(
       data,
-      cutpoints = c(0, 10, 20),
+      cutpoints = c(10, 20),
       prior = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE,
@@ -158,7 +158,7 @@ test_that("posterior errors when the treatment group has no subjects (factor)", 
   expect_error(
     posterior(
       data,
-      cutpoints = c(0, 10),
+      cutpoints = 10,
       prior = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE
@@ -182,7 +182,7 @@ test_that("posterior errors on single-arm interim data with numeric treatment", 
   expect_error(
     posterior(
       data_no_trt,
-      cutpoints = 0,
+      cutpoints = NULL,
       prior = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE
@@ -199,7 +199,7 @@ test_that("posterior errors on single-arm interim data with numeric treatment", 
   expect_error(
     posterior(
       data_no_ctrl,
-      cutpoints = 0,
+      cutpoints = NULL,
       prior = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE
@@ -210,7 +210,7 @@ test_that("posterior errors on single-arm interim data with numeric treatment", 
   # The same all-treatment data is valid for a single-arm analysis.
   res <- posterior(
     data_no_ctrl,
-    cutpoints = 0,
+    cutpoints = NULL,
     prior = c(0.1, 0.1),
     N_mcmc = 10,
     single_arm = TRUE
@@ -228,7 +228,7 @@ test_that("posterior returns positive draws", {
   )
   res <- posterior(
     data,
-    cutpoints = c(0, 12),
+    cutpoints = 12,
     prior = c(0.1, 0.1),
     N_mcmc = 100,
     single_arm = FALSE

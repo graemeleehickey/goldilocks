@@ -24,11 +24,27 @@ From this information, we have:
 -   Equal randomization: `block = 2` and `rand_ratio = c(1, 1)` (default parameters)
 -   Primary endpoint is at 12-months: `end_of_study = 12`
 -   12-month event rate for control arm: `hazard_control = prop_to_haz(1 - 0.30, endtime = 12)` (note that the input argument is the failure proportion, not the survival proportion)
--   No change points in hazard: `cutpoints = 0` (default parameter)
+-   No change points in hazard: `cutpoints = NULL` (default parameter)
 -   Maximum sample size: `N_total = 300`
 -   No attrition: `prop_loss = 0`
 
 Sample size selection analyses are planned starting when 100 patients are enrolled and after every additional 25 patients are enrolled. Early stopping for futility is allowed starting with the 100 patient sample size selection analysis and $F_n$ is 10%. Stopping accrual early for predicted success is only allowed starting with the 200 patient sample size selection analysis and $S_n$ is 90%. It is expected that an average of 5 patients per month will be enrolled, with no change in speed for the duration of the trial.
+
+Enrollment is stochastic even though the rate is constant. The package fixes
+the first patient at calendar time zero and generates each later inter-arrival
+gap from an exponential distribution with rate 5 per month. Consequently, the
+expected time from the first to the 300th enrollment is $(300 - 1) / 5 = 59.8$
+months, but the realized completion time differs between simulated trials.
+`lambda_time = NULL` indicates that there are no internal enrollment-rate
+changes; zero is implicit and must not be supplied.
+
+For comparison, a ramp-up specification such as `lambda = c(2, 5)` and
+`lambda_time = 6` means 2 expected enrollments per month over $[0,6)$ and 5 per
+month from month 6 onward. Fractional changes such as `lambda_time = 6.5` are
+also simulated exactly. Enrollment-rate knots use the trial calendar measured
+from first patient in, whereas hazard `cutpoints` use each subject's follow-up
+time measured from that subject's enrollment. The two schedules are independent
+and need not share their knots.
 
 From this information, we have:
 
@@ -67,12 +83,12 @@ out_power_1sided <- update(
 
 The chi-square test (`method = "chisq"`) supports `"two.sided"` only. The Bayesian test (`method = "bayes-surv"`) is the opposite: it *requires* a one-sided alternative (`"less"` or `"greater"`), and `"two.sided"` raises an error. For the Bayesian test the effect is measured on the cumulative-failure-probability scale, $p_\textrm{treatment} - p_\textrm{control}$ at `end_of_study`, compared against the margin `h0` (default `0`):
 
--   `alternative = "less"` declares success when the posterior probability that $p_\textrm{treatment} - p_\textrm{control} <$ `h0` exceeds the threshold `prob_ha` -- i.e. the treatment arm has a failure probability lower than the `h0` margin relative to control. With the default `h0 = 0`, this means lower failure probability (longer survival) than control.
--   `alternative = "greater"` declares success when the posterior probability that $p_\textrm{treatment} - p_\textrm{control} >$ `h0` exceeds `prob_ha`.
+-   `alternative = "less"` declares success when the posterior probability that $p_\textrm{treatment} - p_\textrm{control} < h_0$ exceeds the threshold `prob_ha` -- i.e. the treatment arm has a failure probability lower than the `h0` margin relative to control. With the default `h0 = 0`, this means lower failure probability (longer survival) than control.
+-   `alternative = "greater"` declares success when the posterior probability that $p_\textrm{treatment} - p_\textrm{control} > h_0$ exceeds `prob_ha`.
 
 In all methods, `alternative = "less"` therefore corresponds to a beneficial treatment effect (longer survival) in this example.
 
-The operating characteristics will be determined using 500 simulated trials. At each interim analysis, we will use 100 imputations and assume independent weakly-informative Gamma(0.1, 0.1) prior distributions for the treatment and control arm event time hazard rate parameters. As this is computationally expensive overall, we will exploit the option to parallelize the simulations over multiple cores.
+The operating characteristics will be determined using 500 simulated trials. At each interim analysis, we will use 100 imputations and assume independent weakly-informative $\operatorname{Gamma}(0.1, 0.1)$ prior distributions for the treatment and control arm event time hazard rate parameters. As this is computationally expensive overall, we will exploit the option to parallelize the simulations over multiple cores.
 
 -   Number of simulated trials: `N_trials = 500`
 -   Number of imputations from predictive distribution: `N_impute = 100`
@@ -95,10 +111,10 @@ ht <- prop_to_haz(0.5, endtime = 12)
 out_power <- sim_trials(
   hazard_treatment = ht,
   hazard_control = hc,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = 300,
   lambda = 5,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = seq(100, 275, 25),
   end_of_study = 12,
   prior = c(0.1, 0.1),

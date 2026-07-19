@@ -27,8 +27,8 @@
 #'
 #' @noRd
 haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
-  if (length(cutpoints) == 1) {
-    # Standard exponential for when no internal cutpoints
+  if (length(cutpoints) == 0) {
+    # Standard exponential for when there are no interior cutpoints
     p_treatment <- pexp(
       q = end_of_study,
       rate = post[,, 1]
@@ -42,15 +42,11 @@ haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
       p_control <- NA
     }
   } else {
-    # PWE for >=1 break
-    # p_treatment <- bayesDP::ppexp(
-    #   q = end_of_study,
-    #   x = post[, , 1],
-    #   cuts = cutpoints)
+    # Piecewise exponential for one or more interior cutpoints
     # Preserve the posterior-draw dimension when N_mcmc = 1. Direct array
     # slicing drops it to a vector, whereas ppwe() requires a hazard matrix.
     treatment_hazard <- matrix(
-      post[, , 1],
+      post[,, 1],
       nrow = dim(post)[1],
       ncol = dim(post)[2]
     )
@@ -60,12 +56,8 @@ haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
       cutpoints = cutpoints
     )
     if (!single_arm) {
-      # p_control <- bayesDP::ppexp(
-      #   q = end_of_study,
-      #   x = post[, , 2],
-      #   cuts = cutpoints)
       control_hazard <- matrix(
-        post[, , 2],
+        post[,, 2],
         nrow = dim(post)[1],
         ncol = dim(post)[2]
       )

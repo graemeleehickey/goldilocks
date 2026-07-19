@@ -11,7 +11,9 @@ if (!requireNamespace("bench", quietly = TRUE)) {
 }
 
 load_goldilocks <- function() {
-  if (requireNamespace("pkgload", quietly = TRUE) && file.exists("DESCRIPTION")) {
+  if (
+    requireNamespace("pkgload", quietly = TRUE) && file.exists("DESCRIPTION")
+  ) {
     pkgload::load_all(".", quiet = TRUE)
   } else {
     library(goldilocks)
@@ -20,9 +22,15 @@ load_goldilocks <- function() {
 
 parse_positive_integer_env <- function(name, default) {
   value <- Sys.getenv(name, default)
-  parsed <- suppressWarnings(as.integer(strsplit(value, ",", fixed = TRUE)[[1]]))
+  parsed <- suppressWarnings(as.integer(strsplit(value, ",", fixed = TRUE)[[
+    1
+  ]]))
   if (anyNA(parsed) || any(parsed < 1L)) {
-    stop(name, " must contain comma-separated positive integers.", call. = FALSE)
+    stop(
+      name,
+      " must contain comma-separated positive integers.",
+      call. = FALSE
+    )
   }
   unique(parsed)
 }
@@ -43,17 +51,17 @@ worker_counts <- sort(unique(c(
 )))
 
 end_of_study <- 24
-hazard_control <- prop_to_haz(c(0.15, 0.25), c(0, 12), end_of_study)
-hazard_treatment <- prop_to_haz(c(0.10, 0.18), c(0, 12), end_of_study)
+hazard_control <- prop_to_haz(c(0.15, 0.25), 12, end_of_study)
+hazard_treatment <- prop_to_haz(c(0.10, 0.18), 12, end_of_study)
 
 workloads <- list(
   small = list(
     hazard_treatment = hazard_treatment,
     hazard_control = hazard_control,
-    cutpoints = c(0, 12),
+    cutpoints = 12,
     N_total = 60,
     lambda = 10,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = NULL,
     end_of_study = end_of_study,
     method = "logrank"
@@ -61,10 +69,10 @@ workloads <- list(
   logrank = list(
     hazard_treatment = hazard_treatment,
     hazard_control = hazard_control,
-    cutpoints = c(0, 12),
+    cutpoints = 12,
     N_total = 240,
     lambda = 15,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = c(120, 180),
     end_of_study = end_of_study,
     N_impute = 20,
@@ -73,10 +81,10 @@ workloads <- list(
   bayes_surv = list(
     hazard_treatment = hazard_treatment,
     hazard_control = hazard_control,
-    cutpoints = c(0, 12),
+    cutpoints = 12,
     N_total = 240,
     lambda = 15,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = c(120, 180),
     end_of_study = end_of_study,
     N_impute = 20,
@@ -128,7 +136,11 @@ benchmark_case <- function(workload, N_trials, backend, ncores) {
     backend = backend,
     ncores = ncores,
     median_seconds = as.numeric(result$median),
-    memory_bytes = if (profile_memory) as.numeric(result$mem_alloc) else NA_real_,
+    memory_bytes = if (profile_memory) {
+      as.numeric(result$mem_alloc)
+    } else {
+      NA_real_
+    },
     memory_measurement = if (profile_memory) {
       "parent allocation"
     } else {

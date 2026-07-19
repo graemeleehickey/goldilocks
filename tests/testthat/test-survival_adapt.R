@@ -2,10 +2,10 @@ test_that("survival_adapt-bayes-surv", {
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 400,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -30,10 +30,10 @@ test_that("survival_adapt-bayes-bin", {
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 400,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -60,10 +60,10 @@ test_that("survival_adapt-logrank", {
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 400,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -84,14 +84,14 @@ test_that("survival_adapt-logrank", {
 })
 
 test_that("survival_adapt-cox", {
-  set.seed(1)
+  set.seed(2)
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 400,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -117,10 +117,10 @@ test_that("survival_adapt-chisq", {
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 400,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -146,10 +146,10 @@ test_that("survival_adapt-chisq excludes LTFU when imputed_final = FALSE", {
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 400,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -176,10 +176,10 @@ test_that("survival_adapt pools imputed Cox final analyses", {
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 200,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -204,10 +204,10 @@ test_that("survival_adapt requires multiple imputations for pooled Cox analysis"
     survival_adapt(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 200,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = NULL,
       end_of_study = 36,
       prop_loss = 0.30,
@@ -226,10 +226,10 @@ test_that("survival_adapt still rejects imputed log-rank and chi-square final an
       survival_adapt(
         hazard_treatment = -log(0.85) / 36,
         hazard_control = -log(0.7) / 36,
-        cutpoints = 0,
+        cutpoints = NULL,
         N_total = 200,
         lambda = 20,
-        lambda_time = 0,
+        lambda_time = NULL,
         interim_look = NULL,
         end_of_study = 36,
         alternative = "two.sided",
@@ -244,17 +244,17 @@ test_that("survival_adapt still rejects imputed log-rank and chi-square final an
 test_that("survival_adapt-complex", {
   skip_on_cran()
 
-  hc <- prop_to_haz(c(0.20, 0.25, 0.30), c(0, 3, 6), 24)
-  ht <- prop_to_haz(c(0.075, 0.125, 0.175), c(0, 3, 6), 24)
+  hc <- prop_to_haz(c(0.20, 0.25, 0.30), c(3, 6), 24)
+  ht <- prop_to_haz(c(0.075, 0.125, 0.175), c(3, 6), 24)
 
   set.seed(12345)
   out <- survival_adapt(
     hazard_treatment = ht,
     hazard_control = hc,
-    cutpoints = c(0, 3, 6),
+    cutpoints = c(3, 6),
     N_total = 500,
     lambda = c(6, 8),
-    lambda_time = c(0, 6),
+    lambda_time = 6,
     interim_look = c(200, 350),
     end_of_study = 24,
     prior = c(0.1, 0.1),
@@ -280,10 +280,10 @@ test_that("error-interim-looks", {
     out <- survival_adapt(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 400,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = c(200, 300, 400, 500),
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -310,10 +310,10 @@ test_that("error-interim-look-below-block-size", {
     out <- survival_adapt(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 100,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = 3,
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -338,10 +338,10 @@ test_that("error-alternative", {
     out <- survival_adapt(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 400,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = 200,
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -368,7 +368,7 @@ test_that("error-cutpoint", {
       cutpoints = 37,
       N_total = 400,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = 200,
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -392,10 +392,10 @@ test_that("error-alternative-bayes-surv", {
     out <- survival_adapt(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 400,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = 200,
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -418,10 +418,10 @@ test_that("survival_adapt-logrank-one-sided", {
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 400,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -443,15 +443,15 @@ test_that("survival_adapt-logrank-one-sided", {
 })
 
 test_that("survival_adapt-cox-one-sided-less", {
-  set.seed(1)
+  set.seed(2)
 
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 400,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -474,14 +474,14 @@ test_that("survival_adapt-cox-one-sided-less", {
 })
 
 test_that("survival_adapt-cox-one-sided-greater", {
-  set.seed(1)
+  set.seed(2)
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 400,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -507,10 +507,10 @@ test_that("error-alternative-chisq", {
     survival_adapt(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 400,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = 200,
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -535,10 +535,10 @@ test_that("error-logrank-single_arm", {
     out <- survival_adapt(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = NULL,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 400,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = 200,
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -562,10 +562,10 @@ test_that("error-prob-thresholds-length_v1", {
     out <- survival_adapt(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 400,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = c(100, 200),
       end_of_study = 36,
       prior = c(0.1, 0.1),
@@ -589,10 +589,10 @@ test_that("survival_adapt works with no interim looks and default thresholds", {
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 200,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -618,10 +618,10 @@ test_that("survival_adapt validates probability, count, and prior arguments", {
   common_args <- list(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 200,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 100,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -638,23 +638,47 @@ test_that("survival_adapt validates probability, count, and prior arguments", {
     method = "logrank"
   )
 
-  expect_error(do.call(survival_adapt, modifyList(common_args, list(prob_ha = -0.1))), "prob_ha")
-  expect_error(do.call(survival_adapt, modifyList(common_args, list(Sn = 1.2))), "Sn")
-  expect_error(do.call(survival_adapt, modifyList(common_args, list(prior = c(-0.1, 0.1)))), "prior")
-  expect_error(do.call(survival_adapt, modifyList(common_args, list(N_impute = 1.5))), "N_impute")
-  expect_error(do.call(survival_adapt, modifyList(common_args, list(N_mcmc = 1.5))), "N_mcmc")
-  expect_error(do.call(survival_adapt, modifyList(common_args, list(N_total = 200.5))), "N_total")
-  expect_error(do.call(survival_adapt, modifyList(common_args, list(prop_loss = -0.1))), "prop_loss")
+  expect_error(
+    do.call(survival_adapt, modifyList(common_args, list(prob_ha = -0.1))),
+    "prob_ha"
+  )
+  expect_error(
+    do.call(survival_adapt, modifyList(common_args, list(Sn = 1.2))),
+    "Sn"
+  )
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(common_args, list(prior = c(-0.1, 0.1)))
+    ),
+    "prior"
+  )
+  expect_error(
+    do.call(survival_adapt, modifyList(common_args, list(N_impute = 1.5))),
+    "N_impute"
+  )
+  expect_error(
+    do.call(survival_adapt, modifyList(common_args, list(N_mcmc = 1.5))),
+    "N_mcmc"
+  )
+  expect_error(
+    do.call(survival_adapt, modifyList(common_args, list(N_total = 200.5))),
+    "N_total"
+  )
+  expect_error(
+    do.call(survival_adapt, modifyList(common_args, list(prop_loss = -0.1))),
+    "prop_loss"
+  )
 })
 
 test_that("survival_adapt validates interim ordering and h0", {
   common_args <- list(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 200,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = 100,
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -717,10 +741,10 @@ test_that("survival_adapt keeps futility disabled when Fn = 0", {
   out <- survival_adapt(
     hazard_treatment = -log(0.3) / 36,
     hazard_control = -log(0.2) / 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 200,
     lambda = 20,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = c(100, 150),
     end_of_study = 36,
     prior = c(0.1, 0.1),
@@ -746,10 +770,10 @@ test_that("error-prob-thresholds-length_v2", {
     out <- survival_adapt(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
-      cutpoints = 0,
+      cutpoints = NULL,
       N_total = 400,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = c(100, 200),
       end_of_study = 36,
       prior = c(0.1, 0.1),

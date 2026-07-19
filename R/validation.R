@@ -121,22 +121,24 @@ validate_gamma_prior <- function(prior, name = "prior") {
 
 #' @title Validate piecewise cutpoints
 #'
-#' @description Checks that a piecewise model has finite, strictly increasing
-#'   cutpoints beginning at zero.
+#' @description Checks that a piecewise model has finite, positive, strictly
+#'   increasing interior cutpoints, or no cutpoints for a constant hazard.
 #'
 #' @noRd
 validate_cutpoints <- function(cutpoints) {
-  if (
-    !is.numeric(cutpoints) ||
-      length(cutpoints) == 0 ||
-      any(is.na(cutpoints)) ||
-      any(!is.finite(cutpoints))
-  ) {
-    stop("'cutpoints' must contain finite numeric values")
+  if (is.null(cutpoints)) {
+    return(invisible(TRUE))
   }
 
-  if (cutpoints[1] != 0) {
-    stop("First element of 'cutpoints' should be 0")
+  if (
+    !is.numeric(cutpoints) ||
+      !is.null(dim(cutpoints)) ||
+      length(cutpoints) == 0 ||
+      any(is.na(cutpoints)) ||
+      any(!is.finite(cutpoints)) ||
+      any(cutpoints <= 0)
+  ) {
+    stop("'cutpoints' must be NULL or contain finite positive numeric values")
   }
 
   # A non-increasing knot vector creates zero-width or backward intervals,
@@ -150,11 +152,11 @@ validate_cutpoints <- function(cutpoints) {
 
 #' @title Validate an endpoint time
 #'
-#' @description Checks that an analysis endpoint is finite and positive and,
-#'   when required, lies after the final piecewise cutpoint.
+#' @description Checks that an analysis endpoint is finite and positive and
+#'   lies after the final piecewise cutpoint.
 #'
 #' @noRd
-validate_endpoint_time <- function(endpoint, cutpoints, name, after_last = TRUE) {
+validate_endpoint_time <- function(endpoint, cutpoints, name) {
   if (
     length(endpoint) != 1 ||
       !is.numeric(endpoint) ||
@@ -165,7 +167,7 @@ validate_endpoint_time <- function(endpoint, cutpoints, name, after_last = TRUE)
     stop("'", name, "' must be a single finite positive value")
   }
 
-  if (after_last && endpoint <= max(cutpoints)) {
+  if (length(cutpoints) > 0 && endpoint <= max(cutpoints)) {
     stop("'", name, "' must be a finite value greater than the last cutpoint")
   }
 
@@ -175,24 +177,15 @@ validate_endpoint_time <- function(endpoint, cutpoints, name, after_last = TRUE)
 #' @title Validate an administrative censoring time
 #'
 #' @description Checks that an optional administrative censoring time is a
-#'   single, finite, strictly positive numeric value.
+#'   single, finite, strictly positive numeric value after the final cutpoint.
 #'
 #' @noRd
-validate_maxtime <- function(maxtime) {
-  if (
-    !is.null(maxtime) &&
-      (
-        length(maxtime) != 1 ||
-          !is.numeric(maxtime) ||
-          is.na(maxtime) ||
-          !is.finite(maxtime) ||
-          maxtime <= 0
-      )
-  ) {
-    stop("'maxtime' must be a single finite positive value or NULL")
+validate_maxtime <- function(maxtime, cutpoints) {
+  if (is.null(maxtime)) {
+    return(invisible(TRUE))
   }
 
-  invisible(TRUE)
+  validate_endpoint_time(maxtime, cutpoints, "maxtime")
 }
 
 #' @title Validate a piecewise hazard vector
@@ -213,8 +206,12 @@ validate_piecewise_hazard <- function(hazard, cutpoints, name = "hazard") {
     stop("'", name, "' must contain finite non-negative hazard rates")
   }
 
-  if (length(hazard) != length(cutpoints)) {
-    stop("Length of 'cutpoints' must be equal to length of '", name, "'")
+  if (length(hazard) != length(cutpoints) + 1L) {
+    stop(
+      "Length of '",
+      name,
+      "' must be one greater than length of 'cutpoints'"
+    )
   }
 
   invisible(TRUE)
@@ -235,11 +232,17 @@ validate_hazard_matrix <- function(hazard, cutpoints, name = "hazard") {
       any(!is.finite(hazard)) ||
       any(hazard < 0)
   ) {
-    stop("'", name, "' must be a non-empty matrix of finite non-negative hazard rates")
+    stop(
+      "'",
+      name,
+      "' must be a non-empty matrix of finite non-negative hazard rates"
+    )
   }
 
-  if (ncol(hazard) != length(cutpoints)) {
-    stop("The length of the hazard rates and cutpoints do not match")
+  if (ncol(hazard) != length(cutpoints) + 1L) {
+    stop(
+      "The number of hazard columns must be one greater than length of 'cutpoints'"
+    )
   }
 
   invisible(TRUE)
@@ -254,8 +257,8 @@ validate_hazard_matrix <- function(hazard, cutpoints, name = "hazard") {
 validate_enrollment_schedule <- function(lambda, lambda_time, N_total) {
   validate_positive_integer_scalar(N_total, "N_total")
 
-  # A non-positive or non-finite rate can leave the accrual loop unable to
-  # reach its target sample size, so reject it before any random draws occur.
+  # A non-positive rate does not define an invertible cumulative intensity and
+  # could prevent the process from reaching its target sample size.
   if (
     !is.numeric(lambda) ||
       !is.null(dim(lambda)) ||
@@ -267,8 +270,14 @@ validate_enrollment_schedule <- function(lambda, lambda_time, N_total) {
     stop("'lambda' must contain finite positive enrollment rates")
   }
 
-  if (length(lambda) != length(lambda_time)) {
-    stop("The length of rates should match the length of knots")
+  if (length(lambda) != length(lambda_time) + 1L) {
+    stop(
+      "Length of 'lambda' must be one greater than length of 'lambda_time'"
+    )
+  }
+
+  if (is.null(lambda_time)) {
+    return(invisible(TRUE))
   }
 
   if (
@@ -276,17 +285,14 @@ validate_enrollment_schedule <- function(lambda, lambda_time, N_total) {
       !is.null(dim(lambda_time)) ||
       length(lambda_time) == 0 ||
       any(is.na(lambda_time)) ||
-      any(!is.finite(lambda_time))
+      any(!is.finite(lambda_time)) ||
+      any(lambda_time <= 0)
   ) {
-    stop("'lambda_time' must contain finite numeric knot values")
+    stop(
+      "'lambda_time' must be NULL or contain finite positive numeric values"
+    )
   }
 
-  if (lambda_time[1] != 0) {
-    stop("The first cutpoint should always 0")
-  }
-
-  # The rate-selection loop assumes chronological knots. Without this check,
-  # an unordered schedule can silently assign subjects to the wrong rate.
   if (any(diff(lambda_time) <= 0)) {
     stop("'lambda_time' must be strictly increasing")
   }
@@ -406,7 +412,9 @@ validate_analysis_configuration <- function(
       is.na(method) ||
       !method %in% c("bayes-surv", "bayes-bin", "logrank", "cox", "chisq")
   ) {
-    stop("'method' must be one of 'bayes-surv', 'bayes-bin', 'logrank', 'cox', or 'chisq'")
+    stop(
+      "'method' must be one of 'bayes-surv', 'bayes-bin', 'logrank', 'cox', or 'chisq'"
+    )
   }
 
   validate_logical_scalar(single_arm, "single_arm")

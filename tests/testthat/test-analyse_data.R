@@ -7,7 +7,7 @@ test_that("analyse_data works with method = 'logrank'", {
   )
   res <- analyse_data(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 10,
@@ -31,7 +31,7 @@ test_that("analyse_data works with method = 'cox'", {
   )
   res <- analyse_data(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 10,
@@ -56,7 +56,7 @@ test_that("analyse_data errors clearly for non-estimable log-rank tests", {
   expect_error(
     analyse_data(
       data = data,
-      cutpoints = 0,
+      cutpoints = NULL,
       end_of_study = 36,
       prior = c(0.1, 0.1),
       N_mcmc = 10,
@@ -79,7 +79,7 @@ test_that("analyse_data errors clearly for non-estimable Cox tests", {
   expect_error(
     analyse_data(
       data = data,
-      cutpoints = 0,
+      cutpoints = NULL,
       end_of_study = 36,
       prior = c(0.1, 0.1),
       N_mcmc = 10,
@@ -116,7 +116,7 @@ test_that("analyse_data works with method = 'bayes-surv' (two-arm)", {
   )
   res <- analyse_data(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 100,
@@ -140,7 +140,7 @@ test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less
   )
   res_greater <- analyse_data(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 500,
@@ -151,7 +151,7 @@ test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less
   )
   res_less <- analyse_data(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 500,
@@ -175,7 +175,7 @@ test_that("analyse_data works with method = 'chisq'", {
   )
   res <- analyse_data(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 10,
@@ -200,7 +200,7 @@ test_that("analyse_data method = 'chisq' rejects incomplete censored outcomes", 
   expect_error(
     analyse_data(
       data = data,
-      cutpoints = 0,
+      cutpoints = NULL,
       end_of_study = 36,
       prior = c(0.1, 0.1),
       N_mcmc = 10,
@@ -223,7 +223,7 @@ test_that("analyse_data works with method = 'bayes-bin' and Monte Carlo", {
 
   res <- analyse_data(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 5000,
@@ -251,7 +251,7 @@ test_that("analyse_data method = 'bayes-bin' quadrature tails sum to 1", {
   )
   args <- list(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 10,
@@ -277,7 +277,7 @@ test_that("analyse_data method = 'bayes-bin' engines agree on stable data", {
   )
   args <- list(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 50000,
@@ -312,7 +312,7 @@ test_that("analyse_data method = 'bayes-bin' works for single-arm data", {
 
   res <- analyse_data(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 1000,
@@ -338,7 +338,7 @@ test_that("analyse_data method = 'bayes-bin' rejects incomplete censored outcome
   expect_error(
     analyse_data(
       data = data,
-      cutpoints = 0,
+      cutpoints = NULL,
       end_of_study = 36,
       prior = c(0.1, 0.1),
       N_mcmc = 1000,
@@ -362,7 +362,7 @@ test_that("analyse_data works with method = 'bayes-surv' (single-arm)", {
   )
   res <- analyse_data(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 100,
@@ -385,7 +385,7 @@ test_that("analyse_data works with piecewise cutpoints", {
   )
   res <- analyse_data(
     data = data,
-    cutpoints = c(0, 12),
+    cutpoints = 12,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 100,
@@ -407,7 +407,7 @@ test_that("analyse_data one-sided cox: less + greater sum to ~1", {
   )
   args <- list(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 10,
@@ -438,7 +438,7 @@ test_that("analyse_data one-sided logrank: less + greater sum to ~1", {
   )
   args <- list(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 10,
@@ -465,7 +465,7 @@ test_that("analyse_data one-sided cox detects beneficial treatment", {
   )
   res <- analyse_data(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 10,
@@ -488,7 +488,7 @@ test_that("analyse_data one-sided cox uses h0 as the null log hazard ratio", {
 
   args <- list(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 10,
@@ -511,7 +511,7 @@ test_that("analyse_data validates h0 before Bayesian analysis", {
   )
   args <- list(
     data = data,
-    cutpoints = 0,
+    cutpoints = NULL,
     end_of_study = 36,
     prior = c(0.1, 0.1),
     N_mcmc = 10,

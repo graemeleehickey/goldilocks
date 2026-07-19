@@ -35,7 +35,7 @@ posterior <- function(
   empty_interval = "propagate"
 ) {
   empty_interval <- match.arg(empty_interval, c("propagate", "prior", "error"))
-  n_intervals <- length(cutpoints)
+  n_intervals <- length(cutpoints) + 1L
 
   # Verify the expected treatment groups are actually present before
   # summarizing; when `treatment` is numeric, an absent group yields no summary
@@ -137,8 +137,9 @@ propagate_empty_intervals <- function(data_summ) {
 #'
 #' @noRd
 posterior_sufficient_stats <- function(data, cutpoints, single_arm) {
-  n_intervals <- length(cutpoints)
-  interval_upper <- c(cutpoints[-1], Inf)
+  n_intervals <- length(cutpoints) + 1L
+  interval_lower <- c(0, cutpoints)
+  interval_upper <- c(cutpoints, Inf)
   treatment_values <- if (single_arm) 1 else c(0, 1)
 
   data_summ <- expand.grid(
@@ -157,7 +158,7 @@ posterior_sufficient_stats <- function(data, cutpoints, single_arm) {
     }
 
     for (j in seq_len(n_intervals)) {
-      lower <- cutpoints[j]
+      lower <- interval_lower[j]
       upper <- interval_upper[j]
       exposure <- pmax(0, pmin(treatment_data$time, upper) - lower)
       row <- data_summ$treatment == treatment_value & data_summ$interval == j

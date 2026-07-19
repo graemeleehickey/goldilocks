@@ -23,7 +23,7 @@ library(goldilocks)
 
 Two distinct priors can therefore enter a Bayesian binary design. The `prior` argument is a Gamma prior on the piecewise-exponential hazards. It is used only for the event-time model that generates predictive imputations at interim looks (and at the final analysis when `imputed_final = TRUE`). The `bin_prior` argument is a Beta prior on the binary endpoint event probability in each arm. It is used for the Bayesian binary analysis of every completed or imputed dataset. Thus, interim predictive probabilities are affected by both priors, whereas a non-imputed final binary analysis is affected by `bin_prior` alone.
 
-For the examples below, we use the default weakly informative Gamma$(0.1, 0.1)$ hazard prior and a uniform Beta$(1, 1)$ binary-endpoint prior:
+For the examples below, we use the default weakly informative $\operatorname{Gamma}(0.1, 0.1)$ hazard prior and a uniform $\operatorname{Beta}(1, 1)$ binary-endpoint prior:
 
 ```{r priors}
 hazard_prior <- c(0.1, 0.1)  # Gamma shape and rate for predictive imputation
@@ -37,7 +37,7 @@ Two practical consequences follow:
 
 ## Two-arm design
 
-Suppose the control event probability by 12 months is 35%, and the treatment is expected to reduce this to 25%. We use a beta-binomial final analysis with a uniform `Beta(1, 1)` prior in each arm. Since lower event probability is beneficial, we use `alternative = "less"` and compare the posterior distribution of
+Suppose the control event probability by 12 months is 35%, and the treatment is expected to reduce this to 25%. We use a beta-binomial final analysis with a uniform $\operatorname{Beta}(1, 1)$ prior in each arm. Since lower event probability is beneficial, we use `alternative = "less"` and compare the posterior distribution of
 
 $$p_{\text{treatment}} - p_{\text{control}}$$
 
@@ -51,10 +51,10 @@ ht <- prop_to_haz(0.25, endtime = end_of_study)
 out_two_arm <- survival_adapt(
   hazard_treatment = ht,
   hazard_control = hc,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = 120,
   lambda = 10,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = 80,
   end_of_study = end_of_study,
   prior = hazard_prior,
@@ -92,10 +92,10 @@ ht_single <- prop_to_haz(target, endtime = end_of_study)
 out_single_arm <- survival_adapt(
   hazard_treatment = ht_single,
   hazard_control = NULL,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = 80,
   lambda = 8,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = 50,
   end_of_study = end_of_study,
   prior = hazard_prior,
@@ -136,10 +136,10 @@ out_power <- sim_trials(
   N_trials = 1000,
   hazard_treatment = ht,
   hazard_control = hc,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = 120,
   lambda = 10,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = 80,
   end_of_study = end_of_study,
   prior = hazard_prior,

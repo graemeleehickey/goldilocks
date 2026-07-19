@@ -2,10 +2,10 @@ trace_args <- function() {
   list(
     hazard_treatment = -log(0.85) / 24,
     hazard_control = -log(0.7) / 24,
-    cutpoints = 0,
+    cutpoints = NULL,
     N_total = 80,
     lambda = 8,
-    lambda_time = 0,
+    lambda_time = NULL,
     interim_look = c(40, 60),
     end_of_study = 24,
     prior = c(0.1, 0.1),
@@ -45,11 +45,23 @@ test_that("survival_adapt keeps its default data-frame return value", {
 test_that("survival_adapt returns an auditable interim trace on request", {
   out <- run_traced_trial()
   expected_columns <- c(
-    "look", "planned_N", "calendar_time", "N_enrolled", "N_treatment",
-    "N_control", "events_treatment", "events_control", "N_pending",
-    "N_not_enrolled", "ppp_stop_now", "success_threshold",
-    "ppp_success_at_max", "futility_threshold", "decision",
-    "warning_count", "warning_messages"
+    "look",
+    "planned_N",
+    "calendar_time",
+    "N_enrolled",
+    "N_treatment",
+    "N_control",
+    "events_treatment",
+    "events_control",
+    "N_pending",
+    "N_not_enrolled",
+    "ppp_stop_now",
+    "success_threshold",
+    "ppp_success_at_max",
+    "futility_threshold",
+    "decision",
+    "warning_count",
+    "warning_messages"
   )
 
   expect_s3_class(out, "goldilocks_trial")
@@ -58,9 +70,14 @@ test_that("survival_adapt returns an auditable interim trace on request", {
   expect_identical(names(out$trace), expected_columns)
   expect_gte(nrow(out$trace), 1)
   expect_lte(nrow(out$trace), 2)
-  expect_true(all(out$trace$decision %in% c(
-    "continue", "stop_expected_success", "stop_futility"
-  )))
+  expect_true(all(
+    out$trace$decision %in%
+      c(
+        "continue",
+        "stop_expected_success",
+        "stop_futility"
+      )
+  ))
   expect_equal(
     out$trace$N_treatment + out$trace$N_control,
     out$trace$N_enrolled
@@ -87,7 +104,7 @@ test_that("trace marks disabled futility monitoring as unavailable", {
 
 test_that("trace captures warnings emitted during interim analysis", {
   args <- trace_args()
-  args$cutpoints <- c(0, 12)
+  args$cutpoints <- 12
   args$hazard_treatment <- c(-log(0.85) / 12, -log(0.85) / 12)
   args$hazard_control <- c(-log(0.7) / 12, -log(0.7) / 12)
   args$N_impute <- 1
@@ -100,7 +117,10 @@ test_that("trace captures warnings emitted during interim analysis", {
   )
 
   expect_true(any(out$trace$warning_count > 0))
-  expect_match(paste(out$trace$warning_messages, collapse = " "), "zero subjects")
+  expect_match(
+    paste(out$trace$warning_messages, collapse = " "),
+    "zero subjects"
+  )
 })
 
 test_that("traces support no-interim designs", {
@@ -241,7 +261,9 @@ test_that("simulation stopping plot supports cumulative percentages", {
   expect_identical(
     rownames(captured$height),
     c(
-      "Expected success", "Futility", "Maximum sample size",
+      "Expected success",
+      "Futility",
+      "Maximum sample size",
       "Continue to next look"
     )
   )

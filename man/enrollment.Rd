@@ -2,66 +2,108 @@
 % Please edit documentation in R/enrollment.R
 \name{enrollment}
 \alias{enrollment}
-\title{Simulate enrollment times}
+\title{Simulate exact continuous-time enrollment}
 \usage{
-enrollment(lambda = 1, N_total, lambda_time = 0)
+enrollment(lambda = 1, N_total, lambda_time = NULL)
 }
 \arguments{
-\item{lambda}{finite positive rate parameter(s) for the Poisson distribution.}
+\item{lambda}{finite positive enrollment rates per unit time. Supply one
+rate for each interval defined by \code{lambda_time}, so \code{length(lambda)} must
+equal \code{length(lambda_time) + 1}.}
 
 \item{N_total}{positive integer total sample size.}
 
-\item{lambda_time}{finite, strictly increasing knots (of \code{length(lambda)})
-indicating regions where a specific rate (\code{lambda}) applies. The first
-element must be \code{lambda_time = 0}, denoting the trial start time. The final
-element of \code{lambda} is assumed to be constant as \code{lambda_time} tends to
-infinity.}
+\item{lambda_time}{\code{NULL}, or a finite, positive, strictly increasing vector
+of interior times at which the enrollment rate changes. The initial
+boundary at time zero is implicit and must not be supplied. Use \code{NULL} for
+a constant enrollment rate.}
 }
 \value{
-A vector of enrollment times (from time of first patient enrollment)
-in unit time (e.g. days).
+A non-decreasing numeric vector of \code{N_total} continuous enrollment
+times, measured from first patient in and expressed in the same time unit
+used for \code{lambda_time}. The first value is zero.
 }
 \description{
-Simulate enrollment time using a piecewise Poisson distribution.
+Simulate enrollment times from a Poisson process with a
+piecewise-constant rate.
 }
 \details{
-Subject recruitment is assumed to follow a (piecewise stationary)
-Poisson process. We assume trial recruitment to be an independent process,
-thus the 'memoryless' property modelling of subject recruitment is used.
-Since the subject recruitment rate can vary over time, we can account for
-differential rates over time. Note that the first trial enrollment is
-assumed to occur at time zero.
+\strong{Major behavior change from goldilocks 0.5.0 and earlier.} Versions through
+0.5.0 generated Poisson counts in unit-time bins. \code{enrollment()} returned
+rebased integer bin times, after which \code{sim_comp_data()} added independent
+uniform jitter and sorted the result. The current implementation instead
+generates the continuous arrival times directly from the exact
+piecewise-constant Poisson process. Consequently:
+\itemize{
+\item seeded simulations do not reproduce enrollment or downstream trial
+results obtained with version 0.5.0 or earlier;
+\item enrollment times and operating-characteristic estimates can change,
+particularly when rates are low or a rate change is not an integer time;
+\item the schedule API now contains internal knots only: change
+\code{lambda_time = 0} to \code{lambda_time = NULL} for a constant rate, and change
+\code{lambda_time = c(0, t1, t2)} to \code{lambda_time = c(t1, t2)} for a piecewise
+rate.
+}
 
-To illustrate, suppose we use a piecewise function to specify the change in
-enrollment rate over time:
+\code{enrollment()} treats time zero as \strong{first patient in}, matching the time
+origin used throughout \code{goldilocks}. The first returned enrollment time is
+therefore fixed at zero. The remaining \code{N_total - 1} arrivals form a
+continuous-time non-homogeneous Poisson process whose rate is constant
+between the supplied internal knots. Thus, \code{lambda} is measured in
+enrollments per unit of \code{lambda_time}; for example, when time is measured in
+months, \code{lambda = 5} means five enrollments per month on average.
+
+Write the internal knots as
+\eqn{0 < \tau_1 < \cdots < \tau_K}, with \eqn{\tau_0 = 0} implicit. The
+enrollment intensity is
 
 \deqn{
-    \lambda = \left\{
-      \begin{array}{ll}
-        0.3 & \textrm{time} \in [0, 5) \\
-        0.7 & \textrm{time} \in [5, 10) \\
-        0.9 & \textrm{time} \in [10, 15) \\
-        1.2 & \textrm{time} \in [15, \infty) \\
-      \end{array}
-    \right.
+  \lambda(t) = \lambda_j, \qquad \tau_{j-1} \le t < \tau_j,
 }
 
-Then, to simulate individual patient enrollment dates with a sample size
-(\code{N_total}) of 50, we use
+for \eqn{j = 1, \ldots, K}, and \eqn{\lambda(t) = \lambda_{K+1}} after the
+final knot. The final rate therefore continues for as long as needed to
+reach \code{N_total}; there is no finite accrual horizon in this function.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{enrollment(
-  lambda = c(0.3, 0.7, 0.9, 1.2),
-  N_total = 50,
-  lambda_time = c(0, 5, 10, 15)
-)
-}\if{html}{\out{</div>}}
+Arrivals are generated exactly by the time-rescaling theorem. If
+\eqn{E_2, \ldots, E_N} are independent unit-rate exponential variables and
+\eqn{S_i = \sum_{k=2}^i E_k}, then the enrollment times after first patient
+in are
+
+\deqn{T_1 = 0, \qquad T_i = \Lambda^{-1}(S_i),}
+
+where \eqn{\Lambda(t) = \int_0^t \lambda(u)\,du} is the cumulative
+enrollment intensity. This construction gives independent Poisson counts
+on disjoint calendar intervals, with expected count
+\eqn{\int_a^b \lambda(u)\,du} over \eqn{(a,b]}. For a constant rate,
+successive enrollment gaps are independent \code{Exponential(lambda)} variables.
+
+The rate-change times are measured from first patient in, not from an
+earlier site-opening or trial-activation date. If operational delays before
+first patient in are important, they must be modelled separately before
+using the returned relative times.
+
+For example, \code{lambda = c(0.3, 0.7, 0.9, 1.2)} with
+\code{lambda_time = c(5, 10, 15)} specifies average enrollment rates of 0.3 over
+\eqn{[0,5)}, 0.7 over \eqn{[5,10)}, 0.9 over \eqn{[10,15)}, and 1.2 from
+time 15 onward. Fractional knots such as \code{lambda_time = 2.5} are handled
+exactly; no unit-time binning or post-hoc jitter is used.
 }
 \examples{
-enrollment(lambda = c(0.003, 0.7), N_total = 100, lambda_time = c(0, 10))
-enrollment(lambda = c(0.3, 0.5, 0.9, 1.2, 2.1), N_total = 200,
-           lambda_time = c(0, 20, 30, 40, 60))
-}
-\seealso{
-This function is based on the \code{enrollment} function from the
-\href{https://cran.r-project.org/package=bayesCT}{\code{bayesCT}} R package.
+# Constant enrollment: first patient at zero, then exponential gaps.
+enrollment(lambda = 0.7, N_total = 10)
+
+# Three internal rate changes define four enrollment intervals.
+enrollment(
+  lambda = c(0.3, 0.7, 0.9, 1.2),
+  N_total = 50,
+  lambda_time = c(5, 10, 15)
+)
+
+# Fractional change times are supported exactly.
+enrollment(
+  lambda = c(0.25, 1),
+  N_total = 20,
+  lambda_time = 2.5
+)
 }

@@ -5,20 +5,20 @@
 \title{Cumulative distribution function of the PWE for a vectorized hazard
 rate parameter}
 \usage{
-ppwe(hazard, end_of_study, cutpoints)
+ppwe(hazard, end_of_study, cutpoints = NULL)
 }
 \arguments{
 \item{hazard}{matrix. A matrix of hazard rate parameters with number of
-columns equal to the length of the \code{cutpoints} vector. The number of
-rows can be anything, and is typically dictated by the number of MCMC
+columns one greater than the length of the \code{cutpoints} vector. The number
+of rows can be anything, and is typically dictated by the number of MCMC
 draws.}
 
 \item{end_of_study}{finite positive time at which the cumulative event
-probability is evaluated. It may fall before later cutpoints, for example
-when evaluating an interim analysis.}
+probability is evaluated. It must be greater than every cutpoint.}
 
-\item{cutpoints}{finite, strictly increasing vector of change-points for the
-hazard rates. The first element must be 0.}
+\item{cutpoints}{finite, positive, strictly increasing vector of interior
+times at which the hazard rate changes. The number of hazard rates must be
+one greater than the number of cutpoints. Use \code{NULL} for a constant hazard.}
 }
 \value{
 A vector of (0, 1) probabilities from evaluation of the PWE

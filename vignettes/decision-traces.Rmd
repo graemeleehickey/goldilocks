@@ -24,16 +24,16 @@ This small Bayesian survival design has two interim looks. The treatment arm is 
 
 ```{r traced-trial}
 end_of_study <- 24
-hazard_control <- prop_to_haz(c(0.20, 0.35), c(0, 12), end_of_study)
-hazard_treatment <- prop_to_haz(c(0.12, 0.24), c(0, 12), end_of_study)
+hazard_control <- prop_to_haz(c(0.20, 0.35), 12, end_of_study)
+hazard_treatment <- prop_to_haz(c(0.12, 0.24), 12, end_of_study)
 
 trial <- survival_adapt(
   hazard_treatment = hazard_treatment,
   hazard_control = hazard_control,
-  cutpoints = c(0, 12),
+  cutpoints = 12,
   N_total = 80,
   lambda = 8,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = c(40, 60),
   end_of_study = end_of_study,
   prior = c(0.1, 0.1),
@@ -91,10 +91,10 @@ trial stopped.
 sims <- sim_trials(
   hazard_treatment = hazard_treatment,
   hazard_control = hazard_control,
-  cutpoints = c(0, 12),
+  cutpoints = 12,
   N_total = 80,
   lambda = 8,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = c(40, 60),
   end_of_study = end_of_study,
   prior = c(0.1, 0.1),
@@ -143,4 +143,4 @@ plot_sim_ocs(
 )
 ```
 
-For reproducible simulations, set seed in `sim_trials()`. The per-trial random streams make the compact simulation results reproducible across supported parallel backends. For a detailed explanation of the decision algorithm and calibration, see the "Technical details of the Goldilocks design" vignette.
+For reproducible simulations, set `seed` in `sim_trials()`. The per-trial random streams make the compact simulation results reproducible across supported parallel backends. For a detailed explanation of the decision algorithm and calibration, see the "Technical details of the Goldilocks design" vignette.

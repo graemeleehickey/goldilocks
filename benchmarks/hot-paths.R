@@ -8,7 +8,9 @@ if (!requireNamespace("bench", quietly = TRUE)) {
 }
 
 load_goldilocks <- function() {
-  if (requireNamespace("pkgload", quietly = TRUE) && file.exists("DESCRIPTION")) {
+  if (
+    requireNamespace("pkgload", quietly = TRUE) && file.exists("DESCRIPTION")
+  ) {
     pkgload::load_all(".", quiet = TRUE)
   } else {
     library(goldilocks)
@@ -24,22 +26,26 @@ impute_data_internal <- getFromNamespace("impute_data", "goldilocks")
 
 iterations <- as.integer(Sys.getenv("GOLDILOCKS_BENCHMARK_ITERATIONS", "5"))
 if (is.na(iterations) || iterations < 1L) {
-  stop("GOLDILOCKS_BENCHMARK_ITERATIONS must be a positive integer.", call. = FALSE)
+  stop(
+    "GOLDILOCKS_BENCHMARK_ITERATIONS must be a positive integer.",
+    call. = FALSE
+  )
 }
 
 set.seed(4242)
 
-cutpoints_piecewise <- c(0, 6, 12)
+cutpoints_piecewise <- c(6, 12)
 end_of_study <- 36
+n_intervals_piecewise <- length(cutpoints_piecewise) + 1L
 
 hazard_matrix <- matrix(
   stats::rgamma(15000, shape = 2, rate = 80),
-  ncol = length(cutpoints_piecewise)
+  ncol = n_intervals_piecewise
 )
 
 posterior_draws <- array(
   stats::rgamma(30000, shape = 2, rate = 80),
-  dim = c(5000, length(cutpoints_piecewise), 2)
+  dim = c(5000, n_intervals_piecewise, 2)
 )
 
 posterior_data <- data.frame(
@@ -64,14 +70,34 @@ imputation_data$subject_impute_success <-
 
 imputation_hazard <- array(
   c(0.018, 0.026, 0.034, 0.026, 0.034, 0.042),
-  dim = c(1, length(cutpoints_piecewise), 2)
+  dim = c(1, n_intervals_piecewise, 2)
 )
 
-trial_cutpoints <- c(0, 4, 8)
-trial_hazard_control <- prop_to_haz(c(0.20, 0.30, 0.35), trial_cutpoints, end_of_study)
-trial_hazard_treatment <- prop_to_haz(c(0.10, 0.18, 0.22), trial_cutpoints, end_of_study)
+trial_cutpoints <- c(4, 8)
+trial_hazard_control <- prop_to_haz(
+  c(0.20, 0.30, 0.35),
+  trial_cutpoints,
+  end_of_study
+)
+trial_hazard_treatment <- prop_to_haz(
+  c(0.10, 0.18, 0.22),
+  trial_cutpoints,
+  end_of_study
+)
 
 benchmark_results <- bench::mark(
+  enrollment_constant = {
+    set.seed(1000)
+    enrollment(lambda = 0.001, N_total = 10000)
+  },
+  enrollment_piecewise = {
+    set.seed(1000)
+    enrollment(
+      lambda = c(0.001, 0.05, 1),
+      lambda_time = c(100, 250.5),
+      N_total = 10000
+    )
+  },
   ppwe_piecewise = {
     ppwe_internal(
       hazard = hazard_matrix,
@@ -127,7 +153,7 @@ benchmark_results <- bench::mark(
       cutpoints = trial_cutpoints,
       N_total = 500,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = c(250, 375),
       end_of_study = end_of_study,
       prior = c(0.1, 0.1),
@@ -153,7 +179,7 @@ benchmark_results <- bench::mark(
       cutpoints = trial_cutpoints,
       N_total = 500,
       lambda = 20,
-      lambda_time = 0,
+      lambda_time = NULL,
       interim_look = c(250, 375),
       end_of_study = end_of_study,
       prior = c(0.1, 0.1),
@@ -180,6 +206,10 @@ print(benchmark_results)
 
 output_file <- Sys.getenv("GOLDILOCKS_BENCHMARK_OUT", "")
 if (nzchar(output_file)) {
-  utils::write.csv(as.data.frame(benchmark_results), output_file, row.names = FALSE)
+  utils::write.csv(
+    as.data.frame(benchmark_results),
+    output_file,
+    row.names = FALSE
+  )
   message("Benchmark results written to ", output_file)
 }

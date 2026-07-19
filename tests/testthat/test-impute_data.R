@@ -18,13 +18,13 @@ test_that("impute_data updates success rows by index for two-arm data", {
     time = data_in$time[treatment_idx],
     hazard = hazard[1, , 1],
     maxtime = 36,
-    cutpoints = 0
+    cutpoints = NULL
   )
   expected_control <- pwe_impute(
     time = data_in$time[control_idx],
     hazard = hazard[1, , 2],
     maxtime = 36,
-    cutpoints = 0
+    cutpoints = NULL
   )
 
   set.seed(3121)
@@ -32,7 +32,7 @@ test_that("impute_data updates success rows by index for two-arm data", {
     data_in = data_in,
     hazard = hazard,
     end_of_study = 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     type = "success",
     single_arm = FALSE
   )
@@ -62,7 +62,7 @@ test_that("impute_data requires exactly one posterior hazard draw", {
       data_in = data_in,
       hazard = array(0.04, dim = c(2, 1, 1)),
       end_of_study = 36,
-      cutpoints = 0,
+      cutpoints = NULL,
       type = "success",
       single_arm = TRUE
     ),
@@ -90,13 +90,13 @@ test_that("impute_data updates futility rows by index for two-arm data", {
     n = sum(treatment_idx),
     hazard = hazard[1, , 1],
     maxtime = 36,
-    cutpoints = 0
+    cutpoints = NULL
   )
   expected_control <- pwe_sim(
     n = sum(control_idx),
     hazard = hazard[1, , 2],
     maxtime = 36,
-    cutpoints = 0
+    cutpoints = NULL
   )
 
   set.seed(5128)
@@ -104,7 +104,7 @@ test_that("impute_data updates futility rows by index for two-arm data", {
     data_in = data_in,
     hazard = hazard,
     end_of_study = 36,
-    cutpoints = 0,
+    cutpoints = NULL,
     type = "futility",
     single_arm = FALSE
   )
@@ -139,7 +139,7 @@ test_that("impute_data updates success rows by index for single-arm data", {
     time = data_in$time[treatment_idx],
     hazard = hazard[1, , 1],
     maxtime = 36,
-    cutpoints = c(0, 12)
+    cutpoints = 12
   )
 
   set.seed(7824)
@@ -147,7 +147,7 @@ test_that("impute_data updates success rows by index for single-arm data", {
     data_in = data_in,
     hazard = hazard,
     end_of_study = 36,
-    cutpoints = c(0, 12),
+    cutpoints = 12,
     type = "success",
     single_arm = TRUE
   )
@@ -180,7 +180,7 @@ test_that("impute_data updates futility rows by index for single-arm data", {
     n = sum(treatment_idx),
     hazard = hazard[1, , 1],
     maxtime = 36,
-    cutpoints = c(0, 12)
+    cutpoints = 12
   )
 
   set.seed(9184)
@@ -188,7 +188,7 @@ test_that("impute_data updates futility rows by index for single-arm data", {
     data_in = data_in,
     hazard = hazard,
     end_of_study = 36,
-    cutpoints = c(0, 12),
+    cutpoints = 12,
     type = "futility",
     single_arm = TRUE
   )

@@ -4,7 +4,7 @@
 \alias{pwe_sim}
 \title{Simulate piecewise exponential time-to-event outcomes}
 \usage{
-pwe_sim(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL)
+pwe_sim(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL)
 }
 \arguments{
 \item{n}{integer. The number of random samples to generate. Default is
@@ -14,10 +14,12 @@ pwe_sim(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL)
 exponential failures. If the final rate is zero, \code{maxtime} must be
 supplied so that subjects without an event can be administratively censored.}
 
-\item{cutpoints}{finite, strictly increasing vector of change-points for the
-hazard rates. The first element must be 0.}
+\item{cutpoints}{finite, positive, strictly increasing vector of interior
+times at which the hazard rate changes. The number of hazard rates must be
+one greater than the number of cutpoints. Use \code{NULL} for a constant hazard.}
 
-\item{maxtime}{scalar. Maximum time before end of study.}
+\item{maxtime}{scalar. Optional administrative censoring time. When
+supplied, it must be later than every cutpoint.}
 }
 \value{
 A data frame with simulated follow-up times (\code{time}) and respective
@@ -31,7 +33,7 @@ hazard exponential function.
 See \code{\link[=pwe_impute]{pwe_impute()}} for details.
 }
 \examples{
-pwe_sim(10, hazard = c(0.005, 0.001), cutpoints = c(0, 3), maxtime = 36)
+pwe_sim(10, hazard = c(0.005, 0.001), cutpoints = 3, maxtime = 36)
 y <- pwe_sim(n = 1, hazard = c(2.585924e-02, 3.685254e-09),
-             cutpoints = c(0, 12))
+             cutpoints = 12)
 }

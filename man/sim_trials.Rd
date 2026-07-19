@@ -8,10 +8,10 @@ parameters and treatment effect}
 sim_trials(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total,
   lambda = 0.3,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
@@ -44,18 +44,20 @@ under the treatment arm.}
 \item{hazard_control}{vector. Finite non-negative constant hazard rates
 under the control arm.}
 
-\item{cutpoints}{finite, strictly increasing times at which the baseline
-hazard changes. The first value must be 0. Default is \code{cutpoints = 0},
-which corresponds to a simple (non-piecewise) exponential model.}
+\item{cutpoints}{finite, positive, strictly increasing interior times at
+which the baseline hazard changes. The number of hazards for each arm must
+be one greater than the number of cutpoints. Default is \code{NULL}, which
+corresponds to a simple (non-piecewise) exponential model.}
 
 \item{N_total}{integer. Maximum sample size allowable}
 
-\item{lambda}{vector. Enrollment rates across simulated enrollment times. See
-\code{\link[=enrollment]{enrollment()}} for more details.}
+\item{lambda}{finite positive enrollment rates per unit time. Supply one rate
+for each interval defined by \code{lambda_time}. See \code{\link[=enrollment]{enrollment()}} for the
+precise continuous-time process and time-origin convention.}
 
-\item{lambda_time}{vector. Enrollment time(s) at which the enrollment rates
-change. Must be same length as lambda. See \code{\link[=enrollment]{enrollment()}} for
-more details.}
+\item{lambda_time}{\code{NULL}, or finite, positive, strictly increasing internal
+times at which the enrollment rate changes. The initial boundary at zero
+is implicit, so \code{length(lambda)} must equal \code{length(lambda_time) + 1}.}
 
 \item{interim_look}{vector. Sample size for each interim look. Note: the
 maximum sample size should not be included. For two-arm designs, each
@@ -235,16 +237,16 @@ backends. A seeded call restores the caller's RNG state on exit. With
 state.
 }
 \examples{
-hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
-ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
+hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
+ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
 
 out <- sim_trials(
   hazard_treatment = ht,
   hazard_control = hc,
-  cutpoints = c(0, 12),
+  cutpoints = 12,
   N_total = 600,
   lambda = 20,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = c(400, 500),
   end_of_study = 36,
   prior = c(0.1, 0.1),

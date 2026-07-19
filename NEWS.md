@@ -2,6 +2,23 @@
 
 ## Improvements
 
+* **Major behavior change from goldilocks 0.5.0 and earlier:**
+  `enrollment()` now simulates exact continuous-time arrivals from a
+  piecewise-constant Poisson process by inverting its cumulative intensity.
+  Fractional enrollment-rate changes are handled exactly, and runtime depends
+  on the requested sample size rather than the number of empty unit-time bins.
+  Enrollment schedules now follow the internal-knot convention used by hazard
+  schedules: `lambda_time = NULL` represents a constant rate, each supplied
+  positive internal knot requires one additional `lambda` value, and time zero
+  remains the implicit first-patient-in origin. `sim_comp_data()` now consumes
+  these continuous enrollment times directly without post-hoc uniform jitter
+  (#55). Previously, `enrollment()` generated Poisson counts in unit-time bins,
+  returned rebased integer bin times, and `sim_comp_data()` added uniform
+  jitter. Existing calls must replace `lambda_time = 0` with `NULL` and remove
+  the leading zero from piecewise schedules. Seeded simulations will not
+  reproduce results from version 0.5.0 or earlier, and operating-characteristic
+  estimates may change, especially for fractional knots or low enrollment
+  rates.
 * Cox regression now supports `imputed_final = TRUE`. The final log hazard
   ratios and within-imputation variances are combined using Rubin's rules, and
   `post_prob_ha` reports `1 - P` from the pooled Wald test. Non-imputed Cox
@@ -60,7 +77,7 @@
 * `survival_adapt()` now requires interim looks to be strictly increasing, preventing non-chronological or duplicated analyses (#48).
 * Piecewise hazard inputs are now validated as finite and non-negative across simulation, imputation, and probability helpers. A finite `maxtime` is now required when the final hazard is zero (#49).
 * `h0` must now be a single finite value, with probability-scale bounds enforced for Bayesian analyses (#50).
-* Piecewise model inputs now require finite, strictly increasing cutpoints beginning at zero and a finite study endpoint after the final cutpoint. This validation is shared by simulation and probability helpers (#52).
+* The `cutpoints` API now accepts only interior hazard-change times: `NULL` represents a constant hazard, and each supplied cutpoint requires one additional hazard rate. The implicit interval start at zero is handled internally (#58). Piecewise model inputs require finite, positive, strictly increasing cutpoints and a finite study endpoint after the final cutpoint; this validation is shared by simulation and probability helpers (#52).
 * `enrollment()` now validates its complete schedule before generating data, including integer sample size, finite positive rates, and finite strictly increasing knots (#53).
 * Chi-square final analyses now require `imputed_final = FALSE`, rather than
   averaging chi-square results across multiple imputed final datasets without a

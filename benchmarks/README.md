@@ -4,6 +4,11 @@ This directory contains optional performance benchmarks for goldilocks hot
 paths. They are intended for maintainers to compare branches before and after
 optimization work, not as pass/fail tests.
 
+The hot-path benchmark includes constant and fractional-knot enrollment
+schedules. In particular, its low-rate case guards the continuous-time
+generator against work that scales with empty calendar bins rather than with
+the requested number of enrollments.
+
 The benchmarks are excluded from R package builds with `.Rbuildignore`, so they
 do not run on CRAN or during ordinary package checks.
 

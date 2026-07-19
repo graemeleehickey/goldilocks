@@ -8,9 +8,11 @@
 #' @param hazard vector. Finite non-negative constant hazard rates for
 #'   exponential failures. If the final rate is zero, `maxtime` must be
 #'   supplied so that subjects without an event can be administratively censored.
-#' @param cutpoints finite, strictly increasing vector of change-points for the
-#'   hazard rates. The first element must be 0.
-#' @param maxtime scalar. Maximum time before end of study.
+#' @param cutpoints finite, positive, strictly increasing vector of interior
+#'   times at which the hazard rate changes. The number of hazard rates must be
+#'   one greater than the number of cutpoints. Use `NULL` for a constant hazard.
+#' @param maxtime scalar. Optional administrative censoring time. When
+#'   supplied, it must be later than every cutpoint.
 #'
 #' @details See [pwe_impute()] for details.
 #'
@@ -23,13 +25,13 @@
 #' @export
 #'
 #' @examples
-#' pwe_sim(10, hazard = c(0.005, 0.001), cutpoints = c(0, 3), maxtime = 36)
+#' pwe_sim(10, hazard = c(0.005, 0.001), cutpoints = 3, maxtime = 36)
 #' y <- pwe_sim(n = 1, hazard = c(2.585924e-02, 3.685254e-09),
-#'              cutpoints = c(0, 12))
-pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
+#'              cutpoints = 12)
+pwe_sim <- function(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL) {
   validate_cutpoints(cutpoints)
   validate_piecewise_hazard(hazard, cutpoints)
-  validate_maxtime(maxtime)
+  validate_maxtime(maxtime, cutpoints)
 
   if (is.null(maxtime) && tail(hazard, 1) == 0) {
     stop("'maxtime' must be supplied when the final hazard rate is zero")
@@ -40,7 +42,7 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
     # represents no event before administrative censoring.
     ret <- if (hazard == 0) rep(Inf, n) else rexp(n, rate = hazard)
   } else {
-    ret <- PWEALL::rpwe(n, rate = hazard, tchange = cutpoints)$r
+    ret <- PWEALL::rpwe(n, rate = hazard, tchange = c(0, cutpoints))$r
   }
 
   if (!is.null(maxtime)) {
@@ -85,15 +87,15 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = 0, maxtime = NULL) {
 #' @export
 #'
 #' @examples
-#' pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = c(0, 12))
-#' pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = c(0, 12),
+#' pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = 12)
+#' pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = 12,
 #'            maxtime = 36)
 #' pwe_impute(time = 19.621870008, hazard = c(2.585924e-02, 3.685254e-09),
-#'            cutpoints = c(0, 12), maxtime = 36)
-pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
+#'            cutpoints = 12, maxtime = 36)
+pwe_impute <- function(time, hazard, cutpoints = NULL, maxtime = NULL) {
   validate_cutpoints(cutpoints)
   validate_piecewise_hazard(hazard, cutpoints)
-  validate_maxtime(maxtime)
+  validate_maxtime(maxtime, cutpoints)
 
   # Check: 'time' is positive integer
   if (any(time < 0)) {
@@ -102,7 +104,9 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
 
   if (!is.null(maxtime)) {
     if (any(maxtime < time)) {
-      stop("'maxtime' must be greater than or equal to all observed 'time' values")
+      stop(
+        "'maxtime' must be greater than or equal to all observed 'time' values"
+      )
     }
   }
 
@@ -111,19 +115,10 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
   }
 
   # Use inverse CDF to get conditional samples
-  Fs <- PWEALL::pwe(t = time, rate = hazard, tchange = cutpoints)$dist
+  interval_starts <- c(0, cutpoints)
+  Fs <- PWEALL::pwe(t = time, rate = hazard, tchange = interval_starts)$dist
   U <- runif(length(time))
-  time_imp <- PWEALL::qpwe(U * (1 - Fs) + Fs, hazard, cutpoints)$q
-
-  # impute1 <- function(s) {
-  #   Fs <- bayesDP::ppexp(s, hazard, cutpoints)
-  #   u <- runif(1)
-  #   PWEALL::qpwe(u*(1 - Fs) + Fs, hazard, cutpoints)$q
-  #   #msm::qpexp(u*(1 - Fs) + Fs, hazard, cutpoints)
-  #   #rpact::qpwexp(u*(1 - Fs) + Fs, lambda = hazard, s = cutpoints)
-  # }
-  #
-  # time_imp <- sapply(time, impute1)
+  time_imp <- PWEALL::qpwe(U * (1 - Fs) + Fs, hazard, interval_starts)$q
 
   # Check: impute timed occur after landmark observed times
   if (any(time > time_imp)) {
@@ -149,12 +144,11 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
 #'   hazard rates.
 #'
 #' @param hazard matrix. A matrix of hazard rate parameters with number of
-#'   columns equal to the length of the `cutpoints` vector. The number of
-#'   rows can be anything, and is typically dictated by the number of MCMC
+#'   columns one greater than the length of the `cutpoints` vector. The number
+#'   of rows can be anything, and is typically dictated by the number of MCMC
 #'   draws.
 #' @param end_of_study finite positive time at which the cumulative event
-#'   probability is evaluated. It may fall before later cutpoints, for example
-#'   when evaluating an interim analysis.
+#'   probability is evaluated. It must be greater than every cutpoint.
 #' @inheritParams pwe_sim
 #' @inheritParams survival_adapt
 #'
@@ -163,19 +157,13 @@ pwe_impute <- function(time, hazard, cutpoints = 0, maxtime = NULL) {
 #'   of rows of the `hazard` matrix parameter.
 #'
 #' @export
-ppwe <- function(hazard, end_of_study, cutpoints) {
+ppwe <- function(hazard, end_of_study, cutpoints = NULL) {
   validate_cutpoints(cutpoints)
-  # Posterior predictions are also evaluated at interim times, which can
-  # legitimately precede later hazard changes.
-  validate_endpoint_time(
-    end_of_study,
-    cutpoints,
-    "end_of_study",
-    after_last = FALSE
-  )
+  validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
   validate_hazard_matrix(hazard, cutpoints)
 
-  interval_upper <- c(cutpoints[-1], Inf)
-  duration <- pmax(0, pmin(end_of_study, interval_upper) - cutpoints)
+  interval_lower <- c(0, cutpoints)
+  interval_upper <- c(cutpoints, Inf)
+  duration <- pmax(0, pmin(end_of_study, interval_upper) - interval_lower)
   1 - exp(-drop(hazard %*% duration))
 }
