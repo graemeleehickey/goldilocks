@@ -48,7 +48,7 @@ constant hazard exponential function conditional on observed exposure.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">pwe_impute</span><span class="op">(</span><span class="va">time</span>, <span class="va">hazard</span>, cutpoints <span class="op">=</span> <span class="fl">0</span>, maxtime <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">pwe_impute</span><span class="op">(</span><span class="va">time</span>, <span class="va">hazard</span>, cutpoints <span class="op">=</span> <span class="cn">NULL</span>, maxtime <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -67,12 +67,14 @@ supplied so that subjects without an event can be administratively censored.</p>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
-<dd><p>finite, strictly increasing vector of change-points for the
-hazard rates. The first element must be 0.</p></dd>
+<dd><p>finite, positive, strictly increasing vector of interior
+times at which the hazard rate changes. The number of hazard rates must be
+one greater than the number of cutpoints. Use <code>NULL</code> for a constant hazard.</p></dd>
 
 
 <dt id="arg-maxtime">maxtime<a class="anchor" aria-label="anchor" href="#arg-maxtime"></a></dt>
-<dd><p>scalar. Maximum time before end of study.</p></dd>
+<dd><p>scalar. Optional administrative censoring time. When
+supplied, it must be later than every cutpoint.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -97,19 +99,19 @@ the PWE distribution.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">pwe_impute</span><span class="op">(</span>time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">5</span><span class="op">)</span>, hazard <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.002</span>, <span class="fl">0.01</span><span class="op">)</span>, cutpoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       time event</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 86.24953     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 89.54323     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 20.68446     1</span>
-<span class="r-in"><span><span class="fu">pwe_impute</span><span class="op">(</span>time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">5</span><span class="op">)</span>, hazard <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.002</span>, <span class="fl">0.01</span><span class="op">)</span>, cutpoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span>,</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">pwe_impute</span><span class="op">(</span>time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">5</span><span class="op">)</span>, hazard <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.002</span>, <span class="fl">0.01</span><span class="op">)</span>, cutpoints <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        time event</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  37.24678     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 247.16279     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 181.45567     1</span>
+<span class="r-in"><span><span class="fu">pwe_impute</span><span class="op">(</span>time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">5</span><span class="op">)</span>, hazard <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.002</span>, <span class="fl">0.01</span><span class="op">)</span>, cutpoints <span class="op">=</span> <span class="fl">12</span>,</span></span>
 <span class="r-in"><span>           maxtime <span class="op">=</span> <span class="fl">36</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       time event</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1 36.00000     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 29.31672     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 35.24618     1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3 36.00000     0</span>
 <span class="r-in"><span><span class="fu">pwe_impute</span><span class="op">(</span>time <span class="op">=</span> <span class="fl">19.621870008</span>, hazard <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2.585924e-02</span>, <span class="fl">3.685254e-09</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>           cutpoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span>, maxtime <span class="op">=</span> <span class="fl">36</span><span class="op">)</span></span></span>
+<span class="r-in"><span>           cutpoints <span class="op">=</span> <span class="fl">12</span>, maxtime <span class="op">=</span> <span class="fl">36</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   time event</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1   36     0</span>
 </code></pre></div>

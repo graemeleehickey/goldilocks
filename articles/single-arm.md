@@ -82,10 +82,10 @@ Now we run
 out <- survival_adapt(
   hazard_treatment = ht,
   hazard_control   = NULL,              # single-arm
-  cutpoints        = 0,
+  cutpoints        = NULL,
   N_total          = 80,
   lambda           = 5,                 # enrollments per month (constant)
-  lambda_time      = 0,
+  lambda_time      = NULL,
   interim_look     = 50,
   end_of_study     = end_of_study,
   prior            = c(0.1, 0.1),       # Gamma(0.1, 0.1) on the hazard
@@ -103,7 +103,7 @@ out
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95    0.3        less          80         0         80    80
 #>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1       0.9985 0.1689997        0.86             0                     0
+#> 1        0.992 0.1825442        0.08             0                     0
 ```
 
 There is no need to supply `block` or `rand_ratio`: they are redundant
@@ -136,10 +136,10 @@ out_power <- sim_trials(
   N_trials         = 1000,
   hazard_treatment = ht,
   hazard_control   = NULL,
-  cutpoints        = 0,
+  cutpoints        = NULL,
   N_total          = 80,
   lambda           = 5,
-  lambda_time      = 0,
+  lambda_time      = NULL,
   interim_look     = 50,
   end_of_study     = end_of_study,
   prior            = c(0.1, 0.1),
@@ -161,10 +161,10 @@ out_t1error <- sim_trials(
   N_trials         = 1000,
   hazard_treatment = ht_null,
   hazard_control   = NULL,
-  cutpoints        = 0,
+  cutpoints        = NULL,
   N_total          = 80,
   lambda           = 5,
-  lambda_time      = 0,
+  lambda_time      = NULL,
   interim_look     = 50,
   end_of_study     = end_of_study,
   prior            = c(0.1, 0.1),

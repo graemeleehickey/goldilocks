@@ -73,127 +73,303 @@
 <p>The <code>goldilocks</code> package implements the Goldilocks
 adaptive sample-size design of Broglio, Connor, and Berry (2014) for
 time-to-event endpoints. This vignette outlines the technical details of
-the design, including notation, the piecewise-exponential event-time
-model, Gamma posterior updating, posterior <strong>predictive
-probabilities</strong>, interim decision rules, final analysis options,
-and simulation-based calibration. The package vignettes “Two-arm
-randomized trials”, “Bayesian piecewise-exponential designs”, and
-“Single-arm designs with a performance goal” provide more
-application-focused examples in R.</p>
+the design, including notation, the continuous-time enrollment process,
+the piecewise-exponential event-time model, Gamma posterior updating,
+posterior <strong>predictive probabilities</strong>, interim decision
+rules, final analysis options, and simulation-based calibration. The
+package vignettes “Two-arm randomized trials”, “Bayesian
+piecewise-exponential designs”, and “Single-arm designs with a
+performance goal” provide more application-focused examples in R.</p>
 </div>
 <div class="section level2">
 <h2 id="design-and-notation">1. Design and notation<a class="anchor" aria-label="anchor" href="#design-and-notation"></a>
 </h2>
-<p>Consider a trial with maximum sample size (N_{}), planned endpoint
-time (), and interim sample-size selection analyses after</p>
+<p>Consider a trial with maximum sample size
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi mathvariant="normal">max</mi></msub><annotation encoding="application/x-tex">N_{\max}</annotation></semantics></math>,
+planned endpoint time
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>,
+and interim sample-size selection analyses after</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mn>1</mn></msub><mo>&lt;</mo><msub><mi>n</mi><mn>2</mn></msub><mo>&lt;</mo><mi>⋯</mi><mo>&lt;</mo><msub><mi>n</mi><mi>L</mi></msub><mo>&lt;</mo><msub><mi>N</mi><mi mathvariant="normal">max</mi></msub></mrow><annotation encoding="application/x-tex">n_1 &lt; n_2 &lt; \cdots &lt; n_L &lt; N_{\max}</annotation></semantics></math></p>
 <p>subjects have been enrolled. The package argument
-<code>N_total</code> corresponds to (N_{}), <code>end_of_study</code> to
-(), and <code>interim_look</code> to ((n_1,,n_L)).</p>
-<p>Let (Z_i ) denote treatment assignment for subject (i), matching the
-package data column <code>treatment</code>: (Z_i = 1) for the treatment
-arm and (Z_i = 0) for the control arm. In a single-arm design, all (Z_i
-= 1) and there is no concurrent control. The package assumes that
+<code>N_total</code> corresponds to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi mathvariant="normal">max</mi></msub><annotation encoding="application/x-tex">N_{\max}</annotation></semantics></math>,
+<code>end_of_study</code> to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>,
+and <code>interim_look</code> to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>n</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>n</mi><mi>L</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(n_1,\ldots,n_L)</annotation></semantics></math>.</p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>i</mi></msub><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">Z_i \in \{0,1\}</annotation></semantics></math>
+denote treatment assignment for subject
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>,
+matching the package data column <code>treatment</code>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">Z_i = 1</annotation></semantics></math>
+for the treatment arm and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>i</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">Z_i = 0</annotation></semantics></math>
+for the control arm. In a single-arm design, all
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">Z_i = 1</annotation></semantics></math>
+and there is no concurrent control. The package assumes that
 randomization occurs at enrollment; in practice those times can differ,
 but the distinction is not represented in the simulation model. We
-therefore use enrollment time throughout. Let (E_i) denote enrollment
-time from first patient in, (T_i^*) the true event time from enrollment,
-(C_i) the administrative or loss-to-follow-up censoring time, and</p>
+therefore use enrollment time throughout. Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>E</mi><mi>i</mi></msub><annotation encoding="application/x-tex">E_i</annotation></semantics></math>
+denote enrollment time from first patient in,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>T</mi><mi>i</mi><mo>*</mo></msubsup><annotation encoding="application/x-tex">T_i^*</annotation></semantics></math>
+the true event time from enrollment,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>i</mi></msub><annotation encoding="application/x-tex">C_i</annotation></semantics></math>
+the administrative or loss-to-follow-up censoring time, and</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>T</mi><mi>i</mi><mo>*</mo></msubsup><mo>,</mo><msub><mi>C</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>δ</mi><mi>i</mi></msub><mo>=</mo><mi>I</mi><mo stretchy="false" form="prefix">(</mo><msubsup><mi>T</mi><mi>i</mi><mo>*</mo></msubsup><mo>≤</mo><msub><mi>C</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">T_i = \min(T_i^*, C_i), \qquad
   \delta_i = I(T_i^* \le C_i).</annotation></semantics></math></p>
-<p>At the interim analysis held when (n_) subjects have been enrolled,
-the analysis calendar time is (E_{n_}). Subject (i)’s current observed
-follow-up is</p>
+<p>At the interim analysis held when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>ℓ</mi></msub><annotation encoding="application/x-tex">n_\ell</annotation></semantics></math>
+subjects have been enrolled, the analysis calendar time is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>E</mi><msub><mi>n</mi><mi>ℓ</mi></msub></msub><annotation encoding="application/x-tex">E_{n_\ell}</annotation></semantics></math>.
+Subject
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>’s
+current observed follow-up is</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi>i</mi><mi>ℓ</mi></mrow></msub><mo>=</mo><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><msub><mi>E</mi><msub><mi>n</mi><mi>ℓ</mi></msub></msub><mo>−</mo><msub><mi>E</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">u_{i\ell} = \max\{0, E_{n_\ell} - E_i\}.</annotation></semantics></math></p>
 <p>For enrolled subjects, the interim data are masked to the information
 available at this calendar time. If an event has not yet occurred by
-(u_{i}), the subject is treated as censored at (u_{i}). Subjects with (i
-&gt; n_) are not yet enrolled and contribute only to the
-maximum-sample-size prediction.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi>i</mi><mi>ℓ</mi></mrow></msub><annotation encoding="application/x-tex">u_{i\ell}</annotation></semantics></math>,
+the subject is treated as censored at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mrow><mi>i</mi><mi>ℓ</mi></mrow></msub><annotation encoding="application/x-tex">u_{i\ell}</annotation></semantics></math>.
+Subjects with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>&gt;</mo><msub><mi>n</mi><mi>ℓ</mi></msub></mrow><annotation encoding="application/x-tex">i &gt; n_\ell</annotation></semantics></math>
+are not yet enrolled and contribute only to the maximum-sample-size
+prediction.</p>
 <p>At each interim analysis the design estimates two predictive
 probabilities:</p>
 <ol style="list-style-type: decimal">
-<li>(P_{n_}), the probability of final success if accrual stops at the
-current enrolled sample size and all enrolled subjects complete
-follow-up;</li>
-<li>(P_{,}), the probability of final success if the trial continues to
-(N_{}).</li>
+<li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><msub><mi>n</mi><mi>ℓ</mi></msub></msub><annotation encoding="application/x-tex">P_{n_\ell}</annotation></semantics></math>,
+the probability of final success if accrual stops at the current
+enrolled sample size and all enrolled subjects complete follow-up;</li>
+<li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo>,</mo><mi>ℓ</mi></mrow></msub><annotation encoding="application/x-tex">P_{\max,\ell}</annotation></semantics></math>,
+the probability of final success if the trial continues to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi mathvariant="normal">max</mi></msub><annotation encoding="application/x-tex">N_{\max}</annotation></semantics></math>.</li>
 </ol>
-<p>These are compared with thresholds (S_) and (F_), corresponding to
-the package arguments <code>Sn</code> and <code>Fn</code>.</p>
+<p>These are compared with thresholds
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>ℓ</mi></msub><annotation encoding="application/x-tex">S_\ell</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mi>ℓ</mi></msub><annotation encoding="application/x-tex">F_\ell</annotation></semantics></math>,
+corresponding to the package arguments <code>Sn</code> and
+<code>Fn</code>.</p>
 </div>
 <div class="section level2">
-<h2 id="event-time-model">2. Event-time model<a class="anchor" aria-label="anchor" href="#event-time-model"></a>
+<h2 id="continuous-time-enrollment-process">2. Continuous-time enrollment process<a class="anchor" aria-label="anchor" href="#continuous-time-enrollment-process"></a>
+</h2>
+<p>The simulation model places the first enrolled subject at time zero.
+This is a first-patient-in origin, not an earlier protocol-approval,
+site-activation, or recruitment-opening date. Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mn>1</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">E_1 = 0</annotation></semantics></math>
+and let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>E</mi><mi>i</mi></msub><annotation encoding="application/x-tex">E_i</annotation></semantics></math>
+for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">i &gt; 1</annotation></semantics></math>
+denote the calendar time of the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>th
+enrollment measured from first patient in.</p>
+<p>Enrollment after the first patient follows a non-homogeneous Poisson
+process with a piecewise-constant intensity. Write the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+internal enrollment-rate knots as</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><msub><mi>a</mi><mn>1</mn></msub><mo>&lt;</mo><msub><mi>a</mi><mn>2</mn></msub><mo>&lt;</mo><mi>⋯</mi><mo>&lt;</mo><msub><mi>a</mi><mi>K</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">0 &lt; a_1 &lt; a_2 &lt; \cdots &lt; a_K,</annotation></semantics></math></p>
+<p>and define
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mn>0</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">a_0 = 0</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">a_{K+1} = \infty</annotation></semantics></math>.
+These internal knots are supplied as <code>lambda_time</code>; zero is
+implicit and is not included. There are
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">K+1</annotation></semantics></math>
+positive rates</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝛒</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>ρ</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>ρ</mi><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\boldsymbol{\rho} = (\rho_1,\ldots,\rho_{K+1}),</annotation></semantics></math></p>
+<p>supplied as <code>lambda</code>, with</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>ρ</mi><mi>j</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>a</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>≤</mo><mi>t</mi><mo>&lt;</mo><msub><mi>a</mi><mi>j</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">\rho(t) = \rho_j, \qquad a_{j-1} \le t &lt; a_j.</annotation></semantics></math></p>
+<p>Consequently, <code>length(lambda)</code> must be exactly
+<code>length(lambda_time) + 1</code>. A constant enrollment rate is
+represented by <code>lambda_time = NULL</code> and a scalar
+<code>lambda</code>. The final rate continues beyond the last knot until
+the requested <code>N_total</code> is reached; <code><a href="../reference/enrollment.html">enrollment()</a></code>
+does not impose a finite recruitment horizon.</p>
+<p>The cumulative enrollment intensity is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msubsup><mo>∫</mo><mn>0</mn><mi>t</mi></msubsup><mi>ρ</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>u</mi><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></munderover><msub><mi>ρ</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">{</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>,</mo><msub><mi>a</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>a</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><msub><mo stretchy="false" form="postfix">}</mo><mo>+</mo></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">A(t) = \int_0^t \rho(u)\,du
+       = \sum_{j=1}^{K+1}
+         \rho_j\{\min(t,a_j)-a_{j-1}\}_+.</annotation></semantics></math></p>
+<p>To generate the process exactly, draw independent variables
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mn>2</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>X</mi><msub><mi>N</mi><mi mathvariant="normal">max</mi></msub></msub><mo>∼</mo><mrow><mi mathvariant="normal">Exponential</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">X_2,\ldots,X_{N_{\max}} \sim \operatorname{Exponential}(1)</annotation></semantics></math>
+and form</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mi>i</mi></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>2</mn></mrow><mi>i</mi></munderover><msub><mi>X</mi><mi>k</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">Q_i = \sum_{k=2}^{i} X_k.</annotation></semantics></math></p>
+<p>The enrollment times are then obtained through the inverse cumulative
+intensity,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mn>1</mn></msub><mo>=</mo><mn>0</mn><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>E</mi><mi>i</mi></msub><mo>=</mo><msup><mi>A</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="false" form="prefix">(</mo><msub><mi>Q</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="1.0em"></mspace><mi>i</mi><mo>=</mo><mn>2</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>N</mi><mi mathvariant="normal">max</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">E_1 = 0, \qquad E_i = A^{-1}(Q_i), \quad i=2,\ldots,N_{\max}.</annotation></semantics></math></p>
+<p>More explicitly, if
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><msub><mi>Q</mi><mi>i</mi></msub><mo>&lt;</mo><mi>A</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">A(a_{j-1}) \le Q_i &lt; A(a_j)</annotation></semantics></math>,
+then</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mi>i</mi></msub><mo>=</mo><msub><mi>a</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mfrac><mrow><msub><mi>Q</mi><mi>i</mi></msub><mo>−</mo><mi>A</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><msub><mi>ρ</mi><mi>j</mi></msub></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">E_i = a_{j-1} + \frac{Q_i-A(a_{j-1})}{\rho_j}.</annotation></semantics></math></p>
+<p>This time-rescaling construction is exact: after the patient anchored
+at zero, the number of arrivals in any interval
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">(s,t]</annotation></semantics></math>
+is Poisson with mean
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>A</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">A(t)-A(s)</annotation></semantics></math>,
+and counts over disjoint intervals are independent. Under a constant
+rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>,
+the successive gaps are independent
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Exponential</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Exponential}(\rho)</annotation></semantics></math>
+variables and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mi>n</mi></msub><mo>∼</mo><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo>,</mo><mtext mathvariant="normal">rate</mtext><mo>=</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">E_n \sim \operatorname{Gamma}(n-1,\text{rate}=\rho)</annotation></semantics></math>.
+In particular,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">E</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>E</mi><mi>n</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>ρ</mi></mrow><annotation encoding="application/x-tex">\operatorname{E}(E_n)=(n-1)/\rho</annotation></semantics></math>.
+The fixed first patient accounts for the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n-1</annotation></semantics></math>,
+rather than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>,
+random gaps.</p>
+<p>This differs from generating Poisson counts in unit-time bins and
+adding uniform jitter afterward. Binning is sensitive to the arbitrary
+width of a time unit and cannot represent a rate change inside a bin.
+Cumulative-intensity inversion handles integer and fractional knots
+identically and requires work proportional to the requested number of
+subjects rather than to the elapsed number of empty bins.</p>
+<p>For example,</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/enrollment.html">enrollment</a></span><span class="op">(</span></span>
+<span>  lambda <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">5</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  lambda_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3.5</span>, <span class="fl">9</span><span class="op">)</span>,</span>
+<span>  N_total <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>uses rate 2 over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>3.5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">[0,3.5)</annotation></semantics></math>,
+rate 5 over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>3.5</mn><mo>,</mo><mn>9</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">[3.5,9)</annotation></semantics></math>,
+and rate 8 thereafter. All rates are enrollments per common time unit.
+<code>lambda_time</code>, enrollment times, event times, hazard
+<code>cutpoints</code>, and <code>end_of_study</code> should therefore
+all use the same unit, such as days or months.</p>
+<p>Although <code>lambda_time</code> and hazard <code>cutpoints</code>
+share the same internal-knot API, they operate on different clocks.
+Enrollment knots are trial-calendar times from first patient in. Hazard
+cutpoints are follow-up times from each individual subject’s enrollment.
+Their values and lengths are unrelated unless the scientific design
+happens to make them coincide.</p>
+<p>The package does not currently model site activations, site-specific
+random rates, pauses, recruitment caps, or uncertainty in the supplied
+rates. Those operational features require a richer site-level accrual
+model; <code>lambda</code> represents the trial-level rate schedule
+assumed for a simulation scenario.</p>
+</div>
+<div class="section level2">
+<h2 id="event-time-model">3. Event-time model<a class="anchor" aria-label="anchor" href="#event-time-model"></a>
 </h2>
 <p>The time-to-event model is piecewise exponential. Let</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>=</mo><msub><mi>s</mi><mn>0</mn></msub><mo>&lt;</mo><msub><mi>s</mi><mn>1</mn></msub><mo>&lt;</mo><mi>⋯</mi><mo>&lt;</mo><msub><mi>s</mi><mrow><mi>J</mi><mo>−</mo><mn>1</mn></mrow></msub></mrow><annotation encoding="application/x-tex">0 = s_0 &lt; s_1 &lt; \cdots &lt; s_{J-1}</annotation></semantics></math></p>
-<p>be the vector of cut-points supplied through <code>cutpoints</code>.
-These define intervals</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>=</mo><msub><mi>s</mi><mn>0</mn></msub><mo>&lt;</mo><msub><mi>s</mi><mn>1</mn></msub><mo>&lt;</mo><mi>⋯</mi><mo>&lt;</mo><msub><mi>s</mi><mrow><mi>J</mi><mo>−</mo><mn>1</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">0 = s_0 &lt; s_1 &lt; \cdots &lt; s_{J-1}.</annotation></semantics></math></p>
+<p>The interior cutpoints
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>s</mi><mrow><mi>J</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(s_1,\ldots,s_{J-1})</annotation></semantics></math>
+are supplied through <code>cutpoints</code>; the initial boundary
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mn>0</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s_0 = 0</annotation></semantics></math>
+is implicit. These define intervals</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><msub><mi>s</mi><mn>0</mn></msub><mo>,</mo><msub><mi>s</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mo stretchy="false" form="prefix">[</mo><msub><mi>s</mi><mn>1</mn></msub><mo>,</mo><msub><mi>s</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>…</mi><mo>,</mo><mo stretchy="false" form="prefix">[</mo><msub><mi>s</mi><mrow><mi>J</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>,</mo><mi>∞</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">[s_0, s_1), [s_1, s_2), \ldots, [s_{J-1}, \infty).</annotation></semantics></math></p>
-<p>For treatment value (z ), where (z = 1) denotes the treatment arm and
-(z = 0) denotes the control arm, interval (j) has constant hazard
-(_{zj}). The subject-level hazard is therefore</p>
+<p>For treatment value
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">z \in \{0,1\}</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">z = 1</annotation></semantics></math>
+denotes the treatment arm and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">z = 0</annotation></semantics></math>
+denotes the control arm, interval
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+has constant hazard
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\lambda_{zj}</annotation></semantics></math>.
+The subject-level hazard is therefore</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>z</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>λ</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>s</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>≤</mo><mi>t</mi><mo>&lt;</mo><msub><mi>s</mi><mi>j</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">h_z(t) = \lambda_{zj}, \qquad s_{j-1} \le t &lt; s_j,</annotation></semantics></math></p>
 <p>where the last interval has no finite upper endpoint. With
-<code>cutpoints = 0</code>, (J = 1) and the model reduces to an ordinary
-exponential model.</p>
-<p>The cumulative hazard for treatment value (z) at time (t) is</p>
+<code>cutpoints = NULL</code>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">J = 1</annotation></semantics></math>
+and the model reduces to an ordinary exponential model.</p>
+<p>The cumulative hazard for treatment value
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+at time
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+is</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>z</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>J</mi></munderover><msub><mi>λ</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="prefix">{</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>,</mo><msub><mi>s</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>s</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><msub><mo stretchy="false" form="postfix">}</mo><mo>+</mo></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">H_z(t) =
   \sum_{j=1}^{J}
   \lambda_{zj}
   \{ \min(t, s_j) - s_{j-1} \}_+,</annotation></semantics></math></p>
-<p>where (s_J = ) and ({x}_+ = (x,0)). The corresponding survival and
-cumulative event probability are</p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>J</mi></msub><mo>=</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">s_J = \infty</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mi>x</mi><msub><mo stretchy="false" form="postfix">}</mo><mo>+</mo></msub><mo>=</mo><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\{x\}_+ = \max(x,0)</annotation></semantics></math>.
+The corresponding survival and cumulative event probability are</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>z</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">{</mo><mi>−</mi><msub><mi>H</mi><mi>z</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>p</mi><mi>z</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>1</mn><mo>−</mo><msub><mi>S</mi><mi>z</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">S_z(t) = \exp\{-H_z(t)\}, \qquad
   p_z(t) = 1 - S_z(t).</annotation></semantics></math></p>
 <p>The helper <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> solves the inverse problem used
 in simulation planning: given event probabilities at one or more time
 points, it returns the piecewise hazards that imply those probabilities.
-The helper <code><a href="../reference/ppwe.html">ppwe()</a></code> evaluates (p_z()), and
-<code>haz_to_prop()</code> applies this transformation to posterior
+The helper <code><a href="../reference/ppwe.html">ppwe()</a></code> evaluates
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>z</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_z(\tau)</annotation></semantics></math>,
+and <code>haz_to_prop()</code> applies this transformation to posterior
 hazard draws.</p>
-<p>For observed follow-up ((T_i, _i, Z_i)), the piecewise-exponential
-likelihood can be written in terms of interval-specific event counts and
-exposure times. Define</p>
+<p>For observed follow-up
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><msub><mi>δ</mi><mi>i</mi></msub><mo>,</mo><msub><mi>Z</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(T_i, \delta_i, Z_i)</annotation></semantics></math>,
+the piecewise-exponential likelihood can be written in terms of
+interval-specific event counts and exposure times. Define</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>=</mo><munder><mo>∑</mo><mi>i</mi></munder><mi>I</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>Z</mi><mi>i</mi></msub><mo>=</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>δ</mi><mi>i</mi></msub><mi>I</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><msub><mi>s</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>,</mo><msub><mi>s</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">d_{zj} = \sum_i I(Z_i = z)\delta_i I(T_i \in [s_{j-1}, s_j)),</annotation></semantics></math></p>
 <p>and</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>=</mo><munder><mo>∑</mo><mi>i</mi></munder><mi>I</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>Z</mi><mi>i</mi></msub><mo>=</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">{</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><msub><mi>s</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>s</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><msub><mo stretchy="false" form="postfix">}</mo><mo>+</mo></msub><mi>I</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>&gt;</mo><msub><mi>s</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">y_{zj} =
   \sum_i I(Z_i = z)
   \{ \min(T_i, s_j) - s_{j-1} \}_+ I(T_i &gt; s_{j-1}).</annotation></semantics></math></p>
-<p>Up to factors not involving (_{zj}), the likelihood contribution for
-treatment value (z) is</p>
+<p>Up to factors not involving
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\lambda_{zj}</annotation></semantics></math>,
+the likelihood contribution for treatment value
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+is</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>z</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>𝛌</mi><mi>z</mi></msub><mo>;</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>∝</mo><munderover><mo>∏</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>J</mi></munderover><msubsup><mi>λ</mi><mrow><mi>z</mi><mi>j</mi></mrow><msub><mi>d</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub></msubsup><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><msub><mi>λ</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><msub><mi>y</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">L_z(\boldsymbol{\lambda}_z; \mathcal{D})
   \propto
   \prod_{j=1}^{J}
   \lambda_{zj}^{d_{zj}} \exp(-\lambda_{zj}y_{zj}),</annotation></semantics></math></p>
-<p>where (<em>z = (</em>,,_{zJ})^). This sufficient-statistic form is
-what makes the Gamma posterior update available in closed form.</p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝛌</mi><mi>z</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mrow><mi>z</mi><mn>1</mn></mrow></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>λ</mi><mrow><mi>z</mi><mi>J</mi></mrow></msub><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{\lambda}_z = (\lambda_{z1},\ldots,\lambda_{zJ})^\top</annotation></semantics></math>.
+This sufficient-statistic form is what makes the Gamma posterior update
+available in closed form.</p>
 </div>
 <div class="section level2">
-<h2 id="posterior-distribution-of-hazards">3. Posterior distribution of hazards<a class="anchor" aria-label="anchor" href="#posterior-distribution-of-hazards"></a>
+<h2 id="posterior-distribution-of-hazards">4. Posterior distribution of hazards<a class="anchor" aria-label="anchor" href="#posterior-distribution-of-hazards"></a>
 </h2>
-<p>For each treatment value (z) and interval (j),
+<p>For each treatment value
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+and interval
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>,
 <code>goldilocks</code> assumes an independent Gamma prior</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>∼</mo><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>α</mi><mn>0</mn></msub><mo>,</mo><msub><mi>β</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\lambda_{zj} \sim \operatorname{Gamma}(\alpha_0, \beta_0),</annotation></semantics></math></p>
-<p>where (_0) is the shape and (_0) is the rate. This follows the
-<code><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">stats::rgamma()</a></code> parameterization. The argument
-<code>prior = c(alpha0, beta0)</code> sets these two hyperparameters,
-with default <code>prior = c(0.1, 0.1)</code>. The same prior is applied
-to every treatment group and every piecewise interval. Separate priors
-by treatment group or interval cannot currently be specified through the
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\alpha_0</annotation></semantics></math>
+is the shape and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\beta_0</annotation></semantics></math>
+is the rate. This follows the <code><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">stats::rgamma()</a></code>
+parameterization. The argument <code>prior = c(alpha0, beta0)</code>
+sets these two hyperparameters, with default
+<code>prior = c(0.1, 0.1)</code>. The same prior is applied to every
+treatment group and every piecewise interval. Separate priors by
+treatment group or interval cannot currently be specified through the
 package interface.</p>
-<p>At an analysis, let (d_{zj}) be the number of observed events for
-treatment value (z), interval (j), and let (y_{zj}) be the total
-observed exposure time for that treatment value and interval.
-Gamma-exponential conjugacy gives</p>
+<p>At an analysis, let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">d_{zj}</annotation></semantics></math>
+be the number of observed events for treatment value
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>,
+interval
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>,
+and let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">y_{zj}</annotation></semantics></math>
+be the total observed exposure time for that treatment value and
+interval. Gamma-exponential conjugacy gives</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>∣</mo><mi>𝒟</mi><mo>∼</mo><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>α</mi><mn>0</mn></msub><mo>+</mo><msub><mi>d</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>,</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>y</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\lambda_{zj} \mid \mathcal{D}
   \sim \operatorname{Gamma}(\alpha_0 + d_{zj}, \beta_0 + y_{zj}).</annotation></semantics></math></p>
-<p>The package obtains ((d_{zj}, y_{zj})) by splitting each subject’s
-observed follow-up over the cut-point intervals. Posterior draws are
-generated independently for each treatment group and interval. In early
-interim analyses, later piecewise intervals may have no exposure. The
-<code>empty_interval</code> argument controls the policy for these
-intervals:</p>
+<p>The package obtains
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>d</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>,</mo><msub><mi>y</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(d_{zj}, y_{zj})</annotation></semantics></math>
+by splitting each subject’s observed follow-up over the cut-point
+intervals. Posterior draws are generated independently for each
+treatment group and interval. In early interim analyses, later piecewise
+intervals may have no exposure. The <code>empty_interval</code> argument
+controls the policy for these intervals:</p>
 <ul>
 <li>
 <code>empty_interval = "propagate"</code> is the default and
@@ -204,8 +380,11 @@ it should be interpreted as a computational fallback rather than
 evidence about that later interval.</li>
 <li>
 <code>empty_interval = "prior"</code> leaves the interval with
-(d_{zj} = 0) and (y_{zj} = 0), so the posterior for that interval is
-exactly the specified Gamma prior.</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">d_{zj} = 0</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>z</mi><mi>j</mi></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y_{zj} = 0</annotation></semantics></math>,
+so the posterior for that interval is exactly the specified Gamma
+prior.</li>
 <li>
 <code>empty_interval = "error"</code> stops the analysis when any
 treatment-arm interval has no exposed subjects.</li>
@@ -220,7 +399,7 @@ predictive calculations integrate over this density rather than
 conditioning on a single plug-in hazard estimate.</p>
 </div>
 <div class="section level2">
-<h2 id="predictive-distribution-for-incomplete-outcomes">4. Predictive distribution for incomplete outcomes<a class="anchor" aria-label="anchor" href="#predictive-distribution-for-incomplete-outcomes"></a>
+<h2 id="predictive-distribution-for-incomplete-outcomes">5. Predictive distribution for incomplete outcomes<a class="anchor" aria-label="anchor" href="#predictive-distribution-for-incomplete-outcomes"></a>
 </h2>
 <p>At an interim analysis, subjects can be separated into three
 sets:</p>
@@ -231,20 +410,31 @@ sets:</p>
 </ol>
 <p>The first set contributes observed events and exposure to the
 posterior. The second and third sets require prediction.</p>
-<p>For an enrolled subject who is event-free through time (u), a future
-event time is drawn from the conditional piecewise-exponential
+<p>For an enrolled subject who is event-free through time
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>,
+a future event time is drawn from the conditional piecewise-exponential
 distribution</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo>≤</mo><mi>t</mi><mo>∣</mo><mi>T</mi><mo>&gt;</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mrow><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mn>1</mn><mo>−</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><mi>t</mi><mo>&gt;</mo><mi>u</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">\Pr(T \le t \mid T &gt; u)
   = \frac{F(t) - F(u)}{1 - F(u)}, \qquad t &gt; u,</annotation></semantics></math></p>
-<p>where (F(t) = 1 - S(t)). Equivalently, if (U (0,1)), then</p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>1</mn><mo>−</mo><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">F(t) = 1 - S(t)</annotation></semantics></math>.
+Equivalently, if
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mo>∼</mo><mrow><mi mathvariant="normal">Uniform</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">U \sim \operatorname{Uniform}(0,1)</annotation></semantics></math>,
+then</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="false" form="prefix">{</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>U</mi><mo stretchy="false" form="prefix">[</mo><mn>1</mn><mo>−</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>u</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">T = F^{-1}\{F(u) + U[1 - F(u)]\}.</annotation></semantics></math></p>
 <p>This is implemented by <code><a href="../reference/pwe_impute.html">pwe_impute()</a></code>. For future subjects
 in the maximum-sample-size calculation, <code><a href="../reference/pwe_sim.html">pwe_sim()</a></code> draws
 unconditional event times from the same piecewise-exponential model. In
 the package implementation, these future event-time imputations do not
 require explicitly simulating future enrollment times at the interim
-look; the number of future subjects is determined by (N_{} - n_).</p>
-<p>Let (_{}^{}) denote the data observed at look (), and let (^{})
+look; the number of future subjects is determined by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi mathvariant="normal">max</mi></msub><mo>−</mo><msub><mi>n</mi><mi>ℓ</mi></msub></mrow><annotation encoding="application/x-tex">N_{\max} - n_\ell</annotation></semantics></math>.</p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>𝒟</mi><mi>ℓ</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">s</mi></mrow></msubsup><annotation encoding="application/x-tex">\mathcal{D}_{\ell}^{\mathrm{obs}}</annotation></semantics></math>
+denote the data observed at look
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℓ</mi><annotation encoding="application/x-tex">\ell</annotation></semantics></math>,
+and let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝒟</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi></mrow></msup><annotation encoding="application/x-tex">\mathcal{D}^{\mathrm{mis}}</annotation></semantics></math>
 denote unobserved event times and future censoring indicators. The
 posterior predictive density is</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>𝒟</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi></mrow></msup><mo>∣</mo><msubsup><mi>𝒟</mi><mi>ℓ</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">s</mi></mrow></msubsup><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo>∫</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>𝒟</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi></mrow></msup><mo>∣</mo><mi>𝛌</mi><mo stretchy="false" form="postfix">)</mo><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mi>𝛌</mi><mo>∣</mo><msubsup><mi>𝒟</mi><mi>ℓ</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">s</mi></mrow></msubsup><mo stretchy="false" form="postfix">)</mo><mi>d</mi><mi>𝛌</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">p(\mathcal{D}^{\mathrm{mis}} \mid \mathcal{D}_{\ell}^{\mathrm{obs}})
@@ -255,24 +445,38 @@ posterior predictive density is</p>
   d\boldsymbol{\lambda}.</annotation></semantics></math></p>
 <p>This density is the mathematical target, not an object that the
 package evaluates in closed form. In the implementation,
-<code>posterior()</code> draws (), <code>impute_data()</code> draws
-completed outcomes conditional on those hazards, and
-<code>test_stop_success()</code> repeats the impute-and-analyze cycle to
-approximate the predictive probability by Monte Carlo simulation.</p>
+<code>posterior()</code> draws
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛌</mi><annotation encoding="application/x-tex">\boldsymbol{\lambda}</annotation></semantics></math>,
+<code>impute_data()</code> draws completed outcomes conditional on those
+hazards, and <code>test_stop_success()</code> repeats the
+impute-and-analyze cycle to approximate the predictive probability by
+Monte Carlo simulation.</p>
 </div>
 <div class="section level2">
-<h2 id="interim-decision-algorithm">5. Interim decision algorithm<a class="anchor" aria-label="anchor" href="#interim-decision-algorithm"></a>
+<h2 id="interim-decision-algorithm">6. Interim decision algorithm<a class="anchor" aria-label="anchor" href="#interim-decision-algorithm"></a>
 </h2>
-<p>At interim look (), the package first estimates the posterior of the
-hazard parameters from the currently observable data. It then uses Monte
-Carlo integration to approximate (P_{n_}) and (P_{,}).</p>
-<p>Let (()) be the final success indicator for a completed analysis
-dataset:</p>
+<p>At interim look
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℓ</mi><annotation encoding="application/x-tex">\ell</annotation></semantics></math>,
+the package first estimates the posterior of the hazard parameters from
+the currently observable data. It then uses Monte Carlo integration to
+approximate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><msub><mi>n</mi><mi>ℓ</mi></msub></msub><annotation encoding="application/x-tex">P_{n_\ell}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo>,</mo><mi>ℓ</mi></mrow></msub><annotation encoding="application/x-tex">P_{\max,\ell}</annotation></semantics></math>.</p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\psi(\mathcal{D})</annotation></semantics></math>
+be the final success indicator for a completed analysis dataset:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>I</mi><mo stretchy="false" form="prefix">{</mo><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mi>c</mi><mo stretchy="false" form="postfix">}</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\psi(\mathcal{D}) =
   I\{Q(\mathcal{D}) &gt; c\},</annotation></semantics></math></p>
-<p>where (Q()) is the final analysis quantity and (c) is the success
-threshold. In package notation, (c =) <code>prob_ha</code>. The final
-analysis quantity (Q()) depends on the analysis method:</p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(\mathcal{D})</annotation></semantics></math>
+is the final analysis quantity and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+is the success threshold. In package notation,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+is set by <code>prob_ha</code>. The final analysis quantity
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(\mathcal{D})</annotation></semantics></math>
+depends on the analysis method:</p>
 <table class="table">
 <colgroup>
 <col width="25%">
@@ -283,15 +487,19 @@ analysis quantity (Q()) depends on the analysis method:</p>
 <thead><tr class="header">
 <th>Design setting</th>
 <th><code>method</code></th>
-<th>(Q())</th>
+<th><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(\mathcal{D})</annotation></semantics></math></th>
 <th>Supported alternatives</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td>Two-arm randomized trial</td>
 <td><code>logrank</code></td>
-<td>(1-p()), where (p()) is the traditional log-rank test P-value, with
-one-sided variants defined in Section 6.1</td>
+<td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">1-p(\mathcal{D})</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p(\mathcal{D})</annotation></semantics></math>
+is the traditional log-rank test P-value, with one-sided variants
+defined in Section 6.1</td>
 <td>
 <code>"less"</code>, <code>"greater"</code>,
 <code>"two.sided"</code>
@@ -300,8 +508,12 @@ one-sided variants defined in Section 6.1</td>
 <tr class="even">
 <td>Two-arm randomized trial</td>
 <td><code>cox</code></td>
-<td>(1-p()), where (p()) is the traditional Wald-test P-value, with
-one-sided variants defined in Section 6.1</td>
+<td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">1-p(\mathcal{D})</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p(\mathcal{D})</annotation></semantics></math>
+is the traditional Wald-test P-value, with one-sided variants defined in
+Section 6.1</td>
 <td>
 <code>"less"</code>, <code>"greater"</code>,
 <code>"two.sided"</code>
@@ -310,13 +522,21 @@ one-sided variants defined in Section 6.1</td>
 <tr class="odd">
 <td>Two-arm randomized trial</td>
 <td><code>chisq</code></td>
-<td>(1-p()), where (p()) is the traditional chi-square test P-value</td>
+<td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">1-p(\mathcal{D})</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p(\mathcal{D})</annotation></semantics></math>
+is the traditional chi-square test P-value</td>
 <td><code>"two.sided"</code></td>
 </tr>
 <tr class="even">
 <td>Two-arm randomized trial</td>
 <td><code>bayes-surv</code></td>
-<td>((&lt; h_0 )) or ((&gt; h_0 ))</td>
+<td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(\Delta &lt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mo>&gt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(\Delta &gt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+</td>
 <td>
 <code>"less"</code>, <code>"greater"</code>
 </td>
@@ -324,7 +544,11 @@ one-sided variants defined in Section 6.1</td>
 <tr class="odd">
 <td>Single-arm trial</td>
 <td><code>bayes-surv</code></td>
-<td>((p_1() &lt; h_0 )) or ((p_1() &gt; h_0 ))</td>
+<td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(p_1(\tau) &lt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(p_1(\tau) &gt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+</td>
 <td>
 <code>"less"</code>, <code>"greater"</code>
 </td>
@@ -332,7 +556,11 @@ one-sided variants defined in Section 6.1</td>
 <tr class="even">
 <td>Two-arm randomized trial</td>
 <td><code>bayes-bin</code></td>
-<td>(( &lt; h_0 )) or (( &gt; h_0 ))</td>
+<td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(\Delta_{\mathrm{bin}} &lt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>&gt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(\Delta_{\mathrm{bin}} &gt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+</td>
 <td>
 <code>"less"</code>, <code>"greater"</code>
 </td>
@@ -340,7 +568,11 @@ one-sided variants defined in Section 6.1</td>
 <tr class="odd">
 <td>Single-arm trial</td>
 <td><code>bayes-bin</code></td>
-<td>((_1 &lt; h_0 )) or ((_1 &gt; h_0 ))</td>
+<td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>π</mi><mn>1</mn></msub><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(\pi_1 &lt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>π</mi><mn>1</mn></msub><mo>&gt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Pr(\pi_1 &gt; h_0 \mid \mathcal{D})</annotation></semantics></math>
+</td>
 <td>
 <code>"less"</code>, <code>"greater"</code>
 </td>
@@ -349,14 +581,16 @@ one-sided variants defined in Section 6.1</td>
 </table>
 <p>For frequentist analyses, <code>prob_ha</code> is therefore a
 transformed P-value threshold. For example, <code>prob_ha = 0.975</code>
-corresponds to a one-sided (= 0.025) rule. The value should be chosen
-during design calibration to control the desired type I error rate
-across relevant null scenarios.</p>
+corresponds to a one-sided
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>0.025</mn></mrow><annotation encoding="application/x-tex">\alpha = 0.025</annotation></semantics></math>
+rule. The value should be chosen during design calibration to control
+the desired type I error rate across relevant null scenarios.</p>
 <div class="section level3">
 <h3 id="predictive-probability-at-the-current-sample-size">5.1 Predictive probability at the current sample size<a class="anchor" aria-label="anchor" href="#predictive-probability-at-the-current-sample-size"></a>
 </h3>
-<p>The current-sample-size predictive probability (P_{n_}) is estimated
-by:</p>
+<p>The current-sample-size predictive probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><msub><mi>n</mi><mi>ℓ</mi></msub></msub><annotation encoding="application/x-tex">P_{n_\ell}</annotation></semantics></math>
+is estimated by:</p>
 <ol style="list-style-type: decimal">
 <li>draw one set of hazard parameters from the interim posterior;</li>
 <li>impute remaining endpoint outcomes for enrolled subjects only;</li>
@@ -371,7 +605,10 @@ and</li>
     \psi(\mathcal{D}_{n_\ell}^{\mathrm{comp}})
     \mid \mathcal{D}_{\ell}^{\mathrm{obs}}
   \},</annotation></semantics></math></p>
-<p>where (<em>{n</em>}^{}) is the completed dataset formed from the (n_)
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>𝒟</mi><msub><mi>n</mi><mi>ℓ</mi></msub><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi></mrow></msubsup><annotation encoding="application/x-tex">\mathcal{D}_{n_\ell}^{\mathrm{comp}}</annotation></semantics></math>
+is the completed dataset formed from the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>ℓ</mi></msub><annotation encoding="application/x-tex">n_\ell</annotation></semantics></math>
 enrolled subjects after imputing their remaining follow-up.
 Equivalently,</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><msub><mi>n</mi><mi>ℓ</mi></msub></msub><mo>=</mo><mo>∫</mo><mi>ψ</mi><mo stretchy="false" form="prefix">(</mo><msubsup><mi>𝒟</mi><msub><mi>n</mi><mi>ℓ</mi></msub><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">s</mi></mrow></msubsup><mo>,</mo><msubsup><mi>𝒟</mi><msub><mi>n</mi><mi>ℓ</mi></msub><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi></mrow></msubsup><mo stretchy="false" form="postfix">)</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msubsup><mi>𝒟</mi><msub><mi>n</mi><mi>ℓ</mi></msub><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi></mrow></msubsup><mo>∣</mo><msubsup><mi>𝒟</mi><mi>ℓ</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">s</mi></mrow></msubsup><mo stretchy="false" form="postfix">)</mo><mi>d</mi><msubsup><mi>𝒟</mi><msub><mi>n</mi><mi>ℓ</mi></msub><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi></mrow></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">P_{n_\ell}
@@ -382,8 +619,11 @@ Equivalently,</p>
   p(\mathcal{D}_{n_\ell}^{\mathrm{mis}}
     \mid \mathcal{D}_{\ell}^{\mathrm{obs}})
   d\mathcal{D}_{n_\ell}^{\mathrm{mis}}.</annotation></semantics></math></p>
-<p>Repeating the four-step procedure above for Monte Carlo replicate (m
-= 1,,M), where (M =) <code>N_impute</code>, gives</p>
+<p>Repeating the four-step procedure above for Monte Carlo replicate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">m = 1,\ldots,M</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+is set by <code>N_impute</code>, gives</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>P</mi><mo accent="true">̂</mo></mover><msub><mi>n</mi><mi>ℓ</mi></msub></msub><mo>=</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><mi>I</mi><mo stretchy="false" form="prefix">{</mo><mrow><mtext mathvariant="normal">success in replicate </mtext><mspace width="0.333em"></mspace></mrow><mi>m</mi><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\widehat{P}_{n_\ell}
   = \frac{1}{M}\sum_{m=1}^{M} I\{\textrm{success in replicate } m\}.</annotation></semantics></math></p>
 <p>If</p>
@@ -394,10 +634,12 @@ followed to the planned final analysis time.</p>
 <div class="section level3">
 <h3 id="predictive-probability-at-the-maximum-sample-size">5.2 Predictive probability at the maximum sample size<a class="anchor" aria-label="anchor" href="#predictive-probability-at-the-maximum-sample-size"></a>
 </h3>
-<p>The maximum-sample-size predictive probability (P_{,}) is estimated
-similarly, except that the completed trial includes both currently
-enrolled subjects and future subjects required to reach (N_{}). For each
-replicate, event times are imputed for the future subjects, the
+<p>The maximum-sample-size predictive probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo>,</mo><mi>ℓ</mi></mrow></msub><annotation encoding="application/x-tex">P_{\max,\ell}</annotation></semantics></math>
+is estimated similarly, except that the completed trial includes both
+currently enrolled subjects and future subjects required to reach
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi mathvariant="normal">max</mi></msub><annotation encoding="application/x-tex">N_{\max}</annotation></semantics></math>.
+For each replicate, event times are imputed for the future subjects, the
 completed dataset is analyzed, and success is recorded:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo>,</mo><mi>ℓ</mi></mrow></msub><mo>=</mo><mrow><mi mathvariant="normal">E</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">{</mo><mi>ψ</mi><mo stretchy="false" form="prefix">(</mo><msubsup><mi>𝒟</mi><msub><mi>N</mi><mi mathvariant="normal">max</mi></msub><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi></mrow></msubsup><mo stretchy="false" form="postfix">)</mo><mo>∣</mo><msubsup><mi>𝒟</mi><mi>ℓ</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">s</mi></mrow></msubsup><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">P_{\max,\ell}
   =
@@ -412,7 +654,9 @@ completed dataset is analyzed, and success is recorded:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>P</mi><mo accent="true">̂</mo></mover><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo>,</mo><mi>ℓ</mi></mrow></msub><mo>&lt;</mo><msub><mi>F</mi><mi>ℓ</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\widehat{P}_{\max,\ell} &lt; F_\ell,</annotation></semantics></math></p>
 <p>the trial stops for futility. Otherwise, accrual continues to the
 next interim look.</p>
-<p>Thus the interim action at look () can be represented as</p>
+<p>Thus the interim action at look
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℓ</mi><annotation encoding="application/x-tex">\ell</annotation></semantics></math>
+can be represented as</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi>ℓ</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">stop accrual for expected success</mtext><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mover><mi>P</mi><mo accent="true">̂</mo></mover><msub><mi>n</mi><mi>ℓ</mi></msub></msub><mo>&gt;</mo><msub><mi>S</mi><mi>ℓ</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">stop for futility</mtext><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mover><mi>P</mi><mo accent="true">̂</mo></mover><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo>,</mo><mi>ℓ</mi></mrow></msub><mo>&lt;</mo><msub><mi>F</mi><mi>ℓ</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">continue accrual</mtext><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">otherwise</mtext><mi>.</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">A_\ell =
 \begin{cases}
 \textrm{stop accrual for expected success}, &amp;
@@ -426,12 +670,14 @@ next interim look.</p>
 adaptive stopping look,</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>L</mi><mo>*</mo></msup><mo>=</mo><mrow><mi mathvariant="normal">inf</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">{</mo><mi>ℓ</mi><mo>:</mo><msub><mover><mi>P</mi><mo accent="true">̂</mo></mover><msub><mi>n</mi><mi>ℓ</mi></msub></msub><mo>&gt;</mo><msub><mi>S</mi><mi>ℓ</mi></msub><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> or </mtext><mspace width="0.333em"></mspace></mrow><msub><mover><mi>P</mi><mo accent="true">̂</mo></mover><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo>,</mo><mi>ℓ</mi></mrow></msub><mo>&lt;</mo><msub><mi>F</mi><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">}</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">L^* = \inf\{\ell : \widehat{P}_{n_\ell} &gt; S_\ell
   \textrm{ or } \widehat{P}_{\max,\ell} &lt; F_\ell\},</annotation></semantics></math></p>
-<p>with (L^* = L + 1) if no interim stopping condition is met and the
-design continues to (N_{}).</p>
+<p>with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>L</mi><mo>*</mo></msup><mo>=</mo><mi>L</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">L^* = L + 1</annotation></semantics></math>
+if no interim stopping condition is met and the design continues to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi mathvariant="normal">max</mi></msub><annotation encoding="application/x-tex">N_{\max}</annotation></semantics></math>.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="final-analysis">6. Final analysis<a class="anchor" aria-label="anchor" href="#final-analysis"></a>
+<h2 id="final-analysis">7. Final analysis<a class="anchor" aria-label="anchor" href="#final-analysis"></a>
 </h2>
 <p>The final analysis is conducted after accrual has stopped and the
 relevant follow-up has completed for the enrolled cohort, subject to the
@@ -444,15 +690,21 @@ calculations.</p>
 <p>For <code>method = "logrank"</code>, success is based on a log-rank
 test. For <code>method = "cox"</code>, success is based on the Wald test
 from a Cox proportional hazards regression. For these methods,
-<code>goldilocks</code> stores (1-p) in <code>post_prob_ha</code>; this
-is not a posterior probability, but it puts frequentist and Bayesian
-rules on a common “larger is stronger evidence” scale. For example, a
-one-sided test at (= 0.025) corresponds to
-<code>prob_ha = 0.975</code>.</p>
-<p>For the log-rank option, let (Z_{}) denote the signed log-rank
-statistic, with positive values corresponding to excess events in the
-control arm under the package convention. Let (p_{}) denote the
-traditional two-sided log-rank test P-value. For the Cox option, let ()
+<code>goldilocks</code> stores
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">1-p</annotation></semantics></math>
+in <code>post_prob_ha</code>; this is not a posterior probability, but
+it puts frequentist and Bayesian rules on a common “larger is stronger
+evidence” scale. For example, a one-sided test at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>0.025</mn></mrow><annotation encoding="application/x-tex">\alpha = 0.025</annotation></semantics></math>
+corresponds to <code>prob_ha = 0.975</code>.</p>
+<p>For the log-rank option, let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Z</mi><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">R</mi></mrow></msub><annotation encoding="application/x-tex">Z_{\mathrm{LR}}</annotation></semantics></math>
+denote the signed log-rank statistic, with positive values corresponding
+to excess events in the control arm under the package convention. Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">R</mi></mrow></msub><annotation encoding="application/x-tex">p_{\mathrm{LR}}</annotation></semantics></math>
+denote the traditional two-sided log-rank test P-value. For the Cox
+option, let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>η</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\widehat{\eta}</annotation></semantics></math>
 be the estimated log hazard ratio for treatment versus control. The null
 value <code>h0</code> is on the log-hazard-ratio scale, so the package
 uses</p>
@@ -461,92 +713,121 @@ uses</p>
 <p>When <code>h0 = 0</code>, this is the usual hazard-ratio-equals-1
 null. A non-inferiority margin specified as a hazard ratio can be
 supplied as <code>h0 = log(margin)</code>. Here, lower treatment hazard
-corresponds to (Z_{} &lt; 0). Let (p_{}) denote the two-sided Wald-test
-P-value relative to <code>h0</code>. The package uses the following
-method-specific definitions of (Q()):</p>
+corresponds to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">x</mi></mrow></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">Z_{\mathrm{Cox}} &lt; 0</annotation></semantics></math>.
+Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">x</mi></mrow></msub><annotation encoding="application/x-tex">p_{\mathrm{Cox}}</annotation></semantics></math>
+denote the two-sided Wald-test P-value relative to <code>h0</code>. The
+package uses the following method-specific definitions of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(\mathcal{D})</annotation></semantics></math>:</p>
 <table class="table">
 <thead><tr class="header">
 <th>Method</th>
 <th>Alternative</th>
-<th>(Q())</th>
+<th><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(\mathcal{D})</annotation></semantics></math></th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td><code>logrank</code></td>
 <td><code>"less"</code></td>
-<td>((Z_{}))</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>Z</mi><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">R</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Phi(Z_{\mathrm{LR}})</annotation></semantics></math></td>
 </tr>
 <tr class="even">
 <td><code>logrank</code></td>
 <td><code>"greater"</code></td>
-<td>(1 - (Z_{}))</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi mathvariant="normal">Φ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>Z</mi><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">R</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">1 - \Phi(Z_{\mathrm{LR}})</annotation></semantics></math></td>
 </tr>
 <tr class="odd">
 <td><code>logrank</code></td>
 <td><code>"two.sided"</code></td>
-<td>(1 - p_{})</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><msub><mi>p</mi><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">R</mi></mrow></msub></mrow><annotation encoding="application/x-tex">1 - p_{\mathrm{LR}}</annotation></semantics></math></td>
 </tr>
 <tr class="even">
 <td><code>cox</code></td>
 <td><code>"less"</code></td>
-<td>(1 - (Z_{}))</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi mathvariant="normal">Φ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>Z</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">x</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">1 - \Phi(Z_{\mathrm{Cox}})</annotation></semantics></math></td>
 </tr>
 <tr class="odd">
 <td><code>cox</code></td>
 <td><code>"greater"</code></td>
-<td>((Z_{}))</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>Z</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">x</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Phi(Z_{\mathrm{Cox}})</annotation></semantics></math></td>
 </tr>
 <tr class="even">
 <td><code>cox</code></td>
 <td><code>"two.sided"</code></td>
-<td>(1 - p_{})</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><msub><mi>p</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">x</mi></mrow></msub></mrow><annotation encoding="application/x-tex">1 - p_{\mathrm{Cox}}</annotation></semantics></math></td>
 </tr>
 <tr class="odd">
 <td><code>chisq</code></td>
 <td><code>"two.sided"</code></td>
-<td>(1 - p_{^2})</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><msub><mi>p</mi><msup><mi>χ</mi><mn>2</mn></msup></msub></mrow><annotation encoding="application/x-tex">1 - p_{\chi^2}</annotation></semantics></math></td>
 </tr>
 </tbody>
 </table>
-<p>Here (p_{^2}) is the traditional chi-square test P-value. The
-one-sided directions differ between the log-rank and Cox rows because of
-the sign convention of the package’s log-rank statistic.</p>
+<p>Here
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><msup><mi>χ</mi><mn>2</mn></msup></msub><annotation encoding="application/x-tex">p_{\chi^2}</annotation></semantics></math>
+is the traditional chi-square test P-value. The one-sided directions
+differ between the log-rank and Cox rows because of the sign convention
+of the package’s log-rank statistic.</p>
 <p>For <code>method = "chisq"</code>, the final event indicator is
 compared between arms using a chi-square test. This discards event-time
 information and is available only for two-arm designs with
 <code>alternative = "two.sided"</code>.</p>
 <p>When a Cox final analysis uses multiple imputation, the model is
-fitted separately to each completed dataset. Let (_m) and (U_m) be the
-log hazard ratio and its estimated variance from imputation (m = 1,,M).
+fitted separately to each completed dataset. Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>η</mi><mo accent="true">̂</mo></mover><mi>m</mi></msub><annotation encoding="application/x-tex">\widehat{\eta}_m</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>U</mi><mi>m</mi></msub><annotation encoding="application/x-tex">U_m</annotation></semantics></math>
+be the log hazard ratio and its estimated variance from imputation
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">m = 1,\ldots,M</annotation></semantics></math>.
 Rubin’s scalar pooling rules give</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>η</mi><mo accent="true">‾</mo></mover><mo>=</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><msub><mover><mi>η</mi><mo accent="true">̂</mo></mover><mi>m</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><mover><mi>U</mi><mo accent="true">‾</mo></mover><mo>=</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><msub><mi>U</mi><mi>m</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\bar{\eta} = \frac{1}{M}\sum_{m=1}^{M}\widehat{\eta}_m, \qquad
 \bar{U} = \frac{1}{M}\sum_{m=1}^{M}U_m,</annotation></semantics></math></p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mfrac><mn>1</mn><mrow><mi>M</mi><mo>−</mo><mn>1</mn></mrow></mfrac><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>η</mi><mo accent="true">̂</mo></mover><mi>m</mi></msub><mo>−</mo><mover><mi>η</mi><mo accent="true">‾</mo></mover><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo>,</mo><mspace width="2.0em"></mspace><mi>T</mi><mo>=</mo><mover><mi>U</mi><mo accent="true">‾</mo></mover><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>B</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">B = \frac{1}{M-1}\sum_{m=1}^{M}
   (\widehat{\eta}_m - \bar{\eta})^2, \qquad
 T = \bar{U} + \left(1 + \frac{1}{M}\right)B.</annotation></semantics></math></p>
-<p>The pooled Wald statistic is (({} - h_0) / ). Its P-value uses a (t)
+<p>The pooled Wald statistic is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mover><mi>η</mi><mo accent="true">‾</mo></mover><mo>−</mo><msub><mi>h</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msqrt><mi>T</mi></msqrt></mrow><annotation encoding="application/x-tex">(\bar{\eta} - h_0) / \sqrt{T}</annotation></semantics></math>.
+Its P-value uses a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
 reference distribution with Rubin’s large-sample degrees of freedom</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mn>1</mn><mi>r</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>,</mo><mspace width="2.0em"></mspace><mi>r</mi><mo>=</mo><mfrac><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mn>1</mn><mi>/</mi><mi>M</mi><mo stretchy="false" form="postfix">)</mo><mi>B</mi></mrow><mover><mi>U</mi><mo accent="true">‾</mo></mover></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">\nu = (M-1)\left(1 + \frac{1}{r}\right)^2, \qquad
 r = \frac{(1 + 1/M)B}{\bar{U}}.</annotation></semantics></math></p>
-<p>When (B = 0), (= ) and the reference distribution reduces to the
-standard normal distribution. At least two imputations are therefore
-required. The returned <code>est_final</code> is ({}), while
-<code>post_prob_ha</code> is (1-p) from this pooled test with the
-direction determined by <code>alternative</code>.</p>
+<p>When
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">B = 0</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mo>=</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">\nu = \infty</annotation></semantics></math>
+and the reference distribution reduces to the standard normal
+distribution. At least two imputations are therefore required. The
+returned <code>est_final</code> is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>η</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar{\eta}</annotation></semantics></math>,
+while <code>post_prob_ha</code> is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">1-p</annotation></semantics></math>
+from this pooled test with the direction determined by
+<code>alternative</code>.</p>
 </div>
 <div class="section level3">
 <h3 id="bayesian-survival-final-test">6.2 Bayesian survival final test<a class="anchor" aria-label="anchor" href="#bayesian-survival-final-test"></a>
 </h3>
 <p>For <code>method = "bayes-surv"</code>, posterior hazard draws are
-mapped to cumulative event probabilities at (). In a two-arm design the
-treatment effect is</p>
+mapped to cumulative event probabilities at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>.
+In a two-arm design the treatment effect is</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mo>=</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>p</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\Delta = p_1(\tau) - p_0(\tau),</annotation></semantics></math></p>
-<p>where (p_1()) is the treatment-arm event probability and (p_0()) is
-the control-arm event probability. The effect is on the event scale, not
-the survival scale. For an adverse event, benefit usually means (&lt;
-0).</p>
-<p>Because (p_a() = 1 - ), posterior draws of () are obtained by
-transforming posterior draws of (_1) and (_0):</p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_1(\tau)</annotation></semantics></math>
+is the treatment-arm event probability and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_0(\tau)</annotation></semantics></math>
+is the control-arm event probability. The effect is on the event scale,
+not the survival scale. For an adverse event, benefit usually means
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta &lt; 0</annotation></semantics></math>.</p>
+<p>Because
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>a</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">{</mo><mi>−</mi><msub><mi>H</mi><mi>a</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">p_a(\tau) = 1 - \exp\{-H_a(\tau)\}</annotation></semantics></math>,
+posterior draws of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
+are obtained by transforming posterior draws of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝛌</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\boldsymbol{\lambda}_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝛌</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\boldsymbol{\lambda}_0</annotation></semantics></math>:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="normal">Δ</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mn>1</mn><mo>−</mo><mi mathvariant="normal">exp</mi><mo stretchy="false" form="prefix">{</mo><mi>−</mi><msubsup><mi>H</mi><mn>1</mn><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo><mo stretchy="true" form="postfix">]</mo></mrow><mo>−</mo><mrow><mo stretchy="true" form="prefix">[</mo><mn>1</mn><mo>−</mo><mi mathvariant="normal">exp</mi><mo stretchy="false" form="prefix">{</mo><mi>−</mi><msubsup><mi>H</mi><mn>0</mn><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><mi>b</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>B</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">\Delta^{(b)}
   =
   \left[1 - \exp\{-H_1^{(b)}(\tau)\}\right]
@@ -558,7 +839,9 @@ transforming posterior draws of (_1) and (_0):</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi mathvariant="normal">Pr</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mn>1</mn><mi>B</mi></mfrac><munderover><mo>∑</mo><mrow><mi>b</mi><mo>=</mo><mn>1</mn></mrow><mi>B</mi></munderover><mi>I</mi><mo stretchy="false" form="prefix">(</mo><msup><mi mathvariant="normal">Δ</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\widehat{\Pr}(\Delta &lt; h_0 \mid \mathcal{D})
   =
   \frac{1}{B}\sum_{b=1}^{B} I(\Delta^{(b)} &lt; h_0),</annotation></semantics></math></p>
-<p>where (B =) <code>N_mcmc</code>.</p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+is set by <code>N_mcmc</code>.</p>
 <p>With <code>alternative = "less"</code>, success is declared when</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mtext mathvariant="monospace">𝚙𝚛𝚘𝚋_𝚑𝚊</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">\Pr(\Delta &lt; h_0 \mid \mathcal{D}) &gt; \texttt{prob_ha}.</annotation></semantics></math></p>
 <p>With <code>alternative = "greater"</code>, success is declared
@@ -566,11 +849,16 @@ when</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mo>&gt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mtext mathvariant="monospace">𝚙𝚛𝚘𝚋_𝚑𝚊</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">\Pr(\Delta &gt; h_0 \mid \mathcal{D}) &gt; \texttt{prob_ha}.</annotation></semantics></math></p>
 <p>The Bayesian final test is one-sided in the package;
 <code>alternative = "two.sided"</code> is not supported.</p>
-<p>In a single-arm design there is no (p_0()). The estimand becomes
-(p_1()), and (h_0) is an external benchmark event probability. In
-clinical-trial terminology this benchmark is often called a performance
-goal (PG) or objective performance criterion (OPC). Consequently,
-single-arm survival designs in <code>goldilocks</code> require
+<p>In a single-arm design there is no
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_0(\tau)</annotation></semantics></math>.
+The estimand becomes
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_1(\tau)</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mn>0</mn></msub><annotation encoding="application/x-tex">h_0</annotation></semantics></math>
+is an external benchmark event probability. In clinical-trial
+terminology this benchmark is often called a performance goal (PG) or
+objective performance criterion (OPC). Consequently, single-arm survival
+designs in <code>goldilocks</code> require
 <code>method = "bayes-surv"</code>; complete binary single-arm designs
 can use <code>method = "bayes-bin"</code>.</p>
 </div>
@@ -579,29 +867,39 @@ can use <code>method = "bayes-bin"</code>.</p>
 </h3>
 <p>For <code>method = "bayes-bin"</code>, each analysis dataset is
 reduced to the binary indicator of whether the endpoint has occurred by
-(). Subjects with right-censored follow-up before () must be imputed or
-excluded before this final test is applied, as described below.</p>
-<p>Let (x_z) be the number of events and (n_z) the number of subjects in
-treatment group (z). With <code>bin_prior = c(a, b)</code>, the event
-probability in arm (z) has posterior distribution</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>.
+Subjects with right-censored follow-up before
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+must be imputed or excluded before this final test is applied, as
+described below.</p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>z</mi></msub><annotation encoding="application/x-tex">x_z</annotation></semantics></math>
+be the number of events and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>z</mi></msub><annotation encoding="application/x-tex">n_z</annotation></semantics></math>
+the number of subjects in treatment group
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>.
+With <code>bin_prior = c(a, b)</code>, the event probability in arm
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+has posterior distribution</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mi>z</mi></msub><mo>∣</mo><mi>𝒟</mi><mo>∼</mo><mrow><mi mathvariant="normal">Beta</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>+</mo><msub><mi>x</mi><mi>z</mi></msub><mo>,</mo><mi>b</mi><mo>+</mo><msub><mi>n</mi><mi>z</mi></msub><mo>−</mo><msub><mi>x</mi><mi>z</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\pi_z \mid \mathcal{D} \sim
   \operatorname{Beta}(a + x_z, b + n_z - x_z).</annotation></semantics></math></p>
 <p>In a two-arm design, the binary treatment effect is</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>=</mo><msub><mi>π</mi><mn>1</mn></msub><mo>−</mo><msub><mi>π</mi><mn>0</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\Delta_{\mathrm{bin}} = \pi_1 - \pi_0,</annotation></semantics></math></p>
 <p>the treatment-arm event probability minus the control-arm event
-probability. For an adverse binary event, benefit usually means (_{}
-&lt; 0). With <code>alternative = "less"</code>, success is declared
-when</p>
+probability. For an adverse binary event, benefit usually means
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta_{\mathrm{bin}} &lt; 0</annotation></semantics></math>.
+With <code>alternative = "less"</code>, success is declared when</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mtext mathvariant="monospace">𝚙𝚛𝚘𝚋_𝚑𝚊</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">\Pr(\Delta_{\mathrm{bin}} &lt; h_0 \mid \mathcal{D}) &gt;
   \texttt{prob_ha}.</annotation></semantics></math></p>
 <p>With <code>alternative = "greater"</code>, success is declared
 when</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Δ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>&gt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mtext mathvariant="monospace">𝚙𝚛𝚘𝚋_𝚑𝚊</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">\Pr(\Delta_{\mathrm{bin}} &gt; h_0 \mid \mathcal{D}) &gt;
   \texttt{prob_ha}.</annotation></semantics></math></p>
-<p>In a single-arm design, the estimand is (_1) and <code>h0</code> is
-the external benchmark event probability. Thus,
-<code>alternative = "less"</code> declares success when ((_1 &lt; h_0 )
-&gt;) <code>prob_ha</code>.</p>
+<p>In a single-arm design, the estimand is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>π</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\pi_1</annotation></semantics></math>
+and <code>h0</code> is the external benchmark event probability. Thus,
+<code>alternative = "less"</code> declares success when</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>π</mi><mn>1</mn></msub><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mi>𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mtext mathvariant="monospace">𝚙𝚛𝚘𝚋_𝚑𝚊</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">\Pr(\pi_1 &lt; h_0 \mid \mathcal{D}) &gt; \texttt{prob\_ha}.</annotation></semantics></math></p>
 <p>The posterior probability can be computed in three ways. With
 <code>bin_method = "mc"</code>, the package draws from the beta
 posterior directly. With <code>bin_method = "normal"</code>, it uses a
@@ -642,7 +940,7 @@ sensitivity analyses outside the default data-generating mechanism.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="operating-characteristics">7. Operating characteristics<a class="anchor" aria-label="anchor" href="#operating-characteristics"></a>
+<h2 id="operating-characteristics">8. Operating characteristics<a class="anchor" aria-label="anchor" href="#operating-characteristics"></a>
 </h2>
 <p>A Goldilocks design is calibrated by simulation. A single simulated
 trial describes one possible path; the design is characterized by
@@ -654,15 +952,21 @@ estimates:</p>
 <li>power, or type I error under a null scenario;</li>
 <li>probability of stopping for expected success;</li>
 <li>probability of stopping for futility;</li>
-<li>probability of reaching (N_{});</li>
+<li>probability of reaching
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi mathvariant="normal">max</mi></msub><annotation encoding="application/x-tex">N_{\max}</annotation></semantics></math>;</li>
 <li>mean and standard deviation of enrolled sample size; and</li>
 <li>probability of stopping for expected success but failing at the
 final analysis.</li>
 </ul>
-<p>Let (R = 1,,R_{}) index simulated trials under a scenario (), where
-() denotes the data-generating parameters such as control hazard,
-treatment hazard, accrual rate, loss-to-follow-up rate, and follow-up
-duration. The trial-level random variables are:</p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>R</mi><mi mathvariant="normal">max</mi></msub></mrow><annotation encoding="application/x-tex">R = 1,\ldots,R_{\max}</annotation></semantics></math>
+index simulated trials under a scenario
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+denotes the data-generating parameters such as control hazard, treatment
+hazard, accrual rate, loss-to-follow-up rate, and follow-up duration.
+The trial-level random variables are:</p>
 <table class="table">
 <colgroup>
 <col width="11%">
@@ -674,29 +978,39 @@ duration. The trial-level random variables are:</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td>(N_R)</td>
-<td>enrolled sample size in simulated trial (R)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>R</mi></msub><annotation encoding="application/x-tex">N_R</annotation></semantics></math></td>
+<td>enrolled sample size in simulated trial
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+</td>
 </tr>
 <tr class="even">
-<td>(E_R)</td>
-<td>indicator that trial (R) stopped accrual for expected success</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>E</mi><mi>R</mi></msub><annotation encoding="application/x-tex">E_R</annotation></semantics></math></td>
+<td>indicator that trial
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+stopped accrual for expected success</td>
 </tr>
 <tr class="odd">
-<td>(F_R)</td>
-<td>indicator that trial (R) stopped for futility</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mi>R</mi></msub><annotation encoding="application/x-tex">F_R</annotation></semantics></math></td>
+<td>indicator that trial
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+stopped for futility</td>
 </tr>
 <tr class="even">
-<td>(Z_R)</td>
-<td>final success indicator in trial (R)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Z</mi><mi>R</mi></msub><annotation encoding="application/x-tex">Z_R</annotation></semantics></math></td>
+<td>final success indicator in trial
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+</td>
 </tr>
 </tbody>
 </table>
-<p>Let (_0) denote the null parameter space, i.e. the set of
-data-generating scenarios in which the treatment does not satisfy the
-alternative hypothesis. For a two-arm superiority trial this includes
-scenarios with no beneficial treatment effect; in practice, it should be
-explored across plausible nuisance parameters such as control event
-rates and accrual rates. The main operating characteristics are</p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Θ</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\Theta_0</annotation></semantics></math>
+denote the null parameter space, i.e. the set of data-generating
+scenarios in which the treatment does not satisfy the alternative
+hypothesis. For a two-arm superiority trial this includes scenarios with
+no beneficial treatment effect; in practice, it should be explored
+across plausible nuisance parameters such as control event rates and
+accrual rates. The main operating characteristics are</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Power</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munder><mi mathvariant="normal">Pr</mi><mi>θ</mi></munder><mo stretchy="false" form="prefix">(</mo><msub><mi>Z</mi><mi>R</mi></msub><mo>=</mo><mn>1</mn><mo>,</mo><msub><mi>F</mi><mi>R</mi></msub><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\operatorname{Power}(\theta)
   = \Pr_\theta(Z_R = 1, F_R = 0),</annotation></semantics></math></p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Type I error</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munder><mi mathvariant="normal">Pr</mi><msub><mi>θ</mi><mn>0</mn></msub></munder><mo stretchy="false" form="prefix">(</mo><msub><mi>Z</mi><mi>R</mi></msub><mo>=</mo><mn>1</mn><mo>,</mo><msub><mi>F</mi><mi>R</mi></msub><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>θ</mi><mn>0</mn></msub><mo>∈</mo><msub><mi mathvariant="normal">Θ</mi><mn>0</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\operatorname{Type\ I\ error}(\theta_0)
@@ -711,7 +1025,7 @@ rates and accrual rates. The main operating characteristics are</p>
 <p>which is the probability that accrual stops for expected success but
 the final analysis does not meet the success criterion.</p>
 <p>The basic workflow is:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
 <span>  hazard_control   <span class="op">=</span> <span class="va">hc</span>,</span>
@@ -755,7 +1069,7 @@ scale to the scenario summary. The package does not infer this
 automatically because the appropriate scale may be a hazard ratio, risk
 difference, survival probability, or event probability depending on the
 analysis:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scenario_oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="st">"null"</span> <span class="op">=</span> <span class="va">null_sims</span><span class="op">$</span><span class="va">sims</span>,</span>
 <span>  <span class="st">"moderate"</span> <span class="op">=</span> <span class="va">moderate_sims</span><span class="op">$</span><span class="va">sims</span>,</span>
@@ -770,7 +1084,7 @@ analysis:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">target_sims</span><span class="op">)</span></span></code></pre></div>
 <p>Decision maps require the optional simulation traces:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">target_sims_traced</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">target_sims</span>, return_trace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">target_sims_traced</span>, type <span class="op">=</span> <span class="st">"flowchart"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">target_sims_traced</span><span class="op">)</span></span></code></pre></div>
@@ -786,10 +1100,13 @@ convenient null scenario. For time-to-event endpoints, the relevant null
 space includes plausible control event rates and accrual rates. Accrual
 rate is especially important because rapid enrollment can leave little
 endpoint information available at interim looks, increasing the
-uncertainty in both (<em>{n</em>}) and (_{,}). The follow-up period
-after accrual stops also affects operating characteristics because it
-determines how much additional information is observed before the final
-analysis.</p>
+uncertainty in both
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>P</mi><mo accent="true">̂</mo></mover><msub><mi>n</mi><mi>ℓ</mi></msub></msub><annotation encoding="application/x-tex">\widehat{P}_{n_\ell}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>P</mi><mo accent="true">̂</mo></mover><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo>,</mo><mi>ℓ</mi></mrow></msub><annotation encoding="application/x-tex">\widehat{P}_{\max,\ell}</annotation></semantics></math>.
+The follow-up period after accrual stops also affects operating
+characteristics because it determines how much additional information is
+observed before the final analysis.</p>
 <p>The Monte Carlo sizes <code>N_impute</code>, <code>N_mcmc</code>, and
 <code>N_trials</code> should be chosen so that simulation error is small
 relative to the decision being made. Small values are appropriate for
@@ -798,12 +1115,16 @@ requires many more trials and imputations.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="threshold-selection">8. Threshold selection<a class="anchor" aria-label="anchor" href="#threshold-selection"></a>
+<h2 id="threshold-selection">9. Threshold selection<a class="anchor" aria-label="anchor" href="#threshold-selection"></a>
 </h2>
-<p>The thresholds (S_) and (F_) may be constant across looks or may vary
-by look. They interact with the final analysis threshold, number and
-timing of looks, endpoint delay, accrual rate, loss to follow-up, prior
-distribution, and maximum sample size.</p>
+<p>The thresholds
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>ℓ</mi></msub><annotation encoding="application/x-tex">S_\ell</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mi>ℓ</mi></msub><annotation encoding="application/x-tex">F_\ell</annotation></semantics></math>
+may be constant across looks or may vary by look. They interact with the
+final analysis threshold, number and timing of looks, endpoint delay,
+accrual rate, loss to follow-up, prior distribution, and maximum sample
+size.</p>
 <p>If type I error is too high, possible remedies include increasing
 <code>prob_ha</code>, increasing the expected-success thresholds,
 reducing the number of looks, or altering follow-up requirements. If
@@ -812,14 +1133,15 @@ expected-success threshold, or final analysis threshold may need
 reconsideration. Each change should be rechecked under null and
 alternative scenarios.</p>
 <p>The quantity <code>stop_and_fail</code> is particularly useful when
-tuning (S_). It estimates how often a trial stops accrual for expected
-success but does not meet the final success criterion after follow-up is
-complete. If this is too large, the expected-success threshold is
-usually too permissive for the amount of uncertainty present at interim
-looks.</p>
+tuning
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>ℓ</mi></msub><annotation encoding="application/x-tex">S_\ell</annotation></semantics></math>.
+It estimates how often a trial stops accrual for expected success but
+does not meet the final success criterion after follow-up is complete.
+If this is too large, the expected-success threshold is usually too
+permissive for the amount of uncertainty present at interim looks.</p>
 </div>
 <div class="section level2">
-<h2 id="relation-to-group-sequential-designs">9. Relation to group-sequential designs<a class="anchor" aria-label="anchor" href="#relation-to-group-sequential-designs"></a>
+<h2 id="relation-to-group-sequential-designs">10. Relation to group-sequential designs<a class="anchor" aria-label="anchor" href="#relation-to-group-sequential-designs"></a>
 </h2>
 <p>A group-sequential design usually indexes interim analyses by
 information, such as the number of observed events, and may stop
@@ -835,7 +1157,7 @@ preserving a single preplanned final analysis after the enrolled
 subjects have completed follow-up.</p>
 </div>
 <div class="section level2">
-<h2 id="package-specific-scope">10. Package-specific scope<a class="anchor" aria-label="anchor" href="#package-specific-scope"></a>
+<h2 id="package-specific-scope">11. Package-specific scope<a class="anchor" aria-label="anchor" href="#package-specific-scope"></a>
 </h2>
 <p>The time-to-event example in Broglio et al. (2014) uses a
 Gamma-exponential prediction model. <code>goldilocks</code> extends this
@@ -844,7 +1166,8 @@ prespecified cut-points. This can be useful when there is a clinically
 plausible early-risk period, but each additional interval adds
 parameters and can make interim posteriors more diffuse.</p>
 <p>The package also supports single-arm Bayesian Goldilocks designs by
-replacing the concurrent control with an external benchmark ($h_0$),
+replacing the concurrent control with an external benchmark
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mn>0</mn></msub><annotation encoding="application/x-tex">h_0</annotation></semantics></math>,
 often referred to as a performance goal (PG) or objective performance
 criterion (OPC). This is convenient for early-phase, rare-disease, or
 proof-of-concept settings, but validity then depends on the benchmark

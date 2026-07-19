@@ -99,7 +99,7 @@ completed 12-months of follow-up.</p>
 <code>hazard_control = prop_to_haz(1 - 0.30, endtime = 12)</code> (note
 that the input argument is the failure proportion, not the survival
 proportion)</li>
-<li>No change points in hazard: <code>cutpoints = 0</code> (default
+<li>No change points in hazard: <code>cutpoints = NULL</code> (default
 parameter)</li>
 <li>Maximum sample size: <code>N_total = 300</code>
 </li>
@@ -116,6 +116,26 @@ starting with the 200 patient sample size selection analysis and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>n</mi></msub><annotation encoding="application/x-tex">S_n</annotation></semantics></math>
 is 90%. It is expected that an average of 5 patients per month will be
 enrolled, with no change in speed for the duration of the trial.</p>
+<p>Enrollment is stochastic even though the rate is constant. The
+package fixes the first patient at calendar time zero and generates each
+later inter-arrival gap from an exponential distribution with rate 5 per
+month. Consequently, the expected time from the first to the 300th
+enrollment is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>300</mn><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mn>5</mn><mo>=</mo><mn>59.8</mn></mrow><annotation encoding="application/x-tex">(300 - 1) / 5 = 59.8</annotation></semantics></math>
+months, but the realized completion time differs between simulated
+trials. <code>lambda_time = NULL</code> indicates that there are no
+internal enrollment-rate changes; zero is implicit and must not be
+supplied.</p>
+<p>For comparison, a ramp-up specification such as
+<code>lambda = c(2, 5)</code> and <code>lambda_time = 6</code> means 2
+expected enrollments per month over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>6</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">[0,6)</annotation></semantics></math>
+and 5 per month from month 6 onward. Fractional changes such as
+<code>lambda_time = 6.5</code> are also simulated exactly.
+Enrollment-rate knots use the trial calendar measured from first patient
+in, whereas hazard <code>cutpoints</code> use each subject’s follow-up
+time measured from that subject’s enrollment. The two schedules are
+independent and need not share their knots.</p>
 <p>From this information, we have:</p>
 <ul>
 <li>Interim sample size looks:
@@ -197,24 +217,28 @@ at <code>end_of_study</code>, compared against the margin
 <li>
 <code>alternative = "less"</code> declares success when the
 posterior probability that
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub><mo>&lt;</mo></mrow><annotation encoding="application/x-tex">p_\textrm{treatment} - p_\textrm{control} &lt;</annotation></semantics></math><code>h0</code> exceeds the threshold <code>prob_ha</code> – i.e. the
-treatment arm has a failure probability lower than the <code>h0</code>
-margin relative to control. With the default <code>h0 = 0</code>, this
-means lower failure probability (longer survival) than control.</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">p_\textrm{treatment} - p_\textrm{control} &lt; h_0</annotation></semantics></math>
+exceeds the threshold <code>prob_ha</code> – i.e. the treatment arm has
+a failure probability lower than the <code>h0</code> margin relative to
+control. With the default <code>h0 = 0</code>, this means lower failure
+probability (longer survival) than control.</li>
 <li>
 <code>alternative = "greater"</code> declares success when the
 posterior probability that
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub><mo>&gt;</mo></mrow><annotation encoding="application/x-tex">p_\textrm{treatment} - p_\textrm{control} &gt;</annotation></semantics></math><code>h0</code> exceeds <code>prob_ha</code>.</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub><mo>&gt;</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">p_\textrm{treatment} - p_\textrm{control} &gt; h_0</annotation></semantics></math>
+exceeds <code>prob_ha</code>.</li>
 </ul>
 <p>In all methods, <code>alternative = "less"</code> therefore
 corresponds to a beneficial treatment effect (longer survival) in this
 example.</p>
 <p>The operating characteristics will be determined using 500 simulated
 trials. At each interim analysis, we will use 100 imputations and assume
-independent weakly-informative Gamma(0.1, 0.1) prior distributions for
-the treatment and control arm event time hazard rate parameters. As this
-is computationally expensive overall, we will exploit the option to
-parallelize the simulations over multiple cores.</p>
+independent weakly-informative
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.1</mn><mo>,</mo><mn>0.1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(0.1, 0.1)</annotation></semantics></math>
+prior distributions for the treatment and control arm event time hazard
+rate parameters. As this is computationally expensive overall, we will
+exploit the option to parallelize the simulations over multiple
+cores.</p>
 <ul>
 <li>Number of simulated trials: <code>N_trials = 500</code>
 </li>
@@ -254,10 +278,10 @@ treatment effect when the OS rate at 12-months for the treatment arm is
 <span><span class="va">out_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">hc</span>,</span>
-<span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="fl">300</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">275</span>, <span class="fl">25</span><span class="op">)</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="fl">12</span>,</span>
 <span>  prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>

@@ -21,16 +21,16 @@ months.
 ``` r
 
 end_of_study <- 24
-hazard_control <- prop_to_haz(c(0.20, 0.35), c(0, 12), end_of_study)
-hazard_treatment <- prop_to_haz(c(0.12, 0.24), c(0, 12), end_of_study)
+hazard_control <- prop_to_haz(c(0.20, 0.35), 12, end_of_study)
+hazard_treatment <- prop_to_haz(c(0.12, 0.24), 12, end_of_study)
 
 trial <- survival_adapt(
   hazard_treatment = hazard_treatment,
   hazard_control = hazard_control,
-  cutpoints = c(0, 12),
+  cutpoints = 12,
   N_total = 80,
   lambda = 8,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = c(40, 60),
   end_of_study = end_of_study,
   prior = c(0.1, 0.1),
@@ -53,8 +53,8 @@ trial
 #> Goldilocks adaptive trial
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          40        40         80    80
-#>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1            1 -0.2791726         0.3             0                     0
+#>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
+#> 1          0.7 -0.06199122         0.4             0                     0
 #> 
 #> Interim looks completed: 2
 ```
@@ -67,26 +67,26 @@ element is an audit trail of the interim path.
 trial$summary
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          40        40         80    80
-#>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1            1 -0.2791726         0.3             0                     0
+#>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
+#> 1          0.7 -0.06199122         0.4             0                     0
 trial$trace
 #>   look planned_N calendar_time N_enrolled N_treatment N_control
-#> 1    1        40      5.079622         40          20        20
-#> 2    2        60      8.684697         60          30        30
+#> 1    1        40      4.238838         40          20        20
+#> 2    2        60      6.628455         60          30        30
 #>   events_treatment events_control N_pending N_not_enrolled ppp_stop_now
-#> 1                1              0        39             40          0.3
-#> 2                2              4        54             20          0.3
+#> 1                0              1        39             40         0.35
+#> 2                1              1        58             20         0.40
 #>   success_threshold ppp_success_at_max futility_threshold decision
-#> 1              0.95               0.30               0.05 continue
-#> 2              0.90               0.35               0.05 continue
+#> 1              0.95                0.4               0.05 continue
+#> 2              0.90                0.5               0.05 continue
 #>   warning_count warning_messages
 #> 1             0                 
 #> 2             0
 summarise_trial_trace(trial)
 #>   interim_looks_completed last_look last_decision final_N final_post_prob_ha
-#> 1                       2         2      continue      80                  1
+#> 1                       2         2      continue      80                0.7
 #>   ppp_stop_now ppp_success_at_max warning_count
-#> 1          0.3               0.35             0
+#> 1          0.4                0.5             0
 ```
 
 For each completed look, `ppp_stop_now` is the predictive probability of
@@ -136,10 +136,10 @@ views include reached looks at which no trial stopped.
 sims <- sim_trials(
   hazard_treatment = hazard_treatment,
   hazard_control = hazard_control,
-  cutpoints = c(0, 12),
+  cutpoints = 12,
   N_total = 80,
   lambda = 8,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = c(40, 60),
   end_of_study = end_of_study,
   prior = c(0.1, 0.1),
@@ -192,7 +192,7 @@ plot_sim_ocs(
 )
 ```
 
-For reproducible simulations, set seed in
+For reproducible simulations, set `seed` in
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md).
 The per-trial random streams make the compact simulation results
 reproducible across supported parallel backends. For a detailed

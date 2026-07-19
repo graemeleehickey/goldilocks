@@ -35,16 +35,14 @@ hazard for the early interval and another for everything afterwards.
 
 The package handles piecewise hazards through two related arguments:
 
-- `cutpoints`: the times at which the hazard changes. The first element
-  must be `0` and represents the start of the first interval; subsequent
-  elements are the *internal* cut-points. With `J` intervals there are
-  `J` elements in `cutpoints` and `J` hazard pieces for each treatment
-  group. (So `cutpoints = c(0, 6)` produces *two* intervals, `[0, 6)`
-  and `[6, \infty)`, in contrast to the default `cutpoints = 0` used in
-  the “Two-arm randomized trials” vignette, which produces a single
-  interval and a non-piecewise exponential.)
-- `hazard_treatment` and `hazard_control`: vectors of length `J` giving
-  the constant hazard for each interval.
+- `cutpoints`: the positive interior times at which the hazard changes.
+  With $`J - 1`$ cutpoints there are $`J`$ intervals and therefore $`J`$
+  hazard rates for each treatment group. For example, `cutpoints = 6`
+  produces two intervals, $`[0, 6)`$ and $`[6, \infty)`$. The default
+  `cutpoints = NULL` supplies no change times and produces a single,
+  constant hazard interval.
+- `hazard_treatment` and `hazard_control`: vectors of length $`J`$
+  giving the constant hazard for each interval.
 
 The helper
 [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
@@ -70,7 +68,7 @@ piecewise hazards:
 
 ``` r
 
-cutpoints <- c(0, 6)         # one internal cut at 6 months -> two intervals
+cutpoints <- 6         # one internal cut at 6 months -> two intervals
 end_of_study <- 24
 
 hc <- prop_to_haz(probs = c(0.30, 0.50), cutpoints = cutpoints, endtime = end_of_study)
@@ -82,7 +80,7 @@ round(rbind(control = hc, treatment = ht), 4)
 #> treatment 0.0331 0.0174
 ```
 
-The first column is the hazard during `[0, 6)` months and the second
+The first column is the hazard during $`[0, 6)`$ months and the second
 column is the hazard from 6 months onward. Both arms have a higher
 hazard in the early window. We can sanity-check that the implied
 survival probabilities at 24 months match what we specified by running
@@ -107,13 +105,14 @@ These should be 0.50 and 0.40 respectively (modulo rounding).
 
 With `method = "bayes-surv"`,
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-puts independent Gamma$`(\alpha, \beta)`$ priors on each piecewise
-hazard rate (one per interval, per treatment group) and combines them
-with the observed exposure time and event counts to obtain a closed-form
-Gamma posterior on each $`\lambda_j`$. Posterior draws of $`\lambda_j`$
-are pushed through the piecewise-exponential cumulative incidence
-function to obtain posterior draws of the cumulative-failure probability
-$`p`$ at `end_of_study` for the treatment and control groups.
+puts independent $`\operatorname{Gamma}(\alpha, \beta)`$ priors on each
+piecewise hazard rate (one per interval, per treatment group) and
+combines them with the observed exposure time and event counts to obtain
+a closed-form Gamma posterior on each $`\lambda_j`$. Posterior draws of
+$`\lambda_j`$ are pushed through the piecewise-exponential cumulative
+incidence function to obtain posterior draws of the cumulative-failure
+probability $`p`$ at `end_of_study` for the treatment and control
+groups.
 
 The decision rule is one-sided. The treatment effect is defined as
 
@@ -145,8 +144,8 @@ after enrollment continues to the maximum sample size is compared with
 success after completing follow-up for the subjects currently enrolled
 is compared with `Sn` for the expected-success rule.
 
-We use an independent weakly informative Gamma$`(0.1, 0.1)`$ prior on
-every hazard component:
+We use an independent weakly informative
+$`\operatorname{Gamma}(0.1, 0.1)`$ prior on every hazard component:
 
 ``` r
 
@@ -157,9 +156,14 @@ prior <- c(0.1, 0.1)   # shape and rate of the Gamma prior on each lambda_j
 
 We will run one trial under the alternative hypothesis to illustrate the
 mechanics. We choose `interim_look = 60` (the minimum required is
-`max(block) = 4`) and a constant accrual rate of 5 enrollments per month
-(`lambda_time = 0` keeps the rate constant; piecewise accrual is also
-supported).
+`max(block) = 4`) and a constant accrual rate of 5 enrollments per
+month. With `lambda_time = NULL`, the first patient is placed at time
+zero and subsequent inter-arrival gaps are generated exactly from an
+exponential distribution with rate 5. Piecewise accrual is specified
+using positive internal knots only; for example, `lambda = c(2, 5)` and
+`lambda_time = 6` means 2 enrollments per month before month 6 and 5
+thereafter. These calendar-time enrollment knots are distinct from the
+subject-follow-up hazard `cutpoints` used above.
 
 ``` r
 
@@ -169,7 +173,7 @@ out <- survival_adapt(
   cutpoints        = cutpoints,
   N_total          = 100,
   lambda           = 5,                # enrollments per month
-  lambda_time      = 0,                # constant accrual rate
+  lambda_time      = NULL,             # no internal enrollment-rate knots
   interim_look     = 60,
   end_of_study     = end_of_study,
   prior            = prior,
@@ -188,8 +192,8 @@ out <- survival_adapt(
 out
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less          50        50        100   100
-#>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
-#> 1        0.556 -0.01536969         0.1             0                     0
+#>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
+#> 1        0.969 -0.1761562        0.12             0                     0
 ```
 
 The output reports the posterior probability of the alternative at the
@@ -255,10 +259,10 @@ ht_flat <- prop_to_haz(0.40, endtime = end_of_study)   # treatment, single hazar
 out_flat <- survival_adapt(
   hazard_treatment = ht_flat,
   hazard_control   = hc_flat,
-  cutpoints        = 0,
+  cutpoints        = NULL,
   N_total          = 100,
   lambda           = 5,
-  lambda_time      = 0,
+  lambda_time      = NULL,
   interim_look     = 60,
   end_of_study     = end_of_study,
   prior            = prior,

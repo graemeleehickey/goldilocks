@@ -102,7 +102,7 @@ and time-to-event outcomes.
   : Simulate a complete clinical trial with event data drawn from a
   piecewise exponential distribution
 - [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
-  : Simulate enrollment times
+  : Simulate exact continuous-time enrollment
 - [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
   : Randomization allocation
 

@@ -9,10 +9,10 @@ tidily extract the relevant data to generate operating characteristics.
 sim_trials(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total,
   lambda = 0.3,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
@@ -53,8 +53,9 @@ sim_trials(
 
 - cutpoints:
 
-  finite, strictly increasing times at which the baseline hazard
-  changes. The first value must be 0. Default is `cutpoints = 0`, which
+  finite, positive, strictly increasing interior times at which the
+  baseline hazard changes. The number of hazards for each arm must be
+  one greater than the number of cutpoints. Default is `NULL`, which
   corresponds to a simple (non-piecewise) exponential model.
 
 - N_total:
@@ -63,16 +64,16 @@ sim_trials(
 
 - lambda:
 
-  vector. Enrollment rates across simulated enrollment times. See
+  finite positive enrollment rates per unit time. Supply one rate for
+  each interval defined by `lambda_time`. See
   [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
-  for more details.
+  for the precise continuous-time process and time-origin convention.
 
 - lambda_time:
 
-  vector. Enrollment time(s) at which the enrollment rates change. Must
-  be same length as lambda. See
-  [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
-  for more details.
+  `NULL`, or finite, positive, strictly increasing internal times at
+  which the enrollment rate changes. The initial boundary at zero is
+  implicit, so `length(lambda)` must equal `length(lambda_time) + 1`.
 
 - interim_look:
 
@@ -307,16 +308,16 @@ function uses and advances R's current global RNG state.
 ## Examples
 
 ``` r
-hc <- prop_to_haz(c(0.20, 0.30), c(0, 12), 36)
-ht <- prop_to_haz(c(0.05, 0.15), c(0, 12), 36)
+hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
+ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
 
 out <- sim_trials(
   hazard_treatment = ht,
   hazard_control = hc,
-  cutpoints = c(0, 12),
+  cutpoints = 12,
   N_total = 600,
   lambda = 20,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = c(400, 500),
   end_of_study = 36,
   prior = c(0.1, 0.1),

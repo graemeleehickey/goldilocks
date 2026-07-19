@@ -51,10 +51,10 @@ piecewise exponential distribution</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">sim_comp_data</span><span class="op">(</span></span>
 <span>  <span class="va">hazard_treatment</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">N_total</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">0.3</span>,</span>
-<span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">end_of_study</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -77,9 +77,10 @@ under the control arm.</p></dd>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
-<dd><p>finite, strictly increasing times at which the baseline
-hazard changes. The first value must be 0. Default is <code>cutpoints = 0</code>,
-which corresponds to a simple (non-piecewise) exponential model.</p></dd>
+<dd><p>finite, positive, strictly increasing interior times at
+which the baseline hazard changes. The number of hazards for each arm must
+be one greater than the number of cutpoints. Default is <code>NULL</code>, which
+corresponds to a simple (non-piecewise) exponential model.</p></dd>
 
 
 <dt id="arg-n-total">N_total<a class="anchor" aria-label="anchor" href="#arg-n-total"></a></dt>
@@ -87,14 +88,15 @@ which corresponds to a simple (non-piecewise) exponential model.</p></dd>
 
 
 <dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
-<dd><p>vector. Enrollment rates across simulated enrollment times. See
-<code><a href="enrollment.html">enrollment()</a></code> for more details.</p></dd>
+<dd><p>finite positive enrollment rates per unit time. Supply one rate
+for each interval defined by <code>lambda_time</code>. See <code><a href="enrollment.html">enrollment()</a></code> for the
+precise continuous-time process and time-origin convention.</p></dd>
 
 
 <dt id="arg-lambda-time">lambda_time<a class="anchor" aria-label="anchor" href="#arg-lambda-time"></a></dt>
-<dd><p>vector. Enrollment time(s) at which the enrollment rates
-change. Must be same length as lambda. See <code><a href="enrollment.html">enrollment()</a></code> for
-more details.</p></dd>
+<dd><p><code>NULL</code>, or finite, positive, strictly increasing internal
+times at which the enrollment rate changes. The initial boundary at zero
+is implicit, so <code>length(lambda)</code> must equal <code>length(lambda_time) + 1</code>.</p></dd>
 
 
 <dt id="arg-end-of-study">end_of_study<a class="anchor" aria-label="anchor" href="#arg-end-of-study"></a></dt>
@@ -137,6 +139,20 @@ randomization as occurring at the same time.</p></li>
 <li><p><code>loss_to_fu</code>: Indicator of whether the patient was lost to follow-up
 during observation.</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Enrollment is simulated directly in continuous time by
+<code><a href="enrollment.html">enrollment()</a></code>. The first patient is placed at time zero and all subsequent
+enrollment times are measured from first patient in. No uniform jitter is
+added in <code>sim_comp_data()</code>.</p>
+<p><code>lambda_time</code> and <code>cutpoints</code> both contain internal change times, but they
+describe different clocks. <code>lambda_time</code> describes changes in the trial's
+calendar-time enrollment rate measured from first patient in. <code>cutpoints</code>
+describes changes in an individual subject's event hazard measured from
+that subject's enrollment. They need not have the same values or length.
+All time quantities supplied to a simulation should nevertheless use one
+common unit, such as days or months.</p>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

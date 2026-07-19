@@ -9,10 +9,10 @@ time-to-event endpoint
 survival_adapt(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total,
   lambda = 0.3,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = NULL,
   end_of_study,
   prior = c(0.1, 0.1),
@@ -49,8 +49,9 @@ survival_adapt(
 
 - cutpoints:
 
-  finite, strictly increasing times at which the baseline hazard
-  changes. The first value must be 0. Default is `cutpoints = 0`, which
+  finite, positive, strictly increasing interior times at which the
+  baseline hazard changes. The number of hazards for each arm must be
+  one greater than the number of cutpoints. Default is `NULL`, which
   corresponds to a simple (non-piecewise) exponential model.
 
 - N_total:
@@ -59,16 +60,16 @@ survival_adapt(
 
 - lambda:
 
-  vector. Enrollment rates across simulated enrollment times. See
+  finite positive enrollment rates per unit time. Supply one rate for
+  each interval defined by `lambda_time`. See
   [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
-  for more details.
+  for the precise continuous-time process and time-origin convention.
 
 - lambda_time:
 
-  vector. Enrollment time(s) at which the enrollment rates change. Must
-  be same length as lambda. See
-  [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
-  for more details.
+  `NULL`, or finite, positive, strictly increasing internal times at
+  which the enrollment rate changes. The initial boundary at zero is
+  implicit, so `length(lambda)` must equal `length(lambda_time) + 1`.
 
 - interim_look:
 
@@ -448,10 +449,10 @@ Biopharmaceutical Statistics*, 2014; 24(3): 685–705.
 survival_adapt(
  hazard_treatment = -log(0.85) / 36,
  hazard_control = -log(0.7) / 36,
- cutpoints = 0,
+ cutpoints = NULL,
  N_total = 600,
  lambda = 20,
- lambda_time = 0,
+ lambda_time = NULL,
  interim_look = 400,
  end_of_study = 36,
  prior = c(0.1, 0.1),
@@ -467,7 +468,7 @@ survival_adapt(
  N_mcmc = 10,
  method = "bayes-surv")
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
-#> 1          0.975      0        less         200       200        400   600
+#> 1          0.975      0        less         300       300        600   600
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1            1 -0.2098212           1             0                     1
+#> 1            1 -0.1382612         0.5             0                     0
 ```

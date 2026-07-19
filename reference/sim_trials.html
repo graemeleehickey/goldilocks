@@ -51,10 +51,10 @@ and tidily extract the relevant data to generate operating characteristics.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">sim_trials</span><span class="op">(</span></span>
 <span>  <span class="va">hazard_treatment</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">N_total</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">0.3</span>,</span>
-<span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">end_of_study</span>,</span>
 <span>  prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
@@ -96,9 +96,10 @@ under the control arm.</p></dd>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
-<dd><p>finite, strictly increasing times at which the baseline
-hazard changes. The first value must be 0. Default is <code>cutpoints = 0</code>,
-which corresponds to a simple (non-piecewise) exponential model.</p></dd>
+<dd><p>finite, positive, strictly increasing interior times at
+which the baseline hazard changes. The number of hazards for each arm must
+be one greater than the number of cutpoints. Default is <code>NULL</code>, which
+corresponds to a simple (non-piecewise) exponential model.</p></dd>
 
 
 <dt id="arg-n-total">N_total<a class="anchor" aria-label="anchor" href="#arg-n-total"></a></dt>
@@ -106,14 +107,15 @@ which corresponds to a simple (non-piecewise) exponential model.</p></dd>
 
 
 <dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
-<dd><p>vector. Enrollment rates across simulated enrollment times. See
-<code><a href="enrollment.html">enrollment()</a></code> for more details.</p></dd>
+<dd><p>finite positive enrollment rates per unit time. Supply one rate
+for each interval defined by <code>lambda_time</code>. See <code><a href="enrollment.html">enrollment()</a></code> for the
+precise continuous-time process and time-origin convention.</p></dd>
 
 
 <dt id="arg-lambda-time">lambda_time<a class="anchor" aria-label="anchor" href="#arg-lambda-time"></a></dt>
-<dd><p>vector. Enrollment time(s) at which the enrollment rates
-change. Must be same length as lambda. See <code><a href="enrollment.html">enrollment()</a></code> for
-more details.</p></dd>
+<dd><p><code>NULL</code>, or finite, positive, strictly increasing internal
+times at which the enrollment rate changes. The initial boundary at zero
+is implicit, so <code>length(lambda)</code> must equal <code>length(lambda_time) + 1</code>.</p></dd>
 
 
 <dt id="arg-interim-look">interim_look<a class="anchor" aria-label="anchor" href="#arg-interim-look"></a></dt>
@@ -336,16 +338,16 @@ state.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">hc</span> <span class="op">&lt;-</span> <span class="fu"><a href="prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.20</span>, <span class="fl">0.30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span>, <span class="fl">36</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.15</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span>, <span class="fl">36</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">hc</span> <span class="op">&lt;-</span> <span class="fu"><a href="prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.20</span>, <span class="fl">0.30</span><span class="op">)</span>, <span class="fl">12</span>, <span class="fl">36</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.15</span><span class="op">)</span>, <span class="fl">12</span>, <span class="fl">36</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">sim_trials</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span></span>
 <span class="r-in"><span>  hazard_control <span class="op">=</span> <span class="va">hc</span>,</span></span>
-<span class="r-in"><span>  cutpoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  cutpoints <span class="op">=</span> <span class="fl">12</span>,</span></span>
 <span class="r-in"><span>  N_total <span class="op">=</span> <span class="fl">600</span>,</span></span>
 <span class="r-in"><span>  lambda <span class="op">=</span> <span class="fl">20</span>,</span></span>
-<span class="r-in"><span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  interim_look <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">400</span>, <span class="fl">500</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  end_of_study <span class="op">=</span> <span class="fl">36</span>,</span></span>
 <span class="r-in"><span>  prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span></span>

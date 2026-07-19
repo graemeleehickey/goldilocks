@@ -4,6 +4,31 @@
 
 ### Improvements
 
+- **Major behavior change from goldilocks 0.5.0 and earlier:**
+  [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
+  now simulates exact continuous-time arrivals from a piecewise-constant
+  Poisson process by inverting its cumulative intensity. Fractional
+  enrollment-rate changes are handled exactly, and runtime depends on
+  the requested sample size rather than the number of empty unit-time
+  bins. Enrollment schedules now follow the internal-knot convention
+  used by hazard schedules: `lambda_time = NULL` represents a constant
+  rate, each supplied positive internal knot requires one additional
+  `lambda` value, and time zero remains the implicit first-patient-in
+  origin.
+  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md)
+  now consumes these continuous enrollment times directly without
+  post-hoc uniform jitter
+  ([\#55](https://github.com/graemeleehickey/goldilocks/issues/55)).
+  Previously,
+  [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
+  generated Poisson counts in unit-time bins, returned rebased integer
+  bin times, and
+  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md)
+  added uniform jitter. Existing calls must replace `lambda_time = 0`
+  with `NULL` and remove the leading zero from piecewise schedules.
+  Seeded simulations will not reproduce results from version 0.5.0 or
+  earlier, and operating-characteristic estimates may change, especially
+  for fractional knots or low enrollment rates.
 - Cox regression now supports `imputed_final = TRUE`. The final log
   hazard ratios and within-imputation variances are combined using
   Rubin’s rules, and `post_prob_ha` reports `1 - P` from the pooled Wald
@@ -124,10 +149,14 @@
 - `h0` must now be a single finite value, with probability-scale bounds
   enforced for Bayesian analyses
   ([\#50](https://github.com/graemeleehickey/goldilocks/issues/50)).
-- Piecewise model inputs now require finite, strictly increasing
-  cutpoints beginning at zero and a finite study endpoint after the
-  final cutpoint. This validation is shared by simulation and
-  probability helpers
+- The `cutpoints` API now accepts only interior hazard-change times:
+  `NULL` represents a constant hazard, and each supplied cutpoint
+  requires one additional hazard rate. The implicit interval start at
+  zero is handled internally
+  ([\#58](https://github.com/graemeleehickey/goldilocks/issues/58)).
+  Piecewise model inputs require finite, positive, strictly increasing
+  cutpoints and a finite study endpoint after the final cutpoint; this
+  validation is shared by simulation and probability helpers
   ([\#52](https://github.com/graemeleehickey/goldilocks/issues/52)).
 - [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
   now validates its complete schedule before generating data, including

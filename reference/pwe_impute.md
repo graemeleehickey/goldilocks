@@ -6,7 +6,7 @@ exponential function conditional on observed exposure.
 ## Usage
 
 ``` r
-pwe_impute(time, hazard, cutpoints = 0, maxtime = NULL)
+pwe_impute(time, hazard, cutpoints = NULL, maxtime = NULL)
 ```
 
 ## Arguments
@@ -24,12 +24,15 @@ pwe_impute(time, hazard, cutpoints = 0, maxtime = NULL)
 
 - cutpoints:
 
-  finite, strictly increasing vector of change-points for the hazard
-  rates. The first element must be 0.
+  finite, positive, strictly increasing vector of interior times at
+  which the hazard rate changes. The number of hazard rates must be one
+  greater than the number of cutpoints. Use `NULL` for a constant
+  hazard.
 
 - maxtime:
 
-  scalar. Maximum time before end of study.
+  scalar. Optional administrative censoring time. When supplied, it must
+  be later than every cutpoint.
 
 ## Value
 
@@ -58,19 +61,19 @@ the PWE distribution.
 ## Examples
 
 ``` r
-pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = c(0, 12))
-#>       time event
-#> 1 86.24953     1
-#> 2 89.54323     1
-#> 3 20.68446     1
-pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = c(0, 12),
+pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = 12)
+#>        time event
+#> 1  37.24678     1
+#> 2 247.16279     1
+#> 3 181.45567     1
+pwe_impute(time = c(3, 4, 5), hazard = c(0.002, 0.01), cutpoints = 12,
            maxtime = 36)
 #>       time event
 #> 1 36.00000     0
-#> 2 29.31672     1
+#> 2 35.24618     1
 #> 3 36.00000     0
 pwe_impute(time = 19.621870008, hazard = c(2.585924e-02, 3.685254e-09),
-           cutpoints = c(0, 12), maxtime = 36)
+           cutpoints = 12, maxtime = 36)
 #>   time event
 #> 1   36     0
 ```

@@ -24,8 +24,8 @@ interim predictive probabilities are affected by both priors, whereas a
 non-imputed final binary analysis is affected by `bin_prior` alone.
 
 For the examples below, we use the default weakly informative
-Gamma$`(0.1, 0.1)`$ hazard prior and a uniform Beta$`(1, 1)`$
-binary-endpoint prior:
+$`\operatorname{Gamma}(0.1, 0.1)`$ hazard prior and a uniform
+$`\operatorname{Beta}(1, 1)`$ binary-endpoint prior:
 
 ``` r
 
@@ -46,9 +46,9 @@ Two practical consequences follow:
 
 Suppose the control event probability by 12 months is 35%, and the
 treatment is expected to reduce this to 25%. We use a beta-binomial
-final analysis with a uniform `Beta(1, 1)` prior in each arm. Since
-lower event probability is beneficial, we use `alternative = "less"` and
-compare the posterior distribution of
+final analysis with a uniform $`\operatorname{Beta}(1, 1)`$ prior in
+each arm. Since lower event probability is beneficial, we use
+`alternative = "less"` and compare the posterior distribution of
 
 ``` math
 p_{\text{treatment}} - p_{\text{control}}
@@ -65,10 +65,10 @@ ht <- prop_to_haz(0.25, endtime = end_of_study)
 out_two_arm <- survival_adapt(
   hazard_treatment = ht,
   hazard_control = hc,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = 120,
   lambda = 10,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = 80,
   end_of_study = end_of_study,
   prior = hazard_prior,
@@ -91,7 +91,7 @@ out_two_arm
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          60        60        120   120
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9376521 -0.1290323        0.15             0                     0
+#> 1    0.9178978 -0.1129032        0.85             0                     0
 ```
 
 The output has the same structure as other
@@ -121,10 +121,10 @@ ht_single <- prop_to_haz(target, endtime = end_of_study)
 out_single_arm <- survival_adapt(
   hazard_treatment = ht_single,
   hazard_control = NULL,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = 80,
   lambda = 8,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = 50,
   end_of_study = end_of_study,
   prior = hazard_prior,
@@ -145,7 +145,7 @@ out_single_arm
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95    0.3        less          80         0         80    80
 #>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1    0.8209404 0.2560976        0.65             0                     0
+#> 1    0.9740269 0.2073171         0.6             0                     0
 ```
 
 In this setting `est_final` is the posterior mean event probability in
@@ -186,10 +186,10 @@ out_power <- sim_trials(
   N_trials = 1000,
   hazard_treatment = ht,
   hazard_control = hc,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = 120,
   lambda = 10,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = 80,
   end_of_study = end_of_study,
   prior = hazard_prior,

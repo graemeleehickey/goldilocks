@@ -139,10 +139,10 @@ to 20%. We use an interim look at 50 of 80 enrolled subjects:</p>
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
 <span>  hazard_control   <span class="op">=</span> <span class="cn">NULL</span>,              <span class="co"># single-arm</span></span>
-<span>  cutpoints        <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints        <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N_total          <span class="op">=</span> <span class="fl">80</span>,</span>
 <span>  lambda           <span class="op">=</span> <span class="fl">5</span>,                 <span class="co"># enrollments per month (constant)</span></span>
-<span>  lambda_time      <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time      <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look     <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  end_of_study     <span class="op">=</span> <span class="va">end_of_study</span>,</span>
 <span>  prior            <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,       <span class="co"># Gamma(0.1, 0.1) on the hazard</span></span>
@@ -160,7 +160,7 @@ to 20%. We use an interim look at 50 of 80 enrolled subjects:</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95    0.3        less          80         0         80    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1       0.9985 0.1689997        0.86             0                     0</span></span></code></pre></div>
+<span><span class="co">#&gt; 1        0.992 0.1825442        0.08             0                     0</span></span></code></pre></div>
 <p>There is no need to supply <code>block</code> or
 <code>rand_ratio</code>: they are redundant in a single-arm design
 because no randomization is performed.</p>
@@ -197,10 +197,10 @@ workflow:</p>
 <span>  N_trials         <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
 <span>  hazard_control   <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cutpoints        <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints        <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N_total          <span class="op">=</span> <span class="fl">80</span>,</span>
 <span>  lambda           <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  lambda_time      <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time      <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look     <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  end_of_study     <span class="op">=</span> <span class="va">end_of_study</span>,</span>
 <span>  prior            <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
@@ -222,10 +222,10 @@ workflow:</p>
 <span>  N_trials         <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht_null</span>,</span>
 <span>  hazard_control   <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cutpoints        <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints        <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N_total          <span class="op">=</span> <span class="fl">80</span>,</span>
 <span>  lambda           <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  lambda_time      <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time      <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look     <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  end_of_study     <span class="op">=</span> <span class="va">end_of_study</span>,</span>
 <span>  prior            <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>

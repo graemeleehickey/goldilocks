@@ -54,7 +54,7 @@ trial datasets with plausible event rates.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">prop_to_haz</span><span class="op">(</span><span class="va">probs</span>, cutpoints <span class="op">=</span> <span class="fl">0</span>, <span class="va">endtime</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">prop_to_haz</span><span class="op">(</span><span class="va">probs</span>, cutpoints <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">endtime</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -62,15 +62,15 @@ trial datasets with plausible event rates.</p>
 
 
 <dl><dt id="arg-probs">probs<a class="anchor" aria-label="anchor" href="#arg-probs"></a></dt>
-<dd><p>vector. Probabilities of the event (i.e. cumulative incidence
-probabilities) at one or more time point. If only a single value is given,
-then it is assumed that this is the probability at <code>endtime</code>.</p></dd>
+<dd><p>vector. Cumulative event probabilities at each cutpoint and at
+<code>endtime</code>, in that order. Its length must be one greater than the number of
+cutpoints. With no cutpoints, supply a single probability at <code>endtime</code>.</p></dd>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
-<dd><p>vector. Times at which the baseline hazard changes. Default
-is <code>cutpoints = 0</code>, which corresponds to a simple (non-piecewise)
-exponential model.</p></dd>
+<dd><p>finite, positive, strictly increasing vector of interior
+times at which the baseline hazard changes. Default is <code>NULL</code>, which
+corresponds to a simple (non-piecewise) exponential model.</p></dd>
 
 
 <dt id="arg-endtime">endtime<a class="anchor" aria-label="anchor" href="#arg-endtime"></a></dt>
@@ -85,7 +85,7 @@ corresponds to. Typically this would be the study endpoint time.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Given \(J-1\) internal cut-points, then there are J intervals
+    <p>Given \(J-1\) interior cutpoints, then there are J intervals
 defined as: \([s_0, s_1)\), \([s_1, s_2)\), \(\dots\), \([s_{J-1},
   s_{J})\), with conditions that \(s_0 = 0\) and \(s_J = \infty\). Each
 interval corresponds to constant hazard \(\lambda_j\).</p>
@@ -98,11 +98,11 @@ interval corresponds to constant hazard \(\lambda_j\).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 15% probability at 12-months, and 30% at 24-months</span></span></span>
-<span class="r-in"><span><span class="fu">prop_to_haz</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">0.30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span>, <span class="fl">24</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">prop_to_haz</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">0.30</span><span class="op">)</span>, <span class="fl">12</span>, <span class="fl">24</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.01354324 0.01617967</span>
-<span class="r-in"><span><span class="fu">PWEALL</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/PWEALL/man/pwe.html" class="external-link">pwe</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fu">prop_to_haz</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">0.30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span>, <span class="fl">24</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">dist</span></span></span>
+<span class="r-in"><span><span class="fu">PWEALL</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/PWEALL/man/pwe.html" class="external-link">pwe</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fu">prop_to_haz</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">0.30</span><span class="op">)</span>, <span class="fl">12</span>, <span class="fl">24</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">dist</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.15</span>
-<span class="r-in"><span><span class="fu">PWEALL</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/PWEALL/man/pwe.html" class="external-link">pwe</a></span><span class="op">(</span><span class="fl">24</span>, <span class="fu">prop_to_haz</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">0.30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span>, <span class="fl">24</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">dist</span></span></span>
+<span class="r-in"><span><span class="fu">PWEALL</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/PWEALL/man/pwe.html" class="external-link">pwe</a></span><span class="op">(</span><span class="fl">24</span>, <span class="fu">prop_to_haz</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">0.30</span><span class="op">)</span>, <span class="fl">12</span>, <span class="fl">24</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">dist</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.3</span>
 </code></pre></div>
     </div>

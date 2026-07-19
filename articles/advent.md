@@ -122,8 +122,8 @@ target scenario was an 8% primary safety event rate in each arm.
 | Safety | Primary safety event by 12 months | Primary safety event | 0.08 | 0.08 | 0.966 |
 
 The ADVENT primary analyses used Bayesian beta-binomial endpoint models
-with noninformative `Beta(0.5, 0.5)` priors. In `goldilocks`, this is
-specified with:
+with noninformative $`\operatorname{Beta}(0.5, 0.5)`$ priors. In
+`goldilocks`, this is specified with:
 
 ``` r
 
@@ -169,12 +169,12 @@ prob_check <- data.frame(
     ppwe(
       hazard = matrix(haz_eff_fail, nrow = 1),
       end_of_study = end_of_study,
-      cutpoints = 0
+      cutpoints = NULL
     ),
     ppwe(
       hazard = matrix(haz_safety, nrow = 1),
       end_of_study = end_of_study,
-      cutpoints = 0
+      cutpoints = NULL
     )
   ),
   check.names = FALSE
@@ -235,10 +235,10 @@ set.seed(4601)
 advent_effectiveness <- survival_adapt(
   hazard_treatment = haz_eff_fail,
   hazard_control = haz_eff_fail,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = N_total,
   lambda = 40,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = interim_look,
   end_of_study = end_of_study,
   prior = prior,
@@ -259,9 +259,9 @@ advent_effectiveness <- survival_adapt(
 
 advent_effectiveness
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
-#> 1          0.956   0.15        less         225       225        450   750
-#>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9992122 0.007522124        0.92             0                     1
+#> 1          0.956   0.15        less         375       375        750   750
+#>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
+#> 1    0.9970475 0.05292553        0.68             0                     0
 ```
 
 The most important columns are:
@@ -271,7 +271,8 @@ The most important columns are:
   current sample size appeared adequate.
 - `stop_futility`: whether enrollment stopped because success looked
   unlikely even at the maximum sample size.
-- `est_final`: the posterior mean of (\$p\_{} - p\_{}\$).
+- `est_final`: the posterior mean of
+  $`p_{\text{PFA failure}} - p_{\text{thermal failure}}`$.
 - `post_prob_ha`: the final posterior probability that the binary
   endpoint effect is below the noninferiority margin.
 
@@ -293,10 +294,10 @@ set.seed(4602)
 advent_safety <- survival_adapt(
   hazard_treatment = haz_safety,
   hazard_control = haz_safety,
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = N_total,
   lambda = 40,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = interim_look,
   end_of_study = end_of_study,
   prior = prior,
@@ -317,9 +318,9 @@ advent_safety <- survival_adapt(
 
 advent_safety
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
-#> 1          0.966   0.08        less         325       325        650   750
-#>   post_prob_ha    est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9999509 -0.007055215        0.94             0                     1
+#> 1          0.966   0.08        less         225       225        450   750
+#>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
+#> 1    0.9999769 -0.01752212        0.96             0                     1
 ```
 
 In the published ADVENT design, a predicted-success stopping
@@ -338,10 +339,10 @@ once and then vary only the endpoint-specific values.
 ``` r
 
 advent_common <- list(
-  cutpoints = 0,
+  cutpoints = NULL,
   N_total = N_total,
   lambda = 40,
-  lambda_time = 0,
+  lambda_time = NULL,
   interim_look = interim_look,
   end_of_study = end_of_study,
   prior = prior,
@@ -361,7 +362,7 @@ advent_common <- list(
 
 advent_common
 #> $cutpoints
-#> [1] 0
+#> NULL
 #> 
 #> $N_total
 #> [1] 750
@@ -370,7 +371,7 @@ advent_common
 #> [1] 40
 #> 
 #> $lambda_time
-#> [1] 0
+#> NULL
 #> 
 #> $interim_look
 #> [1] 350 450 550 650
@@ -459,8 +460,8 @@ knitr::kable(oc_small, digits = 3)
 
 | scenario | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
 |:---|---:|---:|---:|---:|---:|---:|---:|
-| margin: PFA failure 50% | 0.05 | 0.10 | 0.6 | 0.30 | 560 | 158.612 | 0.05 |
-| target: equal 35% failure | 1.00 | 0.95 | 0.0 | 0.05 | 510 | 104.630 | 0.00 |
+| margin: PFA failure 50% | 0 | 0.00 | 0.75 | 0.25 | 555 | 153.811 | 0 |
+| target: equal 35% failure | 1 | 0.95 | 0.00 | 0.05 | 485 | 113.671 | 0 |
 
 This table is intentionally small so the vignette can build quickly. It
 checks that the code runs and shows the workflow for comparing a target
@@ -597,8 +598,8 @@ following ways:
 - It uses the published predicted-success thresholds: 0.95, 0.90, 0.85,
   and 0.80.
 - It uses the published futility thresholds: 0.05, 0.10, 0.10, and 0.10.
-- It uses the published beta-binomial endpoint prior, `Beta(0.5, 0.5)`,
-  via `bin_prior = c(0.5, 0.5)`.
+- It uses the published beta-binomial endpoint prior,
+  $`\operatorname{Beta}(0.5, 0.5)`$, via `bin_prior = c(0.5, 0.5)`.
 - It uses the published noninferiority margins: 15 percentage points for
   effectiveness and 8 percentage points for safety.
 - It uses the published posterior probability thresholds: 0.956 for

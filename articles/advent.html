@@ -251,8 +251,9 @@ target scenario was an 8% primary safety event rate in each arm.</p>
 </tbody>
 </table>
 <p>The ADVENT primary analyses used Bayesian beta-binomial endpoint
-models with noninformative <code>Beta(0.5, 0.5)</code> priors. In
-<code>goldilocks</code>, this is specified with:</p>
+models with noninformative
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Beta</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo>,</mo><mn>0.5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Beta}(0.5, 0.5)</annotation></semantics></math>
+priors. In <code>goldilocks</code>, this is specified with:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bin_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 <p>The <code>prior</code> argument still appears in the code below
@@ -290,12 +291,12 @@ months.</p>
 <span>    <span class="fu"><a href="../reference/ppwe.html">ppwe</a></span><span class="op">(</span></span>
 <span>      hazard <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">haz_eff_fail</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>      end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>      cutpoints <span class="op">=</span> <span class="fl">0</span></span>
+<span>      cutpoints <span class="op">=</span> <span class="cn">NULL</span></span>
 <span>    <span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/ppwe.html">ppwe</a></span><span class="op">(</span></span>
 <span>      hazard <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">haz_safety</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>      end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>      cutpoints <span class="op">=</span> <span class="fl">0</span></span>
+<span>      cutpoints <span class="op">=</span> <span class="cn">NULL</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -363,10 +364,10 @@ of observed endpoint information available at interim looks.</p>
 <span><span class="va">advent_effectiveness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">haz_eff_fail</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">haz_eff_fail</span>,</span>
-<span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="va">N_total</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">40</span>,</span>
-<span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="va">interim_look</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
 <span>  prior <span class="op">=</span> <span class="va">prior</span>,</span>
@@ -387,9 +388,9 @@ of observed endpoint information available at interim looks.</p>
 <span></span>
 <span><span class="va">advent_effectiveness</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
-<span><span class="co">#&gt; 1          0.956   0.15        less         225       225        450   750</span></span>
-<span><span class="co">#&gt;   post_prob_ha   est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9992122 0.007522124        0.92             0                     1</span></span></code></pre></div>
+<span><span class="co">#&gt; 1          0.956   0.15        less         375       375        750   750</span></span>
+<span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_expected_success</span></span>
+<span><span class="co">#&gt; 1    0.9970475 0.05292553        0.68             0                     0</span></span></code></pre></div>
 <p>The most important columns are:</p>
 <ul>
 <li>
@@ -402,7 +403,8 @@ because the current sample size appeared adequate.</li>
 <code>stop_futility</code>: whether enrollment stopped because
 success looked unlikely even at the maximum sample size.</li>
 <li>
-<code>est_final</code>: the posterior mean of ($p_{} - p_{}$).</li>
+<code>est_final</code>: the posterior mean of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">PFA failure</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">thermal failure</mtext></msub></mrow><annotation encoding="application/x-tex">p_{\text{PFA failure}} - p_{\text{thermal failure}}</annotation></semantics></math>.</li>
 <li>
 <code>post_prob_ha</code>: the final posterior probability that the
 binary endpoint effect is below the noninferiority margin.</li>
@@ -424,10 +426,10 @@ threshold. Success in the code means:</p>
 <span><span class="va">advent_safety</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">haz_safety</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">haz_safety</span>,</span>
-<span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="va">N_total</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">40</span>,</span>
-<span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="va">interim_look</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
 <span>  prior <span class="op">=</span> <span class="va">prior</span>,</span>
@@ -448,9 +450,9 @@ threshold. Success in the code means:</p>
 <span></span>
 <span><span class="va">advent_safety</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
-<span><span class="co">#&gt; 1          0.966   0.08        less         325       325        650   750</span></span>
-<span><span class="co">#&gt;   post_prob_ha    est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9999509 -0.007055215        0.94             0                     1</span></span></code></pre></div>
+<span><span class="co">#&gt; 1          0.966   0.08        less         225       225        450   750</span></span>
+<span><span class="co">#&gt;   post_prob_ha   est_final ppp_success stop_futility stop_expected_success</span></span>
+<span><span class="co">#&gt; 1    0.9999769 -0.01752212        0.96             0                     1</span></span></code></pre></div>
 <p>In the published ADVENT design, a predicted-success stopping
 recommendation required high predictive probability for both endpoints.
 A futility recommendation could be triggered by low predictive
@@ -466,10 +468,10 @@ endpoint-specific Bayesian rule maps to
 once and then vary only the endpoint-specific values.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">advent_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="va">N_total</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">40</span>,</span>
-<span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="va">interim_look</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
 <span>  prior <span class="op">=</span> <span class="va">prior</span>,</span>
@@ -489,7 +491,7 @@ once and then vary only the endpoint-specific values.</p>
 <span></span>
 <span><span class="va">advent_common</span></span>
 <span><span class="co">#&gt; $cutpoints</span></span>
-<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="co">#&gt; NULL</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $N_total</span></span>
 <span><span class="co">#&gt; [1] 750</span></span>
@@ -498,7 +500,7 @@ once and then vary only the endpoint-specific values.</p>
 <span><span class="co">#&gt; [1] 40</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $lambda_time</span></span>
-<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="co">#&gt; NULL</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $interim_look</span></span>
 <span><span class="co">#&gt; [1] 350 450 550 650</span></span>
@@ -603,23 +605,23 @@ once and then vary only the endpoint-specific values.</p>
 <tbody>
 <tr class="odd">
 <td align="left">margin: PFA failure 50%</td>
-<td align="right">0.05</td>
-<td align="right">0.10</td>
-<td align="right">0.6</td>
-<td align="right">0.30</td>
-<td align="right">560</td>
-<td align="right">158.612</td>
-<td align="right">0.05</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0.75</td>
+<td align="right">0.25</td>
+<td align="right">555</td>
+<td align="right">153.811</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">target: equal 35% failure</td>
-<td align="right">1.00</td>
+<td align="right">1</td>
 <td align="right">0.95</td>
-<td align="right">0.0</td>
-<td align="right">0.05</td>
-<td align="right">510</td>
-<td align="right">104.630</td>
 <td align="right">0.00</td>
+<td align="right">0.05</td>
+<td align="right">485</td>
+<td align="right">113.671</td>
+<td align="right">0</td>
 </tr>
 </tbody>
 </table>
@@ -744,8 +746,8 @@ following ways:</p>
 <li>It uses the published futility thresholds: 0.05, 0.10, 0.10, and
 0.10.</li>
 <li>It uses the published beta-binomial endpoint prior,
-<code>Beta(0.5, 0.5)</code>, via
-<code>bin_prior = c(0.5, 0.5)</code>.</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Beta</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo>,</mo><mn>0.5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Beta}(0.5, 0.5)</annotation></semantics></math>,
+via <code>bin_prior = c(0.5, 0.5)</code>.</li>
 <li>It uses the published noninferiority margins: 15 percentage points
 for effectiveness and 8 percentage points for safety.</li>
 <li>It uses the published posterior probability thresholds: 0.956 for

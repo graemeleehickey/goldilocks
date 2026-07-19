@@ -88,9 +88,9 @@ analysis of every completed or imputed dataset. Thus, interim predictive
 probabilities are affected by both priors, whereas a non-imputed final
 binary analysis is affected by <code>bin_prior</code> alone.</p>
 <p>For the examples below, we use the default weakly informative
-Gamma<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>0.1</mn><mo>,</mo><mn>0.1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(0.1, 0.1)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.1</mn><mo>,</mo><mn>0.1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(0.1, 0.1)</annotation></semantics></math>
 hazard prior and a uniform
-Beta<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1, 1)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Beta</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Beta}(1, 1)</annotation></semantics></math>
 binary-endpoint prior:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hazard_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>  <span class="co"># Gamma shape and rate for predictive imputation</span></span>
@@ -112,8 +112,9 @@ analysis.</li>
 </h2>
 <p>Suppose the control event probability by 12 months is 35%, and the
 treatment is expected to reduce this to 25%. We use a beta-binomial
-final analysis with a uniform <code>Beta(1, 1)</code> prior in each arm.
-Since lower event probability is beneficial, we use
+final analysis with a uniform
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Beta</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Beta}(1, 1)</annotation></semantics></math>
+prior in each arm. Since lower event probability is beneficial, we use
 <code>alternative = "less"</code> and compare the posterior distribution
 of</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub></mrow><annotation encoding="application/x-tex">p_{\text{treatment}} - p_{\text{control}}</annotation></semantics></math></p>
@@ -126,10 +127,10 @@ of</p>
 <span><span class="va">out_two_arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">hc</span>,</span>
-<span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="fl">120</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="fl">80</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
 <span>  prior <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
@@ -152,7 +153,7 @@ of</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95      0        less          60        60        120   120</span></span>
 <span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9376521 -0.1290323        0.15             0                     0</span></span></code></pre></div>
+<span><span class="co">#&gt; 1    0.9178978 -0.1129032        0.85             0                     0</span></span></code></pre></div>
 <p>The output has the same structure as other
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> analyses. For
 <code>method = "bayes-bin"</code>, <code>est_final</code> is the
@@ -180,10 +181,10 @@ exceeds <code>prob_ha</code>.</p>
 <span><span class="va">out_single_arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht_single</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="fl">80</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
 <span>  prior <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
@@ -204,7 +205,7 @@ exceeds <code>prob_ha</code>.</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95    0.3        less          80         0         80    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.8209404 0.2560976        0.65             0                     0</span></span></code></pre></div>
+<span><span class="co">#&gt; 1    0.9740269 0.2073171         0.6             0                     0</span></span></code></pre></div>
 <p>In this setting <code>est_final</code> is the posterior mean event
 probability in the single arm, and <code>post_prob_ha</code> is the
 posterior probability that this event probability is below the
@@ -248,10 +249,10 @@ Windows.</p>
 <span>  N_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">hc</span>,</span>
-<span>  cutpoints <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="fl">120</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  lambda_time <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="fl">80</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
 <span>  prior <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
