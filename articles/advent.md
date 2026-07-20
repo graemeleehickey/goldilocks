@@ -170,9 +170,7 @@ multiple-imputation analysis returns to
 $`\operatorname{Gamma}(0.5, 0.001)`$ for every interval. The current
 `goldilocks` interface applies one shared Gamma prior to every interval
 and uses it for both interim prediction and final imputation, so the
-special 210–360-day prior is not yet available in the package; this
-limitation is tracked in [GitHub issue
-\#59](https://github.com/graemeleehickey/goldilocks/issues/59). We
+special 210–360-day prior is not yet available in the package. We
 therefore use $`\operatorname{Gamma}(0.5, 0.001)`$ throughout this
 endpoint-specific illustration.
 
@@ -183,13 +181,14 @@ sufficient statistics from a neighboring interval, so the examples
 explicitly set `empty_interval = "prior"`.
 
 The SAP reports $`M = 5000`$ completed datasets for its
-predictive-probability and multiple-imputation calculations. This
-vignette deliberately uses 30–100 imputations instead: 50 for the worked
-single trials, 30 for the small operating-characteristic example, and
-100 in the unevaluated fuller template. We do not use $`M = 5000`$ here
-in order to keep vignette computation time to a minimum. Consequently,
-the numerical examples are demonstrations of package workflow rather
-than reproductions of the ADVENT calibration.
+predictive-probability and multiple-imputation calculations. The
+evaluated parts of this vignette deliberately use fewer imputations: 50
+for the worked single trials and 30 for the operating-characteristic
+example. We do not use $`M = 5000`$ in evaluated code in order to keep
+vignette computation time to a minimum. The unevaluated fuller template
+does use $`M = 5000`$ to show the ADVENT setting. Consequently, the
+numerical results shown in the vignette are demonstrations of package
+workflow rather than reproductions of the ADVENT calibration.
 
 ## SAP event-time models and time units
 
@@ -218,6 +217,22 @@ eff_hazard_per_day <- c(
 safety_event_cutpoints_day <- 7
 safety_hazard_per_day <- c(0.011137363, 1.53540e-5)
 
+eff_interval_length_day <- diff(c(
+  0,
+  eff_event_cutpoints_day,
+  end_of_study_day
+))
+safety_interval_length_day <- diff(c(
+  0,
+  safety_event_cutpoints_day,
+  end_of_study_day
+))
+
+implied_event_free_proportion <- c(
+  exp(-cumsum(eff_hazard_per_day * eff_interval_length_day)),
+  exp(-cumsum(safety_hazard_per_day * safety_interval_length_day))
+)
+
 hazard_table <- data.frame(
   Endpoint = c(rep("Effectiveness failure", 5), rep("Safety event", 2)),
   `Follow-up interval (days)` = c(
@@ -228,27 +243,26 @@ hazard_table <- data.frame(
     eff_hazard_per_day,
     safety_hazard_per_day
   ),
+  `Implied event-free proportion at interval end` =
+    implied_event_free_proportion,
   check.names = FALSE
 )
 
-knitr::kable(hazard_table, digits = 9)
+knitr::kable(hazard_table, digits = c(9, 3))
 ```
 
-| Endpoint              | Follow-up interval (days) | Hazard per patient-day |
-|:----------------------|:--------------------------|-----------------------:|
-| Effectiveness failure | 0–90                      |            0.000111670 |
-| Effectiveness failure | 90–104                    |            0.002197976 |
-| Effectiveness failure | 104–150                   |            0.003163208 |
-| Effectiveness failure | 150–210                   |            0.002839089 |
-| Effectiveness failure | 210–360                   |            0.000494053 |
-| Safety event          | 0–7                       |            0.011137363 |
-| Safety event          | 7–360                     |            0.000015354 |
+| Endpoint | Follow-up interval (days) | Hazard per patient-day | Implied event-free proportion at interval end |
+|:---|:---|---:|---:|
+| Effectiveness failure | 0–90 | 0.000111670 | 0.990 |
+| Effectiveness failure | 90–104 | 0.002197976 | 0.960 |
+| Effectiveness failure | 104–150 | 0.003163208 | 0.830 |
+| Effectiveness failure | 150–210 | 0.002839089 | 0.700 |
+| Effectiveness failure | 210–360 | 0.000494053 | 0.650 |
+| Safety event | 0–7 | 0.011137363 | 0.925 |
+| Safety event | 7–360 | 0.000015354 | 0.920 |
 
-The effectiveness hazards imply event-free probabilities of
-approximately 0.99, 0.96, 0.83, 0.70, and 0.65 at days 90, 104, 150,
-210, and 360. The safety hazards imply event-free probabilities of 0.925
-at day 7 and 0.920 at day 360. The following calculation verifies the
-two final binary event probabilities used by the vignette:
+The following calculation verifies the two final binary event
+probabilities used by the vignette:
 
 ``` r
 
@@ -278,10 +292,32 @@ knitr::kable(prob_check, digits = 6)
 | Effectiveness failure | 0.35 | 0.35 |
 | Safety event | 0.08 | 0.08 |
 
-For scenarios with another day-360 event probability, the SAP multiplies
-the complete hazard vector by one constant. This preserves the piecewise
-shape and imposes proportional hazards in data generation. We use the
-same operation for the noninferiority-boundary examples below:
+For a piecewise-exponential model with interval hazards $`\lambda_j`$
+and interval lengths $`d_j`$, the cumulative hazard through day 360 is
+
+``` math
+H(360) = \sum_j \lambda_j d_j,
+```
+
+and the implied day-360 event probability is
+
+``` math
+p = 1 - \exp\{-H(360)\}.
+```
+
+To obtain a target event probability $`p^*`$ while retaining the
+relative height of every piece, multiply each hazard by
+
+``` math
+c = \frac{-\log(1-p^*)}{H(360)},
+\qquad \lambda_j^* = c\lambda_j.
+```
+
+When the treatment hazard vector is obtained by scaling the control
+vector this way, the hazard ratio is the same constant $`c`$ in every
+interval. Thus, the operation preserves the piecewise shape and imposes
+proportional hazards in data generation. We use it for the
+noninferiority-boundary examples below:
 
 ``` r
 
@@ -380,9 +416,17 @@ effectiveness_prop_loss <- 0.075
 safety_prop_loss <- 0.05
 
 enrollment_schedule <- data.frame(
-  `Trial-calendar interval` = c(
+  `Trial-calendar interval (months)` = c(
     paste("Month", 1:7),
     "Month 8 onward"
+  ),
+  `Trial-calendar interval (days since first patient in)` = c(
+    paste0(
+      (0:6) * days_per_month,
+      "--<",
+      (1:7) * days_per_month
+    ),
+    paste0(7 * days_per_month, " onward")
   ),
   `SAP rate (subjects/month)` = enrollment_rate_per_month,
   `Rate supplied to goldilocks (subjects/day)` = enrollment_rate_per_day,
@@ -392,16 +436,16 @@ enrollment_schedule <- data.frame(
 knitr::kable(enrollment_schedule, digits = 4)
 ```
 
-| Trial-calendar interval | SAP rate (subjects/month) | Rate supplied to goldilocks (subjects/day) |
-|:---|---:|---:|
-| Month 1 | 2 | 0.0667 |
-| Month 2 | 5 | 0.1667 |
-| Month 3 | 10 | 0.3333 |
-| Month 4 | 15 | 0.5000 |
-| Month 5 | 20 | 0.6667 |
-| Month 6 | 25 | 0.8333 |
-| Month 7 | 30 | 1.0000 |
-| Month 8 onward | 33 | 1.1000 |
+| Trial-calendar interval (months) | Trial-calendar interval (days since first patient in) | SAP rate (subjects/month) | Rate supplied to goldilocks (subjects/day) |
+|:---|:---|---:|---:|
+| Month 1 | 0–\<30 | 2 | 0.0667 |
+| Month 2 | 30–\<60 | 5 | 0.1667 |
+| Month 3 | 60–\<90 | 10 | 0.3333 |
+| Month 4 | 90–\<120 | 15 | 0.5000 |
+| Month 5 | 120–\<150 | 20 | 0.6667 |
+| Month 6 | 150–\<180 | 25 | 0.8333 |
+| Month 7 | 180–\<210 | 30 | 1.0000 |
+| Month 8 onward | 210 onward | 33 | 1.1000 |
 
 Thus, for example, trial-calendar day 210 is the beginning of month 8
 and the 33-subject/month rate. It is unrelated to the effectiveness
@@ -411,10 +455,17 @@ trial. Accrual speed remains worth sensitivity checking: faster accrual
 reduces the amount of observed endpoint information available at interim
 looks.
 
+The following
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+call simulates and analyzes the effectiveness endpoint for **one
+simulated trial**. It does not estimate operating characteristics over
+multiple trials.
+
 ``` r
 
 set.seed(4601)
 
+# One simulated effectiveness-endpoint trial
 advent_effectiveness <- survival_adapt(
   hazard_treatment = eff_hazard_per_day,
   hazard_control = eff_hazard_per_day,
@@ -471,10 +522,16 @@ threshold. Success in the code means:
 \mid \text{data}) > 0.966.
 ```
 
+This
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+call likewise represents **one simulated trial** for the safety
+endpoint.
+
 ``` r
 
 set.seed(4602)
 
+# One simulated safety-endpoint trial
 advent_safety <- survival_adapt(
   hazard_treatment = safety_hazard_per_day,
   hazard_control = safety_hazard_per_day,
@@ -544,7 +601,7 @@ advent_common <- list(
   empty_interval = "prior",
   method = "bayes-bin",
   imputed_final = TRUE,
-  ncores = 1
+  ncores = 2
 )
 
 advent_effectiveness_args <- modifyList(advent_common, list(
@@ -611,7 +668,7 @@ advent_effectiveness_args
 #> [1] TRUE
 #> 
 #> $ncores
-#> [1] 1
+#> [1] 2
 #> 
 #> $cutpoints
 #> [1]  90 104 150 210
@@ -629,7 +686,7 @@ set.seed(4610)
 eff_target <- do.call(sim_trials, c(
   advent_effectiveness_args,
   list(
-    N_trials = 20,
+    N_trials = 500,
     hazard_treatment = eff_hazard_per_day,
     hazard_control = eff_hazard_per_day,
     h0 = 0.15,
@@ -642,7 +699,7 @@ eff_target <- do.call(sim_trials, c(
 eff_null_boundary <- do.call(sim_trials, c(
   advent_effectiveness_args,
   list(
-    N_trials = 20,
+    N_trials = 500,
     hazard_treatment = eff_margin_hazard_per_day,
     hazard_control = eff_hazard_per_day,
     h0 = 0.15,
@@ -661,16 +718,14 @@ knitr::kable(oc_small, digits = 3)
 
 | scenario | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
 |:---|---:|---:|---:|---:|---:|---:|---:|
-| margin: PFA failure 50% | 0.15 | 0.15 | 0.5 | 0.35 | 595 | 131.689 | 0.1 |
-| target: equal 35% failure | 1.00 | 1.00 | 0.0 | 0.00 | 455 | 99.868 | 0.0 |
+| margin: PFA failure 50% | 0.064 | 0.064 | 0.644 | 0.292 | 556.8 | 151.789 | 0.040 |
+| target: equal 35% failure | 0.976 | 0.940 | 0.010 | 0.050 | 481.8 | 112.223 | 0.012 |
 
-This table is intentionally small so the vignette can build quickly. It
-checks that the code runs and shows the workflow for comparing a target
-scenario with a boundary scenario. It should not be interpreted as a
-stable estimate of power or type I error. For design work, increase
-`N_trials`, increase `N_impute`, and run sensitivity analyses over
-accrual speed, loss to follow-up, event rates, and the imputation hazard
-model.
+Each scenario uses 500 simulated trials and two cores. This remains a
+workflow demonstration rather than a definitive estimate of power or
+type I error. For design work, increase `N_trials`, increase `N_impute`,
+and run sensitivity analyses over accrual speed, loss to follow-up,
+event rates, and the imputation hazard model.
 
 ## Visualizing the simulated design
 
@@ -724,12 +779,12 @@ build. It is not evaluated here.
 ``` r
 
 advent_effectiveness_full_args <- modifyList(advent_effectiveness_args, list(
-  N_impute = 100,
+  N_impute = 5000,
   ncores = 8
 ))
 
 advent_safety_full_args <- modifyList(advent_safety_args, list(
-  N_impute = 100,
+  N_impute = 5000,
   ncores = 8
 ))
 
@@ -797,31 +852,44 @@ boundary. They are not the only null scenarios worth studying.
 ## SAP sensitivity assumptions and reference benchmarks
 
 The SAP assessed whether operating characteristics were robust to
-several alternative assumptions:
+several alternative assumptions. In `goldilocks` notation, these
+correspond to:
 
-- Control effectiveness success was varied over
-  $`P_C \in \{0.60, 0.65, 0.70\}`$ and the control safety-event rate
-  over $`Q_C \in \{0.06, 0.08, 0.10\}`$.
-- Slower accrual used 2, 5, 10, 10, 15, 15, and 20 subjects/month during
-  months 1–7, then 25/month. Faster accrual used 5, 10, 20, 25, 30, and
-  40 subjects/month during months 1–6, then 50/month.
-- Effectiveness generator Eff2 used cut-points at days 90, 100, 200, and
-  300 with daily hazards
-  `c(0.000055695, 0.010034797, 0.001690763, 0.000680535, 0.000573122)`.
-- Effectiveness generator Eff3 used cut-points at days 90 and 120 with
-  daily hazards `c(0.000569925, 0.007879626, 0.000596254)`.
-- Safety generator Saf2 used cut-points at days 7 and 180 with daily
-  hazards `c(0.007327613, 0.000122991, 0.0000600610)`.
+- Varying the day-360 event probability implied by the effectiveness
+  `hazard_control` vector over `c(0.40, 0.35, 0.30)`. These are failure
+  probabilities and therefore correspond to the SAP’s control success
+  probabilities of 0.60, 0.65, and 0.70. The day-360 event probability
+  implied by the safety `hazard_control` vector was varied over
+  `c(0.06, 0.08, 0.10)`.
+- Supplying a slower `lambda` schedule of
+  `c(2, 5, 10, 10, 15, 15, 20, 25) / 30`, with
+  `lambda_time = (1:7) * 30`, or a faster schedule of
+  `c(5, 10, 20, 25, 30, 40, 50) / 30`, with `lambda_time = (1:6) * 30`.
+  Division by 30 converts the SAP’s subjects/month rates to the
+  subjects/day scale used here.
+- Using the SAP’s second effectiveness generator with
+  `cutpoints = c(90, 100, 200, 300)` and both `hazard_treatment` and
+  `hazard_control` set to
+  `c(0.000055695, 0.010034797, 0.001690763, 0.000680535, 0.000573122)`
+  in its equal-arm target scenario.
+- Using the SAP’s third effectiveness generator with
+  `cutpoints = c(90, 120)` and both hazard arguments set to
+  `c(0.000569925, 0.007879626, 0.000596254)` in its equal-arm target
+  scenario.
+- Using the SAP’s second safety generator with `cutpoints = c(7, 180)`
+  and both hazard arguments set to
+  `c(0.007327613, 0.000122991, 0.0000600610)` in its equal-arm target
+  scenario.
 
-Eff2, Eff3, and Saf2 deliberately use data-generating partitions that
-differ from the principal analysis partitions. The current package
-accepts one `cutpoints` vector for both event generation and predictive
-imputation, so it cannot reproduce those model-misspecification
-sensitivities directly. The SAP also planned an imputation-model
-sensitivity with six pieces: day 90 followed by five post-90-day
-intervals containing approximately equal event counts, potentially with
-different cut-points by arm. A shared fixed package cut-point vector
-cannot reproduce that analysis either.
+The three alternative event-time generators deliberately use
+data-generating partitions that differ from the principal analysis
+partitions. The current package accepts one `cutpoints` vector for both
+event generation and predictive imputation, so it cannot reproduce those
+model-misspecification sensitivities directly. The SAP also planned an
+imputation-model sensitivity with six pieces: day 90 followed by five
+post-90-day intervals containing approximately equal event counts,
+potentially with different cut-points by arm. A shared fixed package
+cut-point vector cannot reproduce that analysis either.
 
 The SAP supplies quantitative reference results based on 10,000
 simulated trials per scenario and $`M=5000`$ predictive draws or
@@ -833,82 +901,18 @@ imputations:
 | Effectiveness noninferiority boundary | 0.0487 | Effectiveness type I error | 551 |
 | Safety noninferiority boundary | 0.0528 | Safety type I error | 457 |
 
-The target row assumes $`P_T=P_C=0.65`$ and $`Q_T=Q_C=0.08`$, with
-success requiring both co-primary endpoints. At the effectiveness
-boundary, $`P_T=0.50`$ and the safety endpoint was assumed always to
-recommend stopping for promise and to pass finally. At the safety
-boundary, $`Q_T=0.16`$ and effectiveness was treated analogously. These
-are external validation targets. The small, endpoint-separated
-simulations in this vignette do not claim to reproduce them.
-
-## What matches ADVENT, and what is simplified?
-
-The code above is intentionally close to the reported design in the
-following ways:
-
-- It uses the published Goldilocks sample-size options: 350, 450, 550,
-  650, and 750.
-- It uses the published predicted-success thresholds: 0.95, 0.90, 0.85,
-  and 0.80.
-- It uses the published futility thresholds: 0.05, 0.10, 0.10, and 0.10.
-- It uses the published beta-binomial endpoint prior,
-  $`\operatorname{Beta}(0.5, 0.5)`$, via `bin_prior = c(0.5, 0.5)`.
-- It uses the published noninferiority margins: 15 percentage points for
-  effectiveness and 8 percentage points for safety.
-- It uses the published posterior probability thresholds: 0.956 for
-  effectiveness and 0.966 for safety.
-- It uses the SAP’s default Eff1 and Saf1 piecewise event-time
-  generators, including their day-scale cut-points and daily hazards.
-- It uses a 360-day representation of the 12-month endpoint window,
-  keeping the time unit consistent with the SAP’s Gamma prior rates and
-  interval definitions.
-- It uses the SAP’s exact expected accrual ramp after converting the
-  reported subjects/month rates to subjects/day for the day-scale
-  package simulation.
-- It maps the SAP’s designated missingness fractions of 7.5% for
-  effectiveness and 5% for safety.
-- It uses the SAP’s reported $`\operatorname{Gamma}(0.5, 0.001)`$
-  imputation-prior hyperparameters where the current package interface
-  permits a shared prior, and leaves empty intervals prior-driven with
-  `empty_interval = "prior"`.
-
-The code simplifies the reported trial in these ways:
-
-- It models effectiveness and safety as separate endpoint-specific
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-  runs. ADVENT used co-primary endpoints with a joint stopping
-  recommendation.
-- It models 350–750 analysis-population subjects directly and does not
-  simulate roll-ins, randomized subjects excluded from mITT, or the
-  difference between the mITT effectiveness and Safety Populations.
-- It does not model site stratification or the randomly varying block
-  randomization scheme; `block = 2` is an illustrative package setting.
-- It cannot reproduce the SAP dropout mechanism or the shared
-  subject-level missingness relationship across endpoints, even though
-  the designated marginal fractions are supplied.
-- It cannot apply the effectiveness endpoint’s special
-  $`\operatorname{Gamma}(5, 10000)`$ prior to the 210–360-day interval
-  during interim prediction and then switch that interval to
-  $`\operatorname{Gamma}(0.5, 0.001)`$ for final imputation.
-- It cannot use different data-generation and analysis cut-points for
-  the Eff2, Eff3, and Saf2 sensitivity generators, or arm-specific
-  data-driven cut-points for the six-piece imputation sensitivity.
-- It treats enrollment/randomization and the index procedure as
-  coincident and does not reproduce endpoint-specific monitoring and
-  censoring dates.
-- It uses 30–100 imputations for tractable vignette computation, whereas
-  ADVENT used $`M = 5000`$.
-
-The SAP now provides exact inputs and reference operating
-characteristics, so it supports a stronger, documented component-level
-validation exercise than the design paper alone. The comparison supports
-validation of the endpoint-level mechanics that map directly to
-`goldilocks`; it does not validate the package as a complete
-reproduction of ADVENT. A full reproduction would additionally require
-the joint co-primary stopping and final-success rules, the SAP censoring
-and shared-missingness process, interval- and stage-specific priors, and
-sufficiently large simulations compared directly with the published
-benchmarks.
+The target row sets the effectiveness `hazard_treatment` and
+`hazard_control` vectors to imply equal day-360 failure probabilities of
+0.35, and the safety hazard vectors to imply equal day-360 event
+probabilities of 0.08; success requires both co-primary endpoints. At
+the effectiveness boundary, `hazard_treatment` implies a 0.50 failure
+probability while `hazard_control` implies 0.35, and the safety endpoint
+was assumed always to recommend stopping for promise and to pass
+finally. At the safety boundary, the treatment and control safety
+hazards imply event probabilities of 0.16 and 0.08, respectively, and
+effectiveness was treated analogously. These are external validation
+targets. The endpoint-separated simulations in this vignette do not
+claim to reproduce them.
 
 ## References
 

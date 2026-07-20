@@ -292,9 +292,7 @@ assessments. The final multiple-imputation analysis returns to
 for every interval. The current <code>goldilocks</code> interface
 applies one shared Gamma prior to every interval and uses it for both
 interim prediction and final imputation, so the special 210–360-day
-prior is not yet available in the package; this limitation is tracked in
-<a href="https://github.com/graemeleehickey/goldilocks/issues/59" class="external-link">GitHub
-issue #59</a>. We therefore use
+prior is not yet available in the package. We therefore use
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo>,</mo><mn>0.001</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(0.5, 0.001)</annotation></semantics></math>
 throughout this endpoint-specific illustration.</p>
 <p>Later follow-up intervals can have no exposure at an early look. The
@@ -305,14 +303,16 @@ explicitly set <code>empty_interval = "prior"</code>.</p>
 <p>The SAP reports
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5000</mn></mrow><annotation encoding="application/x-tex">M = 5000</annotation></semantics></math>
 completed datasets for its predictive-probability and
-multiple-imputation calculations. This vignette deliberately uses 30–100
-imputations instead: 50 for the worked single trials, 30 for the small
-operating-characteristic example, and 100 in the unevaluated fuller
-template. We do not use
+multiple-imputation calculations. The evaluated parts of this vignette
+deliberately use fewer imputations: 50 for the worked single trials and
+30 for the operating-characteristic example. We do not use
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5000</mn></mrow><annotation encoding="application/x-tex">M = 5000</annotation></semantics></math>
-here in order to keep vignette computation time to a minimum.
-Consequently, the numerical examples are demonstrations of package
-workflow rather than reproductions of the ADVENT calibration.</p>
+in evaluated code in order to keep vignette computation time to a
+minimum. The unevaluated fuller template does use
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5000</mn></mrow><annotation encoding="application/x-tex">M = 5000</annotation></semantics></math>
+to show the ADVENT setting. Consequently, the numerical results shown in
+the vignette are demonstrations of package workflow rather than
+reproductions of the ADVENT calibration.</p>
 </div>
 <div class="section level2">
 <h2 id="sap-event-time-models-and-time-units">SAP event-time models and time units<a class="anchor" aria-label="anchor" href="#sap-event-time-models-and-time-units"></a>
@@ -341,6 +341,22 @@ as 360 days.</p>
 <span><span class="va">safety_event_cutpoints_day</span> <span class="op">&lt;-</span> <span class="fl">7</span></span>
 <span><span class="va">safety_hazard_per_day</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.011137363</span>, <span class="fl">1.53540e-5</span><span class="op">)</span></span>
 <span></span>
+<span><span class="va">eff_interval_length_day</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="fl">0</span>,</span>
+<span>  <span class="va">eff_event_cutpoints_day</span>,</span>
+<span>  <span class="va">end_of_study_day</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">safety_interval_length_day</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="fl">0</span>,</span>
+<span>  <span class="va">safety_event_cutpoints_day</span>,</span>
+<span>  <span class="va">end_of_study_day</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">implied_event_free_proportion</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="va">eff_hazard_per_day</span> <span class="op">*</span> <span class="va">eff_interval_length_day</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="va">safety_hazard_per_day</span> <span class="op">*</span> <span class="va">safety_interval_length_day</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">hazard_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  Endpoint <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Effectiveness failure"</span>, <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Safety event"</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  `Follow-up interval (days)` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -351,64 +367,72 @@ as 360 days.</p>
 <span>    <span class="va">eff_hazard_per_day</span>,</span>
 <span>    <span class="va">safety_hazard_per_day</span></span>
 <span>  <span class="op">)</span>,</span>
+<span>  `Implied event-free proportion at interval end` <span class="op">=</span></span>
+<span>    <span class="va">implied_event_free_proportion</span>,</span>
 <span>  check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">hazard_table</span>, digits <span class="op">=</span> <span class="fl">9</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">hazard_table</span>, digits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">9</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="30%">
-<col width="36%">
-<col width="32%">
+<col width="18%">
+<col width="22%">
+<col width="19%">
+<col width="39%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Endpoint</th>
 <th align="left">Follow-up interval (days)</th>
 <th align="right">Hazard per patient-day</th>
+<th align="right">Implied event-free proportion at interval end</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">Effectiveness failure</td>
 <td align="left">0–90</td>
 <td align="right">0.000111670</td>
+<td align="right">0.990</td>
 </tr>
 <tr class="even">
 <td align="left">Effectiveness failure</td>
 <td align="left">90–104</td>
 <td align="right">0.002197976</td>
+<td align="right">0.960</td>
 </tr>
 <tr class="odd">
 <td align="left">Effectiveness failure</td>
 <td align="left">104–150</td>
 <td align="right">0.003163208</td>
+<td align="right">0.830</td>
 </tr>
 <tr class="even">
 <td align="left">Effectiveness failure</td>
 <td align="left">150–210</td>
 <td align="right">0.002839089</td>
+<td align="right">0.700</td>
 </tr>
 <tr class="odd">
 <td align="left">Effectiveness failure</td>
 <td align="left">210–360</td>
 <td align="right">0.000494053</td>
+<td align="right">0.650</td>
 </tr>
 <tr class="even">
 <td align="left">Safety event</td>
 <td align="left">0–7</td>
 <td align="right">0.011137363</td>
+<td align="right">0.925</td>
 </tr>
 <tr class="odd">
 <td align="left">Safety event</td>
 <td align="left">7–360</td>
 <td align="right">0.000015354</td>
+<td align="right">0.920</td>
 </tr>
 </tbody>
 </table>
-<p>The effectiveness hazards imply event-free probabilities of
-approximately 0.99, 0.96, 0.83, 0.70, and 0.65 at days 90, 104, 150,
-210, and 360. The safety hazards imply event-free probabilities of 0.925
-at day 7 and 0.920 at day 360. The following calculation verifies the
-two final binary event probabilities used by the vignette:</p>
+<p>The following calculation verifies the two final binary event
+probabilities used by the vignette:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prob_check</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  Endpoint <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Effectiveness failure"</span>, <span class="st">"Safety event"</span><span class="op">)</span>,</span>
@@ -453,11 +477,32 @@ two final binary event probabilities used by the vignette:</p>
 </tr>
 </tbody>
 </table>
-<p>For scenarios with another day-360 event probability, the SAP
-multiplies the complete hazard vector by one constant. This preserves
-the piecewise shape and imposes proportional hazards in data generation.
-We use the same operation for the noninferiority-boundary examples
-below:</p>
+<p>For a piecewise-exponential model with interval hazards
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\lambda_j</annotation></semantics></math>
+and interval lengths
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>j</mi></msub><annotation encoding="application/x-tex">d_j</annotation></semantics></math>,
+the cumulative hazard through day 360 is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mn>360</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>λ</mi><mi>j</mi></msub><msub><mi>d</mi><mi>j</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+H(360) = \sum_j \lambda_j d_j,
+</annotation></semantics></math></p>
+<p>and the implied day-360 event probability is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">{</mo><mi>−</mi><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mn>360</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+p = 1 - \exp\{-H(360)\}.
+</annotation></semantics></math></p>
+<p>To obtain a target event probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>p</mi><mo>*</mo></msup><annotation encoding="application/x-tex">p^*</annotation></semantics></math>
+while retaining the relative height of every piece, multiply each hazard
+by</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mfrac><mrow><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msup><mi>p</mi><mo>*</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mn>360</mn><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msubsup><mi>λ</mi><mi>j</mi><mo>*</mo></msubsup><mo>=</mo><mi>c</mi><msub><mi>λ</mi><mi>j</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+c = \frac{-\log(1-p^*)}{H(360)},
+\qquad \lambda_j^* = c\lambda_j.
+</annotation></semantics></math></p>
+<p>When the treatment hazard vector is obtained by scaling the control
+vector this way, the hazard ratio is the same constant
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+in every interval. Thus, the operation preserves the piecewise shape and
+imposes proportional hazards in data generation. We use it for the
+noninferiority-boundary examples below:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scale_pwe_to_event_probability</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span></span>
 <span>  <span class="va">hazard_per_day</span>,</span>
@@ -549,9 +594,17 @@ patient in fixed at calendar day 0.</p>
 <span><span class="va">safety_prop_loss</span> <span class="op">&lt;-</span> <span class="fl">0.05</span></span>
 <span></span>
 <span><span class="va">enrollment_schedule</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  `Trial-calendar interval` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  `Trial-calendar interval (months)` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Month"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">7</span><span class="op">)</span>,</span>
 <span>    <span class="st">"Month 8 onward"</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  `Trial-calendar interval (days since first patient in)` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span></span>
+<span>      <span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span> <span class="op">*</span> <span class="va">days_per_month</span>,</span>
+<span>      <span class="st">"--&lt;"</span>,</span>
+<span>      <span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">7</span><span class="op">)</span> <span class="op">*</span> <span class="va">days_per_month</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fl">7</span> <span class="op">*</span> <span class="va">days_per_month</span>, <span class="st">" onward"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  `SAP rate (subjects/month)` <span class="op">=</span> <span class="va">enrollment_rate_per_month</span>,</span>
 <span>  `Rate supplied to goldilocks (subjects/day)` <span class="op">=</span> <span class="va">enrollment_rate_per_day</span>,</span>
@@ -561,53 +614,64 @@ patient in fixed at calendar day 0.</p>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">enrollment_schedule</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="25%">
+<col width="21%">
+<col width="34%">
+<col width="16%">
 <col width="27%">
-<col width="46%">
 </colgroup>
 <thead><tr class="header">
-<th align="left">Trial-calendar interval</th>
+<th align="left">Trial-calendar interval (months)</th>
+<th align="left">Trial-calendar interval (days since first patient
+in)</th>
 <th align="right">SAP rate (subjects/month)</th>
 <th align="right">Rate supplied to goldilocks (subjects/day)</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">Month 1</td>
+<td align="left">0–&lt;30</td>
 <td align="right">2</td>
 <td align="right">0.0667</td>
 </tr>
 <tr class="even">
 <td align="left">Month 2</td>
+<td align="left">30–&lt;60</td>
 <td align="right">5</td>
 <td align="right">0.1667</td>
 </tr>
 <tr class="odd">
 <td align="left">Month 3</td>
+<td align="left">60–&lt;90</td>
 <td align="right">10</td>
 <td align="right">0.3333</td>
 </tr>
 <tr class="even">
 <td align="left">Month 4</td>
+<td align="left">90–&lt;120</td>
 <td align="right">15</td>
 <td align="right">0.5000</td>
 </tr>
 <tr class="odd">
 <td align="left">Month 5</td>
+<td align="left">120–&lt;150</td>
 <td align="right">20</td>
 <td align="right">0.6667</td>
 </tr>
 <tr class="even">
 <td align="left">Month 6</td>
+<td align="left">150–&lt;180</td>
 <td align="right">25</td>
 <td align="right">0.8333</td>
 </tr>
 <tr class="odd">
 <td align="left">Month 7</td>
+<td align="left">180–&lt;210</td>
 <td align="right">30</td>
 <td align="right">1.0000</td>
 </tr>
 <tr class="even">
 <td align="left">Month 8 onward</td>
+<td align="left">210 onward</td>
 <td align="right">33</td>
 <td align="right">1.1000</td>
 </tr>
@@ -620,9 +684,14 @@ follow-up horizon is also per subject, not the total duration of the
 trial. Accrual speed remains worth sensitivity checking: faster accrual
 reduces the amount of observed endpoint information available at interim
 looks.</p>
+<p>The following <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> call simulates and
+analyzes the effectiveness endpoint for <strong>one simulated
+trial</strong>. It does not estimate operating characteristics over
+multiple trials.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4601</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># One simulated effectiveness-endpoint trial</span></span>
 <span><span class="va">advent_effectiveness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">eff_hazard_per_day</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">eff_hazard_per_day</span>,</span>
@@ -683,9 +752,12 @@ threshold. Success in the code means:</p>
 \Pr(p_{\text{PFA safety event}} - p_{\text{thermal safety event}} &lt; 0.08
 \mid \text{data}) &gt; 0.966.
 </annotation></semantics></math></p>
+<p>This <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> call likewise represents
+<strong>one simulated trial</strong> for the safety endpoint.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4602</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># One simulated safety-endpoint trial</span></span>
 <span><span class="va">advent_safety</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">safety_hazard_per_day</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">safety_hazard_per_day</span>,</span>
@@ -752,7 +824,7 @@ accidentally for safety, or vice versa.</p>
 <span>  empty_interval <span class="op">=</span> <span class="st">"prior"</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"bayes-bin"</span>,</span>
 <span>  imputed_final <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  ncores <span class="op">=</span> <span class="fl">1</span></span>
+<span>  ncores <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">advent_effectiveness_args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">advent_common</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -819,7 +891,7 @@ accidentally for safety, or vice versa.</p>
 <span><span class="co">#&gt; [1] TRUE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $ncores</span></span>
-<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="co">#&gt; [1] 2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $cutpoints</span></span>
 <span><span class="co">#&gt; [1]  90 104 150 210</span></span>
@@ -833,7 +905,7 @@ accidentally for safety, or vice versa.</p>
 <span><span class="va">eff_target</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trials</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="va">advent_effectiveness_args</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    N_trials <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>    N_trials <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>    hazard_treatment <span class="op">=</span> <span class="va">eff_hazard_per_day</span>,</span>
 <span>    hazard_control <span class="op">=</span> <span class="va">eff_hazard_per_day</span>,</span>
 <span>    h0 <span class="op">=</span> <span class="fl">0.15</span>,</span>
@@ -846,7 +918,7 @@ accidentally for safety, or vice versa.</p>
 <span><span class="va">eff_null_boundary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trials</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="va">advent_effectiveness_args</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    N_trials <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>    N_trials <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>    hazard_treatment <span class="op">=</span> <span class="va">eff_margin_hazard_per_day</span>,</span>
 <span>    hazard_control <span class="op">=</span> <span class="va">eff_hazard_per_day</span>,</span>
 <span>    h0 <span class="op">=</span> <span class="fl">0.15</span>,</span>
@@ -885,33 +957,31 @@ accidentally for safety, or vice versa.</p>
 <tbody>
 <tr class="odd">
 <td align="left">margin: PFA failure 50%</td>
-<td align="right">0.15</td>
-<td align="right">0.15</td>
-<td align="right">0.5</td>
-<td align="right">0.35</td>
-<td align="right">595</td>
-<td align="right">131.689</td>
-<td align="right">0.1</td>
+<td align="right">0.064</td>
+<td align="right">0.064</td>
+<td align="right">0.644</td>
+<td align="right">0.292</td>
+<td align="right">556.8</td>
+<td align="right">151.789</td>
+<td align="right">0.040</td>
 </tr>
 <tr class="even">
 <td align="left">target: equal 35% failure</td>
-<td align="right">1.00</td>
-<td align="right">1.00</td>
-<td align="right">0.0</td>
-<td align="right">0.00</td>
-<td align="right">455</td>
-<td align="right">99.868</td>
-<td align="right">0.0</td>
+<td align="right">0.976</td>
+<td align="right">0.940</td>
+<td align="right">0.010</td>
+<td align="right">0.050</td>
+<td align="right">481.8</td>
+<td align="right">112.223</td>
+<td align="right">0.012</td>
 </tr>
 </tbody>
 </table>
-<p>This table is intentionally small so the vignette can build quickly.
-It checks that the code runs and shows the workflow for comparing a
-target scenario with a boundary scenario. It should not be interpreted
-as a stable estimate of power or type I error. For design work, increase
-<code>N_trials</code>, increase <code>N_impute</code>, and run
-sensitivity analyses over accrual speed, loss to follow-up, event rates,
-and the imputation hazard model.</p>
+<p>Each scenario uses 500 simulated trials and two cores. This remains a
+workflow demonstration rather than a definitive estimate of power or
+type I error. For design work, increase <code>N_trials</code>, increase
+<code>N_impute</code>, and run sensitivity analyses over accrual speed,
+loss to follow-up, event rates, and the imputation hazard model.</p>
 </div>
 <div class="section level2">
 <h2 id="visualizing-the-simulated-design">Visualizing the simulated design<a class="anchor" aria-label="anchor" href="#visualizing-the-simulated-design"></a>
@@ -950,12 +1020,12 @@ trials.</p>
 vignette build. It is not evaluated here.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">advent_effectiveness_full_args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">advent_effectiveness_args</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  N_impute <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  N_impute <span class="op">=</span> <span class="fl">5000</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">8</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">advent_safety_full_args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">advent_safety_args</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  N_impute <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  N_impute <span class="op">=</span> <span class="fl">5000</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">8</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -1022,33 +1092,46 @@ boundary. They are not the only null scenarios worth studying.</p>
 <h2 id="sap-sensitivity-assumptions-and-reference-benchmarks">SAP sensitivity assumptions and reference benchmarks<a class="anchor" aria-label="anchor" href="#sap-sensitivity-assumptions-and-reference-benchmarks"></a>
 </h2>
 <p>The SAP assessed whether operating characteristics were robust to
-several alternative assumptions:</p>
+several alternative assumptions. In <code>goldilocks</code> notation,
+these correspond to:</p>
 <ul>
-<li>Control effectiveness success was varied over
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>C</mi></msub><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0.60</mn><mo>,</mo><mn>0.65</mn><mo>,</mo><mn>0.70</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">P_C \in \{0.60, 0.65, 0.70\}</annotation></semantics></math>
-and the control safety-event rate over
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mi>C</mi></msub><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0.06</mn><mo>,</mo><mn>0.08</mn><mo>,</mo><mn>0.10</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">Q_C \in \{0.06, 0.08, 0.10\}</annotation></semantics></math>.</li>
-<li>Slower accrual used 2, 5, 10, 10, 15, 15, and 20 subjects/month
-during months 1–7, then 25/month. Faster accrual used 5, 10, 20, 25, 30,
-and 40 subjects/month during months 1–6, then 50/month.</li>
-<li>Effectiveness generator Eff2 used cut-points at days 90, 100, 200,
-and 300 with daily hazards
-<code>c(0.000055695, 0.010034797, 0.001690763, 0.000680535, 0.000573122)</code>.</li>
-<li>Effectiveness generator Eff3 used cut-points at days 90 and 120 with
-daily hazards
-<code>c(0.000569925, 0.007879626, 0.000596254)</code>.</li>
-<li>Safety generator Saf2 used cut-points at days 7 and 180 with daily
-hazards <code>c(0.007327613, 0.000122991, 0.0000600610)</code>.</li>
+<li>Varying the day-360 event probability implied by the effectiveness
+<code>hazard_control</code> vector over
+<code>c(0.40, 0.35, 0.30)</code>. These are failure probabilities and
+therefore correspond to the SAP’s control success probabilities of 0.60,
+0.65, and 0.70. The day-360 event probability implied by the safety
+<code>hazard_control</code> vector was varied over
+<code>c(0.06, 0.08, 0.10)</code>.</li>
+<li>Supplying a slower <code>lambda</code> schedule of
+<code>c(2, 5, 10, 10, 15, 15, 20, 25) / 30</code>, with
+<code>lambda_time = (1:7) * 30</code>, or a faster schedule of
+<code>c(5, 10, 20, 25, 30, 40, 50) / 30</code>, with
+<code>lambda_time = (1:6) * 30</code>. Division by 30 converts the SAP’s
+subjects/month rates to the subjects/day scale used here.</li>
+<li>Using the SAP’s second effectiveness generator with
+<code>cutpoints = c(90, 100, 200, 300)</code> and both
+<code>hazard_treatment</code> and <code>hazard_control</code> set to
+<code>c(0.000055695, 0.010034797, 0.001690763, 0.000680535, 0.000573122)</code>
+in its equal-arm target scenario.</li>
+<li>Using the SAP’s third effectiveness generator with
+<code>cutpoints = c(90, 120)</code> and both hazard arguments set to
+<code>c(0.000569925, 0.007879626, 0.000596254)</code> in its equal-arm
+target scenario.</li>
+<li>Using the SAP’s second safety generator with
+<code>cutpoints = c(7, 180)</code> and both hazard arguments set to
+<code>c(0.007327613, 0.000122991, 0.0000600610)</code> in its equal-arm
+target scenario.</li>
 </ul>
-<p>Eff2, Eff3, and Saf2 deliberately use data-generating partitions that
-differ from the principal analysis partitions. The current package
-accepts one <code>cutpoints</code> vector for both event generation and
-predictive imputation, so it cannot reproduce those
-model-misspecification sensitivities directly. The SAP also planned an
-imputation-model sensitivity with six pieces: day 90 followed by five
-post-90-day intervals containing approximately equal event counts,
-potentially with different cut-points by arm. A shared fixed package
-cut-point vector cannot reproduce that analysis either.</p>
+<p>The three alternative event-time generators deliberately use
+data-generating partitions that differ from the principal analysis
+partitions. The current package accepts one <code>cutpoints</code>
+vector for both event generation and predictive imputation, so it cannot
+reproduce those model-misspecification sensitivities directly. The SAP
+also planned an imputation-model sensitivity with six pieces: day 90
+followed by five post-90-day intervals containing approximately equal
+event counts, potentially with different cut-points by arm. A shared
+fixed package cut-point vector cannot reproduce that analysis
+either.</p>
 <p>The SAP supplies quantitative reference results based on 10,000
 simulated trials per scenario and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5000</mn></mrow><annotation encoding="application/x-tex">M=5000</annotation></semantics></math>
@@ -1087,95 +1170,18 @@ predictive draws or imputations:</p>
 </tr>
 </tbody>
 </table>
-<p>The target row assumes
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>T</mi></msub><mo>=</mo><msub><mi>P</mi><mi>C</mi></msub><mo>=</mo><mn>0.65</mn></mrow><annotation encoding="application/x-tex">P_T=P_C=0.65</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mi>T</mi></msub><mo>=</mo><msub><mi>Q</mi><mi>C</mi></msub><mo>=</mo><mn>0.08</mn></mrow><annotation encoding="application/x-tex">Q_T=Q_C=0.08</annotation></semantics></math>,
-with success requiring both co-primary endpoints. At the effectiveness
-boundary,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>T</mi></msub><mo>=</mo><mn>0.50</mn></mrow><annotation encoding="application/x-tex">P_T=0.50</annotation></semantics></math>
-and the safety endpoint was assumed always to recommend stopping for
-promise and to pass finally. At the safety boundary,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mi>T</mi></msub><mo>=</mo><mn>0.16</mn></mrow><annotation encoding="application/x-tex">Q_T=0.16</annotation></semantics></math>
-and effectiveness was treated analogously. These are external validation
-targets. The small, endpoint-separated simulations in this vignette do
-not claim to reproduce them.</p>
-</div>
-<div class="section level2">
-<h2 id="what-matches-advent-and-what-is-simplified">What matches ADVENT, and what is simplified?<a class="anchor" aria-label="anchor" href="#what-matches-advent-and-what-is-simplified"></a>
-</h2>
-<p>The code above is intentionally close to the reported design in the
-following ways:</p>
-<ul>
-<li>It uses the published Goldilocks sample-size options: 350, 450, 550,
-650, and 750.</li>
-<li>It uses the published predicted-success thresholds: 0.95, 0.90,
-0.85, and 0.80.</li>
-<li>It uses the published futility thresholds: 0.05, 0.10, 0.10, and
-0.10.</li>
-<li>It uses the published beta-binomial endpoint prior,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Beta</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo>,</mo><mn>0.5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Beta}(0.5, 0.5)</annotation></semantics></math>,
-via <code>bin_prior = c(0.5, 0.5)</code>.</li>
-<li>It uses the published noninferiority margins: 15 percentage points
-for effectiveness and 8 percentage points for safety.</li>
-<li>It uses the published posterior probability thresholds: 0.956 for
-effectiveness and 0.966 for safety.</li>
-<li>It uses the SAP’s default Eff1 and Saf1 piecewise event-time
-generators, including their day-scale cut-points and daily hazards.</li>
-<li>It uses a 360-day representation of the 12-month endpoint window,
-keeping the time unit consistent with the SAP’s Gamma prior rates and
-interval definitions.</li>
-<li>It uses the SAP’s exact expected accrual ramp after converting the
-reported subjects/month rates to subjects/day for the day-scale package
-simulation.</li>
-<li>It maps the SAP’s designated missingness fractions of 7.5% for
-effectiveness and 5% for safety.</li>
-<li>It uses the SAP’s reported
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo>,</mo><mn>0.001</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(0.5, 0.001)</annotation></semantics></math>
-imputation-prior hyperparameters where the current package interface
-permits a shared prior, and leaves empty intervals prior-driven with
-<code>empty_interval = "prior"</code>.</li>
-</ul>
-<p>The code simplifies the reported trial in these ways:</p>
-<ul>
-<li>It models effectiveness and safety as separate endpoint-specific
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> runs. ADVENT used co-primary endpoints
-with a joint stopping recommendation.</li>
-<li>It models 350–750 analysis-population subjects directly and does not
-simulate roll-ins, randomized subjects excluded from mITT, or the
-difference between the mITT effectiveness and Safety Populations.</li>
-<li>It does not model site stratification or the randomly varying block
-randomization scheme; <code>block = 2</code> is an illustrative package
-setting.</li>
-<li>It cannot reproduce the SAP dropout mechanism or the shared
-subject-level missingness relationship across endpoints, even though the
-designated marginal fractions are supplied.</li>
-<li>It cannot apply the effectiveness endpoint’s special
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>5</mn><mo>,</mo><mn>10000</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(5, 10000)</annotation></semantics></math>
-prior to the 210–360-day interval during interim prediction and then
-switch that interval to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo>,</mo><mn>0.001</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(0.5, 0.001)</annotation></semantics></math>
-for final imputation.</li>
-<li>It cannot use different data-generation and analysis cut-points for
-the Eff2, Eff3, and Saf2 sensitivity generators, or arm-specific
-data-driven cut-points for the six-piece imputation sensitivity.</li>
-<li>It treats enrollment/randomization and the index procedure as
-coincident and does not reproduce endpoint-specific monitoring and
-censoring dates.</li>
-<li>It uses 30–100 imputations for tractable vignette computation,
-whereas ADVENT used
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5000</mn></mrow><annotation encoding="application/x-tex">M = 5000</annotation></semantics></math>.</li>
-</ul>
-<p>The SAP now provides exact inputs and reference operating
-characteristics, so it supports a stronger, documented component-level
-validation exercise than the design paper alone. The comparison supports
-validation of the endpoint-level mechanics that map directly to
-<code>goldilocks</code>; it does not validate the package as a complete
-reproduction of ADVENT. A full reproduction would additionally require
-the joint co-primary stopping and final-success rules, the SAP censoring
-and shared-missingness process, interval- and stage-specific priors, and
-sufficiently large simulations compared directly with the published
-benchmarks.</p>
+<p>The target row sets the effectiveness <code>hazard_treatment</code>
+and <code>hazard_control</code> vectors to imply equal day-360 failure
+probabilities of 0.35, and the safety hazard vectors to imply equal
+day-360 event probabilities of 0.08; success requires both co-primary
+endpoints. At the effectiveness boundary, <code>hazard_treatment</code>
+implies a 0.50 failure probability while <code>hazard_control</code>
+implies 0.35, and the safety endpoint was assumed always to recommend
+stopping for promise and to pass finally. At the safety boundary, the
+treatment and control safety hazards imply event probabilities of 0.16
+and 0.08, respectively, and effectiveness was treated analogously. These
+are external validation targets. The endpoint-separated simulations in
+this vignette do not claim to reproduce them.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
