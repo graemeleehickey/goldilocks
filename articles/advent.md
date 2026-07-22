@@ -217,27 +217,36 @@ eff_hazard_per_day <- c(
 safety_event_cutpoints_day <- 7
 safety_hazard_per_day <- c(0.011137363, 1.53540e-5)
 
-eff_interval_length_day <- diff(c(
-  0,
-  eff_event_cutpoints_day,
-  end_of_study_day
-))
-safety_interval_length_day <- diff(c(
-  0,
-  safety_event_cutpoints_day,
-  end_of_study_day
-))
+event_free_at_interval_end <- function(hazard, interval_end) {
+  vapply(seq_along(hazard), function(j) {
+    cutpoints <- if (j == 1L) NULL else interval_end[seq_len(j - 1L)]
+    post <- array(hazard[seq_len(j)], dim = c(1L, j, 1L))
+
+    1 - goldilocks:::haz_to_prop(
+      post = post,
+      cutpoints = cutpoints,
+      end_of_study = interval_end[j],
+      single_arm = TRUE
+    )$p_treatment
+  }, numeric(1))
+}
 
 implied_event_free_proportion <- c(
-  exp(-cumsum(eff_hazard_per_day * eff_interval_length_day)),
-  exp(-cumsum(safety_hazard_per_day * safety_interval_length_day))
+  event_free_at_interval_end(
+    eff_hazard_per_day,
+    c(eff_event_cutpoints_day, end_of_study_day)
+  ),
+  event_free_at_interval_end(
+    safety_hazard_per_day,
+    c(safety_event_cutpoints_day, end_of_study_day)
+  )
 )
 
 hazard_table <- data.frame(
   Endpoint = c(rep("Effectiveness failure", 5), rep("Safety event", 2)),
   `Follow-up interval (days)` = c(
-    "0--90", "90--104", "104--150", "150--210", "210--360",
-    "0--7", "7--360"
+    "0--<90", "90--<104", "104--<150", "150--<210",
+    "210--360", "0--<7", "7--360"
   ),
   `Hazard per patient-day` = c(
     eff_hazard_per_day,
@@ -253,13 +262,19 @@ knitr::kable(hazard_table, digits = c(9, 3))
 
 | Endpoint | Follow-up interval (days) | Hazard per patient-day | Implied event-free proportion at interval end |
 |:---|:---|---:|---:|
-| Effectiveness failure | 0–90 | 0.000111670 | 0.990 |
-| Effectiveness failure | 90–104 | 0.002197976 | 0.960 |
-| Effectiveness failure | 104–150 | 0.003163208 | 0.830 |
-| Effectiveness failure | 150–210 | 0.002839089 | 0.700 |
+| Effectiveness failure | 0–\<90 | 0.000111670 | 0.990 |
+| Effectiveness failure | 90–\<104 | 0.002197976 | 0.960 |
+| Effectiveness failure | 104–\<150 | 0.003163208 | 0.830 |
+| Effectiveness failure | 150–\<210 | 0.002839089 | 0.700 |
 | Effectiveness failure | 210–360 | 0.000494053 | 0.650 |
-| Safety event | 0–7 | 0.011137363 | 0.925 |
+| Safety event | 0–\<7 | 0.011137363 | 0.925 |
 | Safety event | 7–360 | 0.000015354 | 0.920 |
+
+The less-than sign marks the exclusive upper boundary of each nonfinal
+interval; the final interval includes the administrative endpoint at day
+360. This notation makes clear that adjacent windows do not overlap.
+Because event time is continuous, assigning an exact cut-point to the
+interval on its left or right would not change the model probability.
 
 The following calculation verifies the two final binary event
 probabilities used by the vignette:

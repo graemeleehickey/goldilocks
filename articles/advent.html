@@ -341,27 +341,36 @@ as 360 days.</p>
 <span><span class="va">safety_event_cutpoints_day</span> <span class="op">&lt;-</span> <span class="fl">7</span></span>
 <span><span class="va">safety_hazard_per_day</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.011137363</span>, <span class="fl">1.53540e-5</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">eff_interval_length_day</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="fl">0</span>,</span>
-<span>  <span class="va">eff_event_cutpoints_day</span>,</span>
-<span>  <span class="va">end_of_study_day</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">safety_interval_length_day</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="fl">0</span>,</span>
-<span>  <span class="va">safety_event_cutpoints_day</span>,</span>
-<span>  <span class="va">end_of_study_day</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">event_free_at_interval_end</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">hazard</span>, <span class="va">interval_end</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">hazard</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">j</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">cutpoints</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="va">j</span> <span class="op">==</span> <span class="fl">1L</span><span class="op">)</span> <span class="cn">NULL</span> <span class="kw">else</span> <span class="va">interval_end</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">j</span> <span class="op">-</span> <span class="fl">1L</span><span class="op">)</span><span class="op">]</span></span>
+<span>    <span class="va">post</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">hazard</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">j</span><span class="op">)</span><span class="op">]</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="va">j</span>, <span class="fl">1L</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span>    <span class="fl">1</span> <span class="op">-</span> <span class="fu">goldilocks</span><span class="fu">:::</span><span class="fu">haz_to_prop</span><span class="op">(</span></span>
+<span>      post <span class="op">=</span> <span class="va">post</span>,</span>
+<span>      cutpoints <span class="op">=</span> <span class="va">cutpoints</span>,</span>
+<span>      end_of_study <span class="op">=</span> <span class="va">interval_end</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>,</span>
+<span>      single_arm <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span><span class="op">$</span><span class="va">p_treatment</span></span>
+<span>  <span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">implied_event_free_proportion</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="va">eff_hazard_per_day</span> <span class="op">*</span> <span class="va">eff_interval_length_day</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="va">safety_hazard_per_day</span> <span class="op">*</span> <span class="va">safety_interval_length_day</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu">event_free_at_interval_end</span><span class="op">(</span></span>
+<span>    <span class="va">eff_hazard_per_day</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">eff_event_cutpoints_day</span>, <span class="va">end_of_study_day</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  <span class="fu">event_free_at_interval_end</span><span class="op">(</span></span>
+<span>    <span class="va">safety_hazard_per_day</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">safety_event_cutpoints_day</span>, <span class="va">end_of_study_day</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">hazard_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  Endpoint <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Effectiveness failure"</span>, <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Safety event"</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  `Follow-up interval (days)` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="st">"0--90"</span>, <span class="st">"90--104"</span>, <span class="st">"104--150"</span>, <span class="st">"150--210"</span>, <span class="st">"210--360"</span>,</span>
-<span>    <span class="st">"0--7"</span>, <span class="st">"7--360"</span></span>
+<span>    <span class="st">"0--&lt;90"</span>, <span class="st">"90--&lt;104"</span>, <span class="st">"104--&lt;150"</span>, <span class="st">"150--&lt;210"</span>,</span>
+<span>    <span class="st">"210--360"</span>, <span class="st">"0--&lt;7"</span>, <span class="st">"7--360"</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  `Hazard per patient-day` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>    <span class="va">eff_hazard_per_day</span>,</span>
@@ -389,25 +398,25 @@ as 360 days.</p>
 <tbody>
 <tr class="odd">
 <td align="left">Effectiveness failure</td>
-<td align="left">0–90</td>
+<td align="left">0–&lt;90</td>
 <td align="right">0.000111670</td>
 <td align="right">0.990</td>
 </tr>
 <tr class="even">
 <td align="left">Effectiveness failure</td>
-<td align="left">90–104</td>
+<td align="left">90–&lt;104</td>
 <td align="right">0.002197976</td>
 <td align="right">0.960</td>
 </tr>
 <tr class="odd">
 <td align="left">Effectiveness failure</td>
-<td align="left">104–150</td>
+<td align="left">104–&lt;150</td>
 <td align="right">0.003163208</td>
 <td align="right">0.830</td>
 </tr>
 <tr class="even">
 <td align="left">Effectiveness failure</td>
-<td align="left">150–210</td>
+<td align="left">150–&lt;210</td>
 <td align="right">0.002839089</td>
 <td align="right">0.700</td>
 </tr>
@@ -419,7 +428,7 @@ as 360 days.</p>
 </tr>
 <tr class="even">
 <td align="left">Safety event</td>
-<td align="left">0–7</td>
+<td align="left">0–&lt;7</td>
 <td align="right">0.011137363</td>
 <td align="right">0.925</td>
 </tr>
@@ -431,6 +440,12 @@ as 360 days.</p>
 </tr>
 </tbody>
 </table>
+<p>The less-than sign marks the exclusive upper boundary of each
+nonfinal interval; the final interval includes the administrative
+endpoint at day 360. This notation makes clear that adjacent windows do
+not overlap. Because event time is continuous, assigning an exact
+cut-point to the interval on its left or right would not change the
+model probability.</p>
 <p>The following calculation verifies the two final binary event
 probabilities used by the vignette:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
