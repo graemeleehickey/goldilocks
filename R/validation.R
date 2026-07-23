@@ -353,7 +353,7 @@ validate_randomization_args <- function(N_total, block, allocation) {
 #' @title Validate a null hypothesis value
 #'
 #' @description Checks that a null value is finite and lies within the support
-#'   of Bayesian probability-scale treatment effects when applicable.
+#'   of probability-scale treatment effects when applicable.
 #'
 #' @noRd
 validate_h0 <- function(h0, method, single_arm) {
@@ -366,7 +366,7 @@ validate_h0 <- function(h0, method, single_arm) {
     stop("'h0' must be a single finite numeric value")
   }
 
-  if (method %in% c("bayes-surv", "bayes-bin")) {
+  if (method %in% c("bayes-surv", "bayes-bin", "riskdiff")) {
     lower <- if (single_arm) 0 else -1
     upper <- 1
     if (h0 < lower || h0 > upper) {
@@ -377,7 +377,11 @@ validate_h0 <- function(h0, method, single_arm) {
         upper,
         "] for ",
         if (single_arm) "single-arm" else "two-arm",
-        " Bayesian analyses"
+        if (method == "riskdiff") {
+          " risk-difference analyses"
+        } else {
+          " Bayesian analyses"
+        }
       )
     }
   }
@@ -410,10 +414,18 @@ validate_analysis_configuration <- function(
     length(method) != 1 ||
       !is.character(method) ||
       is.na(method) ||
-      !method %in% c("bayes-surv", "bayes-bin", "logrank", "cox", "chisq")
+      !method %in%
+        c(
+          "bayes-surv",
+          "bayes-bin",
+          "logrank",
+          "cox",
+          "riskdiff"
+        )
   ) {
     stop(
-      "'method' must be one of 'bayes-surv', 'bayes-bin', 'logrank', 'cox', or 'chisq'"
+      "'method' must be one of 'bayes-surv', 'bayes-bin', 'logrank', 'cox', ",
+      "or 'riskdiff'"
     )
   }
 
@@ -426,20 +438,15 @@ validate_analysis_configuration <- function(
     )
   }
 
-  if (alternative != "two.sided" && method == "chisq") {
-    stop("The chi-square test can only be applied as a two-sided test")
-  }
-
-  if (imputed_final && method %in% c("logrank", "chisq")) {
+  if (imputed_final && method == "logrank") {
     stop(
-      "The 'logrank' and 'chisq' methods cannot use ",
-      "'imputed_final = TRUE' because ",
+      "The 'logrank' method cannot use 'imputed_final = TRUE' because ",
       "there is no supported frequentist pooling rule for multiple ",
       "imputed final datasets"
     )
   }
 
-  if (single_arm && method %in% c("logrank", "cox", "chisq")) {
+  if (single_arm && method %in% c("logrank", "cox", "riskdiff")) {
     stop("The selected method can only be used for two-armed trials")
   }
 

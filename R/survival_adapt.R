@@ -23,7 +23,7 @@
 #'   sampling), `"normal"` (normal approximation), or `"quadrature"` (numerical
 #'   integration). The default is `"mc"`.
 #' @param binary_imputation character. Predictive imputation approach for
-#'   `method = "bayes-bin"` or `method = "chisq"`. `"event-time"` (the default)
+#'   `method = "bayes-bin"` or `method = "riskdiff"`. `"event-time"` (the default)
 #'   draws a conditional piecewise-exponential event time and reduces it to
 #'   event status at `end_of_study`. `"bernoulli"` draws the endpoint status
 #'   directly from its conditional event probability. This argument is ignored
@@ -32,8 +32,8 @@
 #'   hypothesis, must be one of `"greater"` (default), `"less"` or
 #'   `"two.sided"`. One-sided alternatives (`"greater"` and `"less"`) are
 #'   supported for `method = "bayes-surv"` and `method = "bayes-bin"`. All three
-#'   options are supported for `method = "logrank"` and `method = "cox"`. The
-#'   chi-square test (`method = "chisq"`) only supports `"two.sided"`. For
+#'   options are supported for `method = "logrank"`, `method = "cox"`, and
+#'   `method = "riskdiff"`. For
 #'   survival outcomes, `"less"` corresponds to the treatment arm having a lower
 #'   cumulative incidence (i.e., treatment is beneficial), and `"greater"`
 #'   corresponds to the treatment arm having a higher cumulative incidence.
@@ -52,9 +52,11 @@
 #'     of 1 null, or `h0 = log(margin)` for a non-inferiority margin
 #'     specified as a hazard ratio. A Cox non-inferiority test should usually
 #'     use `alternative = "less"`.
-#'   * The argument is ignored for `method = "logrank"` and
-#'     `method = "chisq"` after its finite-value validation; in those cases
-#'     the usual method-specific null hypothesis is used.
+#'   * When `method = "riskdiff"`, `h0` is the null value of
+#'     \eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
+#'     `[-1, 1]`.
+#'   * The argument is ignored for `method = "logrank"` after its finite-value
+#'     validation; the usual equal-survival null hypothesis is used.
 #' @param Fn vector of values between 0 and 1. Each element is the probability
 #'   threshold to stop at the \eqn{i}-th look early for futility. If there are
 #'   no interim looks (i.e. `interim_look = NULL`), then `Fn` is not
@@ -70,7 +72,8 @@
 #' @param prob_ha scalar value between 0 and 1. Probability threshold of alternative
 #'   hypothesis.
 #' @param N_impute integer. Number of imputations for Monte Carlo simulation of
-#'   missing data. An imputed Cox final analysis requires at least two.
+#'   missing data. An imputed Cox or risk-difference final analysis requires at
+#'   least two.
 #' @param N_mcmc integer. Number of posterior samples used by
 #'   `method = "bayes-surv"` and by `method = "bayes-bin"` when
 #'   `bin_method = "mc"`.
@@ -88,17 +91,17 @@
 #'   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
 #'   analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis of
 #'   complete binary outcomes (`method = "bayes-bin"`), or a frequentist
-#'   log-rank, Cox, or chi-square test (`method = "logrank"`, `"cox"`, or
-#'   `"chisq"`). See Details section.
+#'   risk-difference Wald test of complete binary outcomes (`method =
+#'   "riskdiff"`). See Details section.
 #' @param imputed_final logical. Should the final analysis (after all subjects
 #'   have been followed-up to the study end) be based on imputed outcomes for
 #'   subjects who were LTFU (i.e. right-censored with time less than
 #'   `end_of_study`)? Default is `FALSE`, which means that the final analysis
-#'   incorporates right-censoring. With `method = "cox"`, setting this to
-#'   `TRUE` fits the Cox model to each imputed dataset and pools the log hazard
-#'   ratios and variances using Rubin's rules; this requires `N_impute >= 2`.
-#'   Imputed final analyses remain unavailable for `method = "logrank"` and
-#'   `method = "chisq"` because no pooling rule is implemented for them.
+#'   incorporates right-censoring. With `method = "cox"` or `method =
+#'   "riskdiff"`, setting this to `TRUE` analyzes each imputed dataset and pools
+#'   the scalar treatment effects and variances using Rubin's rules; this
+#'   requires `N_impute >= 2`. Imputed final analyses remain unavailable for
+#'   `method = "logrank"`.
 #' @param return_trace logical. Should the interim decision path be returned in
 #'   addition to the usual final summary? The default, FALSE, returns the
 #'   historical one-row data frame. When TRUE, the result is a
@@ -196,7 +199,7 @@
 #'      \eqn{p_\textrm{treatment} - p_\textrm{control}}. This posterior
 #'      probability can be calculated using Monte Carlo beta draws
 #'      (`bin_method = "mc"`), a normal approximation (`"normal"`), or numerical
-#'      quadrature (`"quadrature"`). Like the chi-square test, this method
+#'      quadrature (`"quadrature"`). Like the risk-difference test, this method
 #'      requires complete binary outcomes: censored subjects must either be
 #'      followed to `end_of_study`, imputed, or excluded when
 #'      `imputed_final = FALSE`.
@@ -221,27 +224,23 @@
 #'      imputation still uses a sampled posterior hazard draw, so uncertainty
 #'      in the piecewise-exponential model is retained.
 #'
-#'  * Chi-square test (`method = "chisq"`).
-#'      The non-imputed final dataset with both treatment and control arms is
-#'      compared using a standard chi-square test on the final event status,
-#'      which discards the event time information. The output is a *P*-value,
-#'      and there is no treatment effect reported. The function returns \eqn{1 -
-#'      P}, which is reported in `post_prob_ha`. Whilst
-#'      not a posterior probability, it can be contrasted in the same manner.
-#'      For example, if the success threshold is \eqn{P < 0.05}, then one
-#'      requires `post_prob_ha` \eqn{> 0.95}. The reason for this is to
-#'      enable simple switching between Bayesian and frequentist paradigms for
-#'      analysis. Because the chi-square test cannot handle right-censored
-#'      observations, subjects lost to follow-up are excluded from the final
-#'      analysis. Like the log-rank method, it cannot use
-#'      `imputed_final = TRUE`: the package does not implement a frequentist
-#'      pooling rule for multiple imputed final datasets.
+#'  * Frequentist risk difference (`method = "riskdiff"`).
+#'      Each complete or imputed dataset is reduced to binary event outcomes at
+#'      `end_of_study`. The estimated treatment effect is
+#'      \eqn{p_\textrm{treatment} - p_\textrm{control}}, with an unpooled
+#'      binomial variance. A Wald test compares this estimate with `h0`, and
+#'      \eqn{1 - P} is reported in `post_prob_ha`. All three alternatives are
+#'      supported. Because the test requires complete binary outcomes,
+#'      lost-to-follow-up subjects are excluded when `imputed_final = FALSE`.
+#'      When `imputed_final = TRUE`, estimates and within-imputation variances
+#'      from at least two completed datasets are combined using Rubin's rules.
 #'
 #'  * Imputed final analysis (`imputed_final`).
 #'      The overall final analysis conducted after accrual is suspended and
 #'      follow-up is complete can be analyzed on imputed datasets for Bayesian
-#'      methods (`"bayes-surv"` and `"bayes-bin"`) and for Cox regression, or
-#'      on the non-imputed dataset. Since the imputations/predictions used
+#'      methods (`"bayes-surv"` and `"bayes-bin"`), Cox regression, and the
+#'      frequentist risk-difference analysis, or on the non-imputed dataset.
+#'      Since the imputations/predictions used
 #'      during the interim analyses assume all subjects are imputed (since loss
 #'      to follow-up is not yet known), it would seem most appropriate to
 #'      conduct the trial in the same manner, especially if loss to follow-up
@@ -249,8 +248,7 @@
 #'      right-censored due to loss to follow-up, which we assume is a
 #'      non-informative process. For Cox regression the final estimates and
 #'      variances are pooled with Rubin's rules. It cannot be used with
-#'      `method = "logrank"` or `method = "chisq"` until an appropriate pooling
-#'      rule is implemented for those methods.
+#'      `method = "logrank"`.
 #'
 #'   When `method = "bayes-surv"` or `method = "bayes-bin"` and imputation is
 #'   involved (either at interim
@@ -264,10 +262,11 @@
 #'   inference. This is consistent with the predictive probability framework
 #'   described in Broglio et al. (2014), but users should be aware that the
 #'   imputation model's posterior influences the analysis posterior. For
-#'   frequentist methods (`"logrank"`, `"cox"`, `"chisq"`), each completed
+#'   frequentist methods (`"logrank"`, `"cox"`, `"riskdiff"`), each completed
 #'   dataset uses a standard test rather than a posterior, so this feedback loop
 #'   does not arise. Imputed Cox final analyses then pool the completed-data
-#'   estimates and variances using Rubin's rules.
+#'   estimates and variances using Rubin's rules. Imputed risk-difference final
+#'   analyses use the same scalar combining rule.
 #'
 #'   At each interim look, follow-up times are masked (censored) to reflect
 #'   the calendar time of the analysis. The package treats enrollment and
@@ -291,8 +290,9 @@
 #'     a Bayesian method uses `imputed_final = TRUE`, this is calculated for
 #'     each imputed final-analysis dataset and averaged over `N_impute`
 #'     imputations. For an imputed Cox analysis it is \eqn{1 - P} from the
-#'     Rubin-pooled Wald test. For non-imputed log-rank and Cox analyses it is
-#'     \eqn{1 - P} from the corresponding frequentist test.
+#'     Rubin-pooled Wald test. The same interpretation applies to imputed
+#'     risk-difference analyses. For non-imputed frequentist analyses it is
+#'     \eqn{1 - P} from the corresponding test.
 #'   - `stop_futility`: Logical indicator of whether the trial stopped early for
 #'     futility.
 #'   - `stop_expected_success`: Logical indicator of whether the trial stopped
@@ -310,7 +310,7 @@
 #' approach to sample size selection. *Journal of Biopharmaceutical Statistics*,
 #' 2014; 24(3): 685–705.
 #'
-#' @importFrom stats pexp coef chisq.test
+#' @importFrom stats pexp coef
 #' @export
 #'
 #' @examples
@@ -399,9 +399,9 @@ survival_adapt <- function(
     single_arm,
     imputed_final
   )
-  if (imputed_final && method == "cox" && N_impute < 2) {
+  if (imputed_final && method %in% c("cox", "riskdiff") && N_impute < 2) {
     stop(
-      "Cox final-analysis imputation requires at least two imputations ",
+      "Frequentist final-analysis imputation requires at least two imputations ",
       "to apply Rubin's rules"
     )
   }
@@ -585,7 +585,7 @@ survival_adapt <- function(
             h0 = h0,
             bin_prior = bin_prior,
             bin_method = bin_method,
-            binary_imputation = if (method %in% c("bayes-bin", "chisq")) {
+            binary_imputation = if (method %in% c("bayes-bin", "riskdiff")) {
               binary_imputation
             } else {
               "event-time"
@@ -710,7 +710,7 @@ survival_adapt <- function(
     h0 = h0,
     bin_prior = bin_prior,
     bin_method = bin_method,
-    binary_imputation = if (method %in% c("bayes-bin", "chisq")) {
+    binary_imputation = if (method %in% c("bayes-bin", "riskdiff")) {
       binary_imputation
     } else {
       "event-time"

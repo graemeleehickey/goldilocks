@@ -19,11 +19,17 @@
   reproduce results from version 0.5.0 or earlier, and operating-characteristic
   estimates may change, especially for fractional knots or low enrollment
   rates.
+* The frequentist binary `method = "chisq"` analysis has been replaced by
+  `method = "riskdiff"`. It estimates the treatment-minus-control event-risk
+  difference, supports one- and two-sided Wald tests against `h0`, and reports
+  that difference in `est_final`. When `imputed_final = TRUE`, estimates and
+  within-imputation variances are combined using Rubin's rules. The historical
+  mean-of-`1 - P` rule is no longer used. Imputed log-rank final analyses remain
+  unsupported (#56).
 * Cox regression now supports `imputed_final = TRUE`. The final log hazard
   ratios and within-imputation variances are combined using Rubin's rules, and
   `post_prob_ha` reports `1 - P` from the pooled Wald test. Non-imputed Cox
-  analyses are unchanged; imputed log-rank and chi-square final analyses remain
-  unsupported (#56).
+  analyses are unchanged (#56).
 * Bayesian survival and Monte Carlo beta-binomial analyses now use the shared
   `N_mcmc` argument for posterior sampling; the separate `bin_N` argument has
   been removed. Their internal analysis results return the posterior mean

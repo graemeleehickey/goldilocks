@@ -105,8 +105,8 @@ right-censored. Defaults to zero.}
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
 supported for \code{method = "bayes-surv"} and \code{method = "bayes-bin"}. All three
-options are supported for \code{method = "logrank"} and \code{method = "cox"}. The
-chi-square test (\code{method = "chisq"}) only supports \code{"two.sided"}. For
+options are supported for \code{method = "logrank"}, \code{method = "cox"}, and
+\code{method = "riskdiff"}. For
 survival outcomes, \code{"less"} corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
 corresponds to the treatment arm having a higher cumulative incidence.}
@@ -127,9 +127,11 @@ treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
 of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use \code{alternative = "less"}.
-\item The argument is ignored for \code{method = "logrank"} and
-\code{method = "chisq"} after its finite-value validation; in those cases
-the usual method-specific null hypothesis is used.
+\item When \code{method = "riskdiff"}, \code{h0} is the null value of
+\eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
+\verb{[-1, 1]}.
+\item The argument is ignored for \code{method = "logrank"} after its finite-value
+validation; the usual equal-survival null hypothesis is used.
 }}
 
 \item{Fn}{vector of values between 0 and 1. Each element is the probability
@@ -150,7 +152,8 @@ recycled.}
 hypothesis.}
 
 \item{N_impute}{integer. Number of imputations for Monte Carlo simulation of
-missing data. An imputed Cox final analysis requires at least two.}
+missing data. An imputed Cox or risk-difference final analysis requires at
+least two.}
 
 \item{N_mcmc}{integer. Number of posterior samples used by
 \code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
@@ -164,18 +167,16 @@ follow-up is complete), whether the analysis should be a log-rank
 Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
 complete binary outcomes (\code{method = "bayes-bin"}), or a frequentist
-log-rank, Cox, or chi-square test (\code{method = "logrank"}, \code{"cox"}, or
-\code{"chisq"}). See Details section.}
+risk-difference Wald test of complete binary outcomes (\code{method = "riskdiff"}). See Details section.}
 
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 \code{end_of_study})? Default is \code{FALSE}, which means that the final analysis
-incorporates right-censoring. With \code{method = "cox"}, setting this to
-\code{TRUE} fits the Cox model to each imputed dataset and pools the log hazard
-ratios and variances using Rubin's rules; this requires \code{N_impute >= 2}.
-Imputed final analyses remain unavailable for \code{method = "logrank"} and
-\code{method = "chisq"} because no pooling rule is implemented for them.}
+incorporates right-censoring. With \code{method = "cox"} or \code{method = "riskdiff"}, setting this to \code{TRUE} analyzes each imputed dataset and pools
+the scalar treatment effects and variances using Rubin's rules; this
+requires \code{N_impute >= 2}. Imputed final analyses remain unavailable for
+\code{method = "logrank"}.}
 
 \item{empty_interval}{character. Policy for empty piecewise-exponential
 intervals in \code{method = "bayes-surv"} posterior calculations. An empty
@@ -206,7 +207,7 @@ does not reset the global RNG state, preserving the usual unseeded
 simulation behavior.}
 
 \item{binary_imputation}{character. Predictive imputation approach for
-\code{method = "bayes-bin"} or \code{method = "chisq"}. \code{"event-time"} (the default)
+\code{method = "bayes-bin"} or \code{method = "riskdiff"}. \code{"event-time"} (the default)
 draws a conditional piecewise-exponential event time and reduces it to
 event status at \code{end_of_study}. \code{"bernoulli"} draws the endpoint status
 directly from its conditional event probability. This argument is ignored

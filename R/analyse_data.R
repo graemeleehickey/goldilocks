@@ -28,13 +28,15 @@
 #'       binary event proportions (two-arm) is greater than `h0` when
 #'       `alternative = "greater"`, or less than `h0` when
 #'       `alternative = "less"`;
-#'     - if `method = "chisq"`, 1 minus the chi-square test *P*-value.
+#'     - if `method = "riskdiff"`, 1 minus the Wald-test *P*-value for the
+#'       treatment-control difference in binary event proportions compared
+#'       with `h0`.
 #'   - `effect`: Posterior mean effect for `method = "bayes-surv"` or
 #'     `method = "bayes-bin"`, the estimated log hazard ratio for `method =
-#'     "cox"`, the chi-square statistic for `method = "chisq"`, or `NA` for
-#'     `method = "logrank"`.
+#'     "cox"`, the estimated treatment-control event-proportion difference for
+#'     `method = "riskdiff"`, or `NA` for `method = "logrank"`.
 #'
-#' @importFrom stats dbeta integrate pbeta pchisq pnorm rbeta
+#' @importFrom stats dbeta integrate pbeta pnorm rbeta
 #' @import Rcpp
 #' @import survival
 #' @useDynLib goldilocks, .registration = TRUE
@@ -161,15 +163,18 @@ analyse_data <- function(
   }
 
   ####################################################
-  ### Chi-square test
+  ### Frequentist risk-difference test
   ####################################################
 
-  if (method == "chisq") {
-    assert_complete_binary_outcomes(data, end_of_study, "Chi-square")
-    mat <- with(data, table(event, treatment))
-    fit_cs <- chisq.test(mat, correct = FALSE)
-    success <- 1 - fit_cs$p.val
-    effect <- fit_cs$statistic
+  if (method == "riskdiff") {
+    fit_riskdiff <- risk_difference_wald_test_checked(
+      data = data,
+      end_of_study = end_of_study,
+      alternative = alternative,
+      h0 = h0
+    )
+    success <- fit_riskdiff$success
+    effect <- fit_riskdiff$estimate
   }
 
   return(list(
@@ -318,6 +323,85 @@ assert_complete_binary_outcomes <- function(data, end_of_study, method_label) {
       "to 'end_of_study' or imputed before analysis"
     )
   }
+}
+
+#' @title Estimate a frequentist binary risk difference
+#'
+#' @description Calculates the treatment-minus-control difference in event
+#'   proportions and its unpooled binomial variance.
+#'
+#' @inheritParams analyse_data
+#'
+#' @return A list containing the risk-difference estimate and variance.
+#'
+#' @noRd
+risk_difference_estimate_checked <- function(data, end_of_study) {
+  assert_complete_binary_outcomes(data, end_of_study, "Risk-difference")
+
+  treatment_event <- data$event[data$treatment == 1]
+  control_event <- data$event[data$treatment == 0]
+  if (length(treatment_event) == 0 || length(control_event) == 0) {
+    stop("Risk-difference analysis requires at least one subject per arm")
+  }
+
+  treatment_risk <- mean(treatment_event)
+  control_risk <- mean(control_event)
+  estimate <- treatment_risk - control_risk
+  variance <- treatment_risk *
+    (1 - treatment_risk) /
+    length(treatment_event) +
+    control_risk * (1 - control_risk) / length(control_event)
+
+  if (!is.finite(estimate) || !is.finite(variance) || variance < 0) {
+    stop(
+      "Risk-difference analysis is non-estimable: the estimate or variance is ",
+      "not finite and non-negative."
+    )
+  }
+
+  list(estimate = estimate, variance = variance)
+}
+
+#' @title Test a frequentist binary risk difference
+#'
+#' @description Performs a Wald test of the treatment-minus-control event-risk
+#'   difference against the supplied null value.
+#'
+#' @inheritParams analyse_data
+#'
+#' @return A list containing the success score, risk-difference estimate,
+#'   variance, and standard error.
+#'
+#' @noRd
+risk_difference_wald_test_checked <- function(
+  data,
+  end_of_study,
+  alternative,
+  h0
+) {
+  fit <- risk_difference_estimate_checked(data, end_of_study)
+  if (fit$variance == 0) {
+    stop(
+      "Risk-difference analysis is non-estimable: the estimated variance is ",
+      "zero because both arms have no outcome variation."
+    )
+  }
+
+  std_error <- sqrt(fit$variance)
+  statistic <- (fit$estimate - h0) / std_error
+  success <- switch(
+    alternative,
+    "less" = 1 - pnorm(statistic),
+    "greater" = pnorm(statistic),
+    "two.sided" = 1 - 2 * pnorm(-abs(statistic))
+  )
+
+  list(
+    success = success,
+    estimate = fit$estimate,
+    variance = fit$variance,
+    std_error = std_error
+  )
 }
 
 #' @title Calculate the log-rank test very quickly

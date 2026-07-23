@@ -101,8 +101,8 @@ right-censored. Defaults to zero.}
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
 \code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
 supported for \code{method = "bayes-surv"} and \code{method = "bayes-bin"}. All three
-options are supported for \code{method = "logrank"} and \code{method = "cox"}. The
-chi-square test (\code{method = "chisq"}) only supports \code{"two.sided"}. For
+options are supported for \code{method = "logrank"}, \code{method = "cox"}, and
+\code{method = "riskdiff"}. For
 survival outcomes, \code{"less"} corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
 corresponds to the treatment arm having a higher cumulative incidence.}
@@ -123,9 +123,11 @@ treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
 of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use \code{alternative = "less"}.
-\item The argument is ignored for \code{method = "logrank"} and
-\code{method = "chisq"} after its finite-value validation; in those cases
-the usual method-specific null hypothesis is used.
+\item When \code{method = "riskdiff"}, \code{h0} is the null value of
+\eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
+\verb{[-1, 1]}.
+\item The argument is ignored for \code{method = "logrank"} after its finite-value
+validation; the usual equal-survival null hypothesis is used.
 }}
 
 \item{Fn}{vector of values between 0 and 1. Each element is the probability
@@ -146,7 +148,8 @@ recycled.}
 hypothesis.}
 
 \item{N_impute}{integer. Number of imputations for Monte Carlo simulation of
-missing data. An imputed Cox final analysis requires at least two.}
+missing data. An imputed Cox or risk-difference final analysis requires at
+least two.}
 
 \item{N_mcmc}{integer. Number of posterior samples used by
 \code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
@@ -167,18 +170,16 @@ follow-up is complete), whether the analysis should be a log-rank
 Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
 complete binary outcomes (\code{method = "bayes-bin"}), or a frequentist
-log-rank, Cox, or chi-square test (\code{method = "logrank"}, \code{"cox"}, or
-\code{"chisq"}). See Details section.}
+risk-difference Wald test of complete binary outcomes (\code{method = "riskdiff"}). See Details section.}
 
 \item{imputed_final}{logical. Should the final analysis (after all subjects
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 \code{end_of_study})? Default is \code{FALSE}, which means that the final analysis
-incorporates right-censoring. With \code{method = "cox"}, setting this to
-\code{TRUE} fits the Cox model to each imputed dataset and pools the log hazard
-ratios and variances using Rubin's rules; this requires \code{N_impute >= 2}.
-Imputed final analyses remain unavailable for \code{method = "logrank"} and
-\code{method = "chisq"} because no pooling rule is implemented for them.}
+incorporates right-censoring. With \code{method = "cox"} or \code{method = "riskdiff"}, setting this to \code{TRUE} analyzes each imputed dataset and pools
+the scalar treatment effects and variances using Rubin's rules; this
+requires \code{N_impute >= 2}. Imputed final analyses remain unavailable for
+\code{method = "logrank"}.}
 
 \item{return_trace}{logical. Should the interim decision path be returned in
 addition to the usual final summary? The default, FALSE, returns the
@@ -186,7 +187,7 @@ historical one-row data frame. When TRUE, the result is a
 goldilocks_trial object with summary, trace, and call elements.}
 
 \item{binary_imputation}{character. Predictive imputation approach for
-\code{method = "bayes-bin"} or \code{method = "chisq"}. \code{"event-time"} (the default)
+\code{method = "bayes-bin"} or \code{method = "riskdiff"}. \code{"event-time"} (the default)
 draws a conditional piecewise-exponential event time and reduces it to
 event status at \code{end_of_study}. \code{"bernoulli"} draws the endpoint status
 directly from its conditional event probability. This argument is ignored
@@ -207,8 +208,9 @@ of enrollment/accrual and follow-up for those subjects is complete.
 a Bayesian method uses \code{imputed_final = TRUE}, this is calculated for
 each imputed final-analysis dataset and averaged over \code{N_impute}
 imputations. For an imputed Cox analysis it is \eqn{1 - P} from the
-Rubin-pooled Wald test. For non-imputed log-rank and Cox analyses it is
-\eqn{1 - P} from the corresponding frequentist test.
+Rubin-pooled Wald test. The same interpretation applies to imputed
+risk-difference analyses. For non-imputed frequentist analyses it is
+\eqn{1 - P} from the corresponding test.
 \item \code{stop_futility}: Logical indicator of whether the trial stopped early for
 futility.
 \item \code{stop_expected_success}: Logical indicator of whether the trial stopped
@@ -317,7 +319,7 @@ event probability. In a two-arm study, inference is based on
 \eqn{p_\textrm{treatment} - p_\textrm{control}}. This posterior
 probability can be calculated using Monte Carlo beta draws
 (\code{bin_method = "mc"}), a normal approximation (\code{"normal"}), or numerical
-quadrature (\code{"quadrature"}). Like the chi-square test, this method
+quadrature (\code{"quadrature"}). Like the risk-difference test, this method
 requires complete binary outcomes: censored subjects must either be
 followed to \code{end_of_study}, imputed, or excluded when
 \code{imputed_final = FALSE}.
@@ -341,26 +343,22 @@ Because no precise event time is generated, the imputed \code{time} is set
 to \code{end_of_study} and only the binary \code{event} status is analyzed. Each
 imputation still uses a sampled posterior hazard draw, so uncertainty
 in the piecewise-exponential model is retained.
-\item Chi-square test (\code{method = "chisq"}).
-The non-imputed final dataset with both treatment and control arms is
-compared using a standard chi-square test on the final event status,
-which discards the event time information. The output is a \emph{P}-value,
-and there is no treatment effect reported. The function returns \eqn{1 -
-     P}, which is reported in \code{post_prob_ha}. Whilst
-not a posterior probability, it can be contrasted in the same manner.
-For example, if the success threshold is \eqn{P < 0.05}, then one
-requires \code{post_prob_ha} \eqn{> 0.95}. The reason for this is to
-enable simple switching between Bayesian and frequentist paradigms for
-analysis. Because the chi-square test cannot handle right-censored
-observations, subjects lost to follow-up are excluded from the final
-analysis. Like the log-rank method, it cannot use
-\code{imputed_final = TRUE}: the package does not implement a frequentist
-pooling rule for multiple imputed final datasets.
+\item Frequentist risk difference (\code{method = "riskdiff"}).
+Each complete or imputed dataset is reduced to binary event outcomes at
+\code{end_of_study}. The estimated treatment effect is
+\eqn{p_\textrm{treatment} - p_\textrm{control}}, with an unpooled
+binomial variance. A Wald test compares this estimate with \code{h0}, and
+\eqn{1 - P} is reported in \code{post_prob_ha}. All three alternatives are
+supported. Because the test requires complete binary outcomes,
+lost-to-follow-up subjects are excluded when \code{imputed_final = FALSE}.
+When \code{imputed_final = TRUE}, estimates and within-imputation variances
+from at least two completed datasets are combined using Rubin's rules.
 \item Imputed final analysis (\code{imputed_final}).
 The overall final analysis conducted after accrual is suspended and
 follow-up is complete can be analyzed on imputed datasets for Bayesian
-methods (\code{"bayes-surv"} and \code{"bayes-bin"}) and for Cox regression, or
-on the non-imputed dataset. Since the imputations/predictions used
+methods (\code{"bayes-surv"} and \code{"bayes-bin"}), Cox regression, and the
+frequentist risk-difference analysis, or on the non-imputed dataset.
+Since the imputations/predictions used
 during the interim analyses assume all subjects are imputed (since loss
 to follow-up is not yet known), it would seem most appropriate to
 conduct the trial in the same manner, especially if loss to follow-up
@@ -368,8 +366,7 @@ rates are appreciable. Note, this only applies to subjects who are
 right-censored due to loss to follow-up, which we assume is a
 non-informative process. For Cox regression the final estimates and
 variances are pooled with Rubin's rules. It cannot be used with
-\code{method = "logrank"} or \code{method = "chisq"} until an appropriate pooling
-rule is implemented for those methods.
+\code{method = "logrank"}.
 }
 
 When \code{method = "bayes-surv"} or \code{method = "bayes-bin"} and imputation is
@@ -384,10 +381,11 @@ posterior for \code{method = "bayes-bin"}. This posterior is used for
 inference. This is consistent with the predictive probability framework
 described in Broglio et al. (2014), but users should be aware that the
 imputation model's posterior influences the analysis posterior. For
-frequentist methods (\code{"logrank"}, \code{"cox"}, \code{"chisq"}), each completed
+frequentist methods (\code{"logrank"}, \code{"cox"}, \code{"riskdiff"}), each completed
 dataset uses a standard test rather than a posterior, so this feedback loop
 does not arise. Imputed Cox final analyses then pool the completed-data
-estimates and variances using Rubin's rules.
+estimates and variances using Rubin's rules. Imputed risk-difference final
+analyses use the same scalar combining rule.
 
 At each interim look, follow-up times are masked (censored) to reflect
 the calendar time of the analysis. The package treats enrollment and

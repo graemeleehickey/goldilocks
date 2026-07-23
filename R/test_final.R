@@ -27,7 +27,7 @@
 #'   If `imputed_final = FALSE` then intuitively, we might expect to see a
 #'   marginal increase in the proportion of studies that stop for expected
 #'   success, but which then go on to fail. We have not verified this aspect,
-#'   but it should be noted. When `method = "chisq"` or
+#'   but it should be noted. When `method = "riskdiff"` or
 #'   `method = "bayes-bin"` and `imputed_final = FALSE`, subjects lost to
 #'   follow-up are excluded from the analysis because complete binary outcome
 #'   analyses cannot handle right-censored observations.
@@ -35,7 +35,9 @@
 #' @return Vector with 1) posterior probability (or P-value equivalent) for
 #'   the alternative hypothesis, and 2) the treatment effect. For an imputed
 #'   Cox analysis these are the Rubin-pooled Wald-test result and pooled log
-#'   hazard ratio; Bayesian imputed analyses average their summaries over
+#'   hazard ratio. For an imputed risk-difference analysis these are the
+#'   Rubin-pooled Wald-test result and pooled treatment-control event-risk
+#'   difference. Bayesian imputed analyses average their summaries over
 #'   imputations.
 #' @noRd
 test_final <- function(
@@ -63,9 +65,10 @@ test_final <- function(
   )
 
   if (imputed_final) {
-    if (method == "cox" && N_impute < 2) {
+    if (method %in% c("cox", "riskdiff") && N_impute < 2) {
       stop(
-        "Cox final-analysis imputation requires at least two imputations ",
+        "Frequentist final-analysis imputation requires at least two ",
+        "imputations ",
         "to apply Rubin's rules"
       )
     }
@@ -79,12 +82,12 @@ test_final <- function(
       single_arm = single_arm,
       empty_interval = empty_interval
     )
-    # Effect estimate + posterior probability for each imputed dataset. Cox
-    # analyses additionally retain the within-imputation variance required by
-    # Rubin's rules.
+    # Effect estimate + posterior probability for each imputed dataset.
+    # Frequentist model-based analyses additionally retain within-imputation
+    # variances for Rubin pooling.
     effect_final <- rep(NA_real_, N_impute)
     post_paa <- rep(NA_real_, N_impute)
-    cox_variance_final <- rep(NA_real_, N_impute)
+    variance_final <- rep(NA_real_, N_impute)
     # Impute multiple data sets
     for (j in 1:N_impute) {
       # Single imputed data set
@@ -108,7 +111,14 @@ test_final <- function(
         fit_cox <- cox_wald_test_checked(data)
         assert_cox_estimable(fit_cox)
         effect_final[j] <- fit_cox$estimate
-        cox_variance_final[j] <- fit_cox$std_error^2
+        variance_final[j] <- fit_cox$std_error^2
+      } else if (method == "riskdiff") {
+        fit_riskdiff <- risk_difference_estimate_checked(
+          data = data,
+          end_of_study = end_of_study
+        )
+        effect_final[j] <- fit_riskdiff$estimate
+        variance_final[j] <- fit_riskdiff$variance
       } else {
         # Apply primary analysis to imputed data
         success <- analyse_data(
@@ -133,15 +143,15 @@ test_final <- function(
       }
     }
 
-    if (method == "cox") {
-      pooled_cox <- pool_cox_rubin(
+    if (method %in% c("cox", "riskdiff")) {
+      pooled <- pool_rubin_scalar(
         estimates = effect_final,
-        variances = cox_variance_final,
+        variances = variance_final,
         alternative = alternative,
         h0 = h0
       )
-      post_paa <- pooled_cox$success
-      est_final <- pooled_cox$estimate
+      post_paa <- pooled$success
+      est_final <- pooled$estimate
     } else {
       # Average Bayesian summaries over imputations
       post_paa <- mean(post_paa)
@@ -149,10 +159,10 @@ test_final <- function(
     }
   } else {
     # Apply primary analysis to final data (without imputation)
-    # Chi-square and Bayesian binomial test cannot handle censored (LTFU)
-    # subjects, so exclude them
+    # Risk-difference and Bayesian binomial analyses cannot handle censored
+    # (LTFU) subjects, so exclude them.
     if (
-      method %in% c("chisq", "bayes-bin") && "loss_to_fu" %in% names(data_in)
+      method %in% c("riskdiff", "bayes-bin") && "loss_to_fu" %in% names(data_in)
     ) {
       data_in <- data_in[!data_in$loss_to_fu, ]
     }
@@ -178,22 +188,22 @@ test_final <- function(
   return(c(post_paa, est_final))
 }
 
-#' @title Pool Cox treatment effects using Rubin's rules
+#' @title Pool scalar treatment effects using Rubin's rules
 #'
-#' @description Combines log hazard ratio estimates and their
-#'   within-imputation variances, then evaluates the pooled estimate against the
-#'   null log hazard ratio using Rubin's large-sample degrees of freedom.
+#' @description Combines scalar treatment-effect estimates and their
+#'   within-imputation variances, then evaluates the pooled estimate against
+#'   its null value using Rubin's large-sample degrees of freedom.
 #'
-#' @param estimates Numeric vector of per-imputation log hazard ratio estimates.
+#' @param estimates Numeric vector of per-imputation effect estimates.
 #' @param variances Numeric vector of corresponding within-imputation variances.
 #' @inheritParams survival_adapt
 #'
-#' @return A list containing the pooled success score, log hazard ratio,
-#'   standard error, and degrees of freedom.
+#' @return A list containing the pooled success score, effect estimate, standard
+#'   error, and degrees of freedom.
 #'
 #' @importFrom stats pt var
 #' @noRd
-pool_cox_rubin <- function(estimates, variances, alternative, h0) {
+pool_rubin_scalar <- function(estimates, variances, alternative, h0) {
   m <- length(estimates)
   if (m < 2 || length(variances) != m) {
     stop("Rubin pooling requires at least two paired estimates and variances")
@@ -203,17 +213,26 @@ pool_cox_rubin <- function(estimates, variances, alternative, h0) {
       anyNA(variances) ||
       any(!is.finite(estimates)) ||
       any(!is.finite(variances)) ||
-      any(variances <= 0)
+      any(variances < 0)
   ) {
-    stop("Rubin pooling requires finite estimates and positive variances")
+    stop(
+      "Rubin pooling requires finite estimates and non-negative variances"
+    )
   }
 
   estimate <- mean(estimates)
   within_variance <- mean(variances)
   between_variance <- var(estimates)
   total_variance <- within_variance + (1 + 1 / m) * between_variance
+  if (!is.finite(total_variance) || total_variance <= 0) {
+    stop("Rubin pooling requires a finite positive total variance")
+  }
 
-  relative_increase <- (1 + 1 / m) * between_variance / within_variance
+  relative_increase <- if (within_variance == 0) {
+    Inf
+  } else {
+    (1 + 1 / m) * between_variance / within_variance
+  }
   degrees_freedom <- if (relative_increase == 0) {
     Inf
   } else {

@@ -263,7 +263,7 @@ where $Q(\mathcal{D})$ is the final analysis quantity and $c$ is the success thr
 |------------------|------------------|------------------|------------------|
 | Two-arm randomized trial | `logrank` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the traditional log-rank test P-value, with one-sided variants defined in Section 6.1 | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `cox` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the traditional Wald-test P-value, with one-sided variants defined in Section 6.1 | `"less"`, `"greater"`, `"two.sided"` |
-| Two-arm randomized trial | `chisq` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the traditional chi-square test P-value | `"two.sided"` |
+| Two-arm randomized trial | `riskdiff` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the Wald-test P-value for the treatment-control event-risk difference | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `bayes-surv` | $\Pr(\Delta < h_0 \mid \mathcal{D})$ or $\Pr(\Delta > h_0 \mid \mathcal{D})$ | `"less"`, `"greater"` |
 | Single-arm trial | `bayes-surv` | $\Pr(p_1(\tau) < h_0 \mid \mathcal{D})$ or $\Pr(p_1(\tau) > h_0 \mid \mathcal{D})$ | `"less"`, `"greater"` |
 | Two-arm randomized trial | `bayes-bin` | $\Pr(\Delta_{\mathrm{bin}} < h_0 \mid \mathcal{D})$ or $\Pr(\Delta_{\mathrm{bin}} > h_0 \mid \mathcal{D})$ | `"less"`, `"greater"` |
@@ -357,7 +357,7 @@ The final analysis is conducted after accrual has stopped and the relevant follo
 
 ### 6.1 Frequentist final tests
 
-For `method = "logrank"`, success is based on a log-rank test. For `method = "cox"`, success is based on the Wald test from a Cox proportional hazards regression. For these methods, `goldilocks` stores $1-p$ in `post_prob_ha`; this is not a posterior probability, but it puts frequentist and Bayesian rules on a common "larger is stronger evidence" scale. For example, a one-sided test at $\alpha = 0.025$ corresponds to `prob_ha = 0.975`.
+For `method = "logrank"`, success is based on a log-rank test. For `method = "cox"`, success is based on the Wald test from a Cox proportional hazards regression. For `method = "riskdiff"`, success is based on a Wald test for the treatment-control difference in binary event risks at `end_of_study`. For these methods, `goldilocks` stores $1-p$ in `post_prob_ha`; this is not a posterior probability, but it puts frequentist and Bayesian rules on a common "larger is stronger evidence" scale. For example, a one-sided test at $\alpha = 0.025$ corresponds to `prob_ha = 0.975`.
 
 For the log-rank option, let $Z_{\mathrm{LR}}$ denote the signed log-rank statistic, with positive values corresponding to excess events in the control arm under the package convention. Let $p_{\mathrm{LR}}$ denote the traditional two-sided log-rank test P-value. For the Cox option, let $\widehat{\eta}$ be the estimated log hazard ratio for treatment versus control. The null value `h0` is on the log-hazard-ratio scale, so the package uses
 
@@ -365,6 +365,19 @@ $$Z_{\mathrm{Cox}} = \frac{\widehat{\eta} - h_0}
   {\operatorname{se}(\widehat{\eta})}.$$
 
 When `h0 = 0`, this is the usual hazard-ratio-equals-1 null. A non-inferiority margin specified as a hazard ratio can be supplied as `h0 = log(margin)`. Here, lower treatment hazard corresponds to $Z_{\mathrm{Cox}} < 0$. Let $p_{\mathrm{Cox}}$ denote the two-sided Wald-test P-value relative to `h0`. The package uses the following method-specific definitions of $Q(\mathcal{D})$:
+
+For the risk-difference option, let $\widehat p_1$ and $\widehat p_0$ be the observed event proportions in the treatment and control arms, with sample sizes $n_1$ and $n_0$. The estimated effect and its unpooled binomial variance are
+
+$$\widehat\Delta = \widehat p_1 - \widehat p_0,$$
+
+$$U_{\Delta} =
+  \frac{\widehat p_1(1-\widehat p_1)}{n_1} +
+  \frac{\widehat p_0(1-\widehat p_0)}{n_0}.$$
+
+The complete-data Wald statistic is
+
+$$Z_{\mathrm{RD}} =
+  \frac{\widehat\Delta-h_0}{\sqrt{U_{\Delta}}}.$$
 
 | Method    | Alternative   | $Q(\mathcal{D})$              |
 |-----------|---------------|-------------------------------|
@@ -374,27 +387,29 @@ When `h0 = 0`, this is the usual hazard-ratio-equals-1 null. A non-inferiority m
 | `cox`     | `"less"`      | $1 - \Phi(Z_{\mathrm{Cox}})$ |
 | `cox`     | `"greater"`   | $\Phi(Z_{\mathrm{Cox}})$     |
 | `cox`     | `"two.sided"` | $1 - p_{\mathrm{Cox}}$       |
-| `chisq`   | `"two.sided"` | $1 - p_{\chi^2}$            |
+| `riskdiff` | `"less"`      | $1 - \Phi(Z_{\mathrm{RD}})$  |
+| `riskdiff` | `"greater"`   | $\Phi(Z_{\mathrm{RD}})$      |
+| `riskdiff` | `"two.sided"` | $1 - 2\Phi(-|Z_{\mathrm{RD}}|)$ |
 
-Here $p_{\chi^2}$ is the traditional chi-square test P-value. The one-sided directions differ between the log-rank and Cox rows because of the sign convention of the package's log-rank statistic.
+The one-sided directions differ between the log-rank rows and the model-based rows because of the sign convention of the package's log-rank statistic.
 
-For `method = "chisq"`, the final event indicator is compared between arms using a chi-square test. This discards event-time information and is available only for two-arm designs with `alternative = "two.sided"`.
+The risk-difference analysis discards event-time information and requires complete binary endpoint status. The returned `est_final` is $\widehat\Delta$.
 
-When a Cox final analysis uses multiple imputation, the model is fitted separately to each completed dataset. Let $\widehat{\eta}_m$ and $U_m$ be the log hazard ratio and its estimated variance from imputation $m = 1,\ldots,M$. Rubin's scalar pooling rules give
+When a Cox or risk-difference final analysis uses multiple imputation, the analysis is applied separately to each completed dataset. Let $\widehat{\theta}_m$ and $U_m$ be the scalar effect estimate and its estimated variance from imputation $m = 1,\ldots,M$. For Cox regression $\widehat{\theta}_m$ is the log hazard ratio; for risk difference it is $\widehat\Delta_m$. Rubin's scalar pooling rules give
 
-$$\bar{\eta} = \frac{1}{M}\sum_{m=1}^{M}\widehat{\eta}_m, \qquad
+$$\bar{\theta} = \frac{1}{M}\sum_{m=1}^{M}\widehat{\theta}_m, \qquad
 \bar{U} = \frac{1}{M}\sum_{m=1}^{M}U_m,$$
 
 $$B = \frac{1}{M-1}\sum_{m=1}^{M}
-  (\widehat{\eta}_m - \bar{\eta})^2, \qquad
+  (\widehat{\theta}_m - \bar{\theta})^2, \qquad
 T = \bar{U} + \left(1 + \frac{1}{M}\right)B.$$
 
-The pooled Wald statistic is $(\bar{\eta} - h_0) / \sqrt{T}$. Its P-value uses a $t$ reference distribution with Rubin's large-sample degrees of freedom
+The pooled Wald statistic is $(\bar{\theta} - h_0) / \sqrt{T}$. Its P-value uses a $t$ reference distribution with Rubin's large-sample degrees of freedom
 
 $$\nu = (M-1)\left(1 + \frac{1}{r}\right)^2, \qquad
 r = \frac{(1 + 1/M)B}{\bar{U}}.$$
 
-When $B = 0$, $\nu = \infty$ and the reference distribution reduces to the standard normal distribution. At least two imputations are therefore required. The returned `est_final` is $\bar{\eta}$, while `post_prob_ha` is $1-p$ from this pooled test with the direction determined by `alternative`.
+When $B = 0$, $\nu = \infty$ and the reference distribution reduces to the standard normal distribution. At least two imputations are therefore required. The returned `est_final` is $\bar{\theta}$, while `post_prob_ha` is $1-p$ from this pooled test with the direction determined by `alternative`.
 
 ### 6.2 Bayesian survival final test
 
@@ -466,9 +481,9 @@ The posterior probability can be computed in three ways. With `bin_method = "mc"
 
 Interim predictions impute outcomes that are not yet known. At the final analysis, `imputed_final` controls whether subjects lost to follow-up are also imputed.
 
-If `imputed_final = TRUE`, Bayesian methods (`method = "bayes-surv"` or `method = "bayes-bin"`) analyze each imputed completed dataset and average the resulting posterior summaries. Cox regression instead pools the completed-data log hazard ratios and variances using Rubin's rules as described above; `N_impute` must be at least two. Imputed final analyses remain unavailable for `method = "logrank"` and `method = "chisq"` because no pooling rule is implemented for those tests.
+If `imputed_final = TRUE`, Bayesian methods (`method = "bayes-surv"` or `method = "bayes-bin"`) analyze each imputed completed dataset and average the resulting posterior summaries. Cox regression and risk-difference analyses instead pool completed-data scalar estimates and variances using Rubin's rules as described above; `N_impute` must be at least two. Imputed final analyses remain unavailable for `method = "logrank"` because no pooling rule is implemented for that test.
 
-If `imputed_final = FALSE`, the final analysis is unchanged: it uses observed right-censored data for methods that can handle censoring (`logrank`, `cox`, and `bayes-surv`). For `chisq` and `bayes-bin`, lost-to-follow-up subjects are excluded because these methods require complete binary outcomes and have no mechanism for right-censored observations. Rubin pooling applies only to the imputed Cox final analysis; it does not alter the interim posterior-predictive calculation, where each simulated completed trial is tested separately before the success indicators are averaged.
+If `imputed_final = FALSE`, the final analysis uses observed right-censored data for methods that can handle censoring (`logrank`, `cox`, and `bayes-surv`). For `riskdiff` and `bayes-bin`, lost-to-follow-up subjects are excluded because these methods require complete binary outcomes and have no mechanism for right-censored observations. Rubin pooling applies to imputed Cox and risk-difference final analyses; it does not alter the interim posterior-predictive calculation, where each simulated completed trial is tested separately before the success indicators are averaged.
 
 The loss-to-follow-up mechanism in the simulator is non-informative. Designs where dropout may depend on prognosis should be assessed with sensitivity analyses outside the default data-generating mechanism.
 

@@ -118,6 +118,6 @@ The functions fall into three layers:
 ### Data generation and analysis utilities
 
 -   **`posterior()`**: Estimates the posterior distribution of piecewise exponential hazard rates using a conjugate Gamma model.
--   **`analyse_data()`**: Applies the chosen analysis method (`logrank`, `cox`, `bayes-surv`, `bayes-bin`, or `chisq`) to an (imputed) dataset.
+-   **`analyse_data()`**: Applies the chosen analysis method (`logrank`, `cox`, `bayes-surv`, `bayes-bin`, or `riskdiff`) to an (imputed) dataset.
 -   **`impute_data()`**: Imputes missing event times for censored subjects using `pwe_impute()` or `pwe_sim()`.
 -   **`haz_to_prop()`**: Converts posterior hazard rate draws to cumulative incidence proportions via `ppwe()`.

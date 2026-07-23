@@ -165,11 +165,10 @@ test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less
   expect_equal(res_greater$success + res_less$success, 1, tolerance = 0.05)
 })
 
-test_that("analyse_data works with method = 'chisq'", {
-  set.seed(2647)
-  event <- sample(0:1, 100, replace = TRUE, prob = c(0.3, 0.7))
+test_that("analyse_data works with method = 'riskdiff'", {
+  event <- c(rep(1, 10), rep(0, 40), rep(1, 20), rep(0, 30))
   data <- data.frame(
-    time = ifelse(event == 1, rexp(100, 0.02), 36),
+    time = rep(36, 100),
     event = event,
     treatment = rep(0:1, each = 50)
   )
@@ -180,17 +179,52 @@ test_that("analyse_data works with method = 'chisq'", {
     prior = c(0.1, 0.1),
     N_mcmc = 10,
     single_arm = FALSE,
-    method = "chisq",
+    method = "riskdiff",
     alternative = "greater",
     h0 = 0
   )
   expect_type(res, "list")
   expect_named(res, c("success", "effect"))
   expect_true(res$success >= 0 && res$success <= 1)
-  expect_type(res$effect, "double")
+  expect_equal(res$effect, 0.2)
+  expect_gt(res$success, 0.5)
+
+  fit <- risk_difference_wald_test_checked(
+    data = data,
+    end_of_study = 36,
+    alternative = "greater",
+    h0 = 0
+  )
+  expect_equal(fit$estimate, 0.2)
+  expect_equal(fit$variance, 0.4 * 0.6 / 50 + 0.2 * 0.8 / 50)
 })
 
-test_that("analyse_data method = 'chisq' rejects incomplete censored outcomes", {
+test_that("analyse_data risk-difference alternatives preserve direction", {
+  data <- data.frame(
+    time = rep(36, 100),
+    event = c(rep(1, 10), rep(0, 40), rep(1, 20), rep(0, 30)),
+    treatment = rep(0:1, each = 50)
+  )
+  args <- list(
+    data = data,
+    cutpoints = NULL,
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    N_mcmc = 10,
+    single_arm = FALSE,
+    method = "riskdiff",
+    h0 = 0.1
+  )
+
+  less <- do.call(analyse_data, c(args, alternative = "less"))
+  greater <- do.call(analyse_data, c(args, alternative = "greater"))
+
+  expect_equal(less$success + greater$success, 1)
+  expect_lt(less$success, 0.5)
+  expect_gt(greater$success, 0.5)
+})
+
+test_that("analyse_data method = 'riskdiff' rejects incomplete censored outcomes", {
   data <- data.frame(
     time = c(5, 36, 7, 36),
     event = c(0, 0, 1, 1),
@@ -205,7 +239,7 @@ test_that("analyse_data method = 'chisq' rejects incomplete censored outcomes", 
       prior = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE,
-      method = "chisq",
+      method = "riskdiff",
       alternative = "two.sided",
       h0 = 0
     ),

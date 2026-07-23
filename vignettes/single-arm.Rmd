@@ -25,7 +25,7 @@ Several other vignettes focus on two-arm randomized designs, although the Bayesi
 Two practical constraints on single-arm designs in this package:
 
 -   A single-arm trial is signaled by setting `hazard_control = NULL`.
--   `method = "bayes-surv"` supports single-arm survival analyses with piecewise-exponential event-time modeling. `method = "bayes-bin"` supports single-arm analyses of complete binary outcomes. The frequentist tests (`logrank`, `cox`, `chisq`) require two arms and will raise an error if used in this mode.
+-   `method = "bayes-surv"` supports single-arm survival analyses with piecewise-exponential event-time modeling. `method = "bayes-bin"` supports single-arm analyses of complete binary outcomes. The frequentist methods (`logrank`, `cox`, `riskdiff`) require two arms and will raise an error if used in this mode.
 
 ## The decision rule
 

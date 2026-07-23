@@ -1,8 +1,8 @@
-test_that("pool_cox_rubin applies Rubin's scalar pooling rules", {
+test_that("pool_rubin_scalar applies Rubin's scalar pooling rules", {
   estimates <- c(-0.4, -0.2, -0.3)
   variances <- c(0.04, 0.05, 0.06)
 
-  pooled <- pool_cox_rubin(
+  pooled <- pool_rubin_scalar(
     estimates = estimates,
     variances = variances,
     alternative = "two.sided",
@@ -23,20 +23,20 @@ test_that("pool_cox_rubin applies Rubin's scalar pooling rules", {
   expect_equal(pooled$success, expected_success)
 })
 
-test_that("pool_cox_rubin preserves one-sided Cox directions", {
+test_that("pool_rubin_scalar preserves one-sided effect directions", {
   estimates <- c(-0.4, -0.2, -0.3)
   variances <- rep(0.05, 3)
 
-  less <- pool_cox_rubin(estimates, variances, "less", h0 = 0)
-  greater <- pool_cox_rubin(estimates, variances, "greater", h0 = 0)
+  less <- pool_rubin_scalar(estimates, variances, "less", h0 = 0)
+  greater <- pool_rubin_scalar(estimates, variances, "greater", h0 = 0)
 
   expect_gt(less$success, 0.5)
   expect_lt(greater$success, 0.5)
   expect_equal(less$success + greater$success, 1)
 })
 
-test_that("pool_cox_rubin uses infinite degrees of freedom without between-imputation variation", {
-  pooled <- pool_cox_rubin(
+test_that("pool_rubin_scalar uses infinite degrees of freedom without between-imputation variation", {
+  pooled <- pool_rubin_scalar(
     estimates = rep(-0.25, 3),
     variances = rep(0.04, 3),
     alternative = "less",
@@ -47,4 +47,17 @@ test_that("pool_cox_rubin uses infinite degrees of freedom without between-imput
   expect_equal(pooled$std_error, 0.2)
   expect_identical(pooled$degrees_freedom, Inf)
   expect_equal(pooled$success, 1 - pnorm(-0.25 / 0.2))
+})
+
+test_that("pool_rubin_scalar can use between-imputation variance alone", {
+  pooled <- pool_rubin_scalar(
+    estimates = c(-0.1, 0, 0.1),
+    variances = c(0, 0, 0),
+    alternative = "two.sided",
+    h0 = 0
+  )
+
+  expect_identical(pooled$degrees_freedom, 2)
+  expect_gt(pooled$std_error, 0)
+  expect_equal(pooled$estimate, 0)
 })

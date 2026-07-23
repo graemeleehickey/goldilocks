@@ -133,7 +133,7 @@ test_that("survival_adapt-cox", {
   expect_true(!is.na(out$est_final))
 })
 
-test_that("survival_adapt-chisq", {
+test_that("survival_adapt-riskdiff", {
   set.seed(1)
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
@@ -155,14 +155,14 @@ test_that("survival_adapt-chisq", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "chisq"
+    method = "riskdiff"
   )
 
   expect_s3_class(out, "data.frame")
   expect_true(!is.na(out$est_final))
 })
 
-test_that("survival_adapt-chisq excludes LTFU when imputed_final = FALSE", {
+test_that("survival_adapt-riskdiff excludes LTFU when imputed_final = FALSE", {
   set.seed(3927)
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
@@ -184,7 +184,7 @@ test_that("survival_adapt-chisq excludes LTFU when imputed_final = FALSE", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "chisq",
+    method = "riskdiff",
     imputed_final = FALSE
   )
 
@@ -220,29 +220,33 @@ test_that("survival_adapt pools imputed Cox final analyses", {
   expect_true(is.finite(out$est_final))
 })
 
-test_that("survival_adapt requires multiple imputations for pooled Cox analysis", {
-  expect_error(
-    survival_adapt(
-      hazard_treatment = -log(0.85) / 36,
-      hazard_control = -log(0.7) / 36,
-      cutpoints = NULL,
-      N_total = 200,
-      lambda = 20,
-      lambda_time = NULL,
-      interim_look = NULL,
-      end_of_study = 36,
-      prop_loss = 0.30,
-      alternative = "less",
-      method = "cox",
-      N_impute = 1,
-      imputed_final = TRUE
-    ),
-    "at least two imputations"
+test_that("survival_adapt pools imputed risk-difference final analyses", {
+  set.seed(2084)
+  out <- survival_adapt(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    cutpoints = NULL,
+    N_total = 200,
+    lambda = 20,
+    lambda_time = NULL,
+    interim_look = NULL,
+    end_of_study = 36,
+    prop_loss = 0.30,
+    alternative = "less",
+    h0 = 0,
+    prob_ha = 0.95,
+    N_impute = 5,
+    method = "riskdiff",
+    imputed_final = TRUE
   )
+
+  expect_s3_class(out, "data.frame")
+  expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
+  expect_true(is.finite(out$est_final))
 })
 
-test_that("survival_adapt still rejects imputed log-rank and chi-square final analyses", {
-  for (method in c("logrank", "chisq")) {
+test_that("survival_adapt requires multiple imputations for Rubin pooling", {
+  for (method in c("cox", "riskdiff")) {
     expect_error(
       survival_adapt(
         hazard_treatment = -log(0.85) / 36,
@@ -253,13 +257,34 @@ test_that("survival_adapt still rejects imputed log-rank and chi-square final an
         lambda_time = NULL,
         interim_look = NULL,
         end_of_study = 36,
-        alternative = "two.sided",
+        prop_loss = 0.30,
+        alternative = "less",
         method = method,
+        N_impute = 1,
         imputed_final = TRUE
       ),
-      "no supported frequentist pooling rule"
+      "at least two imputations"
     )
   }
+})
+
+test_that("survival_adapt still rejects imputed log-rank final analyses", {
+  expect_error(
+    survival_adapt(
+      hazard_treatment = -log(0.85) / 36,
+      hazard_control = -log(0.7) / 36,
+      cutpoints = NULL,
+      N_total = 200,
+      lambda = 20,
+      lambda_time = NULL,
+      interim_look = NULL,
+      end_of_study = 36,
+      alternative = "two.sided",
+      method = "logrank",
+      imputed_final = TRUE
+    ),
+    "no supported frequentist pooling rule"
+  )
 })
 
 test_that("survival_adapt-complex", {
@@ -523,31 +548,60 @@ test_that("survival_adapt-cox-one-sided-greater", {
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
 })
 
-test_that("error-alternative-chisq", {
+test_that("survival_adapt-riskdiff supports one-sided margins", {
+  set.seed(908)
+  out <- survival_adapt(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    cutpoints = NULL,
+    N_total = 400,
+    lambda = 20,
+    lambda_time = NULL,
+    interim_look = 200,
+    end_of_study = 36,
+    prior = c(0.1, 0.1),
+    block = 2,
+    rand_ratio = c(1, 1),
+    prop_loss = 0.30,
+    alternative = "less",
+    h0 = 0.05,
+    Fn = 0.05,
+    Sn = 0.9,
+    prob_ha = 0.975,
+    N_impute = 2,
+    N_mcmc = 2,
+    method = "riskdiff"
+  )
+
+  expect_s3_class(out, "data.frame")
+  expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
+  expect_true(out$est_final >= -1 && out$est_final <= 1)
+})
+
+test_that("survival_adapt no longer accepts method = 'chisq'", {
   expect_error(
     survival_adapt(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
-      cutpoints = NULL,
-      N_total = 400,
-      lambda = 20,
-      lambda_time = NULL,
-      interim_look = 200,
+      N_total = 100,
       end_of_study = 36,
-      prior = c(0.1, 0.1),
-      block = 2,
-      rand_ratio = c(1, 1),
-      prop_loss = 0.30,
-      alternative = "less",
-      h0 = 0,
-      Fn = 0.05,
-      Sn = 0.9,
-      prob_ha = 0.975,
-      N_impute = 2,
-      N_mcmc = 2,
       method = "chisq"
     ),
-    "chi-square"
+    "or 'riskdiff'"
+  )
+})
+
+test_that("survival_adapt validates risk-difference margins", {
+  expect_error(
+    survival_adapt(
+      hazard_treatment = -log(0.85) / 36,
+      hazard_control = -log(0.7) / 36,
+      N_total = 100,
+      end_of_study = 36,
+      method = "riskdiff",
+      h0 = 1.1
+    ),
+    "\\[-1, 1\\]"
   )
 })
 
