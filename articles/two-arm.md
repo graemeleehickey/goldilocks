@@ -113,11 +113,12 @@ out_power_1sided <- update(
 )
 ```
 
-The chi-square test (`method = "chisq"`) supports `"two.sided"` only.
-The Bayesian test (`method = "bayes-surv"`) is the opposite: it
-*requires* a one-sided alternative (`"less"` or `"greater"`), and
-`"two.sided"` raises an error. For the Bayesian test the effect is
-measured on the cumulative-failure-probability scale,
+The frequentist binary risk-difference analysis (`method = "riskdiff"`)
+supports all three alternatives and compares p\_\textrm{treatment} -
+p\_\textrm{control} with `h0` using a Wald test. The Bayesian test
+(`method = "bayes-surv"`) requires a one-sided alternative (`"less"` or
+`"greater"`), and `"two.sided"` raises an error. For the Bayesian test
+the effect is measured on the cumulative-failure-probability scale,
 p\_\textrm{treatment} - p\_\textrm{control} at `end_of_study`, compared
 against the margin `h0` (default `0`):
 
@@ -154,11 +155,11 @@ Similar to above, the parameter `N_mcmc` is not required when using a
 log-rank test, meaning we do not need to enter a value for this
 argument. Since we do not allow for attrition, the data at the final
 analysis will be complete, and we can set `imputed_final = FALSE`. If
-attrition occurred and `method = "cox"` were selected,
-`imputed_final = TRUE` would fit the Cox model to each completed dataset
-and pool the log hazard ratios and variances using Rubin’s rules; at
+attrition occurred and `method = "cox"` or `method = "riskdiff"` were
+selected, `imputed_final = TRUE` would analyze each completed dataset
+and pool the scalar estimates and variances using Rubin’s rules; at
 least two imputations are required. Imputed final analyses are not
-currently available for `method = "logrank"` or `method = "chisq"`.
+available for `method = "logrank"`.
 
 Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is

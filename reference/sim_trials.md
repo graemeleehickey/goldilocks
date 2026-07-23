@@ -141,12 +141,11 @@ sim_trials(
   one of `"greater"` (default), `"less"` or `"two.sided"`. One-sided
   alternatives (`"greater"` and `"less"`) are supported for
   `method = "bayes-surv"` and `method = "bayes-bin"`. All three options
-  are supported for `method = "logrank"` and `method = "cox"`. The
-  chi-square test (`method = "chisq"`) only supports `"two.sided"`. For
-  survival outcomes, `"less"` corresponds to the treatment arm having a
-  lower cumulative incidence (i.e., treatment is beneficial), and
-  `"greater"` corresponds to the treatment arm having a higher
-  cumulative incidence.
+  are supported for `method = "logrank"`, `method = "cox"`, and
+  `method = "riskdiff"`. For survival outcomes, `"less"` corresponds to
+  the treatment arm having a lower cumulative incidence (i.e., treatment
+  is beneficial), and `"greater"` corresponds to the treatment arm
+  having a higher cumulative incidence.
 
 - h0:
 
@@ -170,9 +169,13 @@ sim_trials(
     as a hazard ratio. A Cox non-inferiority test should usually use
     `alternative = "less"`.
 
-  - The argument is ignored for `method = "logrank"` and
-    `method = "chisq"` after its finite-value validation; in those cases
-    the usual method-specific null hypothesis is used.
+  - When `method = "riskdiff"`, `h0` is the null value of
+    \\p\_\textrm{treatment} - p\_\textrm{control}\\ and must lie in
+    `[-1, 1]`.
+
+  - The argument is ignored for `method = "logrank"` after its
+    finite-value validation; the usual equal-survival null hypothesis is
+    used.
 
 - Fn:
 
@@ -199,7 +202,8 @@ sim_trials(
 - N_impute:
 
   integer. Number of imputations for Monte Carlo simulation of missing
-  data. An imputed Cox final analysis requires at least two.
+  data. An imputed Cox or risk-difference final analysis requires at
+  least two.
 
 - N_mcmc:
 
@@ -218,8 +222,8 @@ sim_trials(
   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
   analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis
   of complete binary outcomes (`method = "bayes-bin"`), or a frequentist
-  log-rank, Cox, or chi-square test (`method = "logrank"`, `"cox"`, or
-  `"chisq"`). See Details section.
+  risk-difference Wald test of complete binary outcomes
+  (`method = "riskdiff"`). See Details section.
 
 - imputed_final:
 
@@ -227,12 +231,11 @@ sim_trials(
   followed-up to the study end) be based on imputed outcomes for
   subjects who were LTFU (i.e. right-censored with time less than
   `end_of_study`)? Default is `FALSE`, which means that the final
-  analysis incorporates right-censoring. With `method = "cox"`, setting
-  this to `TRUE` fits the Cox model to each imputed dataset and pools
-  the log hazard ratios and variances using Rubin's rules; this requires
-  `N_impute >= 2`. Imputed final analyses remain unavailable for
-  `method = "logrank"` and `method = "chisq"` because no pooling rule is
-  implemented for them.
+  analysis incorporates right-censoring. With `method = "cox"` or
+  `method = "riskdiff"`, setting this to `TRUE` analyzes each imputed
+  dataset and pools the scalar treatment effects and variances using
+  Rubin's rules; this requires `N_impute >= 2`. Imputed final analyses
+  remain unavailable for `method = "logrank"`.
 
 - empty_interval:
 
@@ -276,7 +279,7 @@ sim_trials(
 - binary_imputation:
 
   character. Predictive imputation approach for `method = "bayes-bin"`
-  or `method = "chisq"`. `"event-time"` (the default) draws a
+  or `method = "riskdiff"`. `"event-time"` (the default) draws a
   conditional piecewise-exponential event time and reduces it to event
   status at `end_of_study`. `"bernoulli"` draws the endpoint status
   directly from its conditional event probability. This argument is

@@ -21,8 +21,8 @@ Two practical constraints on single-arm designs in this package:
 - `method = "bayes-surv"` supports single-arm survival analyses with
   piecewise-exponential event-time modeling. `method = "bayes-bin"`
   supports single-arm analyses of complete binary outcomes. The
-  frequentist tests (`logrank`, `cox`, `chisq`) require two arms and
-  will raise an error if used in this mode.
+  frequentist methods (`logrank`, `cox`, `riskdiff`) require two arms
+  and will raise an error if used in this mode.
 
 ## The decision rule
 

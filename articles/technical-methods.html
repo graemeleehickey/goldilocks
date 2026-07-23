@@ -421,11 +421,14 @@ P-value, with one-sided variants defined in Section 6.1</td>
 </tr>
 <tr class="odd">
 <td>Two-arm randomized trial</td>
-<td><code>chisq</code></td>
+<td><code>riskdiff</code></td>
 <td>
-<span class="math inline">1-p(\mathcal{D})</span>, where <span class="math inline">p(\mathcal{D})</span> is the traditional chi-square
-test P-value</td>
-<td><code>"two.sided"</code></td>
+<span class="math inline">1-p(\mathcal{D})</span>, where <span class="math inline">p(\mathcal{D})</span> is the Wald-test P-value for
+the treatment-control event-risk difference</td>
+<td>
+<code>"less"</code>, <code>"greater"</code>,
+<code>"two.sided"</code>
+</td>
 </tr>
 <tr class="even">
 <td>Two-arm randomized trial</td>
@@ -579,8 +582,11 @@ calculations.</p>
 </h3>
 <p>For <code>method = "logrank"</code>, success is based on a log-rank
 test. For <code>method = "cox"</code>, success is based on the Wald test
-from a Cox proportional hazards regression. For these methods,
-<code>goldilocks</code> stores <span class="math inline">1-p</span> in
+from a Cox proportional hazards regression. For
+<code>method = "riskdiff"</code>, success is based on a Wald test for
+the treatment-control difference in binary event risks at
+<code>end_of_study</code>. For these methods, <code>goldilocks</code>
+stores <span class="math inline">1-p</span> in
 <code>post_prob_ha</code>; this is not a posterior probability, but it
 puts frequentist and Bayesian rules on a common “larger is stronger
 evidence” scale. For example, a one-sided test at <span class="math inline">\alpha = 0.025</span> corresponds to
@@ -601,6 +607,17 @@ corresponds to <span class="math inline">Z_{\mathrm{Cox}} &lt; 0</span>.
 Let <span class="math inline">p_{\mathrm{Cox}}</span> denote the
 two-sided Wald-test P-value relative to <code>h0</code>. The package
 uses the following method-specific definitions of <span class="math inline">Q(\mathcal{D})</span>:</p>
+<p>For the risk-difference option, let <span class="math inline">\widehat p_1</span> and <span class="math inline">\widehat p_0</span> be the observed event
+proportions in the treatment and control arms, with sample sizes <span class="math inline">n_1</span> and <span class="math inline">n_0</span>.
+The estimated effect and its unpooled binomial variance are</p>
+<p><span class="math display">\widehat\Delta = \widehat p_1 - \widehat
+p_0,</span></p>
+<p><span class="math display">U_{\Delta} =
+  \frac{\widehat p_1(1-\widehat p_1)}{n_1} +
+  \frac{\widehat p_0(1-\widehat p_0)}{n_0}.</span></p>
+<p>The complete-data Wald statistic is</p>
+<p><span class="math display">Z_{\mathrm{RD}} =
+  \frac{\widehat\Delta-h_0}{\sqrt{U_{\Delta}}}.</span></p>
 <table class="table">
 <thead><tr class="header">
 <th>Method</th>
@@ -639,39 +656,51 @@ uses the following method-specific definitions of <span class="math inline">Q(\m
 <td><span class="math inline">1 - p_{\mathrm{Cox}}</span></td>
 </tr>
 <tr class="odd">
-<td><code>chisq</code></td>
+<td><code>riskdiff</code></td>
+<td><code>"less"</code></td>
+<td><span class="math inline">1 - \Phi(Z_{\mathrm{RD}})</span></td>
+</tr>
+<tr class="even">
+<td><code>riskdiff</code></td>
+<td><code>"greater"</code></td>
+<td><span class="math inline">\Phi(Z_{\mathrm{RD}})</span></td>
+</tr>
+<tr class="odd">
+<td><code>riskdiff</code></td>
 <td><code>"two.sided"</code></td>
-<td><span class="math inline">1 - p_{\chi^2}</span></td>
+<td><span class="math inline">1 - 2\Phi(-|Z_{\mathrm{RD}}|)</span></td>
 </tr>
 </tbody>
 </table>
-<p>Here <span class="math inline">p_{\chi^2}</span> is the traditional
-chi-square test P-value. The one-sided directions differ between the
-log-rank and Cox rows because of the sign convention of the package’s
+<p>The one-sided directions differ between the log-rank rows and the
+model-based rows because of the sign convention of the package’s
 log-rank statistic.</p>
-<p>For <code>method = "chisq"</code>, the final event indicator is
-compared between arms using a chi-square test. This discards event-time
-information and is available only for two-arm designs with
-<code>alternative = "two.sided"</code>.</p>
-<p>When a Cox final analysis uses multiple imputation, the model is
-fitted separately to each completed dataset. Let <span class="math inline">\widehat{\eta}_m</span> and <span class="math inline">U_m</span> be the log hazard ratio and its estimated
-variance from imputation <span class="math inline">m =
-1,\ldots,M</span>. Rubin’s scalar pooling rules give</p>
-<p><span class="math display">\bar{\eta} =
-\frac{1}{M}\sum_{m=1}^{M}\widehat{\eta}_m, \qquad
+<p>The risk-difference analysis discards event-time information and
+requires complete binary endpoint status. The returned
+<code>est_final</code> is <span class="math inline">\widehat\Delta</span>.</p>
+<p>When a Cox or risk-difference final analysis uses multiple
+imputation, the analysis is applied separately to each completed
+dataset. Let <span class="math inline">\widehat{\theta}_m</span> and
+<span class="math inline">U_m</span> be the scalar effect estimate and
+its estimated variance from imputation <span class="math inline">m =
+1,\ldots,M</span>. For Cox regression <span class="math inline">\widehat{\theta}_m</span> is the log hazard ratio;
+for risk difference it is <span class="math inline">\widehat\Delta_m</span>. Rubin’s scalar pooling
+rules give</p>
+<p><span class="math display">\bar{\theta} =
+\frac{1}{M}\sum_{m=1}^{M}\widehat{\theta}_m, \qquad
 \bar{U} = \frac{1}{M}\sum_{m=1}^{M}U_m,</span></p>
 <p><span class="math display">B = \frac{1}{M-1}\sum_{m=1}^{M}
-  (\widehat{\eta}_m - \bar{\eta})^2, \qquad
+  (\widehat{\theta}_m - \bar{\theta})^2, \qquad
 T = \bar{U} + \left(1 + \frac{1}{M}\right)B.</span></p>
-<p>The pooled Wald statistic is <span class="math inline">(\bar{\eta} -
-h_0) / \sqrt{T}</span>. Its P-value uses a <span class="math inline">t</span> reference distribution with Rubin’s
+<p>The pooled Wald statistic is <span class="math inline">(\bar{\theta}
+- h_0) / \sqrt{T}</span>. Its P-value uses a <span class="math inline">t</span> reference distribution with Rubin’s
 large-sample degrees of freedom</p>
 <p><span class="math display">\nu = (M-1)\left(1 + \frac{1}{r}\right)^2,
 \qquad
 r = \frac{(1 + 1/M)B}{\bar{U}}.</span></p>
 <p>When <span class="math inline">B = 0</span>, <span class="math inline">\nu = \infty</span> and the reference distribution
 reduces to the standard normal distribution. At least two imputations
-are therefore required. The returned <code>est_final</code> is <span class="math inline">\bar{\eta}</span>, while <code>post_prob_ha</code>
+are therefore required. The returned <code>est_final</code> is <span class="math inline">\bar{\theta}</span>, while <code>post_prob_ha</code>
 is <span class="math inline">1-p</span> from this pooled test with the
 direction determined by <code>alternative</code>.</p>
 </div>
@@ -772,21 +801,21 @@ lost to follow-up are also imputed.</p>
 (<code>method = "bayes-surv"</code> or
 <code>method = "bayes-bin"</code>) analyze each imputed completed
 dataset and average the resulting posterior summaries. Cox regression
-instead pools the completed-data log hazard ratios and variances using
-Rubin’s rules as described above; <code>N_impute</code> must be at least
-two. Imputed final analyses remain unavailable for
-<code>method = "logrank"</code> and <code>method = "chisq"</code>
-because no pooling rule is implemented for those tests.</p>
-<p>If <code>imputed_final = FALSE</code>, the final analysis is
-unchanged: it uses observed right-censored data for methods that can
-handle censoring (<code>logrank</code>, <code>cox</code>, and
-<code>bayes-surv</code>). For <code>chisq</code> and
-<code>bayes-bin</code>, lost-to-follow-up subjects are excluded because
-these methods require complete binary outcomes and have no mechanism for
-right-censored observations. Rubin pooling applies only to the imputed
-Cox final analysis; it does not alter the interim posterior-predictive
-calculation, where each simulated completed trial is tested separately
-before the success indicators are averaged.</p>
+and risk-difference analyses instead pool completed-data scalar
+estimates and variances using Rubin’s rules as described above;
+<code>N_impute</code> must be at least two. Imputed final analyses
+remain unavailable for <code>method = "logrank"</code> because no
+pooling rule is implemented for that test.</p>
+<p>If <code>imputed_final = FALSE</code>, the final analysis uses
+observed right-censored data for methods that can handle censoring
+(<code>logrank</code>, <code>cox</code>, and <code>bayes-surv</code>).
+For <code>riskdiff</code> and <code>bayes-bin</code>, lost-to-follow-up
+subjects are excluded because these methods require complete binary
+outcomes and have no mechanism for right-censored observations. Rubin
+pooling applies to imputed Cox and risk-difference final analyses; it
+does not alter the interim posterior-predictive calculation, where each
+simulated completed trial is tested separately before the success
+indicators are averaged.</p>
 <p>The loss-to-follow-up mechanism in the simulator is non-informative.
 Designs where dropout may depend on prognosis should be assessed with
 sensitivity analyses outside the default data-generating mechanism.</p>

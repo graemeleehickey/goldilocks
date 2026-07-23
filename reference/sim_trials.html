@@ -181,8 +181,8 @@ right-censored. Defaults to zero.</p></dd>
 hypothesis, must be one of <code>"greater"</code> (default), <code>"less"</code> or
 <code>"two.sided"</code>. One-sided alternatives (<code>"greater"</code> and <code>"less"</code>) are
 supported for <code>method = "bayes-surv"</code> and <code>method = "bayes-bin"</code>. All three
-options are supported for <code>method = "logrank"</code> and <code>method = "cox"</code>. The
-chi-square test (<code>method = "chisq"</code>) only supports <code>"two.sided"</code>. For
+options are supported for <code>method = "logrank"</code>, <code>method = "cox"</code>, and
+<code>method = "riskdiff"</code>. For
 survival outcomes, <code>"less"</code> corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and <code>"greater"</code>
 corresponds to the treatment arm having a higher cumulative incidence.</p></dd>
@@ -203,9 +203,11 @@ treatment versus control. Use <code>h0 = 0</code> for the usual hazard ratio
 of 1 null, or <code>h0 = log(margin)</code> for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use <code>alternative = "less"</code>.</p></li>
-<li><p>The argument is ignored for <code>method = "logrank"</code> and
-<code>method = "chisq"</code> after its finite-value validation; in those cases
-the usual method-specific null hypothesis is used.</p></li>
+<li><p>When <code>method = "riskdiff"</code>, <code>h0</code> is the null value of
+\(p_\textrm{treatment} - p_\textrm{control}\) and must lie in
+<code>[-1, 1]</code>.</p></li>
+<li><p>The argument is ignored for <code>method = "logrank"</code> after its finite-value
+validation; the usual equal-survival null hypothesis is used.</p></li>
 </ul></dd>
 
 
@@ -234,7 +236,8 @@ hypothesis.</p></dd>
 
 <dt id="arg-n-impute">N_impute<a class="anchor" aria-label="anchor" href="#arg-n-impute"></a></dt>
 <dd><p>integer. Number of imputations for Monte Carlo simulation of
-missing data. An imputed Cox final analysis requires at least two.</p></dd>
+missing data. An imputed Cox or risk-difference final analysis requires at
+least two.</p></dd>
 
 
 <dt id="arg-n-mcmc">N_mcmc<a class="anchor" aria-label="anchor" href="#arg-n-mcmc"></a></dt>
@@ -254,8 +257,7 @@ follow-up is complete), whether the analysis should be a log-rank
 Wald test (<code>method = "cox"</code>), a fully-Bayesian piecewise-exponential
 analysis (<code>method = "bayes-surv"</code>), a Bayesian beta-binomial analysis of
 complete binary outcomes (<code>method = "bayes-bin"</code>), or a frequentist
-log-rank, Cox, or chi-square test (<code>method = "logrank"</code>, <code>"cox"</code>, or
-<code>"chisq"</code>). See Details section.</p></dd>
+risk-difference Wald test of complete binary outcomes (<code>method = "riskdiff"</code>). See Details section.</p></dd>
 
 
 <dt id="arg-imputed-final">imputed_final<a class="anchor" aria-label="anchor" href="#arg-imputed-final"></a></dt>
@@ -263,11 +265,10 @@ log-rank, Cox, or chi-square test (<code>method = "logrank"</code>, <code>"cox"<
 have been followed-up to the study end) be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 <code>end_of_study</code>)? Default is <code>FALSE</code>, which means that the final analysis
-incorporates right-censoring. With <code>method = "cox"</code>, setting this to
-<code>TRUE</code> fits the Cox model to each imputed dataset and pools the log hazard
-ratios and variances using Rubin's rules; this requires <code>N_impute &gt;= 2</code>.
-Imputed final analyses remain unavailable for <code>method = "logrank"</code> and
-<code>method = "chisq"</code> because no pooling rule is implemented for them.</p></dd>
+incorporates right-censoring. With <code>method = "cox"</code> or <code>method = "riskdiff"</code>, setting this to <code>TRUE</code> analyzes each imputed dataset and pools
+the scalar treatment effects and variances using Rubin's rules; this
+requires <code>N_impute &gt;= 2</code>. Imputed final analyses remain unavailable for
+<code>method = "logrank"</code>.</p></dd>
 
 
 <dt id="arg-empty-interval">empty_interval<a class="anchor" aria-label="anchor" href="#arg-empty-interval"></a></dt>
@@ -310,7 +311,7 @@ simulation behavior.</p></dd>
 
 <dt id="arg-binary-imputation">binary_imputation<a class="anchor" aria-label="anchor" href="#arg-binary-imputation"></a></dt>
 <dd><p>character. Predictive imputation approach for
-<code>method = "bayes-bin"</code> or <code>method = "chisq"</code>. <code>"event-time"</code> (the default)
+<code>method = "bayes-bin"</code> or <code>method = "riskdiff"</code>. <code>"event-time"</code> (the default)
 draws a conditional piecewise-exponential event time and reduces it to
 event status at <code>end_of_study</code>. <code>"bernoulli"</code> draws the endpoint status
 directly from its conditional event probability. This argument is ignored

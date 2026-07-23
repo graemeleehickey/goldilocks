@@ -70,7 +70,8 @@ The functions fall into three layers:
 - **`posterior()`**: Estimates the posterior distribution of piecewise
   exponential hazard rates using a conjugate Gamma model.
 - **`analyse_data()`**: Applies the chosen analysis method (`logrank`,
-  `cox`, `bayes-surv`, `bayes-bin`, or `chisq`) to an (imputed) dataset.
+  `cox`, `bayes-surv`, `bayes-bin`, or `riskdiff`) to an (imputed)
+  dataset.
 - **`impute_data()`**: Imputes missing event times for censored subjects
   using
   [`pwe_impute()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.md)

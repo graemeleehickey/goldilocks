@@ -195,13 +195,14 @@ the 0.025 level, we would set:</p>
 <span>  alternative <span class="op">=</span> <span class="st">"less"</span>,</span>
 <span>  prob_ha <span class="op">=</span> <span class="fl">0.975</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>The chi-square test (<code>method = "chisq"</code>) supports
-<code>"two.sided"</code> only. The Bayesian test
-(<code>method = "bayes-surv"</code>) is the opposite: it
-<em>requires</em> a one-sided alternative (<code>"less"</code> or
-<code>"greater"</code>), and <code>"two.sided"</code> raises an error.
-For the Bayesian test the effect is measured on the
-cumulative-failure-probability scale, <span class="math inline">p_\textrm{treatment} - p_\textrm{control}</span> at
+<p>The frequentist binary risk-difference analysis
+(<code>method = "riskdiff"</code>) supports all three alternatives and
+compares <span class="math inline">p_\textrm{treatment} -
+p_\textrm{control}</span> with <code>h0</code> using a Wald test. The
+Bayesian test (<code>method = "bayes-surv"</code>) requires a one-sided
+alternative (<code>"less"</code> or <code>"greater"</code>), and
+<code>"two.sided"</code> raises an error. For the Bayesian test the
+effect is measured on the cumulative-failure-probability scale, <span class="math inline">p_\textrm{treatment} - p_\textrm{control}</span> at
 <code>end_of_study</code>, compared against the margin <code>h0</code>
 (default <code>0</code>):</p>
 <ul>
@@ -247,12 +248,11 @@ when using a log-rank test, meaning we do not need to enter a value for
 this argument. Since we do not allow for attrition, the data at the
 final analysis will be complete, and we can set
 <code>imputed_final = FALSE</code>. If attrition occurred and
-<code>method = "cox"</code> were selected,
-<code>imputed_final = TRUE</code> would fit the Cox model to each
-completed dataset and pool the log hazard ratios and variances using
-Rubin’s rules; at least two imputations are required. Imputed final
-analyses are not currently available for <code>method = "logrank"</code>
-or <code>method = "chisq"</code>.</p>
+<code>method = "cox"</code> or <code>method = "riskdiff"</code> were
+selected, <code>imputed_final = TRUE</code> would analyze each completed
+dataset and pool the scalar estimates and variances using Rubin’s rules;
+at least two imputations are required. Imputed final analyses are not
+available for <code>method = "logrank"</code>.</p>
 <p>Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is
 50%.</p>
