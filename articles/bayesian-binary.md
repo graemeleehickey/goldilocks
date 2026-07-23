@@ -25,8 +25,8 @@ interim predictive probabilities are affected by both priors, whereas a
 non-imputed final binary analysis is affected by `bin_prior` alone.
 
 For the examples below, we use the default weakly informative
-$`\operatorname{Gamma}(0.1, 0.1)`$ hazard prior and a uniform
-$`\operatorname{Beta}(1, 1)`$ binary-endpoint prior:
+\operatorname{Gamma}(0.1, 0.1) hazard prior and a uniform
+\operatorname{Beta}(1, 1) binary-endpoint prior:
 
 ``` r
 
@@ -47,13 +47,11 @@ Two practical consequences follow:
 
 Suppose the control event probability by 12 months is 35%, and the
 treatment is expected to reduce this to 25%. We use a beta-binomial
-final analysis with a uniform $`\operatorname{Beta}(1, 1)`$ prior in
-each arm. Since lower event probability is beneficial, we use
+final analysis with a uniform \operatorname{Beta}(1, 1) prior in each
+arm. Since lower event probability is beneficial, we use
 `alternative = "less"` and compare the posterior distribution of
 
-``` math
-p_{\text{treatment}} - p_{\text{control}}
-```
+p\_{\text{treatment}} - p\_{\text{control}}
 
 against `h0 = 0`.
 
@@ -107,27 +105,21 @@ this difference is below `h0` when `alternative = "less"`.
 
 The default `binary_imputation = "event-time"` approach samples a future
 event time from the piecewise-exponential model, conditional on the
-subject remaining event-free through the available follow-up time $`T`$.
-The sampled time is then converted to event or no event at the endpoint
-$`T^*`$.
+subject remaining event-free through the available follow-up time T. The
+sampled time is then converted to event or no event at the endpoint
+T^\*.
 
 With `binary_imputation = "bernoulli"`, the package skips the unused
 event time and calculates the endpoint probability directly:
 
-``` math
-\begin{aligned}
-p
-&= \Pr(T_{\text{event}} \leq T^* \mid T_{\text{event}} > T) \\
-&= \frac{S(T) - S(T^*)}{S(T)} \\
-&= 1 - \exp\left\{-[H(T^*) - H(T)]\right\}.
-\end{aligned}
-```
+\begin{aligned} p &= \Pr(T\_{\text{event}} \leq T^\* \mid
+T\_{\text{event}} \> T) \\ &= \frac{S(T) - S(T^\*)}{S(T)} \\ &= 1 -
+\exp\left\\-\[H(T^\*) - H(T)\]\right\\. \end{aligned}
 
-It then draws $`X \sim \operatorname{Bernoulli}(p)`$. For subjects who
-are not yet enrolled, $`T=0`$. Observed events are not imputed. Each
-completed dataset still uses a sampled posterior hazard, so both
-approaches retain uncertainty in the predictive piecewise-exponential
-model.
+It then draws X \sim \operatorname{Bernoulli}(p). For subjects who are
+not yet enrolled, T=0. Observed events are not imputed. Each completed
+dataset still uses a sampled posterior hazard, so both approaches retain
+uncertainty in the predictive piecewise-exponential model.
 
 The approaches have the same endpoint distribution. They can
 nevertheless produce different Monte Carlo realizations if their

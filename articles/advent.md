@@ -115,9 +115,7 @@ at 12 months. The beta-binomial method in `goldilocks` is parameterized
 on the binary event probability. For the effectiveness endpoint we
 therefore code the event as failure by 12 months:
 
-``` math
-p_{\text{failure}} = 1 - p_{\text{treatment success}}.
-```
+p\_{\text{failure}} = 1 - p\_{\text{treatment success}}.
 
 The design paper reports a target scenario with 65% treatment success in
 each arm. On the event scale used in the code, that corresponds to a 35%
@@ -132,7 +130,7 @@ target scenario was an 8% primary safety event rate in each arm.
 | Safety | Primary safety event by 12 months | Primary safety event | 0.08 | 0.08 | 0.966 |
 
 The ADVENT primary analyses used Bayesian beta-binomial endpoint models
-with noninformative $`\operatorname{Beta}(0.5, 0.5)`$ priors. In
+with noninformative \operatorname{Beta}(0.5, 0.5) priors. In
 `goldilocks`, this is specified with:
 
 ``` r
@@ -145,7 +143,7 @@ The `prior` argument still appears in the code below because
 uses a time-to-event model to impute not-yet-observed outcomes at
 interim looks. That imputation model uses a Gamma prior on
 piecewise-exponential hazards. The ADVENT SAP specifies a noninformative
-$`\operatorname{Gamma}(0.5, 0.001)`$ shape-rate prior for most of those
+\operatorname{Gamma}(0.5, 0.001) shape-rate prior for most of those
 hazards. We use those reported hyperparameters here rather than the
 package default. Because the SAP expresses the corresponding risk sets
 and exposure in patient-days, every time supplied to `goldilocks` below
@@ -163,16 +161,15 @@ imputation model.
 The effectiveness model in the SAP needs one further qualification. It
 partitions follow-up at days 90, 104, 150, and 210. For interim
 sample-size prediction, the first four interval hazards use
-$`\operatorname{Gamma}(0.5, 0.001)`$ priors, but the 210–360-day hazard
-uses an informative $`\operatorname{Gamma}(5, 10000)`$ prior because
-little late follow-up was expected at the interim assessments. The final
-multiple-imputation analysis returns to
-$`\operatorname{Gamma}(0.5, 0.001)`$ for every interval. The current
-`goldilocks` interface applies one shared Gamma prior to every interval
-and uses it for both interim prediction and final imputation, so the
-special 210–360-day prior is not yet available in the package. We
-therefore use $`\operatorname{Gamma}(0.5, 0.001)`$ throughout this
-endpoint-specific illustration.
+\operatorname{Gamma}(0.5, 0.001) priors, but the 210–360-day hazard uses
+an informative \operatorname{Gamma}(5, 10000) prior because little late
+follow-up was expected at the interim assessments. The final
+multiple-imputation analysis returns to \operatorname{Gamma}(0.5, 0.001)
+for every interval. The current `goldilocks` interface applies one
+shared Gamma prior to every interval and uses it for both interim
+prediction and final imputation, so the special 210–360-day prior is not
+yet available in the package. We therefore use \operatorname{Gamma}(0.5,
+0.001) throughout this endpoint-specific illustration.
 
 Later follow-up intervals can have no exposure at an early look. The
 SAP’s conjugate model then leaves the corresponding hazard governed by
@@ -180,13 +177,13 @@ its prior. The package’s historical default instead propagates
 sufficient statistics from a neighboring interval, so the examples
 explicitly set `empty_interval = "prior"`.
 
-The SAP reports $`M = 5000`$ completed datasets for its
+The SAP reports M = 5000 completed datasets for its
 predictive-probability and multiple-imputation calculations. The
 evaluated parts of this vignette deliberately use fewer imputations: 50
 for the worked single trials and 30 for the operating-characteristic
-example. We do not use $`M = 5000`$ in evaluated code in order to keep
+example. We do not use M = 5000 in evaluated code in order to keep
 vignette computation time to a minimum. The unevaluated fuller template
-does use $`M = 5000`$ to show the ADVENT setting. Consequently, the
+does use M = 5000 to show the ADVENT setting. Consequently, the
 numerical results shown in the vignette are demonstrations of package
 workflow rather than reproductions of the ADVENT calibration.
 
@@ -307,29 +304,22 @@ knitr::kable(prob_check, digits = 6)
 | Effectiveness failure | 0.35 | 0.35 |
 | Safety event | 0.08 | 0.08 |
 
-For a piecewise-exponential model with interval hazards $`\lambda_j`$
-and interval lengths $`d_j`$, the cumulative hazard through day 360 is
+For a piecewise-exponential model with interval hazards \lambda_j and
+interval lengths d_j, the cumulative hazard through day 360 is
 
-``` math
 H(360) = \sum_j \lambda_j d_j,
-```
 
 and the implied day-360 event probability is
 
-``` math
-p = 1 - \exp\{-H(360)\}.
-```
+p = 1 - \exp\\-H(360)\\.
 
-To obtain a target event probability $`p^*`$ while retaining the
-relative height of every piece, multiply each hazard by
+To obtain a target event probability p^\* while retaining the relative
+height of every piece, multiply each hazard by
 
-``` math
-c = \frac{-\log(1-p^*)}{H(360)},
-\qquad \lambda_j^* = c\lambda_j.
-```
+c = \frac{-\log(1-p^\*)}{H(360)}, \qquad \lambda_j^\* = c\lambda_j.
 
 When the treatment hazard vector is obtained by scaling the control
-vector this way, the hazard ratio is the same constant $`c`$ in every
+vector this way, the hazard ratio is the same constant c in every
 interval. Thus, the operation preserves the piecewise shape and imposes
 proportional hazards in data generation. We use it for the
 noninferiority-boundary examples below:
@@ -375,10 +365,8 @@ and does not model a randomization-to-procedure delay.
 
 For the effectiveness endpoint, success in the code means:
 
-``` math
-\Pr(p_{\text{PFA failure}} - p_{\text{thermal failure}} < 0.15 \mid
-\text{data}) > 0.956.
-```
+\Pr(p\_{\text{PFA failure}} - p\_{\text{thermal failure}} \< 0.15 \mid
+\text{data}) \> 0.956.
 
 This matches the reported 15 percentage point absolute noninferiority
 margin for treatment success, after translating success into failure. A
@@ -521,8 +509,8 @@ The most important columns are:
   current sample size appeared adequate.
 - `stop_futility`: whether enrollment stopped because success looked
   unlikely even at the maximum sample size.
-- `est_final`: the posterior mean of
-  $`p_{\text{PFA failure}} - p_{\text{thermal failure}}`$.
+- `est_final`: the posterior mean of p\_{\text{PFA failure}} -
+  p\_{\text{thermal failure}}.
 - `post_prob_ha`: the final posterior probability that the binary
   endpoint effect is below the noninferiority margin.
 
@@ -532,10 +520,8 @@ The safety endpoint uses the same Goldilocks sample-size rule, but
 changes the event probability, margin, and posterior probability
 threshold. Success in the code means:
 
-``` math
-\Pr(p_{\text{PFA safety event}} - p_{\text{thermal safety event}} < 0.08
-\mid \text{data}) > 0.966.
-```
+\Pr(p\_{\text{PFA safety event}} - p\_{\text{thermal safety event}} \<
+0.08 \mid \text{data}) \> 0.966.
 
 This
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
@@ -907,7 +893,7 @@ potentially with different cut-points by arm. A shared fixed package
 cut-point vector cannot reproduce that analysis either.
 
 The SAP supplies quantitative reference results based on 10,000
-simulated trials per scenario and $`M=5000`$ predictive draws or
+simulated trials per scenario and M=5000 predictive draws or
 imputations:
 
 | Scenario | Reported probability | Probability meaning | Mean mITT sample size |

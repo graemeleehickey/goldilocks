@@ -30,19 +30,19 @@ In a single-arm trial there is no concurrent control, so the “treatment
 effect” is replaced by the cumulative event probability on the treatment
 arm itself:
 
-$`\text{effect} \;=\; p_{\text{treatment}} \;=\; \Pr(\text{event by end\_of\_study} \mid \text{data}).`$
+\text{effect} \\=\\ p\_{\text{treatment}} \\=\\ \Pr(\text{event by
+end\\of\\study} \mid \text{data}).
 
 The argument `h0` plays the role of a benchmark on this scale: a target
-failure probability (or, equivalently, $`1 - h_0`$ is a target survival
+failure probability (or, equivalently, 1 - h_0 is a target survival
 probability) drawn from external evidence such as a published rate,
 registry, or historical cohort. In clinical-trial terminology this
 benchmark may be referred to as a performance goal (PG) or objective
 performance criterion (OPC). With `alternative = "less"` and `prob_ha`,
 the trial declares success when
 
-``` math
-\Pr(p_{\text{treatment}} < h_0 \mid \text{data}) \;>\; \texttt{prob\_ha},
-```
+\Pr(p\_{\text{treatment}} \< h_0 \mid \text{data}) \\\>\\
+\texttt{prob\\ha},
 
 i.e. when the posterior assigns enough mass to “the experimental therapy
 has a lower failure rate than the benchmark”. Choosing
@@ -115,10 +115,10 @@ A few points to highlight in the output:
 - `margin = 0.30`: this is the value of `h0` that the trial is testing
   against. Note that it is on the cumulative-failure scale, not the
   survival scale.
-- `est_final` is the posterior mean of $`p_{\text{treatment}}`$ at
+- `est_final` is the posterior mean of p\_{\text{treatment}} at
   `end_of_study`, *not* a treatment effect relative to control.
-- `post_prob_ha` is the posterior probability that
-  $`p_{\text{treatment}} < h_0`$.
+- `post_prob_ha` is the posterior probability that p\_{\text{treatment}}
+  \< h_0.
 
 ## Operating characteristics
 

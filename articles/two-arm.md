@@ -37,24 +37,24 @@ From this information, we have:
 Sample size selection analyses are planned starting when 100 patients
 are enrolled and after every additional 25 patients are enrolled. Early
 stopping for futility is allowed starting with the 100 patient sample
-size selection analysis and $`F_n`$ is 10%. Stopping accrual early for
+size selection analysis and F_n is 10%. Stopping accrual early for
 predicted success is only allowed starting with the 200 patient sample
-size selection analysis and $`S_n`$ is 90%. It is expected that an
-average of 5 patients per month will be enrolled, with no change in
-speed for the duration of the trial.
+size selection analysis and S_n is 90%. It is expected that an average
+of 5 patients per month will be enrolled, with no change in speed for
+the duration of the trial.
 
 Enrollment is stochastic even though the rate is constant. The package
 fixes the first patient at calendar time zero and generates each later
 inter-arrival gap from an exponential distribution with rate 5 per
 month. Consequently, the expected time from the first to the 300th
-enrollment is $`(300 - 1) / 5 = 59.8`$ months, but the realized
-completion time differs between simulated trials. `lambda_time = NULL`
-indicates that there are no internal enrollment-rate changes; zero is
-implicit and must not be supplied.
+enrollment is (300 - 1) / 5 = 59.8 months, but the realized completion
+time differs between simulated trials. `lambda_time = NULL` indicates
+that there are no internal enrollment-rate changes; zero is implicit and
+must not be supplied.
 
 For comparison, a ramp-up specification such as `lambda = c(2, 5)` and
-`lambda_time = 6` means 2 expected enrollments per month over $`[0,6)`$
-and 5 per month from month 6 onward. Fractional changes such as
+`lambda_time = 6` means 2 expected enrollments per month over \[0,6) and
+5 per month from month 6 onward. Fractional changes such as
 `lambda_time = 6.5` are also simulated exactly. Enrollment-rate knots
 use the trial calendar measured from first patient in, whereas hazard
 `cutpoints` use each subject’s follow-up time measured from that
@@ -69,24 +69,23 @@ From this information, we have:
 - `lambda = 5` and `lambda_time = NULL` (default parameter)
 
 Note that the first value of `Sn` is 1. This is because the trial is not
-allowed to stop for predicted success at the first interim analysis of
-$`n = 100`$. The remaining elements of `Sn` are 0.9, corresponding to
-90%.
+allowed to stop for predicted success at the first interim analysis of n
+= 100. The remaining elements of `Sn` are 0.9, corresponding to 90%.
 
 The primary analysis is a two-sided log-rank test, with success declared
-at the $`\alpha = 0.05`$ level.
+at the \alpha = 0.05 level.
 
 From this information, we have:
 
 - Two-sided log-rank test used: `alternative = "two.sided"` and
   `method = "logrank"`
-- $`\alpha = 0.05`$ level used to declare success: `prob_ha = 0.95`
+- \alpha = 0.05 level used to declare success: `prob_ha = 0.95`
 
-Note that `prob_ha` is set as $`1 - 0.05`$. This allows us to
-interchange between tests, including Bayesian tests
-(`method = "bayes-surv"`), which requires an analogous posterior
-probability threshold. The parameter `h0` is ignored when using a
-log-rank test, as it is not meaningful to have success margins.
+Note that `prob_ha` is set as 1 - 0.05. This allows us to interchange
+between tests, including Bayesian tests (`method = "bayes-surv"`), which
+requires an analogous posterior probability threshold. The parameter
+`h0` is ignored when using a log-rank test, as it is not meaningful to
+have success margins.
 
 ### One-sided tests
 
@@ -119,17 +118,17 @@ The Bayesian test (`method = "bayes-surv"`) is the opposite: it
 *requires* a one-sided alternative (`"less"` or `"greater"`), and
 `"two.sided"` raises an error. For the Bayesian test the effect is
 measured on the cumulative-failure-probability scale,
-$`p_\textrm{treatment} - p_\textrm{control}`$ at `end_of_study`,
-compared against the margin `h0` (default `0`):
+p\_\textrm{treatment} - p\_\textrm{control} at `end_of_study`, compared
+against the margin `h0` (default `0`):
 
 - `alternative = "less"` declares success when the posterior probability
-  that $`p_\textrm{treatment} - p_\textrm{control} < h_0`$ exceeds the
+  that p\_\textrm{treatment} - p\_\textrm{control} \< h_0 exceeds the
   threshold `prob_ha` – i.e. the treatment arm has a failure probability
   lower than the `h0` margin relative to control. With the default
   `h0 = 0`, this means lower failure probability (longer survival) than
   control.
 - `alternative = "greater"` declares success when the posterior
-  probability that $`p_\textrm{treatment} - p_\textrm{control} > h_0`$
+  probability that p\_\textrm{treatment} - p\_\textrm{control} \> h_0
   exceeds `prob_ha`.
 
 In all methods, `alternative = "less"` therefore corresponds to a
@@ -137,7 +136,7 @@ beneficial treatment effect (longer survival) in this example.
 
 The operating characteristics will be determined using 500 simulated
 trials. At each interim analysis, we will use 100 imputations and assume
-independent weakly-informative $`\operatorname{Gamma}(0.1, 0.1)`$ prior
+independent weakly-informative \operatorname{Gamma}(0.1, 0.1) prior
 distributions for the treatment and control arm event time hazard rate
 parameters. As this is computationally expensive overall, we will
 exploit the option to parallelize the simulations over multiple cores.
@@ -235,7 +234,7 @@ the null (treatment OS 30%). {.table style="width:100%;"}
 
 The type I error under this design (scenario 2, `power` column) is
 slightly too large to be considered acceptable. This was to be expected,
-since we kept the $`P`$-value threshold as 0.05 despite having multiple
+since we kept the P-value threshold as 0.05 despite having multiple
 interim looks. However, we note that only simulated `N_trials = 500`
 trials, meaning if the type I error was truly 0.05, then values in the
 interval (`0.05 + c(-1, 1) * 1.96 * sqrt(0.05 * (1 - 0.05) / 500)`)
@@ -243,7 +242,7 @@ would be consistent with this.
 
 In practice, we need to use a more stringent threshold in order to
 control the overall type I error. This can be achieved by trial and
-error. For example, if we use $`P < 0.04`$ (applied using the argument
+error. For example, if we use P \< 0.04 (applied using the argument
 `prob_ha = 0.96`), we find the operating characteristics are more
 acceptable.
 

@@ -6,7 +6,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>ADVENT: a published Goldilocks design • goldilocks</title>
-<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -214,9 +215,9 @@ success at 12 months. The beta-binomial method in
 <code>goldilocks</code> is parameterized on the binary event
 probability. For the effectiveness endpoint we therefore code the event
 as failure by 12 months:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">failure</mtext></msub><mo>=</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">treatment success</mtext></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><span class="math display">
 p_{\text{failure}} = 1 - p_{\text{treatment success}}.
-</annotation></semantics></math></p>
+</span></p>
 <p>The design paper reports a target scenario with 65% treatment success
 in each arm. On the event scale used in the code, that corresponds to a
 35% failure probability in each arm.</p>
@@ -259,22 +260,19 @@ target scenario was an 8% primary safety event rate in each arm.</p>
 </tbody>
 </table>
 <p>The ADVENT primary analyses used Bayesian beta-binomial endpoint
-models with noninformative
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Beta</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo>,</mo><mn>0.5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Beta}(0.5, 0.5)</annotation></semantics></math>
-priors. In <code>goldilocks</code>, this is specified with:</p>
+models with noninformative <span class="math inline">\operatorname{Beta}(0.5, 0.5)</span> priors. In
+<code>goldilocks</code>, this is specified with:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bin_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 <p>The <code>prior</code> argument still appears in the code below
 because <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> uses a time-to-event model to
 impute not-yet-observed outcomes at interim looks. That imputation model
 uses a Gamma prior on piecewise-exponential hazards. The ADVENT SAP
-specifies a noninformative
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo>,</mo><mn>0.001</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(0.5, 0.001)</annotation></semantics></math>
-shape-rate prior for most of those hazards. We use those reported
-hyperparameters here rather than the package default. Because the SAP
-expresses the corresponding risk sets and exposure in patient-days,
-every time supplied to <code>goldilocks</code> below is expressed in
-days:</p>
+specifies a noninformative <span class="math inline">\operatorname{Gamma}(0.5, 0.001)</span> shape-rate
+prior for most of those hazards. We use those reported hyperparameters
+here rather than the package default. Because the SAP expresses the
+corresponding risk sets and exposure in patient-days, every time
+supplied to <code>goldilocks</code> below is expressed in days:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.001</span><span class="op">)</span></span></code></pre></div>
 <p>That distinction is important: <code>bin_prior</code> is the
@@ -282,37 +280,30 @@ ADVENT-aligned endpoint prior, whereas <code>prior</code> controls the
 package’s predictive imputation model.</p>
 <p>The effectiveness model in the SAP needs one further qualification.
 It partitions follow-up at days 90, 104, 150, and 210. For interim
-sample-size prediction, the first four interval hazards use
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo>,</mo><mn>0.001</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(0.5, 0.001)</annotation></semantics></math>
-priors, but the 210–360-day hazard uses an informative
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>5</mn><mo>,</mo><mn>10000</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(5, 10000)</annotation></semantics></math>
-prior because little late follow-up was expected at the interim
-assessments. The final multiple-imputation analysis returns to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo>,</mo><mn>0.001</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(0.5, 0.001)</annotation></semantics></math>
-for every interval. The current <code>goldilocks</code> interface
-applies one shared Gamma prior to every interval and uses it for both
-interim prediction and final imputation, so the special 210–360-day
-prior is not yet available in the package. We therefore use
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo>,</mo><mn>0.001</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(0.5, 0.001)</annotation></semantics></math>
-throughout this endpoint-specific illustration.</p>
+sample-size prediction, the first four interval hazards use <span class="math inline">\operatorname{Gamma}(0.5, 0.001)</span> priors, but
+the 210–360-day hazard uses an informative <span class="math inline">\operatorname{Gamma}(5, 10000)</span> prior because
+little late follow-up was expected at the interim assessments. The final
+multiple-imputation analysis returns to <span class="math inline">\operatorname{Gamma}(0.5, 0.001)</span> for every
+interval. The current <code>goldilocks</code> interface applies one
+shared Gamma prior to every interval and uses it for both interim
+prediction and final imputation, so the special 210–360-day prior is not
+yet available in the package. We therefore use <span class="math inline">\operatorname{Gamma}(0.5, 0.001)</span> throughout
+this endpoint-specific illustration.</p>
 <p>Later follow-up intervals can have no exposure at an early look. The
 SAP’s conjugate model then leaves the corresponding hazard governed by
 its prior. The package’s historical default instead propagates
 sufficient statistics from a neighboring interval, so the examples
 explicitly set <code>empty_interval = "prior"</code>.</p>
-<p>The SAP reports
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5000</mn></mrow><annotation encoding="application/x-tex">M = 5000</annotation></semantics></math>
-completed datasets for its predictive-probability and
-multiple-imputation calculations. The evaluated parts of this vignette
-deliberately use fewer imputations: 50 for the worked single trials and
-30 for the operating-characteristic example. We do not use
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5000</mn></mrow><annotation encoding="application/x-tex">M = 5000</annotation></semantics></math>
-in evaluated code in order to keep vignette computation time to a
-minimum. The unevaluated fuller template does use
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5000</mn></mrow><annotation encoding="application/x-tex">M = 5000</annotation></semantics></math>
-to show the ADVENT setting. Consequently, the numerical results shown in
-the vignette are demonstrations of package workflow rather than
-reproductions of the ADVENT calibration.</p>
+<p>The SAP reports <span class="math inline">M = 5000</span> completed
+datasets for its predictive-probability and multiple-imputation
+calculations. The evaluated parts of this vignette deliberately use
+fewer imputations: 50 for the worked single trials and 30 for the
+operating-characteristic example. We do not use <span class="math inline">M = 5000</span> in evaluated code in order to keep
+vignette computation time to a minimum. The unevaluated fuller template
+does use <span class="math inline">M = 5000</span> to show the ADVENT
+setting. Consequently, the numerical results shown in the vignette are
+demonstrations of package workflow rather than reproductions of the
+ADVENT calibration.</p>
 </div>
 <div class="section level2">
 <h2 id="sap-event-time-models-and-time-units">SAP event-time models and time units<a class="anchor" aria-label="anchor" href="#sap-event-time-models-and-time-units"></a>
@@ -492,32 +483,26 @@ probabilities used by the vignette:</p>
 </tr>
 </tbody>
 </table>
-<p>For a piecewise-exponential model with interval hazards
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\lambda_j</annotation></semantics></math>
-and interval lengths
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>j</mi></msub><annotation encoding="application/x-tex">d_j</annotation></semantics></math>,
-the cumulative hazard through day 360 is</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mn>360</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>λ</mi><mi>j</mi></msub><msub><mi>d</mi><mi>j</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p>For a piecewise-exponential model with interval hazards <span class="math inline">\lambda_j</span> and interval lengths <span class="math inline">d_j</span>, the cumulative hazard through day 360
+is</p>
+<p><span class="math display">
 H(360) = \sum_j \lambda_j d_j,
-</annotation></semantics></math></p>
+</span></p>
 <p>and the implied day-360 event probability is</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">{</mo><mi>−</mi><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mn>360</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><span class="math display">
 p = 1 - \exp\{-H(360)\}.
-</annotation></semantics></math></p>
-<p>To obtain a target event probability
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>p</mi><mo>*</mo></msup><annotation encoding="application/x-tex">p^*</annotation></semantics></math>
-while retaining the relative height of every piece, multiply each hazard
-by</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mfrac><mrow><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msup><mi>p</mi><mo>*</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mn>360</mn><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msubsup><mi>λ</mi><mi>j</mi><mo>*</mo></msubsup><mo>=</mo><mi>c</mi><msub><mi>λ</mi><mi>j</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+</span></p>
+<p>To obtain a target event probability <span class="math inline">p^*</span> while retaining the relative height of
+every piece, multiply each hazard by</p>
+<p><span class="math display">
 c = \frac{-\log(1-p^*)}{H(360)},
 \qquad \lambda_j^* = c\lambda_j.
-</annotation></semantics></math></p>
+</span></p>
 <p>When the treatment hazard vector is obtained by scaling the control
-vector this way, the hazard ratio is the same constant
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
-in every interval. Thus, the operation preserves the piecewise shape and
-imposes proportional hazards in data generation. We use it for the
-noninferiority-boundary examples below:</p>
+vector this way, the hazard ratio is the same constant <span class="math inline">c</span> in every interval. Thus, the operation
+preserves the piecewise shape and imposes proportional hazards in data
+generation. We use it for the noninferiority-boundary examples
+below:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scale_pwe_to_event_probability</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span></span>
 <span>  <span class="va">hazard_per_day</span>,</span>
@@ -556,10 +541,10 @@ as coincident and does not model a randomization-to-procedure delay.</p>
 <h2 id="effectiveness-endpoint">Effectiveness endpoint<a class="anchor" aria-label="anchor" href="#effectiveness-endpoint"></a>
 </h2>
 <p>For the effectiveness endpoint, success in the code means:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mtext mathvariant="normal">PFA failure</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">thermal failure</mtext></msub><mo>&lt;</mo><mn>0.15</mn><mo>∣</mo><mtext mathvariant="normal">data</mtext><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0.956</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><span class="math display">
 \Pr(p_{\text{PFA failure}} - p_{\text{thermal failure}} &lt; 0.15 \mid
 \text{data}) &gt; 0.956.
-</annotation></semantics></math></p>
+</span></p>
 <p>This matches the reported 15 percentage point absolute noninferiority
 margin for treatment success, after translating success into failure. A
 lower failure probability is better, so we use
@@ -750,8 +735,8 @@ because the current sample size appeared adequate.</li>
 <code>stop_futility</code>: whether enrollment stopped because
 success looked unlikely even at the maximum sample size.</li>
 <li>
-<code>est_final</code>: the posterior mean of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">PFA failure</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">thermal failure</mtext></msub></mrow><annotation encoding="application/x-tex">p_{\text{PFA failure}} - p_{\text{thermal failure}}</annotation></semantics></math>.</li>
+<code>est_final</code>: the posterior mean of <span class="math inline">p_{\text{PFA failure}} - p_{\text{thermal
+failure}}</span>.</li>
 <li>
 <code>post_prob_ha</code>: the final posterior probability that the
 binary endpoint effect is below the noninferiority margin.</li>
@@ -763,10 +748,11 @@ binary endpoint effect is below the noninferiority margin.</li>
 <p>The safety endpoint uses the same Goldilocks sample-size rule, but
 changes the event probability, margin, and posterior probability
 threshold. Success in the code means:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mtext mathvariant="normal">PFA safety event</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">thermal safety event</mtext></msub><mo>&lt;</mo><mn>0.08</mn><mo>∣</mo><mtext mathvariant="normal">data</mtext><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0.966</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
-\Pr(p_{\text{PFA safety event}} - p_{\text{thermal safety event}} &lt; 0.08
+<p><span class="math display">
+\Pr(p_{\text{PFA safety event}} - p_{\text{thermal safety event}} &lt;
+0.08
 \mid \text{data}) &gt; 0.966.
-</annotation></semantics></math></p>
+</span></p>
 <p>This <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> call likewise represents
 <strong>one simulated trial</strong> for the safety endpoint.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
@@ -1148,9 +1134,7 @@ event counts, potentially with different cut-points by arm. A shared
 fixed package cut-point vector cannot reproduce that analysis
 either.</p>
 <p>The SAP supplies quantitative reference results based on 10,000
-simulated trials per scenario and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5000</mn></mrow><annotation encoding="application/x-tex">M=5000</annotation></semantics></math>
-predictive draws or imputations:</p>
+simulated trials per scenario and <span class="math inline">M=5000</span> predictive draws or imputations:</p>
 <table class="table">
 <colgroup>
 <col width="36%">

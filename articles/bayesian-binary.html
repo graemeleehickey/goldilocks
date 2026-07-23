@@ -6,7 +6,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Bayesian binary outcome designs • goldilocks</title>
-<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -87,10 +88,8 @@ event probability in each arm. It is used for the Bayesian binary
 analysis of every completed or imputed dataset. Thus, interim predictive
 probabilities are affected by both priors, whereas a non-imputed final
 binary analysis is affected by <code>bin_prior</code> alone.</p>
-<p>For the examples below, we use the default weakly informative
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.1</mn><mo>,</mo><mn>0.1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(0.1, 0.1)</annotation></semantics></math>
-hazard prior and a uniform
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Beta</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Beta}(1, 1)</annotation></semantics></math>
+<p>For the examples below, we use the default weakly informative <span class="math inline">\operatorname{Gamma}(0.1, 0.1)</span> hazard prior
+and a uniform <span class="math inline">\operatorname{Beta}(1, 1)</span>
 binary-endpoint prior:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hazard_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>  <span class="co"># Gamma shape and rate for predictive imputation</span></span>
@@ -112,12 +111,12 @@ analysis.</li>
 </h2>
 <p>Suppose the control event probability by 12 months is 35%, and the
 treatment is expected to reduce this to 25%. We use a beta-binomial
-final analysis with a uniform
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Beta</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Beta}(1, 1)</annotation></semantics></math>
-prior in each arm. Since lower event probability is beneficial, we use
+final analysis with a uniform <span class="math inline">\operatorname{Beta}(1, 1)</span> prior in each arm.
+Since lower event probability is beneficial, we use
 <code>alternative = "less"</code> and compare the posterior distribution
 of</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub></mrow><annotation encoding="application/x-tex">p_{\text{treatment}} - p_{\text{control}}</annotation></semantics></math></p>
+<p><span class="math display">p_{\text{treatment}} -
+p_{\text{control}}</span></p>
 <p>against <code>h0 = 0</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">end_of_study</span> <span class="op">&lt;-</span> <span class="fl">12</span></span>
@@ -169,28 +168,25 @@ posterior probability that this difference is below <code>h0</code> when
 <p>The default <code>binary_imputation = "event-time"</code> approach
 samples a future event time from the piecewise-exponential model,
 conditional on the subject remaining event-free through the available
-follow-up time
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>.
-The sampled time is then converted to event or no event at the endpoint
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>T</mi><mo>*</mo></msup><annotation encoding="application/x-tex">T^*</annotation></semantics></math>.</p>
+follow-up time <span class="math inline">T</span>. The sampled time is
+then converted to event or no event at the endpoint <span class="math inline">T^*</span>.</p>
 <p>With <code>binary_imputation = "bernoulli"</code>, the package skips
 the unused event time and calculates the endpoint probability
 directly:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mi>p</mi></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>T</mi><mtext mathvariant="normal">event</mtext></msub><mo>≤</mo><msup><mi>T</mi><mo>*</mo></msup><mo>∣</mo><msub><mi>T</mi><mtext mathvariant="normal">event</mtext></msub><mo>&gt;</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mfrac><mrow><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>S</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>T</mi><mo>*</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo></mrow></mfrac></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">{</mo><mi>−</mi><mo stretchy="false" form="prefix">[</mo><mi>H</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>T</mi><mo>*</mo></msup><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mo stretchy="true" form="postfix">}</mo></mrow><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+<p><span class="math display">
 \begin{aligned}
 p
 &amp;= \Pr(T_{\text{event}} \leq T^* \mid T_{\text{event}} &gt; T) \\
 &amp;= \frac{S(T) - S(T^*)}{S(T)} \\
 &amp;= 1 - \exp\left\{-[H(T^*) - H(T)]\right\}.
 \end{aligned}
-</annotation></semantics></math></p>
-<p>It then draws
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi><mo>∼</mo><mrow><mi mathvariant="normal">Bernoulli</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">X \sim \operatorname{Bernoulli}(p)</annotation></semantics></math>.
-For subjects who are not yet enrolled,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">T=0</annotation></semantics></math>.
-Observed events are not imputed. Each completed dataset still uses a
-sampled posterior hazard, so both approaches retain uncertainty in the
-predictive piecewise-exponential model.</p>
+</span></p>
+<p>It then draws <span class="math inline">X \sim
+\operatorname{Bernoulli}(p)</span>. For subjects who are not yet
+enrolled, <span class="math inline">T=0</span>. Observed events are not
+imputed. Each completed dataset still uses a sampled posterior hazard,
+so both approaches retain uncertainty in the predictive
+piecewise-exponential model.</p>
 <p>The approaches have the same endpoint distribution. They can
 nevertheless produce different Monte Carlo realizations if their
 random-number streams differ, so operating characteristics should be

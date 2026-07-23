@@ -6,7 +6,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Bayesian piecewise-exponential designs • goldilocks</title>
-<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -101,24 +102,17 @@ arguments:</p>
 <ul>
 <li>
 <code>cutpoints</code>: the positive interior times at which the
-hazard changes. With
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">J - 1</annotation></semantics></math>
-cutpoints there are
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
-intervals and therefore
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
-hazard rates for each treatment group. For example,
-<code>cutpoints = 6</code> produces two intervals,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>6</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">[0, 6)</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>6</mn><mo>,</mo><mi>∞</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">[6, \infty)</annotation></semantics></math>.
-The default <code>cutpoints = NULL</code> supplies no change times and
-produces a single, constant hazard interval.</li>
+hazard changes. With <span class="math inline">J - 1</span> cutpoints
+there are <span class="math inline">J</span> intervals and therefore
+<span class="math inline">J</span> hazard rates for each treatment
+group. For example, <code>cutpoints = 6</code> produces two intervals,
+<span class="math inline">[0, 6)</span> and <span class="math inline">[6, \infty)</span>. The default
+<code>cutpoints = NULL</code> supplies no change times and produces a
+single, constant hazard interval.</li>
 <li>
 <code>hazard_treatment</code> and <code>hazard_control</code>:
-vectors of length
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
-giving the constant hazard for each interval.</li>
+vectors of length <span class="math inline">J</span> giving the constant
+hazard for each interval.</li>
 </ul>
 <p>The helper <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> maps cumulative event
 probabilities at given times into the corresponding piecewise
@@ -152,13 +146,12 @@ piecewise hazards:</p>
 <span><span class="co">#&gt;             [,1]   [,2]</span></span>
 <span><span class="co">#&gt; control   0.0594 0.0187</span></span>
 <span><span class="co">#&gt; treatment 0.0331 0.0174</span></span></code></pre></div>
-<p>The first column is the hazard during
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>6</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">[0, 6)</annotation></semantics></math>
-months and the second column is the hazard from 6 months onward. Both
-arms have a higher hazard in the early window. We can sanity-check that
-the implied survival probabilities at 24 months match what we specified
-by running the cumulative incidence computation back through
-<code><a href="../reference/ppwe.html">ppwe()</a></code>:</p>
+<p>The first column is the hazard during <span class="math inline">[0,
+6)</span> months and the second column is the hazard from 6 months
+onward. Both arms have a higher hazard in the early window. We can
+sanity-check that the implied survival probabilities at 24 months match
+what we specified by running the cumulative incidence computation back
+through <code><a href="../reference/ppwe.html">ppwe()</a></code>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ppwe.html">ppwe</a></span><span class="op">(</span>hazard       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">hc</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>     cutpoints    <span class="op">=</span> <span class="va">cutpoints</span>,</span>
@@ -174,31 +167,26 @@ by running the cumulative incidence computation back through
 <h2 id="the-bayesian-decision-rule">The Bayesian decision rule<a class="anchor" aria-label="anchor" href="#the-bayesian-decision-rule"></a>
 </h2>
 <p>With <code>method = "bayes-surv"</code>,
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> puts independent
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(\alpha, \beta)</annotation></semantics></math>
-priors on each piecewise hazard rate (one per interval, per treatment
-group) and combines them with the observed exposure time and event
-counts to obtain a closed-form Gamma posterior on each
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\lambda_j</annotation></semantics></math>.
-Posterior draws of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\lambda_j</annotation></semantics></math>
-are pushed through the piecewise-exponential cumulative incidence
-function to obtain posterior draws of the cumulative-failure probability
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
-at <code>end_of_study</code> for the treatment and control groups.</p>
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> puts independent <span class="math inline">\operatorname{Gamma}(\alpha, \beta)</span> priors on
+each piecewise hazard rate (one per interval, per treatment group) and
+combines them with the observed exposure time and event counts to obtain
+a closed-form Gamma posterior on each <span class="math inline">\lambda_j</span>. Posterior draws of <span class="math inline">\lambda_j</span> are pushed through the
+piecewise-exponential cumulative incidence function to obtain posterior
+draws of the cumulative-failure probability <span class="math inline">p</span> at <code>end_of_study</code> for the
+treatment and control groups.</p>
 <p>The decision rule is one-sided. The treatment effect is defined
 as</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mo>=</mo><msub><mi>p</mi><mtext mathvariant="normal">treatment</mtext></msub><mo>−</mo><msub><mi>p</mi><mtext mathvariant="normal">control</mtext></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\Delta = p_{\text{treatment}} - p_{\text{control}},</annotation></semantics></math></p>
+<p><span class="math display">\Delta = p_{\text{treatment}} -
+p_{\text{control}},</span></p>
 <p>i.e. the difference in failure (not survival) probabilities at
 <code>end_of_study</code>. On the survival scale this is equivalent to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mtext mathvariant="normal">control</mtext></msub><mo>−</mo><msub><mi>S</mi><mtext mathvariant="normal">treatment</mtext></msub></mrow><annotation encoding="application/x-tex">S_{\text{control}} - S_{\text{treatment}}</annotation></semantics></math>,
-with a negative
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
-corresponding to the treatment having higher survival. With
-<code>alternative = "less"</code> and a margin <code>h0</code> (default
-<code>0</code>), the trial declares success at the final analysis
-when</p>
-<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><mo>&lt;</mo><msub><mi>h</mi><mn>0</mn></msub><mo>∣</mo><mtext mathvariant="normal">data</mtext><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>&gt;</mo><mspace width="0.278em"></mspace><mtext mathvariant="monospace">𝚙𝚛𝚘𝚋_𝚑𝚊</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">\Pr(\Delta &lt; h_0 \mid \text{data}) \;&gt;\; \texttt{prob\_ha}.</annotation></semantics></math></p>
+<span class="math inline">S_{\text{control}} -
+S_{\text{treatment}}</span>, with a negative <span class="math inline">\Delta</span> corresponding to the treatment having
+higher survival. With <code>alternative = "less"</code> and a margin
+<code>h0</code> (default <code>0</code>), the trial declares success at
+the final analysis when</p>
+<p><span class="math inline">\Pr(\Delta &lt; h_0 \mid \text{data})
+\;&gt;\; \texttt{prob\_ha}.</span></p>
 <p>Because a beneficial treatment has a <em>lower</em> failure
 probability, <code>alternative = "less"</code> is the appropriate choice
 here. (<code>method = "bayes-surv"</code> does not allow
@@ -213,9 +201,8 @@ after enrollment continues to the maximum sample size is compared with
 would declare success after completing follow-up for the subjects
 currently enrolled is compared with <code>Sn</code> for the
 expected-success rule.</p>
-<p>We use an independent weakly informative
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Gamma</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>0.1</mn><mo>,</mo><mn>0.1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{Gamma}(0.1, 0.1)</annotation></semantics></math>
-prior on every hazard component:</p>
+<p>We use an independent weakly informative <span class="math inline">\operatorname{Gamma}(0.1, 0.1)</span> prior on every
+hazard component:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>   <span class="co"># shape and rate of the Gamma prior on each lambda_j</span></span></code></pre></div>
 </div>

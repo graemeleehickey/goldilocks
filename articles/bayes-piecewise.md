@@ -36,13 +36,13 @@ hazard for the early interval and another for everything afterwards.
 The package handles piecewise hazards through two related arguments:
 
 - `cutpoints`: the positive interior times at which the hazard changes.
-  With $`J - 1`$ cutpoints there are $`J`$ intervals and therefore $`J`$
-  hazard rates for each treatment group. For example, `cutpoints = 6`
-  produces two intervals, $`[0, 6)`$ and $`[6, \infty)`$. The default
+  With J - 1 cutpoints there are J intervals and therefore J hazard
+  rates for each treatment group. For example, `cutpoints = 6` produces
+  two intervals, \[0, 6) and \[6, \infty). The default
   `cutpoints = NULL` supplies no change times and produces a single,
   constant hazard interval.
-- `hazard_treatment` and `hazard_control`: vectors of length $`J`$
-  giving the constant hazard for each interval.
+- `hazard_treatment` and `hazard_control`: vectors of length J giving
+  the constant hazard for each interval.
 
 The helper
 [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
@@ -80,7 +80,7 @@ round(rbind(control = hc, treatment = ht), 4)
 #> treatment 0.0331 0.0174
 ```
 
-The first column is the hazard during $`[0, 6)`$ months and the second
+The first column is the hazard during \[0, 6) months and the second
 column is the hazard from 6 months onward. Both arms have a higher
 hazard in the early window. We can sanity-check that the implied
 survival probabilities at 24 months match what we specified by running
@@ -105,29 +105,26 @@ These should be 0.50 and 0.40 respectively (modulo rounding).
 
 With `method = "bayes-surv"`,
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-puts independent $`\operatorname{Gamma}(\alpha, \beta)`$ priors on each
+puts independent \operatorname{Gamma}(\alpha, \beta) priors on each
 piecewise hazard rate (one per interval, per treatment group) and
 combines them with the observed exposure time and event counts to obtain
-a closed-form Gamma posterior on each $`\lambda_j`$. Posterior draws of
-$`\lambda_j`$ are pushed through the piecewise-exponential cumulative
+a closed-form Gamma posterior on each \lambda_j. Posterior draws of
+\lambda_j are pushed through the piecewise-exponential cumulative
 incidence function to obtain posterior draws of the cumulative-failure
-probability $`p`$ at `end_of_study` for the treatment and control
-groups.
+probability p at `end_of_study` for the treatment and control groups.
 
 The decision rule is one-sided. The treatment effect is defined as
 
-``` math
-\Delta = p_{\text{treatment}} - p_{\text{control}},
-```
+\Delta = p\_{\text{treatment}} - p\_{\text{control}},
 
 i.e. the difference in failure (not survival) probabilities at
 `end_of_study`. On the survival scale this is equivalent to
-$`S_{\text{control}} - S_{\text{treatment}}`$, with a negative
-$`\Delta`$ corresponding to the treatment having higher survival. With
+S\_{\text{control}} - S\_{\text{treatment}}, with a negative \Delta
+corresponding to the treatment having higher survival. With
 `alternative = "less"` and a margin `h0` (default `0`), the trial
 declares success at the final analysis when
 
-$`\Pr(\Delta < h_0 \mid \text{data}) \;>\; \texttt{prob\_ha}.`$
+\Pr(\Delta \< h_0 \mid \text{data}) \\\>\\ \texttt{prob\\ha}.
 
 Because a beneficial treatment has a *lower* failure probability,
 `alternative = "less"` is the appropriate choice here.
@@ -144,8 +141,8 @@ after enrollment continues to the maximum sample size is compared with
 success after completing follow-up for the subjects currently enrolled
 is compared with `Sn` for the expected-success rule.
 
-We use an independent weakly informative
-$`\operatorname{Gamma}(0.1, 0.1)`$ prior on every hazard component:
+We use an independent weakly informative \operatorname{Gamma}(0.1, 0.1)
+prior on every hazard component:
 
 ``` r
 
