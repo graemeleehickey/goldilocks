@@ -210,6 +210,49 @@ test_that("pwe_impute errors on negative time", {
   )
 })
 
+test_that("conditional PWE event probabilities match the survival formula", {
+  hazard <- c(0.02, 0.08, 0.01)
+  cutpoints <- c(5, 12)
+  time <- c(0, 1, 7, 15, 24)
+  end_of_study <- 24
+  interval_starts <- c(0, cutpoints)
+
+  survival_at_time <- 1 -
+    PWEALL::pwe(
+      t = time,
+      rate = hazard,
+      tchange = interval_starts
+    )$dist
+  survival_at_endpoint <- 1 -
+    PWEALL::pwe(
+      t = end_of_study,
+      rate = hazard,
+      tchange = interval_starts
+    )$dist
+  expected <- (survival_at_time - survival_at_endpoint) / survival_at_time
+
+  expect_equal(
+    goldilocks:::pwe_conditional_event_probability(
+      time = time,
+      hazard = hazard,
+      end_of_study = end_of_study,
+      cutpoints = cutpoints
+    ),
+    expected,
+    tolerance = 1e-12
+  )
+})
+
+test_that("conditional PWE event probabilities remain stable in the tail", {
+  out <- goldilocks:::pwe_conditional_event_probability(
+    time = 40,
+    hazard = 1,
+    end_of_study = 41
+  )
+
+  expect_equal(out, 1 - exp(-1), tolerance = 1e-12)
+})
+
 
 # --- ppwe ---
 

@@ -201,3 +201,43 @@ test_that("impute_data updates futility rows by index for single-arm data", {
   expect_equal(out$time[treatment_idx], expected_treatment$time)
   expect_equal(out$event[treatment_idx], expected_treatment$event)
 })
+
+test_that("Bernoulli and event-time imputation agree within tolerance", {
+  n <- 20000
+  data_in <- data.frame(
+    time = rep(seq(0, 23, length.out = 200), length.out = n),
+    treatment = rep(1, n),
+    event = rep(0, n),
+    subject_impute_success = rep(TRUE, n),
+    subject_impute_futility = rep(FALSE, n)
+  )
+  hazard <- array(c(0.02, 0.08, 0.01), dim = c(1, 3, 1))
+
+  set.seed(2101)
+  event_time <- goldilocks:::impute_data(
+    data_in = data_in,
+    hazard = hazard,
+    end_of_study = 24,
+    cutpoints = c(5, 12),
+    type = "success",
+    single_arm = TRUE,
+    binary_imputation = "event-time"
+  )
+  set.seed(2101)
+  bernoulli <- goldilocks:::impute_data(
+    data_in = data_in,
+    hazard = hazard,
+    end_of_study = 24,
+    cutpoints = c(5, 12),
+    type = "success",
+    single_arm = TRUE,
+    binary_imputation = "bernoulli"
+  )
+
+  event_rate_tolerance <- 0.005
+  expect_lt(
+    abs(mean(event_time$event) - mean(bernoulli$event)),
+    event_rate_tolerance
+  )
+  expect_true(all(bernoulli$time == 24))
+})

@@ -20,6 +20,9 @@
 #'   The single slice must have dimensions 1 (rows), \eqn{J} (columns), and 2
 #'   (third dimension, in order of treatment and control hazard slices).
 #' @param type character. Whether imputation is for `success` or `futility`.
+#' @param binary_imputation character. Whether to impute a conditional event
+#'   time (`"event-time"`) or draw the endpoint status directly
+#'   (`"bernoulli"`).
 #'
 #' @details This function is not intended to be used outside of the main
 #'   simulation programs: [survival_adapt()] and [sim_trials()].
@@ -34,25 +37,59 @@ impute_data <- function(
   end_of_study,
   cutpoints,
   type,
-  single_arm
+  single_arm,
+  binary_imputation = c("event-time", "bernoulli")
 ) {
+  binary_imputation <- match.arg(binary_imputation)
+
   if (
     !is.array(hazard) ||
       length(dim(hazard)) != 3 ||
       dim(hazard)[1] != 1
   ) {
-    stop("'hazard' must be a three-dimensional array with exactly one posterior draw")
+    stop(
+      "'hazard' must be a three-dimensional array with exactly one posterior draw"
+    )
   }
 
   # Start from the original data and update only the rows that need imputation.
   # This keeps the incoming row order and avoids rebuilding the full data frame.
   data_impute <- data_in
 
-  # Pick the imputation flag and simulator for the requested analysis. Success
-  # imputations condition on observed follow-up; futility imputations simulate
-  # complete outcomes for not-yet-enrolled subjects.
+  # Pick the imputation flag. Success imputations condition on observed
+  # follow-up; futility imputations simulate complete outcomes for
+  # not-yet-enrolled subjects.
   if (type == "success") {
     subject_requires_imputation <- data_in$subject_impute_success
+  } else if (type == "futility") {
+    subject_requires_imputation <- data_in$subject_impute_futility
+  } else {
+    stop("'type' must be either 'success' or 'futility'")
+  }
+
+  if (binary_imputation == "bernoulli") {
+    impute <- function(idx, hazard_slice) {
+      conditioning_time <- if (type == "success") {
+        data_in$time[idx]
+      } else {
+        rep.int(0, sum(idx))
+      }
+      event_probability <- pwe_conditional_event_probability(
+        time = conditioning_time,
+        hazard = hazard[1, , hazard_slice],
+        end_of_study = end_of_study,
+        cutpoints = cutpoints
+      )
+      data.frame(
+        # The precise event time is not drawn in this mode. Binary analyses use
+        # only endpoint status, so end_of_study represents completed follow-up.
+        time = rep.int(end_of_study, length(event_probability)),
+        event = as.numeric(
+          runif(length(event_probability)) <= event_probability
+        )
+      )
+    }
+  } else if (type == "success") {
     impute <- function(idx, hazard_slice) {
       pwe_impute(
         time = data_in$time[idx],
@@ -61,8 +98,7 @@ impute_data <- function(
         cutpoints = cutpoints
       )
     }
-  } else if (type == "futility") {
-    subject_requires_imputation <- data_in$subject_impute_futility
+  } else {
     impute <- function(idx, hazard_slice) {
       pwe_sim(
         n = sum(idx),
@@ -71,8 +107,6 @@ impute_data <- function(
         cutpoints = cutpoints
       )
     }
-  } else {
-    stop("'type' must be either 'success' or 'futility'")
   }
 
   # Preserve the old RNG order: treatment rows are imputed before control rows.

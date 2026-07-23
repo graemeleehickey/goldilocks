@@ -51,10 +51,16 @@ test_final <- function(
   h0,
   bin_prior,
   bin_method,
+  binary_imputation,
   empty_interval,
   end_of_study
 ) {
-  validate_analysis_configuration(method, alternative, single_arm, imputed_final)
+  validate_analysis_configuration(
+    method,
+    alternative,
+    single_arm,
+    imputed_final
+  )
 
   if (imputed_final) {
     if (method == "cox" && N_impute < 2) {
@@ -88,7 +94,8 @@ test_final <- function(
         end_of_study = end_of_study,
         cutpoints = cutpoints,
         type = "success",
-        single_arm = single_arm
+        single_arm = single_arm,
+        binary_imputation = binary_imputation
       )
 
       # Create enrolled subject data frame for analysis

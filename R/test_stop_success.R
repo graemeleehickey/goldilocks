@@ -23,6 +23,7 @@ test_stop_success <- function(
   h0,
   bin_prior,
   bin_method,
+  binary_imputation,
   empty_interval,
   check_futility
 ) {
@@ -37,7 +38,8 @@ test_stop_success <- function(
     end_of_study = end_of_study,
     cutpoints = cutpoints,
     type = "success",
-    single_arm = single_arm
+    single_arm = single_arm,
+    binary_imputation = binary_imputation
   )
 
   # Create enrolled subject data frame for analysis
@@ -81,7 +83,8 @@ test_stop_success <- function(
       end_of_study = end_of_study,
       cutpoints = cutpoints,
       type = "futility",
-      single_arm = single_arm
+      single_arm = single_arm,
+      binary_imputation = binary_imputation
     )
 
     # Create data frame for analysis

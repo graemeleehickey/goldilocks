@@ -98,6 +98,7 @@ test_that("sim_trials-bayes-bin", {
     N_mcmc = 2,
     N_trials = 1,
     method = "bayes-bin",
+    binary_imputation = "bernoulli",
     ncores = 1,
     seed = 9241
   )

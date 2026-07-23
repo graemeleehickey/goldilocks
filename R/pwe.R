@@ -137,6 +137,64 @@ pwe_impute <- function(time, hazard, cutpoints = NULL, maxtime = NULL) {
 }
 
 
+#' @title Conditional event probability from a piecewise exponential model
+#'
+#' @description Calculates the probability of an event by a fixed endpoint,
+#'   conditional on remaining event-free through an observed follow-up time.
+#'
+#' @inheritParams pwe_sim
+#' @inheritParams survival_adapt
+#' @param time numeric vector. Observed event-free follow-up times.
+#'
+#' @return A numeric vector of conditional event probabilities.
+#' @noRd
+pwe_conditional_event_probability <- function(
+  time,
+  hazard,
+  end_of_study,
+  cutpoints = NULL
+) {
+  validate_cutpoints(cutpoints)
+  validate_piecewise_hazard(hazard, cutpoints)
+  validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
+
+  if (
+    !is.numeric(time) ||
+      !is.null(dim(time)) ||
+      any(is.na(time)) ||
+      any(!is.finite(time)) ||
+      any(time < 0)
+  ) {
+    stop("'time' must contain finite non-negative values")
+  }
+  if (any(time > end_of_study)) {
+    stop("'time' must not be later than 'end_of_study'")
+  }
+  if (length(time) == 0) {
+    return(numeric())
+  }
+
+  interval_lower <- c(0, cutpoints)
+  interval_upper <- c(cutpoints, Inf)
+  remaining_exposure <- outer(
+    time,
+    seq_along(hazard),
+    function(observed_time, interval) {
+      pmax(
+        0,
+        pmin(end_of_study, interval_upper[interval]) -
+          pmax(observed_time, interval_lower[interval])
+      )
+    }
+  )
+  remaining_cumulative_hazard <- drop(remaining_exposure %*% hazard)
+
+  # P(T <= end_of_study | T > time) = 1 - exp(-(H(T*) - H(T))).
+  # expm1 avoids cancellation when the remaining cumulative hazard is small.
+  pmin(1, pmax(0, -expm1(-remaining_cumulative_hazard)))
+}
+
+
 #' @title Cumulative distribution function of the PWE for a vectorized hazard
 #'   rate parameter
 #'

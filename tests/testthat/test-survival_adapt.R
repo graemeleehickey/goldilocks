@@ -56,6 +56,27 @@ test_that("survival_adapt-bayes-bin", {
   expect_true(!is.na(out$est_final))
 })
 
+test_that("survival_adapt supports Bernoulli binary imputation", {
+  set.seed(2102)
+  out <- survival_adapt(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    N_total = 100,
+    lambda = 20,
+    interim_look = 50,
+    end_of_study = 36,
+    bin_method = "normal",
+    alternative = "less",
+    N_impute = 2,
+    N_mcmc = 2,
+    method = "bayes-bin",
+    binary_imputation = "bernoulli"
+  )
+
+  expect_s3_class(out, "data.frame")
+  expect_true(out$ppp_success >= 0 && out$ppp_success <= 1)
+})
+
 test_that("survival_adapt-logrank", {
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,

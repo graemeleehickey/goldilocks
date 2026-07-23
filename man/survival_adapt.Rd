@@ -30,7 +30,8 @@ survival_adapt(
   empty_interval = c("propagate", "prior", "error"),
   method = "logrank",
   imputed_final = FALSE,
-  return_trace = FALSE
+  return_trace = FALSE,
+  binary_imputation = c("event-time", "bernoulli")
 )
 }
 \arguments{
@@ -183,6 +184,13 @@ Imputed final analyses remain unavailable for \code{method = "logrank"} and
 addition to the usual final summary? The default, FALSE, returns the
 historical one-row data frame. When TRUE, the result is a
 goldilocks_trial object with summary, trace, and call elements.}
+
+\item{binary_imputation}{character. Predictive imputation approach for
+\code{method = "bayes-bin"} or \code{method = "chisq"}. \code{"event-time"} (the default)
+draws a conditional piecewise-exponential event time and reduces it to
+event status at \code{end_of_study}. \code{"bernoulli"} draws the endpoint status
+directly from its conditional event probability. This argument is ignored
+for time-to-event analysis methods.}
 }
 \value{
 With return_trace = FALSE (the default), a data frame containing
@@ -313,6 +321,26 @@ quadrature (\code{"quadrature"}). Like the chi-square test, this method
 requires complete binary outcomes: censored subjects must either be
 followed to \code{end_of_study}, imputed, or excluded when
 \code{imputed_final = FALSE}.
+
+Two equivalent predictive imputation approaches are available through
+\code{binary_imputation}. With \code{"event-time"}, the package samples a future
+event time conditional on the available event-free follow-up and then
+records whether it falls by \code{end_of_study}. With \code{"bernoulli"}, it
+calculates the same endpoint probability directly. If \eqn{T} is the
+observed event-free follow-up, \eqn{T^*} is \code{end_of_study},
+\eqn{S(t)} is the survival function, and \eqn{H(t)} is the cumulative
+hazard, that probability is
+
+\deqn{\Pr(X = 1 \mid T_\mathrm{event} > T)
+       = \frac{S(T) - S(T^*)}{S(T)}
+       = 1 - \exp\{-[H(T^*) - H(T)]\}.}
+
+A Bernoulli outcome is drawn with this probability. For a subject not
+yet enrolled, \eqn{T = 0}; observed events are retained unchanged.
+Because no precise event time is generated, the imputed \code{time} is set
+to \code{end_of_study} and only the binary \code{event} status is analyzed. Each
+imputation still uses a sampled posterior hazard draw, so uncertainty
+in the piecewise-exponential model is retained.
 \item Chi-square test (\code{method = "chisq"}).
 The non-imputed final dataset with both treatment and control arms is
 compared using a standard chi-square test on the final event status,

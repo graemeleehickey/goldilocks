@@ -22,6 +22,12 @@
 #'   probability for `method = "bayes-bin"`, must be one of `"mc"` (Monte Carlo
 #'   sampling), `"normal"` (normal approximation), or `"quadrature"` (numerical
 #'   integration). The default is `"mc"`.
+#' @param binary_imputation character. Predictive imputation approach for
+#'   `method = "bayes-bin"` or `method = "chisq"`. `"event-time"` (the default)
+#'   draws a conditional piecewise-exponential event time and reduces it to
+#'   event status at `end_of_study`. `"bernoulli"` draws the endpoint status
+#'   directly from its conditional event probability. This argument is ignored
+#'   for time-to-event analysis methods.
 #' @param alternative character. The string specifying the alternative
 #'   hypothesis, must be one of `"greater"` (default), `"less"` or
 #'   `"two.sided"`. One-sided alternatives (`"greater"` and `"less"`) are
@@ -195,6 +201,26 @@
 #'      followed to `end_of_study`, imputed, or excluded when
 #'      `imputed_final = FALSE`.
 #'
+#'      Two equivalent predictive imputation approaches are available through
+#'      `binary_imputation`. With `"event-time"`, the package samples a future
+#'      event time conditional on the available event-free follow-up and then
+#'      records whether it falls by `end_of_study`. With `"bernoulli"`, it
+#'      calculates the same endpoint probability directly. If \eqn{T} is the
+#'      observed event-free follow-up, \eqn{T^*} is `end_of_study`,
+#'      \eqn{S(t)} is the survival function, and \eqn{H(t)} is the cumulative
+#'      hazard, that probability is
+#'
+#'      \deqn{\Pr(X = 1 \mid T_\mathrm{event} > T)
+#'        = \frac{S(T) - S(T^*)}{S(T)}
+#'        = 1 - \exp\{-[H(T^*) - H(T)]\}.}
+#'
+#'      A Bernoulli outcome is drawn with this probability. For a subject not
+#'      yet enrolled, \eqn{T = 0}; observed events are retained unchanged.
+#'      Because no precise event time is generated, the imputed `time` is set
+#'      to `end_of_study` and only the binary `event` status is analyzed. Each
+#'      imputation still uses a sampled posterior hazard draw, so uncertainty
+#'      in the piecewise-exponential model is retained.
+#'
 #'  * Chi-square test (`method = "chisq"`).
 #'      The non-imputed final dataset with both treatment and control arms is
 #'      compared using a standard chi-square test on the final event status,
@@ -337,7 +363,8 @@ survival_adapt <- function(
   empty_interval = c("propagate", "prior", "error"),
   method = "logrank",
   imputed_final = FALSE,
-  return_trace = FALSE
+  return_trace = FALSE,
+  binary_imputation = c("event-time", "bernoulli")
 ) {
   Call <- match.call()
   ##############################################################################
@@ -364,6 +391,7 @@ survival_adapt <- function(
   validate_positive_integer_scalar(N_mcmc, "N_mcmc")
   validate_gamma_prior(prior)
   empty_interval <- match.arg(empty_interval)
+  binary_imputation <- match.arg(binary_imputation)
   validate_logical_scalar(return_trace, "return_trace")
   validate_analysis_configuration(
     method,
@@ -557,6 +585,11 @@ survival_adapt <- function(
             h0 = h0,
             bin_prior = bin_prior,
             bin_method = bin_method,
+            binary_imputation = if (method %in% c("bayes-bin", "chisq")) {
+              binary_imputation
+            } else {
+              "event-time"
+            },
             empty_interval = empty_interval,
             check_futility = check_futility
           ),
@@ -677,6 +710,11 @@ survival_adapt <- function(
     h0 = h0,
     bin_prior = bin_prior,
     bin_method = bin_method,
+    binary_imputation = if (method %in% c("bayes-bin", "chisq")) {
+      binary_imputation
+    } else {
+      "event-time"
+    },
     empty_interval = empty_interval,
     end_of_study = end_of_study
   )

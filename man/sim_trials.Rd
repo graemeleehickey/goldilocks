@@ -34,7 +34,8 @@ sim_trials(
   return_trace = FALSE,
   ncores = 1L,
   backend = c("auto", "fork", "psock", "sequential"),
-  seed = NULL
+  seed = NULL,
+  binary_imputation = c("event-time", "bernoulli")
 )
 }
 \arguments{
@@ -203,6 +204,13 @@ platforms, and a PSOCK cluster on Windows. "fork", "psock", and
 \code{"L'Ecuyer-CMRG"} random-number streams. The default, \code{NULL},
 does not reset the global RNG state, preserving the usual unseeded
 simulation behavior.}
+
+\item{binary_imputation}{character. Predictive imputation approach for
+\code{method = "bayes-bin"} or \code{method = "chisq"}. \code{"event-time"} (the default)
+draws a conditional piecewise-exponential event time and reduces it to
+event status at \code{end_of_study}. \code{"bernoulli"} draws the endpoint status
+directly from its conditional event probability. This argument is ignored
+for time-to-event analysis methods.}
 }
 \value{
 A list containing \code{sims}, a data frame with one row per simulated

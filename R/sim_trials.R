@@ -111,10 +111,12 @@ sim_trials <- function(
   return_trace = FALSE,
   ncores = 1L,
   backend = c("auto", "fork", "psock", "sequential"),
-  seed = NULL
+  seed = NULL,
+  binary_imputation = c("event-time", "bernoulli")
 ) {
   Call <- match.call()
   empty_interval <- match.arg(empty_interval)
+  binary_imputation <- match.arg(binary_imputation)
   backend <- match.arg(backend)
 
   validate_positive_integer_scalar(N_trials, "N_trials")
@@ -183,6 +185,7 @@ sim_trials <- function(
       prior = prior,
       bin_prior = bin_prior,
       bin_method = bin_method,
+      binary_imputation = binary_imputation,
       block = block,
       rand_ratio = rand_ratio,
       prop_loss = prop_loss,
