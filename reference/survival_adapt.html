@@ -73,7 +73,8 @@ time-to-event endpoint</p>
 <span>  empty_interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"propagate"</span>, <span class="st">"prior"</span>, <span class="st">"error"</span><span class="op">)</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"logrank"</span>,</span>
 <span>  imputed_final <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  return_trace <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  return_trace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  binary_imputation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event-time"</span>, <span class="st">"bernoulli"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -278,6 +279,15 @@ addition to the usual final summary? The default, FALSE, returns the
 historical one-row data frame. When TRUE, the result is a
 goldilocks_trial object with summary, trace, and call elements.</p></dd>
 
+
+<dt id="arg-binary-imputation">binary_imputation<a class="anchor" aria-label="anchor" href="#arg-binary-imputation"></a></dt>
+<dd><p>character. Predictive imputation approach for
+<code>method = "bayes-bin"</code> or <code>method = "chisq"</code>. <code>"event-time"</code> (the default)
+draws a conditional piecewise-exponential event time and reduces it to
+event status at <code>end_of_study</code>. <code>"bernoulli"</code> draws the endpoint status
+directly from its conditional event probability. This argument is ignored
+for time-to-event analysis methods.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -390,7 +400,24 @@ probability can be calculated using Monte Carlo beta draws
 quadrature (<code>"quadrature"</code>). Like the chi-square test, this method
 requires complete binary outcomes: censored subjects must either be
 followed to <code>end_of_study</code>, imputed, or excluded when
-<code>imputed_final = FALSE</code>.</p></li>
+<code>imputed_final = FALSE</code>.</p>
+<p>Two equivalent predictive imputation approaches are available through
+<code>binary_imputation</code>. With <code>"event-time"</code>, the package samples a future
+event time conditional on the available event-free follow-up and then
+records whether it falls by <code>end_of_study</code>. With <code>"bernoulli"</code>, it
+calculates the same endpoint probability directly. If \(T\) is the
+observed event-free follow-up, \(T^*\) is <code>end_of_study</code>,
+\(S(t)\) is the survival function, and \(H(t)\) is the cumulative
+hazard, that probability is</p>
+<p>$$\Pr(X = 1 \mid T_\mathrm{event} &gt; T)
+       = \frac{S(T) - S(T^*)}{S(T)}
+       = 1 - \exp\{-[H(T^*) - H(T)]\}.$$</p>
+<p>A Bernoulli outcome is drawn with this probability. For a subject not
+yet enrolled, \(T = 0\); observed events are retained unchanged.
+Because no precise event time is generated, the imputed <code>time</code> is set
+to <code>end_of_study</code> and only the binary <code>event</code> status is analyzed. Each
+imputation still uses a sampled posterior hazard draw, so uncertainty
+in the piecewise-exponential model is retained.</p></li>
 <li><p>Chi-square test (<code>method = "chisq"</code>).
 The non-imputed final dataset with both treatment and control arms is
 compared using a standard chi-square test on the final event status,

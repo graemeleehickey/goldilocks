@@ -9,9 +9,10 @@ library(goldilocks)
 `method = "bayes-bin"`. This is useful when the final decision is based
 on the event indicator by a fixed endpoint time, rather than the event
 time itself. The trial simulator still uses time-to-event hazards to
-generate when events occur and to impute not-yet-observed outcomes at
-interim looks, but the final analysis reduces each completed dataset to
-binary event status by `end_of_study`.
+model not-yet-observed outcomes at interim looks, but it can either
+impute a future event time or draw the binary endpoint status directly.
+The final analysis reduces each completed dataset to binary event status
+by `end_of_study`.
 
 Two distinct priors can therefore enter a Bayesian binary design. The
 `prior` argument is a Gamma prior on the piecewise-exponential hazards.
@@ -62,7 +63,7 @@ end_of_study <- 12
 hc <- prop_to_haz(0.35, endtime = end_of_study)
 ht <- prop_to_haz(0.25, endtime = end_of_study)
 
-out_two_arm <- survival_adapt(
+two_arm_args <- list(
   hazard_treatment = ht,
   hazard_control = hc,
   cutpoints = NULL,
@@ -87,6 +88,7 @@ out_two_arm <- survival_adapt(
   imputed_final = FALSE
 )
 
+out_two_arm <- do.call(survival_adapt, two_arm_args)
 out_two_arm
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          60        60        120   120
@@ -100,6 +102,63 @@ analyses. For `method = "bayes-bin"`, `est_final` is the posterior mean
 binary effect: the treatment event probability minus the control event
 probability. The `post_prob_ha` value is the posterior probability that
 this difference is below `h0` when `alternative = "less"`.
+
+## Choosing the binary imputation approach
+
+The default `binary_imputation = "event-time"` approach samples a future
+event time from the piecewise-exponential model, conditional on the
+subject remaining event-free through the available follow-up time $`T`$.
+The sampled time is then converted to event or no event at the endpoint
+$`T^*`$.
+
+With `binary_imputation = "bernoulli"`, the package skips the unused
+event time and calculates the endpoint probability directly:
+
+``` math
+\begin{aligned}
+p
+&= \Pr(T_{\text{event}} \leq T^* \mid T_{\text{event}} > T) \\
+&= \frac{S(T) - S(T^*)}{S(T)} \\
+&= 1 - \exp\left\{-[H(T^*) - H(T)]\right\}.
+\end{aligned}
+```
+
+It then draws $`X \sim \operatorname{Bernoulli}(p)`$. For subjects who
+are not yet enrolled, $`T=0`$. Observed events are not imputed. Each
+completed dataset still uses a sampled posterior hazard, so both
+approaches retain uncertainty in the predictive piecewise-exponential
+model.
+
+The approaches have the same endpoint distribution. They can
+nevertheless produce different Monte Carlo realizations if their
+random-number streams differ, so operating characteristics should be
+compared using enough trials and imputations. The following small seeded
+comparison uses the same design and random-number stream:
+
+``` r
+
+compare_binary_imputation <- function(imputation) {
+  set.seed(2101)
+  fit <- do.call(
+    survival_adapt,
+    c(two_arm_args, list(binary_imputation = imputation))
+  )
+  fit[c("ppp_success", "post_prob_ha", "est_final")]
+}
+
+rbind(
+  `conditional event time` = compare_binary_imputation("event-time"),
+  `direct Bernoulli status` = compare_binary_imputation("bernoulli")
+)
+#>                         ppp_success post_prob_ha  est_final
+#> conditional event time            0    0.4042967 0.02380952
+#> direct Bernoulli status           0    0.4042967 0.02380952
+```
+
+The direct Bernoulli calculation is also more stable in extreme tails
+because it evaluates the remaining cumulative hazard through
+`-expm1(-(H(T^*) - H(T)))`, rather than subtracting two survival
+probabilities that may both round to zero.
 
 ## Single-arm design
 
@@ -143,9 +202,9 @@ out_single_arm <- survival_adapt(
 
 out_single_arm
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
-#> 1           0.95    0.3        less          80         0         80    80
+#> 1           0.95    0.3        less          50         0         50    80
 #>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9740269 0.2073171         0.6             0                     0
+#> 1    0.9980375 0.1346154           1             0                     1
 ```
 
 In this setting `est_final` is the posterior mean event probability in

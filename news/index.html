@@ -57,6 +57,7 @@
 <li>Consolidated the Bayesian binomial analysis implementation so its posterior calculations and method-specific branches are co-located in <code>bayes_binomial_test()</code>.</li>
 <li>Renamed the piecewise-exponential Bayesian survival analysis method from <code>method = "bayes"</code> to <code>method = "bayes-surv"</code> to distinguish it from <code>method = "bayes-bin"</code>.</li>
 <li>Added <code>method = "bayes-bin"</code> for Bayesian beta-binomial analysis of complete binary outcomes, with Monte Carlo, normal approximation, and quadrature options for treatment-control differences.</li>
+<li>Binary endpoint analyses can now set <code>binary_imputation = "bernoulli"</code> to draw event status directly from the conditional piecewise-exponential event probability. The existing conditional event-time approach remains the default (<a href="https://github.com/graemeleehickey/goldilocks/issues/21" class="external-link">#21</a>).</li>
 <li>Cox model analyses now use a lower-level survival fit for repeated Wald tests, avoiding formula and summary overhead in simulation hot paths.</li>
 <li>
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> now uses <code>h0</code> as the null log hazard ratio for Cox model tests, allowing non-inferiority testing with <code>h0 = log(margin)</code>.</li>

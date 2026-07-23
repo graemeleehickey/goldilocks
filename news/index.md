@@ -82,6 +82,11 @@
 - Added `method = "bayes-bin"` for Bayesian beta-binomial analysis of
   complete binary outcomes, with Monte Carlo, normal approximation, and
   quadrature options for treatment-control differences.
+- Binary endpoint analyses can now set `binary_imputation = "bernoulli"`
+  to draw event status directly from the conditional
+  piecewise-exponential event probability. The existing conditional
+  event-time approach remains the default
+  ([\#21](https://github.com/graemeleehickey/goldilocks/issues/21)).
 - Cox model analyses now use a lower-level survival fit for repeated
   Wald tests, avoiding formula and summary overhead in simulation hot
   paths.

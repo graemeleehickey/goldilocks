@@ -73,10 +73,10 @@
 <code>method = "bayes-bin"</code>. This is useful when the final
 decision is based on the event indicator by a fixed endpoint time,
 rather than the event time itself. The trial simulator still uses
-time-to-event hazards to generate when events occur and to impute
-not-yet-observed outcomes at interim looks, but the final analysis
-reduces each completed dataset to binary event status by
-<code>end_of_study</code>.</p>
+time-to-event hazards to model not-yet-observed outcomes at interim
+looks, but it can either impute a future event time or draw the binary
+endpoint status directly. The final analysis reduces each completed
+dataset to binary event status by <code>end_of_study</code>.</p>
 <p>Two distinct priors can therefore enter a Bayesian binary design. The
 <code>prior</code> argument is a Gamma prior on the
 piecewise-exponential hazards. It is used only for the event-time model
@@ -124,7 +124,7 @@ of</p>
 <span><span class="va">hc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.35</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
 <span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.25</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">out_two_arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
+<span><span class="va">two_arm_args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">hc</span>,</span>
 <span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -149,6 +149,7 @@ of</p>
 <span>  imputed_final <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
+<span><span class="va">out_two_arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">survival_adapt</span>, <span class="va">two_arm_args</span><span class="op">)</span></span>
 <span><span class="va">out_two_arm</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95      0        less          60        60        120   120</span></span>
@@ -163,6 +164,61 @@ posterior probability that this difference is below <code>h0</code> when
 <code>alternative = "less"</code>.</p>
 </div>
 <div class="section level2">
+<h2 id="choosing-the-binary-imputation-approach">Choosing the binary imputation approach<a class="anchor" aria-label="anchor" href="#choosing-the-binary-imputation-approach"></a>
+</h2>
+<p>The default <code>binary_imputation = "event-time"</code> approach
+samples a future event time from the piecewise-exponential model,
+conditional on the subject remaining event-free through the available
+follow-up time
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>.
+The sampled time is then converted to event or no event at the endpoint
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>T</mi><mo>*</mo></msup><annotation encoding="application/x-tex">T^*</annotation></semantics></math>.</p>
+<p>With <code>binary_imputation = "bernoulli"</code>, the package skips
+the unused event time and calculates the endpoint probability
+directly:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mi>p</mi></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>T</mi><mtext mathvariant="normal">event</mtext></msub><mo>≤</mo><msup><mi>T</mi><mo>*</mo></msup><mo>∣</mo><msub><mi>T</mi><mtext mathvariant="normal">event</mtext></msub><mo>&gt;</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mfrac><mrow><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>S</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>T</mi><mo>*</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo></mrow></mfrac></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">{</mo><mi>−</mi><mo stretchy="false" form="prefix">[</mo><mi>H</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>T</mi><mo>*</mo></msup><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mo stretchy="true" form="postfix">}</mo></mrow><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+p
+&amp;= \Pr(T_{\text{event}} \leq T^* \mid T_{\text{event}} &gt; T) \\
+&amp;= \frac{S(T) - S(T^*)}{S(T)} \\
+&amp;= 1 - \exp\left\{-[H(T^*) - H(T)]\right\}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>It then draws
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi><mo>∼</mo><mrow><mi mathvariant="normal">Bernoulli</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">X \sim \operatorname{Bernoulli}(p)</annotation></semantics></math>.
+For subjects who are not yet enrolled,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">T=0</annotation></semantics></math>.
+Observed events are not imputed. Each completed dataset still uses a
+sampled posterior hazard, so both approaches retain uncertainty in the
+predictive piecewise-exponential model.</p>
+<p>The approaches have the same endpoint distribution. They can
+nevertheless produce different Monte Carlo realizations if their
+random-number streams differ, so operating characteristics should be
+compared using enough trials and imputations. The following small seeded
+comparison uses the same design and random-number stream:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">compare_binary_imputation</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">imputation</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2101</span><span class="op">)</span></span>
+<span>  <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span></span>
+<span>    <span class="va">survival_adapt</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">two_arm_args</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>binary_imputation <span class="op">=</span> <span class="va">imputation</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="va">fit</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ppp_success"</span>, <span class="st">"post_prob_ha"</span>, <span class="st">"est_final"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
+<span>  `conditional event time` <span class="op">=</span> <span class="fu">compare_binary_imputation</span><span class="op">(</span><span class="st">"event-time"</span><span class="op">)</span>,</span>
+<span>  `direct Bernoulli status` <span class="op">=</span> <span class="fu">compare_binary_imputation</span><span class="op">(</span><span class="st">"bernoulli"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;                         ppp_success post_prob_ha  est_final</span></span>
+<span><span class="co">#&gt; conditional event time            0    0.4042967 0.02380952</span></span>
+<span><span class="co">#&gt; direct Bernoulli status           0    0.4042967 0.02380952</span></span></code></pre></div>
+<p>The direct Bernoulli calculation is also more stable in extreme tails
+because it evaluates the remaining cumulative hazard through
+<code>-expm1(-(H(T^*) - H(T)))</code>, rather than subtracting two
+survival probabilities that may both round to zero.</p>
+</div>
+<div class="section level2">
 <h2 id="single-arm-design">Single-arm design<a class="anchor" aria-label="anchor" href="#single-arm-design"></a>
 </h2>
 <p>For a single-arm design, set <code>hazard_control = NULL</code>. The
@@ -173,7 +229,7 @@ performance criterion (OPC).</p>
 probability is 20%. With <code>alternative = "less"</code>, success
 means the posterior probability that the event probability is below 30%
 exceeds <code>prob_ha</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fl">0.30</span></span>
 <span><span class="va">target</span> <span class="op">&lt;-</span> <span class="fl">0.20</span></span>
 <span><span class="va">ht_single</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="va">target</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
@@ -203,9 +259,9 @@ exceeds <code>prob_ha</code>.</p>
 <span></span>
 <span><span class="va">out_single_arm</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
-<span><span class="co">#&gt; 1           0.95    0.3        less          80         0         80    80</span></span>
+<span><span class="co">#&gt; 1           0.95    0.3        less          50         0         50    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9740269 0.2073171         0.6             0                     0</span></span></code></pre></div>
+<span><span class="co">#&gt; 1    0.9980375 0.1346154           1             0                     1</span></span></code></pre></div>
 <p>In this setting <code>est_final</code> is the posterior mean event
 probability in the single arm, and <code>post_prob_ha</code> is the
 posterior probability that this event probability is below the
@@ -244,7 +300,7 @@ simulation reproducible, including when <code>ncores</code> is greater
 than 1. With <code>backend = "auto"</code>, <code><a href="../reference/sim_trials.html">sim_trials()</a></code>
 uses forked workers on Unix-like platforms and PSOCK workers on
 Windows.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  N_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>

@@ -35,7 +35,8 @@ sim_trials(
   return_trace = FALSE,
   ncores = 1L,
   backend = c("auto", "fork", "psock", "sequential"),
-  seed = NULL
+  seed = NULL,
+  binary_imputation = c("event-time", "bernoulli")
 )
 ```
 
@@ -271,6 +272,15 @@ sim_trials(
   `"L'Ecuyer-CMRG"` random-number streams. The default, `NULL`, does not
   reset the global RNG state, preserving the usual unseeded simulation
   behavior.
+
+- binary_imputation:
+
+  character. Predictive imputation approach for `method = "bayes-bin"`
+  or `method = "chisq"`. `"event-time"` (the default) draws a
+  conditional piecewise-exponential event time and reduces it to event
+  status at `end_of_study`. `"bernoulli"` draws the endpoint status
+  directly from its conditional event probability. This argument is
+  ignored for time-to-event analysis methods.
 
 ## Value
 

@@ -31,7 +31,8 @@ survival_adapt(
   empty_interval = c("propagate", "prior", "error"),
   method = "logrank",
   imputed_final = FALSE,
-  return_trace = FALSE
+  return_trace = FALSE,
+  binary_imputation = c("event-time", "bernoulli")
 )
 ```
 
@@ -244,6 +245,15 @@ survival_adapt(
   one-row data frame. When TRUE, the result is a goldilocks_trial object
   with summary, trace, and call elements.
 
+- binary_imputation:
+
+  character. Predictive imputation approach for `method = "bayes-bin"`
+  or `method = "chisq"`. `"event-time"` (the default) draws a
+  conditional piecewise-exponential event time and reduces it to event
+  status at `end_of_study`. `"bernoulli"` draws the endpoint status
+  directly from its conditional event probability. This argument is
+  ignored for time-to-event analysis methods.
+
 ## Value
 
 With return_trace = FALSE (the default), a data frame containing some
@@ -379,6 +389,25 @@ At each interim (and final) analysis methods as:
   method requires complete binary outcomes: censored subjects must
   either be followed to `end_of_study`, imputed, or excluded when
   `imputed_final = FALSE`.
+
+  Two equivalent predictive imputation approaches are available through
+  `binary_imputation`. With `"event-time"`, the package samples a future
+  event time conditional on the available event-free follow-up and then
+  records whether it falls by `end_of_study`. With `"bernoulli"`, it
+  calculates the same endpoint probability directly. If \\T\\ is the
+  observed event-free follow-up, \\T^\*\\ is `end_of_study`, \\S(t)\\ is
+  the survival function, and \\H(t)\\ is the cumulative hazard, that
+  probability is
+
+  \$\$\Pr(X = 1 \mid T\_\mathrm{event} \> T) = \frac{S(T) -
+  S(T^\*)}{S(T)} = 1 - \exp\\-\[H(T^\*) - H(T)\]\\.\$\$
+
+  A Bernoulli outcome is drawn with this probability. For a subject not
+  yet enrolled, \\T = 0\\; observed events are retained unchanged.
+  Because no precise event time is generated, the imputed `time` is set
+  to `end_of_study` and only the binary `event` status is analyzed. Each
+  imputation still uses a sampled posterior hazard draw, so uncertainty
+  in the piecewise-exponential model is retained.
 
 - Chi-square test (`method = "chisq"`). The non-imputed final dataset
   with both treatment and control arms is compared using a standard
