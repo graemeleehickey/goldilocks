@@ -5,6 +5,7 @@ template:
   light-switch: true
   theme: github-light
   theme-dark: github-dark
+  math-rendering: katex
 
 navbar:
   structure:
