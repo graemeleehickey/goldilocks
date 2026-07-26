@@ -70,6 +70,7 @@
 <code><a href="../reference/ppwe.html">ppwe()</a></code> now computes piecewise-exponential cumulative event probabilities directly from the cumulative hazard, avoiding row-wise calls to <code><a href="https://rdrr.io/pkg/PWEALL/man/pwe.html" class="external-link">PWEALL::pwe()</a></code> in Bayesian posterior summaries (<a href="https://github.com/graemeleehickey/goldilocks/issues/34" class="external-link">#34</a>).</li>
 <li>
 <code>posterior()</code> now computes piecewise-exponential sufficient statistics directly, avoiding <code><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit()</a></code> and grouped <code>dplyr</code> summarization in a simulation hot path.</li>
+<li>Bayesian survival analyses after predictive imputation now draw their fresh completed-data posterior directly from arm-by-interval exposure and event sufficient statistics. This preserves the documented two-stage posterior procedure while avoiding repeated patient-level posterior setup (<a href="https://github.com/graemeleehickey/goldilocks/issues/38" class="external-link">#38</a>).</li>
 <li>
 <code><a href="../reference/enrollment.html">enrollment()</a></code> and <code><a href="../reference/randomization.html">randomization()</a></code> no longer grow vectors repeatedly inside their simulation loops (<a href="https://github.com/graemeleehickey/goldilocks/issues/44" class="external-link">#44</a>).</li>
 <li>

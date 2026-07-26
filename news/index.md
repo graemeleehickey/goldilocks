@@ -126,6 +126,12 @@
   directly, avoiding
   [`survSplit()`](https://rdrr.io/pkg/survival/man/survSplit.html) and
   grouped `dplyr` summarization in a simulation hot path.
+- Bayesian survival analyses after predictive imputation now draw their
+  fresh completed-data posterior directly from arm-by-interval exposure
+  and event sufficient statistics. This preserves the documented
+  two-stage posterior procedure while avoiding repeated patient-level
+  posterior setup
+  ([\#38](https://github.com/graemeleehickey/goldilocks/issues/38)).
 - [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
   and
   [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
