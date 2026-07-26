@@ -131,6 +131,90 @@ test_that("analyse_data works with method = 'bayes-surv' (two-arm)", {
   expect_length(res$effect, 1)
 })
 
+test_that("Bayesian survival sufficient-statistics analysis is equivalent", {
+  # These completed data sets cover both supported arm configurations and both
+  # the exponential and piecewise-exponential models. Fixed seeds make this a
+  # strict equivalence check of the complete posterior analysis, including the
+  # event-probability conversion and posterior tail calculation.
+  cases <- list(
+    "two-arm, single interval" = list(
+      data = data.frame(
+        time = c(3, 8, 15, 4, 10, 18),
+        event = c(1, 0, 1, 0, 1, 1),
+        treatment = c(0, 0, 0, 1, 1, 1)
+      ),
+      cutpoints = NULL,
+      single_arm = FALSE,
+      h0 = 0
+    ),
+    "two-arm, piecewise" = list(
+      data = data.frame(
+        time = c(3, 8, 15, 4, 10, 18),
+        event = c(1, 0, 1, 0, 1, 1),
+        treatment = c(0, 0, 0, 1, 1, 1)
+      ),
+      cutpoints = c(5, 12),
+      single_arm = FALSE,
+      h0 = 0
+    ),
+    "single-arm, single interval" = list(
+      data = data.frame(
+        time = c(3, 8, 15, 19),
+        event = c(1, 0, 1, 0),
+        treatment = rep(1, 4)
+      ),
+      cutpoints = NULL,
+      single_arm = TRUE,
+      h0 = 0.5
+    ),
+    "single-arm, piecewise" = list(
+      data = data.frame(
+        time = c(3, 8, 15, 19),
+        event = c(1, 0, 1, 0),
+        treatment = rep(1, 4)
+      ),
+      cutpoints = c(5, 12),
+      single_arm = TRUE,
+      h0 = 0.5
+    )
+  )
+
+  for (case_name in names(cases)) {
+    case <- cases[[case_name]]
+    data_summ <- posterior_sufficient_stats(
+      data = case$data,
+      cutpoints = case$cutpoints,
+      single_arm = case$single_arm
+    )
+
+    set.seed(8246)
+    from_data <- analyse_data(
+      data = case$data,
+      cutpoints = case$cutpoints,
+      end_of_study = 24,
+      prior = c(0.5, 0.25),
+      N_mcmc = 100,
+      single_arm = case$single_arm,
+      method = "bayes-surv",
+      alternative = "greater",
+      h0 = case$h0
+    )
+    set.seed(8246)
+    from_stats <- analyse_bayes_surv_sufficient_stats(
+      data_summ = data_summ,
+      cutpoints = case$cutpoints,
+      end_of_study = 24,
+      prior = c(0.5, 0.25),
+      N_mcmc = 100,
+      single_arm = case$single_arm,
+      alternative = "greater",
+      h0 = case$h0
+    )
+
+    expect_identical(from_stats, from_data, info = case_name)
+  }
+})
+
 test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less'", {
   set.seed(5091)
   data <- data.frame(

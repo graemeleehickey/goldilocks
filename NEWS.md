@@ -76,6 +76,10 @@
 * `sim_trials()` now accepts a `seed` argument that creates independent per-trial `"L'Ecuyer-CMRG"` random-number streams for reproducible simulations, including when using multiple cores (#41).
 * `ppwe()` now computes piecewise-exponential cumulative event probabilities directly from the cumulative hazard, avoiding row-wise calls to `PWEALL::pwe()` in Bayesian posterior summaries (#34).
 * `posterior()` now computes piecewise-exponential sufficient statistics directly, avoiding `survSplit()` and grouped `dplyr` summarization in a simulation hot path.
+* Bayesian survival analyses after predictive imputation now draw their fresh
+  completed-data posterior directly from arm-by-interval exposure and event
+  sufficient statistics. This preserves the documented two-stage posterior
+  procedure while avoiding repeated patient-level posterior setup (#38).
 * `enrollment()` and `randomization()` no longer grow vectors repeatedly inside their simulation loops (#44).
 * `sim_trials()` and `summarise_sims()` now use `dplyr::bind_rows()` for faster binding of simulation result data frames (#43).
 

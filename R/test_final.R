@@ -101,11 +101,42 @@ test_final <- function(
         binary_imputation = binary_imputation
       )
 
-      # Create enrolled subject data frame for analysis
+      if (method == "bayes-surv") {
+        # The draw used by impute_data() came from the observed final-data
+        # posterior. Preserve the documented two-stage procedure by forming a
+        # new posterior from the completed imputation's sufficient statistics
+        # and the original prior. Passing statistics directly avoids rebuilding
+        # a reduced patient-level analysis data frame for every imputation.
+        data_summ <- posterior_sufficient_stats(
+          data = data_success_impute,
+          cutpoints = cutpoints,
+          single_arm = single_arm
+        )
+        success <- analyse_bayes_surv_sufficient_stats(
+          data_summ = data_summ,
+          cutpoints = cutpoints,
+          end_of_study = end_of_study,
+          prior = prior,
+          N_mcmc = N_mcmc,
+          single_arm = single_arm,
+          alternative = alternative,
+          h0 = h0,
+          empty_interval = empty_interval
+        )
+        post_paa[j] <- success$success
+        effect_final[j] <- success$effect
+        next
+      }
+
+      # The remaining methods consume subject-level outcomes or model fits.
+      # Keep their established patient-level path unchanged.
       time <- NULL
       event <- NULL
       treatment <- NULL
-      data <- subset(data_success_impute, select = c(time, event, treatment))
+      data <- subset(
+        data_success_impute,
+        select = c(time, event, treatment)
+      )
 
       if (method == "cox") {
         fit_cox <- cox_wald_test_checked(data)
@@ -137,7 +168,7 @@ test_final <- function(
         )
 
         post_paa[j] <- success$success
-        if (method %in% c("bayes-surv", "bayes-bin")) {
+        if (method == "bayes-bin") {
           effect_final[j] <- success$effect
         }
       }

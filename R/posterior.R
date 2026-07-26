@@ -47,7 +47,145 @@ posterior <- function(
     stop("No subjects in the control arm")
   }
 
+  # Keep the patient-level entry point as a thin compatibility wrapper. The
+  # posterior itself depends only on the statistics below, so separating the
+  # two operations lets repeated imputation paths calculate the statistics once
+  # and pass them directly to posterior_from_sufficient_stats().
   data_summ <- posterior_sufficient_stats(data, cutpoints, single_arm)
+
+  posterior_from_sufficient_stats(
+    data_summ = data_summ,
+    prior = prior,
+    N_mcmc = N_mcmc,
+    single_arm = single_arm,
+    empty_interval = empty_interval
+  )
+}
+
+#' @title Draw piecewise-exponential hazards from sufficient statistics
+#'
+#' @description Draws from the conjugate Gamma posterior using one row per
+#'   treatment arm and piecewise interval. This is the statistics-based half of
+#'   `posterior()`: callers that already have completed-data exposure times and
+#'   event counts can avoid sending a patient-level data frame through the
+#'   posterior calculation again.
+#'
+#' @param data_summ Data frame containing `treatment`, `interval`, `n`,
+#'   `tot_time`, and `tot_events`. The `n` column is retained even though it is
+#'   not part of the Gamma update because it distinguishes an empty interval
+#'   from an interval having zero events. That distinction is required by
+#'   `empty_interval`.
+#' @inheritParams posterior
+#'
+#' @details For arm \eqn{a} and interval \eqn{k}, the posterior is
+#'   \deqn{\lambda_{ak} \mid data \sim Gamma(\alpha + D_{ak},
+#'   \beta + Y_{ak}),}
+#'   where \eqn{D_{ak}} is `tot_events`, \eqn{Y_{ak}} is `tot_time`, and
+#'   `prior = c(alpha, beta)` uses the shape-rate parameterization.
+#'
+#'   Keeping this function separate is important for the package's two-stage
+#'   Bayesian imputation procedure. A first posterior draw generates a completed
+#'   data set; the sufficient statistics of that completed data set are then
+#'   combined with the *original* prior here to form a fresh second posterior.
+#'   Using the first posterior as the second-stage prior would count the observed
+#'   data twice.
+#'
+#' @return See `posterior()`.
+#'
+#' @noRd
+posterior_from_sufficient_stats <- function(
+  data_summ,
+  prior,
+  N_mcmc,
+  single_arm,
+  empty_interval = "propagate"
+) {
+  empty_interval <- match.arg(empty_interval, c("propagate", "prior", "error"))
+  required_columns <- c(
+    "treatment",
+    "interval",
+    "n",
+    "tot_time",
+    "tot_events"
+  )
+  missing_columns <- setdiff(required_columns, names(data_summ))
+  if (length(missing_columns) > 0) {
+    stop(
+      "'data_summ' is missing required column(s): ",
+      paste(missing_columns, collapse = ", ")
+    )
+  }
+
+  # A complete sufficient-statistics table has exactly one row for every
+  # expected arm/interval combination. Validate this here because malformed
+  # tables could otherwise recycle values silently inside rgamma().
+  treatment_values <- if (single_arm) 1 else c(0, 1)
+  interval_values <- unique(as.character(data_summ$interval))
+  n_intervals <- length(interval_values)
+  expected_combinations <- expand.grid(
+    treatment = treatment_values,
+    interval = interval_values,
+    stringsAsFactors = FALSE
+  )
+  actual_combinations <- paste(
+    data_summ$treatment,
+    as.character(data_summ$interval),
+    sep = "\r"
+  )
+  expected_keys <- paste(
+    expected_combinations$treatment,
+    expected_combinations$interval,
+    sep = "\r"
+  )
+  if (
+    n_intervals == 0 ||
+      nrow(data_summ) != nrow(expected_combinations) ||
+      !setequal(actual_combinations, expected_keys) ||
+      anyDuplicated(actual_combinations)
+  ) {
+    stop(
+      "'data_summ' must contain exactly one row for every expected ",
+      "treatment-arm and interval combination"
+    )
+  }
+
+  statistic_columns <- c("n", "tot_time", "tot_events")
+  statistic_values <- unlist(
+    data_summ[statistic_columns],
+    use.names = FALSE
+  )
+  if (
+    anyNA(statistic_values) ||
+      any(!is.finite(statistic_values)) ||
+      any(statistic_values < 0)
+  ) {
+    stop("Posterior sufficient statistics must be finite and non-negative")
+  }
+
+  # `n` is a row count and `tot_events` is an event count. Requiring
+  # integer-valued counts catches corrupt summaries before they reach the Gamma
+  # sampler while still allowing the columns to use R's numeric storage mode.
+  count_values <- unlist(
+    data_summ[c("n", "tot_events")],
+    use.names = FALSE
+  )
+  if (any(count_values != floor(count_values))) {
+    stop("Posterior subject and event counts must be whole numbers")
+  }
+
+  # The statistics table deliberately contains zero-filled rows for expected
+  # arms that are absent. Detect those here so the direct path fails with the
+  # same diagnostic as posterior(data = ...), rather than eventually failing
+  # inside empty-interval propagation.
+  if (sum(data_summ$n[data_summ$treatment == 1]) == 0) {
+    stop("No subjects in the treatment arm")
+  }
+  if (
+    !single_arm &&
+      sum(data_summ$n[data_summ$treatment == 0]) == 0
+  ) {
+    stop("No subjects in the control arm")
+  }
 
   if (any(data_summ$n == 0)) {
     if (empty_interval == "error") {
@@ -62,28 +200,42 @@ posterior <- function(
     }
   }
 
-  post <- array(dim = c(N_mcmc, n_intervals, 2))
-  post_treatment <- matrix(nrow = N_mcmc, ncol = n_intervals)
-  post_control <- matrix(nrow = N_mcmc, ncol = n_intervals)
+  # The third dimension is always length two for compatibility with the
+  # imputation code: slice 1 is treatment and slice 2 is control. In a
+  # single-arm design the unused control slice deliberately remains NA.
+  post <- array(NA_real_, dim = c(N_mcmc, n_intervals, 2))
 
+  treatment_summ <- data_summ[data_summ$treatment == 1, , drop = FALSE]
+  treatment_summ <- treatment_summ[
+    match(interval_values, as.character(treatment_summ$interval)),
+    ,
+    drop = FALSE
+  ]
   for (j in 1:n_intervals) {
-    post[, j, 1] <- with(
-      subset(data_summ, treatment == 1),
-      rgamma(N_mcmc, prior[1] + tot_events[j], prior[2] + tot_time[j])
+    post[, j, 1] <- rgamma(
+      N_mcmc,
+      prior[1] + treatment_summ$tot_events[j],
+      prior[2] + treatment_summ$tot_time[j]
     )
   }
 
   if (!single_arm) {
-    # If control patients present
+    control_summ <- data_summ[data_summ$treatment == 0, , drop = FALSE]
+    control_summ <- control_summ[
+      match(interval_values, as.character(control_summ$interval)),
+      ,
+      drop = FALSE
+    ]
     for (j in 1:n_intervals) {
-      post[, j, 2] <- with(
-        subset(data_summ, treatment == 0),
-        rgamma(N_mcmc, prior[1] + tot_events[j], prior[2] + tot_time[j])
+      post[, j, 2] <- rgamma(
+        N_mcmc,
+        prior[1] + control_summ$tot_events[j],
+        prior[2] + control_summ$tot_time[j]
       )
     }
   }
 
-  return(post)
+  post
 }
 
 #' @title Propagate statistics for empty intervals
@@ -135,12 +287,31 @@ propagate_empty_intervals <- function(data_summ) {
 #' @description Aggregates exposure time and event counts by treatment arm and
 #'   piecewise interval for conjugate Gamma posterior updates.
 #'
+#' @param rows Optional logical vector selecting the patient rows to summarize.
+#'   This avoids constructing a temporary three-column analysis data frame when
+#'   the caller already holds an imputed simulation data set.
+#'
 #' @noRd
-posterior_sufficient_stats <- function(data, cutpoints, single_arm) {
+posterior_sufficient_stats <- function(
+  data,
+  cutpoints,
+  single_arm,
+  rows = NULL
+) {
   n_intervals <- length(cutpoints) + 1L
   interval_lower <- c(0, cutpoints)
   interval_upper <- c(cutpoints, Inf)
   treatment_values <- if (single_arm) 1 else c(0, 1)
+
+  if (is.null(rows)) {
+    rows <- rep.int(TRUE, nrow(data))
+  } else if (
+    !is.logical(rows) ||
+      length(rows) != nrow(data) ||
+      anyNA(rows)
+  ) {
+    stop("'rows' must be a non-missing logical vector with one value per row")
+  }
 
   data_summ <- expand.grid(
     interval = seq_len(n_intervals),
@@ -152,7 +323,11 @@ posterior_sufficient_stats <- function(data, cutpoints, single_arm) {
   data_summ$tot_events <- 0
 
   for (treatment_value in treatment_values) {
-    treatment_data <- data[data$treatment == treatment_value, , drop = FALSE]
+    treatment_data <- data[
+      rows & data$treatment == treatment_value,
+      ,
+      drop = FALSE
+    ]
     if (nrow(treatment_data) == 0) {
       next
     }

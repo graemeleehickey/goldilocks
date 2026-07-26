@@ -65,31 +65,26 @@ analyse_data <- function(
   # CIF_trt(T) - CIF_con(T) for two-armed trial
 
   if (method == "bayes-surv") {
-    # Posterior distribution of lambdas: imputed data
-    post_lambda_imp <- posterior(
+    # The patient-level entry point computes the sufficient statistics once,
+    # then delegates to the same fast path used after predictive imputation.
+    # Keeping a single implementation prevents the ordinary and optimized
+    # analysis paths from drifting apart statistically.
+    data_summ <- posterior_sufficient_stats(
       data = data,
       cutpoints = cutpoints,
+      single_arm = single_arm
+    )
+    return(analyse_bayes_surv_sufficient_stats(
+      data_summ = data_summ,
+      cutpoints = cutpoints,
+      end_of_study = end_of_study,
       prior = prior,
       N_mcmc = N_mcmc,
       single_arm = single_arm,
+      alternative = alternative,
+      h0 = h0,
       empty_interval = empty_interval
-    )
-
-    # Posterior distribution of event proportions: imputed data
-    post_imp <- haz_to_prop(
-      post = post_lambda_imp,
-      cutpoints = cutpoints,
-      end_of_study = end_of_study,
-      single_arm = single_arm
-    )
-
-    effect_draws <- post_imp$effect
-    if (alternative == "greater") {
-      success <- mean(effect_draws > h0)
-    } else if (alternative == "less") {
-      success <- mean(effect_draws < h0)
-    }
-    effect <- mean(effect_draws)
+    ))
   }
 
   ####################################################
@@ -181,6 +176,88 @@ analyse_data <- function(
     "success" = success,
     "effect" = effect
   ))
+}
+
+#' @title Analyze Bayesian survival sufficient statistics
+#'
+#' @description Applies the Bayesian piecewise-exponential final analysis
+#'   directly to completed-data sufficient statistics. Predictive-imputation
+#'   callers use this function after deriving the completed exposure and event
+#'   totals, avoiding a second patient-level posterior setup.
+#'
+#' @param data_summ Completed-data sufficient statistics created by
+#'   `posterior_sufficient_stats()`.
+#' @inheritParams analyse_data
+#'
+#' @details This is the second posterior in the package's two-stage Bayesian
+#'   procedure:
+#'
+#'   1. Draw hazards from the posterior conditional on the currently observed
+#'      data.
+#'   2. Use those hazards to impute a completed trial.
+#'   3. Form a fresh posterior from the completed trial's sufficient statistics
+#'      and the original `prior`.
+#'
+#'   Step 3 deliberately does not update from the first posterior. The first
+#'   posterior is used to generate the missing outcomes; treating it as the new
+#'   prior would include the observed subjects both in that prior and again in
+#'   `data_summ`.
+#'
+#' @return A list containing the posterior tail probability (`success`) and
+#'   posterior mean event-probability effect (`effect`).
+#'
+#' @noRd
+analyse_bayes_surv_sufficient_stats <- function(
+  data_summ,
+  cutpoints,
+  end_of_study,
+  prior,
+  N_mcmc,
+  single_arm,
+  alternative,
+  h0,
+  empty_interval = "propagate"
+) {
+  validate_h0(h0, method = "bayes-surv", single_arm = single_arm)
+  if (!alternative %in% c("greater", "less")) {
+    stop(
+      "Bayesian survival analysis requires 'alternative' to be ",
+      "'greater' or 'less'"
+    )
+  }
+
+  # Draw completed-data hazards directly from D_ak (events) and Y_ak
+  # (exposure). posterior_from_sufficient_stats() combines these with the
+  # original Gamma prior and preserves the configured empty-interval policy.
+  post_lambda <- posterior_from_sufficient_stats(
+    data_summ = data_summ,
+    prior = prior,
+    N_mcmc = N_mcmc,
+    single_arm = single_arm,
+    empty_interval = empty_interval
+  )
+
+  # haz_to_prop() evaluates all posterior draws together. For piecewise hazards
+  # it delegates to the matrix-based ppwe() cumulative-hazard calculation,
+  # avoiding a draw-by-draw probability loop.
+  post_event_probability <- haz_to_prop(
+    post = post_lambda,
+    cutpoints = cutpoints,
+    end_of_study = end_of_study,
+    single_arm = single_arm
+  )
+  effect_draws <- post_event_probability$effect
+
+  success <- if (alternative == "greater") {
+    mean(effect_draws > h0)
+  } else {
+    mean(effect_draws < h0)
+  }
+
+  list(
+    success = success,
+    effect = mean(effect_draws)
+  )
 }
 
 #' @title Bayesian binomial test for complete binary outcomes

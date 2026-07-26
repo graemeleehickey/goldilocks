@@ -22,6 +22,14 @@ load_goldilocks()
 ppwe_internal <- getFromNamespace("ppwe", "goldilocks")
 haz_to_prop_internal <- getFromNamespace("haz_to_prop", "goldilocks")
 posterior_internal <- getFromNamespace("posterior", "goldilocks")
+posterior_sufficient_stats_internal <- getFromNamespace(
+  "posterior_sufficient_stats",
+  "goldilocks"
+)
+posterior_from_sufficient_stats_internal <- getFromNamespace(
+  "posterior_from_sufficient_stats",
+  "goldilocks"
+)
 impute_data_internal <- getFromNamespace("impute_data", "goldilocks")
 
 iterations <- as.integer(Sys.getenv("GOLDILOCKS_BENCHMARK_ITERATIONS", "5"))
@@ -52,6 +60,11 @@ posterior_data <- data.frame(
   time = pmin(stats::rexp(600, rate = 0.03), end_of_study),
   event = stats::rbinom(600, size = 1, prob = 0.65),
   treatment = rep(0:1, each = 300)
+)
+posterior_stats <- posterior_sufficient_stats_internal(
+  data = posterior_data,
+  cutpoints = cutpoints_piecewise,
+  single_arm = FALSE
 )
 
 imputation_data <- data.frame(
@@ -123,6 +136,15 @@ benchmark_results <- bench::mark(
       single_arm = FALSE
     )
   },
+  posterior_from_stats_piecewise = {
+    set.seed(1001)
+    posterior_from_sufficient_stats_internal(
+      data_summ = posterior_stats,
+      prior = c(0.1, 0.1),
+      N_mcmc = 1000,
+      single_arm = FALSE
+    )
+  },
   impute_success = {
     set.seed(1002)
     impute_data_internal(
@@ -168,7 +190,7 @@ benchmark_results <- bench::mark(
       N_impute = 100,
       N_mcmc = 100,
       method = "logrank",
-      imputed_final = TRUE
+      imputed_final = FALSE
     )
   },
   survival_adapt_bayes = {
@@ -193,7 +215,7 @@ benchmark_results <- bench::mark(
       prob_ha = 0.95,
       N_impute = 100,
       N_mcmc = 300,
-      method = "bayes",
+      method = "bayes-surv",
       imputed_final = TRUE
     )
   },

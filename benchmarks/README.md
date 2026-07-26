@@ -9,6 +9,11 @@ schedules. In particular, its low-rate case guards the continuous-time
 generator against work that scales with empty calendar bins rather than with
 the requested number of enrollments.
 
+It also reports piecewise-exponential posterior sampling both from a
+patient-level data frame and from precomputed sufficient statistics. The latter
+isolates the repeated second-stage posterior work performed after Bayesian
+predictive imputation.
+
 The benchmarks are excluded from R package builds with `.Rbuildignore`, so they
 do not run on CRAN or during ordinary package checks.
 

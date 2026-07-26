@@ -55,6 +55,103 @@ test_that("posterior returns correct dimensions (single-arm)", {
   expect_true(all(is.na(res[,, 2])))
 })
 
+test_that("statistics-based posterior exactly matches patient-level posterior", {
+  # Exercise every shape required by issue #38. Each piecewise example contains
+  # exposure in every arm/interval so that this test compares the posterior
+  # paths themselves without invoking an empty-interval policy.
+  cases <- list(
+    "two-arm, single interval" = list(
+      data = data.frame(
+        time = c(3, 7, 14, 4, 9, 16),
+        event = c(1, 0, 1, 0, 1, 0),
+        treatment = c(0, 0, 0, 1, 1, 1)
+      ),
+      cutpoints = NULL,
+      single_arm = FALSE
+    ),
+    "two-arm, piecewise" = list(
+      data = data.frame(
+        time = c(3, 8, 15, 4, 10, 18),
+        event = c(1, 0, 1, 0, 1, 1),
+        treatment = c(0, 0, 0, 1, 1, 1)
+      ),
+      cutpoints = c(5, 12),
+      single_arm = FALSE
+    ),
+    "single-arm, single interval" = list(
+      data = data.frame(
+        time = c(2, 6, 11, 15),
+        event = c(1, 0, 1, 0),
+        treatment = rep(1, 4)
+      ),
+      cutpoints = NULL,
+      single_arm = TRUE
+    ),
+    "single-arm, piecewise" = list(
+      data = data.frame(
+        time = c(3, 8, 14, 19),
+        event = c(1, 0, 1, 0),
+        treatment = rep(1, 4)
+      ),
+      cutpoints = c(5, 12),
+      single_arm = TRUE
+    )
+  )
+
+  for (case_name in names(cases)) {
+    case <- cases[[case_name]]
+    data_summ <- posterior_sufficient_stats(
+      data = case$data,
+      cutpoints = case$cutpoints,
+      single_arm = case$single_arm
+    )
+
+    # No random draws occur while sufficient statistics are calculated.
+    # Resetting to the same seed therefore requires exact, not approximate,
+    # equality if both posterior entry points preserve draw ordering.
+    set.seed(3817)
+    from_data <- posterior(
+      data = case$data,
+      cutpoints = case$cutpoints,
+      prior = c(0.5, 0.25),
+      N_mcmc = 50,
+      single_arm = case$single_arm
+    )
+    set.seed(3817)
+    from_stats <- posterior_from_sufficient_stats(
+      data_summ = data_summ,
+      prior = c(0.5, 0.25),
+      N_mcmc = 50,
+      single_arm = case$single_arm
+    )
+
+    expect_identical(from_stats, from_data, info = case_name)
+  }
+})
+
+test_that("posterior sufficient statistics can select analysis rows directly", {
+  data <- data.frame(
+    time = c(3, 7, 14, 4, 9, 16, 20, 22),
+    event = c(1, 0, 1, 0, 1, 0, 1, 0),
+    treatment = rep(c(0, 1), each = 4),
+    subject_enrolled = c(TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, FALSE)
+  )
+
+  from_rows <- posterior_sufficient_stats(
+    data = data,
+    cutpoints = c(5, 12),
+    single_arm = FALSE,
+    rows = data$subject_enrolled
+  )
+  from_subset <- posterior_sufficient_stats(
+    data = data[data$subject_enrolled, , drop = FALSE],
+    cutpoints = c(5, 12),
+    single_arm = FALSE
+  )
+
+  expect_identical(from_rows, from_subset)
+})
+
 test_that("posterior warns on zero-exposure interval", {
   set.seed(2913)
   # Treatment event times are all < 10, so treatment interval 2 (>= 10) has
