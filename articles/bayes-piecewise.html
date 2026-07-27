@@ -204,7 +204,7 @@ expected-success rule.</p>
 <p>We use an independent weakly informative <span class="math inline">\operatorname{Gamma}(0.1, 0.1)</span> prior on every
 hazard component:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>   <span class="co"># shape and rate of the Gamma prior on each lambda_j</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">prior_surv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span> <span class="co"># shape and rate for each lambda_j</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="what-a-simulated-trial-dataset-looks-like">What a simulated trial dataset looks like<a class="anchor" aria-label="anchor" href="#what-a-simulated-trial-dataset-looks-like"></a>
@@ -341,7 +341,7 @@ hazard <code>cutpoints</code> used above.</p>
 <span>  lambda_time      <span class="op">=</span> <span class="cn">NULL</span>,             <span class="co"># no internal enrollment-rate knots</span></span>
 <span>  interim_look     <span class="op">=</span> <span class="fl">60</span>,</span>
 <span>  end_of_study     <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>  prior            <span class="op">=</span> <span class="va">prior</span>,</span>
+<span>  prior_surv       <span class="op">=</span> <span class="va">prior_surv</span>,</span>
 <span>  block            <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  rand_ratio       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  prop_loss        <span class="op">=</span> <span class="fl">0.05</span>,</span>
@@ -429,7 +429,7 @@ proportions:</p>
 <span>  lambda_time      <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look     <span class="op">=</span> <span class="fl">60</span>,</span>
 <span>  end_of_study     <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>  prior            <span class="op">=</span> <span class="va">prior</span>,</span>
+<span>  prior_surv       <span class="op">=</span> <span class="va">prior_surv</span>,</span>
 <span>  block            <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  rand_ratio       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  prop_loss        <span class="op">=</span> <span class="fl">0.05</span>,</span>

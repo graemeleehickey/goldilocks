@@ -15,8 +15,8 @@ survival_adapt(
   lambda_time = NULL,
   interim_look = NULL,
   end_of_study,
-  prior = c(0.1, 0.1),
-  bin_prior = c(1, 1),
+  prior_surv = c(0.1, 0.1),
+  prior_bin = c(1, 1),
   bin_method = "mc",
   block = 2,
   rand_ratio = c(1, 1),
@@ -32,7 +32,8 @@ survival_adapt(
   method = "logrank",
   imputed_final = FALSE,
   return_trace = FALSE,
-  binary_imputation = c("event-time", "bernoulli")
+  binary_imputation = c("event-time", "bernoulli"),
+  prior_surv_final = prior_surv
 )
 ```
 
@@ -85,19 +86,18 @@ survival_adapt(
 
   finite study endpoint, strictly greater than the last cutpoint.
 
-- prior:
+- prior_surv:
 
-  vector. The prior distributions for the piecewise hazard rate
-  parameters are each \\Gamma(a_0, b_0)\\, where \\a_0\\ is the shape
-  parameter and \\b_0\\ is the rate parameter (i.e., the inverse of the
-  scale). This follows R's
-  [`stats::rgamma()`](https://rdrr.io/r/stats/GammaDist.html)
-  parameterization. The same prior is applied to all piecewise intervals
-  and to both treatment groups. The default non-informative prior
-  distribution used is `Gamma(0.1, 0.1)`, which is specified by setting
-  `prior = c(0.1, 0.1)`.
+  numeric vector or matrix. Gamma prior for the piecewise-exponential
+  hazards used during interim prediction. A length-two vector supplies
+  shape and rate and is broadcast across all intervals. A `2` by
+  `length(cutpoints) + 1` matrix supplies interval-specific values, with
+  shapes in row 1, rates in row 2, and columns ordered from the earliest
+  to the latest interval. The same interval prior is applied to both
+  treatment groups. Rates must use the same time unit as event times,
+  exposure, and cutpoints. The default is `c(0.1, 0.1)`.
 
-- bin_prior:
+- prior_bin:
 
   vector. Prior distribution for the event probability when
   `method = "bayes-bin"`. The two values are the shape parameters of the
@@ -215,8 +215,8 @@ survival_adapt(
   behavior) copies exposure time and event counts from the nearest
   non-empty interval in the same treatment arm and emits a warning.
   `"prior"` leaves the interval at zero exposure time and zero events,
-  so its posterior is driven only by `prior`. `"error"` stops when any
-  empty interval is found.
+  so its posterior is driven only by its assigned survival prior.
+  `"error"` stops when any empty interval is found.
 
 - method:
 
@@ -256,6 +256,13 @@ survival_adapt(
   status at `end_of_study`. `"bernoulli"` draws the endpoint status
   directly from its conditional event probability. This argument is
   ignored for time-to-event analysis methods.
+
+- prior_surv_final:
+
+  numeric vector or matrix. Gamma prior used for final-stage
+  piecewise-exponential imputation and, for `method = "bayes-surv"`,
+  final analysis. It accepts the same forms as `prior_surv` and defaults
+  to `prior_surv`, preserving the historical behavior.
 
 ## Value
 
@@ -357,7 +364,8 @@ At each interim (and final) analysis methods as:
 
 - Bayesian absolute difference (`method = "bayes-surv"`). Each imputed
   dataset is used to update the conjugate Gamma prior (defined by
-  `prior`), yielding a posterior distribution for the piecewise
+  `prior_surv` at interim looks and `prior_surv_final` at the final
+  stage), yielding a posterior distribution for the piecewise
   exponential rate parameters. In turn, the posterior distribution of
   the cumulative incidence function (\\1 - S(t)\\, where \\S(t)\\ is the
   survival function) evaluated at time `end_of_study` is calculated. If
@@ -383,7 +391,7 @@ At each interim (and final) analysis methods as:
 - Bayesian beta-binomial analysis (`method = "bayes-bin"`). Each
   complete or imputed dataset is reduced to binary event outcomes at
   `end_of_study`. A conjugate `Beta(a, b)` prior, specified with
-  `bin_prior`, is updated with the number of events and non-events in
+  `prior_bin`, is updated with the number of events and non-events in
   each arm. In a single-arm study, inference is based on the posterior
   event probability. In a two-arm study, inference is based on
   \\p\_\textrm{treatment} - p\_\textrm{control}\\. This posterior
@@ -484,7 +492,7 @@ survival_adapt(
  lambda_time = NULL,
  interim_look = 400,
  end_of_study = 36,
- prior = c(0.1, 0.1),
+ prior_surv = c(0.1, 0.1),
  block = 2,
  rand_ratio = c(1, 1),
  prop_loss = 0.30,

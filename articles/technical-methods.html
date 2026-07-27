@@ -275,20 +275,24 @@ interval <span class="math inline">j</span>, <code>goldilocks</code>
 assumes an independent Gamma prior</p>
 <p><span class="math display">\lambda_{zj} \sim
 \operatorname{Gamma}(\alpha_0, \beta_0),</span></p>
-<p>where <span class="math inline">\alpha_0</span> is the shape and
-<span class="math inline">\beta_0</span> is the rate. This follows the
+<p>where <span class="math inline">\alpha_{0j}</span> is the shape and
+<span class="math inline">\beta_{0j}</span> is the rate for interval
+<span class="math inline">j</span>. This follows the
 <code><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">stats::rgamma()</a></code> parameterization. The argument
-<code>prior = c(alpha0, beta0)</code> sets these two hyperparameters,
-with default <code>prior = c(0.1, 0.1)</code>. The same prior is applied
-to every treatment group and every piecewise interval. Separate priors
-by treatment group or interval cannot currently be specified through the
-package interface.</p>
+<code>prior_surv = c(alpha0, beta0)</code> broadcasts one shape-rate
+pair over all intervals. Alternatively, a two-row matrix supplies
+interval-specific shapes in row 1 and rates in row 2, with columns in
+chronological interval order. The same interval prior is applied to
+every treatment group. <code>prior_surv_final</code> accepts the same
+forms and defaults to <code>prior_surv</code>; it can therefore specify
+a different prior for final imputation and final piecewise-exponential
+analysis.</p>
 <p>At an analysis, let <span class="math inline">d_{zj}</span> be the
 number of observed events for treatment value <span class="math inline">z</span>, interval <span class="math inline">j</span>, and let <span class="math inline">y_{zj}</span> be the total observed exposure time
 for that treatment value and interval. Gamma-exponential conjugacy
 gives</p>
 <p><span class="math display">\lambda_{zj} \mid \mathcal{D}
-  \sim \operatorname{Gamma}(\alpha_0 + d_{zj}, \beta_0 +
+  \sim \operatorname{Gamma}(\alpha_{0j} + d_{zj}, \beta_{0j} +
 y_{zj}).</span></p>
 <p>The package obtains <span class="math inline">(d_{zj}, y_{zj})</span>
 by splitting each subject’s observed follow-up over the cut-point
@@ -760,7 +764,7 @@ or excluded before this final test is applied, as described below.</p>
 <p>Let <span class="math inline">x_z</span> be the number of events and
 <span class="math inline">n_z</span> the number of subjects in treatment
 group <span class="math inline">z</span>. With
-<code>bin_prior = c(a, b)</code>, the event probability in arm <span class="math inline">z</span> has posterior distribution</p>
+<code>prior_bin = c(a, b)</code>, the event probability in arm <span class="math inline">z</span> has posterior distribution</p>
 <p><span class="math display">\pi_z \mid \mathcal{D} \sim
   \operatorname{Beta}(a + x_z, b + n_z - x_z).</span></p>
 <p>In a two-arm design, the binary treatment effect is</p>
@@ -910,7 +914,7 @@ the final analysis does not meet the success criterion.</p>
 <span>  lambda_time      <span class="op">=</span> <span class="va">lambda_time</span>,</span>
 <span>  interim_look     <span class="op">=</span> <span class="va">interim_look</span>,</span>
 <span>  end_of_study     <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>  prior            <span class="op">=</span> <span class="va">prior</span>,</span>
+<span>  prior_surv       <span class="op">=</span> <span class="va">prior_surv</span>,</span>
 <span>  Fn               <span class="op">=</span> <span class="va">Fn</span>,</span>
 <span>  Sn               <span class="op">=</span> <span class="va">Sn</span>,</span>
 <span>  prob_ha          <span class="op">=</span> <span class="va">prob_ha</span>,</span>

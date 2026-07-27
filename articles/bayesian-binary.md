@@ -14,15 +14,15 @@ impute a future event time or draw the binary endpoint status directly.
 The final analysis reduces each completed dataset to binary event status
 by `end_of_study`.
 
-Two distinct priors can therefore enter a Bayesian binary design. The
-`prior` argument is a Gamma prior on the piecewise-exponential hazards.
-It is used only for the event-time model that generates predictive
-imputations at interim looks (and at the final analysis when
-`imputed_final = TRUE`). The `bin_prior` argument is a Beta prior on the
-binary endpoint event probability in each arm. It is used for the
-Bayesian binary analysis of every completed or imputed dataset. Thus,
-interim predictive probabilities are affected by both priors, whereas a
-non-imputed final binary analysis is affected by `bin_prior` alone.
+Two distinct kinds of prior can therefore enter a Bayesian binary
+design. `prior_surv` is the Gamma prior on piecewise-exponential hazards
+used for interim predictive imputation, and `prior_surv_final`
+optionally overrides it for final imputation. `prior_bin` is the Beta
+prior on the binary endpoint event probability in each arm and is used
+to analyze every completed or imputed dataset. Thus, interim predictive
+probabilities are affected by `prior_surv` and `prior_bin`; a final
+imputed analysis uses `prior_surv_final` and `prior_bin`; and a
+non-imputed final binary analysis is affected by `prior_bin` alone.
 
 For the examples below, we use the default weakly informative
 \operatorname{Gamma}(0.1, 0.1) hazard prior and a uniform
@@ -31,7 +31,7 @@ For the examples below, we use the default weakly informative
 ``` r
 
 hazard_prior <- c(0.1, 0.1)  # Gamma shape and rate for predictive imputation
-bin_prior <- c(1, 1)         # Beta shapes for the binary endpoint analysis
+prior_bin <- c(1, 1)         # Beta shapes for the binary endpoint analysis
 ```
 
 Two practical consequences follow:
@@ -70,8 +70,8 @@ two_arm_args <- list(
   lambda_time = NULL,
   interim_look = 80,
   end_of_study = end_of_study,
-  prior = hazard_prior,
-  bin_prior = bin_prior,
+  prior_surv = hazard_prior,
+  prior_bin = prior_bin,
   bin_method = "quadrature",
   block = 2,
   rand_ratio = c(1, 1),
@@ -178,8 +178,8 @@ out_single_arm <- survival_adapt(
   lambda_time = NULL,
   interim_look = 50,
   end_of_study = end_of_study,
-  prior = hazard_prior,
-  bin_prior = bin_prior,
+  prior_surv = hazard_prior,
+  prior_bin = prior_bin,
   bin_method = "quadrature",
   prop_loss = 0,
   alternative = "less",
@@ -243,8 +243,8 @@ out_power <- sim_trials(
   lambda_time = NULL,
   interim_look = 80,
   end_of_study = end_of_study,
-  prior = hazard_prior,
-  bin_prior = bin_prior,
+  prior_surv = hazard_prior,
+  prior_bin = prior_bin,
   bin_method = "quadrature",
   block = 2,
   rand_ratio = c(1, 1),

@@ -146,7 +146,7 @@ prior on every hazard component:
 
 ``` r
 
-prior <- c(0.1, 0.1)   # shape and rate of the Gamma prior on each lambda_j
+prior_surv <- c(0.1, 0.1) # shape and rate for each lambda_j
 ```
 
 ## What a simulated trial dataset looks like
@@ -230,7 +230,7 @@ out <- survival_adapt(
   lambda_time      = NULL,             # no internal enrollment-rate knots
   interim_look     = 60,
   end_of_study     = end_of_study,
-  prior            = prior,
+  prior_surv       = prior_surv,
   block            = 4,
   rand_ratio       = c(1, 1),
   prop_loss        = 0.05,
@@ -319,7 +319,7 @@ out_flat <- survival_adapt(
   lambda_time      = NULL,
   interim_look     = 60,
   end_of_study     = end_of_study,
-  prior            = prior,
+  prior_surv       = prior_surv,
   block            = 4,
   rand_ratio       = c(1, 1),
   prop_loss        = 0.05,

@@ -88,7 +88,7 @@ out <- survival_adapt(
   lambda_time      = NULL,
   interim_look     = 50,
   end_of_study     = end_of_study,
-  prior            = c(0.1, 0.1),       # Gamma(0.1, 0.1) on the hazard
+  prior_surv            = c(0.1, 0.1),       # Gamma(0.1, 0.1) on the hazard
   prop_loss        = 0.05,
   alternative      = "less",
   h0               = benchmark,         # benchmark failure probability
@@ -142,7 +142,7 @@ out_power <- sim_trials(
   lambda_time      = NULL,
   interim_look     = 50,
   end_of_study     = end_of_study,
-  prior            = c(0.1, 0.1),
+  prior_surv            = c(0.1, 0.1),
   prop_loss        = 0.05,
   alternative      = "less",
   h0               = benchmark,
@@ -167,7 +167,7 @@ out_t1error <- sim_trials(
   lambda_time      = NULL,
   interim_look     = 50,
   end_of_study     = end_of_study,
-  prior            = c(0.1, 0.1),
+  prior_surv            = c(0.1, 0.1),
   prop_loss        = 0.05,
   alternative      = "less",
   h0               = benchmark,

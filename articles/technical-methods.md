@@ -223,21 +223,25 @@ independent Gamma prior
 
 \lambda\_{zj} \sim \operatorname{Gamma}(\alpha_0, \beta_0),
 
-where \alpha_0 is the shape and \beta_0 is the rate. This follows the
+where \alpha\_{0j} is the shape and \beta\_{0j} is the rate for interval
+j. This follows the
 [`stats::rgamma()`](https://rdrr.io/r/stats/GammaDist.html)
-parameterization. The argument `prior = c(alpha0, beta0)` sets these two
-hyperparameters, with default `prior = c(0.1, 0.1)`. The same prior is
-applied to every treatment group and every piecewise interval. Separate
-priors by treatment group or interval cannot currently be specified
-through the package interface.
+parameterization. The argument `prior_surv = c(alpha0, beta0)`
+broadcasts one shape-rate pair over all intervals. Alternatively, a
+two-row matrix supplies interval-specific shapes in row 1 and rates in
+row 2, with columns in chronological interval order. The same interval
+prior is applied to every treatment group. `prior_surv_final` accepts
+the same forms and defaults to `prior_surv`; it can therefore specify a
+different prior for final imputation and final piecewise-exponential
+analysis.
 
 At an analysis, let d\_{zj} be the number of observed events for
 treatment value z, interval j, and let y\_{zj} be the total observed
 exposure time for that treatment value and interval. Gamma-exponential
 conjugacy gives
 
-\lambda\_{zj} \mid \mathcal{D} \sim \operatorname{Gamma}(\alpha_0 +
-d\_{zj}, \beta_0 + y\_{zj}).
+\lambda\_{zj} \mid \mathcal{D} \sim \operatorname{Gamma}(\alpha\_{0j} +
+d\_{zj}, \beta\_{0j} + y\_{zj}).
 
 The package obtains (d\_{zj}, y\_{zj}) by splitting each subject’s
 observed follow-up over the cut-point intervals. Posterior draws are
@@ -575,7 +579,7 @@ with right-censored follow-up before \tau must be imputed or excluded
 before this final test is applied, as described below.
 
 Let x_z be the number of events and n_z the number of subjects in
-treatment group z. With `bin_prior = c(a, b)`, the event probability in
+treatment group z. With `prior_bin = c(a, b)`, the event probability in
 arm z has posterior distribution
 
 \pi_z \mid \mathcal{D} \sim \operatorname{Beta}(a + x_z, b + n_z - x_z).
@@ -712,7 +716,7 @@ out <- sim_trials(
   lambda_time      = lambda_time,
   interim_look     = interim_look,
   end_of_study     = end_of_study,
-  prior            = prior,
+  prior_surv       = prior_surv,
   Fn               = Fn,
   Sn               = Sn,
   prob_ha          = prob_ha,

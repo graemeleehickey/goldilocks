@@ -135,41 +135,41 @@ with noninformative \operatorname{Beta}(0.5, 0.5) priors. In
 
 ``` r
 
-bin_prior <- c(0.5, 0.5)
+prior_bin <- c(0.5, 0.5)
 ```
 
-The `prior` argument still appears in the code below because
+The survival-prior arguments still appear below because
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-uses a time-to-event model to impute not-yet-observed outcomes at
-interim looks. That imputation model uses a Gamma prior on
-piecewise-exponential hazards. The ADVENT SAP specifies a noninformative
-\operatorname{Gamma}(0.5, 0.001) shape-rate prior for most of those
-hazards. We use those reported hyperparameters here rather than the
-package default. Because the SAP expresses the corresponding risk sets
-and exposure in patient-days, every time supplied to `goldilocks` below
-is expressed in days:
+uses a time-to-event model to impute not-yet-observed outcomes.
+`prior_surv` controls the piecewise-exponential Gamma prior during
+interim prediction, while `prior_surv_final` controls it during final
+multiple imputation. A length-two vector is broadcast across intervals;
+a two-row matrix supplies interval-specific shapes in its first row and
+rates in its second.
+
+The effectiveness model partitions follow-up at days 90, 104, 150, and
+210. At interim looks its first four hazards use
+\operatorname{Gamma}(0.5, 0.001) priors, while the 210–360-day hazard
+uses the informative \operatorname{Gamma}(5, 10000) prior because little
+late follow-up was expected. The final multiple-imputation analysis
+returns to \operatorname{Gamma}(0.5, 0.001) in every interval:
 
 ``` r
 
-prior <- c(0.5, 0.001)
+prior_surv_effectiveness <- rbind(
+  shape = c(0.5, 0.5, 0.5, 0.5, 5),
+  rate = c(0.001, 0.001, 0.001, 0.001, 10000)
+)
+prior_surv_default <- c(shape = 0.5, rate = 0.001)
+prior_surv_final <- prior_surv_default
 ```
 
-That distinction is important: `bin_prior` is the ADVENT-aligned
-endpoint prior, whereas `prior` controls the package’s predictive
-imputation model.
-
-The effectiveness model in the SAP needs one further qualification. It
-partitions follow-up at days 90, 104, 150, and 210. For interim
-sample-size prediction, the first four interval hazards use
-\operatorname{Gamma}(0.5, 0.001) priors, but the 210–360-day hazard uses
-an informative \operatorname{Gamma}(5, 10000) prior because little late
-follow-up was expected at the interim assessments. The final
-multiple-imputation analysis returns to \operatorname{Gamma}(0.5, 0.001)
-for every interval. The current `goldilocks` interface applies one
-shared Gamma prior to every interval and uses it for both interim
-prediction and final imputation, so the special 210–360-day prior is not
-yet available in the package. We therefore use \operatorname{Gamma}(0.5,
-0.001) throughout this endpoint-specific illustration.
+The safety endpoint uses `prior_surv_default` at both stages. The
+distinction from `prior_bin` is important: the survival priors control
+predictive imputation, whereas `prior_bin` is the ADVENT-aligned
+\operatorname{Beta}(0.5, 0.5) prior for the completed binary-endpoint
+analysis. Because the Gamma rates are expressed in patient-days, all
+event times, exposure, and cutpoints supplied below are also in days.
 
 Later follow-up intervals can have no exposure at an early look. The
 SAP’s conjugate model then leaves the corresponding hazard governed by
@@ -478,8 +478,9 @@ advent_effectiveness <- survival_adapt(
   lambda_time = enrollment_rate_change_day,
   interim_look = interim_look,
   end_of_study = end_of_study_day,
-  prior = prior,
-  bin_prior = bin_prior,
+  prior_surv = prior_surv_effectiveness,
+  prior_surv_final = prior_surv_final,
+  prior_bin = prior_bin,
   bin_method = "quadrature",
   block = 2,
   rand_ratio = c(1, 1),
@@ -498,8 +499,8 @@ advent_effectiveness <- survival_adapt(
 advent_effectiveness
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.956   0.15        less         225       225        450   750
-#>   post_prob_ha     est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9994649 -0.0007079646        0.98             0                     1
+#>   post_prob_ha    est_final ppp_success stop_futility stop_expected_success
+#> 1    0.9995408 -0.001415929           1             0                     1
 ```
 
 The most important columns are:
@@ -542,8 +543,9 @@ advent_safety <- survival_adapt(
   lambda_time = enrollment_rate_change_day,
   interim_look = interim_look,
   end_of_study = end_of_study_day,
-  prior = prior,
-  bin_prior = bin_prior,
+  prior_surv = prior_surv_default,
+  prior_surv_final = prior_surv_final,
+  prior_bin = prior_bin,
   bin_method = "quadrature",
   block = 2,
   rand_ratio = c(1, 1),
@@ -590,8 +592,9 @@ advent_common <- list(
   lambda_time = enrollment_rate_change_day,
   interim_look = interim_look,
   end_of_study = end_of_study_day,
-  prior = prior,
-  bin_prior = bin_prior,
+  prior_surv = prior_surv_default,
+  prior_surv_final = prior_surv_final,
+  prior_bin = prior_bin,
   bin_method = "quadrature",
   block = 2,
   rand_ratio = c(1, 1),
@@ -607,6 +610,7 @@ advent_common <- list(
 
 advent_effectiveness_args <- modifyList(advent_common, list(
   cutpoints = eff_event_cutpoints_day,
+  prior_surv = prior_surv_effectiveness,
   prop_loss = effectiveness_prop_loss
 ))
 
@@ -632,10 +636,16 @@ advent_effectiveness_args
 #> $end_of_study
 #> [1] 360
 #> 
-#> $prior
-#> [1] 0.500 0.001
+#> $prior_surv
+#>        [,1]  [,2]  [,3]  [,4]  [,5]
+#> shape 0.500 0.500 0.500 0.500     5
+#> rate  0.001 0.001 0.001 0.001 10000
 #> 
-#> $bin_prior
+#> $prior_surv_final
+#> shape  rate 
+#> 0.500 0.001 
+#> 
+#> $prior_bin
 #> [1] 0.5 0.5
 #> 
 #> $bin_method
@@ -719,8 +729,8 @@ knitr::kable(oc_small, digits = 3)
 
 | scenario | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
 |:---|---:|---:|---:|---:|---:|---:|---:|
-| margin: PFA failure 50% | 0.064 | 0.064 | 0.644 | 0.292 | 556.8 | 151.789 | 0.040 |
-| target: equal 35% failure | 0.976 | 0.940 | 0.010 | 0.050 | 481.8 | 112.223 | 0.012 |
+| margin: PFA failure 50% | 0.064 | 0.076 | 0.644 | 0.280 | 559.6 | 149.105 | 0.042 |
+| target: equal 35% failure | 0.984 | 0.952 | 0.006 | 0.042 | 466.8 | 111.636 | 0.008 |
 
 Each scenario uses 500 simulated trials and two cores. This remains a
 workflow demonstration rather than a definitive estimate of power or

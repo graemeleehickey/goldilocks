@@ -263,32 +263,35 @@ target scenario was an 8% primary safety event rate in each arm.</p>
 models with noninformative <span class="math inline">\operatorname{Beta}(0.5, 0.5)</span> priors. In
 <code>goldilocks</code>, this is specified with:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bin_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
-<p>The <code>prior</code> argument still appears in the code below
-because <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> uses a time-to-event model to
-impute not-yet-observed outcomes at interim looks. That imputation model
-uses a Gamma prior on piecewise-exponential hazards. The ADVENT SAP
-specifies a noninformative <span class="math inline">\operatorname{Gamma}(0.5, 0.001)</span> shape-rate
-prior for most of those hazards. We use those reported hyperparameters
-here rather than the package default. Because the SAP expresses the
-corresponding risk sets and exposure in patient-days, every time
-supplied to <code>goldilocks</code> below is expressed in days:</p>
+<code class="sourceCode R"><span><span class="va">prior_bin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+<p>The survival-prior arguments still appear below because
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> uses a time-to-event model to impute
+not-yet-observed outcomes. <code>prior_surv</code> controls the
+piecewise-exponential Gamma prior during interim prediction, while
+<code>prior_surv_final</code> controls it during final multiple
+imputation. A length-two vector is broadcast across intervals; a two-row
+matrix supplies interval-specific shapes in its first row and rates in
+its second.</p>
+<p>The effectiveness model partitions follow-up at days 90, 104, 150,
+and 210. At interim looks its first four hazards use <span class="math inline">\operatorname{Gamma}(0.5, 0.001)</span> priors,
+while the 210–360-day hazard uses the informative <span class="math inline">\operatorname{Gamma}(5, 10000)</span> prior because
+little late follow-up was expected. The final multiple-imputation
+analysis returns to <span class="math inline">\operatorname{Gamma}(0.5,
+0.001)</span> in every interval:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.001</span><span class="op">)</span></span></code></pre></div>
-<p>That distinction is important: <code>bin_prior</code> is the
-ADVENT-aligned endpoint prior, whereas <code>prior</code> controls the
-package’s predictive imputation model.</p>
-<p>The effectiveness model in the SAP needs one further qualification.
-It partitions follow-up at days 90, 104, 150, and 210. For interim
-sample-size prediction, the first four interval hazards use <span class="math inline">\operatorname{Gamma}(0.5, 0.001)</span> priors, but
-the 210–360-day hazard uses an informative <span class="math inline">\operatorname{Gamma}(5, 10000)</span> prior because
-little late follow-up was expected at the interim assessments. The final
-multiple-imputation analysis returns to <span class="math inline">\operatorname{Gamma}(0.5, 0.001)</span> for every
-interval. The current <code>goldilocks</code> interface applies one
-shared Gamma prior to every interval and uses it for both interim
-prediction and final imputation, so the special 210–360-day prior is not
-yet available in the package. We therefore use <span class="math inline">\operatorname{Gamma}(0.5, 0.001)</span> throughout
-this endpoint-specific illustration.</p>
+<code class="sourceCode R"><span><span class="va">prior_surv_effectiveness</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
+<span>  shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  rate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.001</span>, <span class="fl">0.001</span>, <span class="fl">0.001</span>, <span class="fl">0.001</span>, <span class="fl">10000</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">prior_surv_default</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">0.5</span>, rate <span class="op">=</span> <span class="fl">0.001</span><span class="op">)</span></span>
+<span><span class="va">prior_surv_final</span> <span class="op">&lt;-</span> <span class="va">prior_surv_default</span></span></code></pre></div>
+<p>The safety endpoint uses <code>prior_surv_default</code> at both
+stages. The distinction from <code>prior_bin</code> is important: the
+survival priors control predictive imputation, whereas
+<code>prior_bin</code> is the ADVENT-aligned <span class="math inline">\operatorname{Beta}(0.5, 0.5)</span> prior for the
+completed binary-endpoint analysis. Because the Gamma rates are
+expressed in patient-days, all event times, exposure, and cutpoints
+supplied below are also in days.</p>
 <p>Later follow-up intervals can have no exposure at an early look. The
 SAP’s conjugate model then leaves the corresponding hazard governed by
 its prior. The package’s historical default instead propagates
@@ -701,8 +704,9 @@ multiple trials.</p>
 <span>  lambda_time <span class="op">=</span> <span class="va">enrollment_rate_change_day</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="va">interim_look</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study_day</span>,</span>
-<span>  prior <span class="op">=</span> <span class="va">prior</span>,</span>
-<span>  bin_prior <span class="op">=</span> <span class="va">bin_prior</span>,</span>
+<span>  prior_surv <span class="op">=</span> <span class="va">prior_surv_effectiveness</span>,</span>
+<span>  prior_surv_final <span class="op">=</span> <span class="va">prior_surv_final</span>,</span>
+<span>  prior_bin <span class="op">=</span> <span class="va">prior_bin</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"quadrature"</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -721,8 +725,8 @@ multiple trials.</p>
 <span><span class="va">advent_effectiveness</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1          0.956   0.15        less         225       225        450   750</span></span>
-<span><span class="co">#&gt;   post_prob_ha     est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9994649 -0.0007079646        0.98             0                     1</span></span></code></pre></div>
+<span><span class="co">#&gt;   post_prob_ha    est_final ppp_success stop_futility stop_expected_success</span></span>
+<span><span class="co">#&gt; 1    0.9995408 -0.001415929           1             0                     1</span></span></code></pre></div>
 <p>The most important columns are:</p>
 <ul>
 <li>
@@ -768,8 +772,9 @@ threshold. Success in the code means:</p>
 <span>  lambda_time <span class="op">=</span> <span class="va">enrollment_rate_change_day</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="va">interim_look</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study_day</span>,</span>
-<span>  prior <span class="op">=</span> <span class="va">prior</span>,</span>
-<span>  bin_prior <span class="op">=</span> <span class="va">bin_prior</span>,</span>
+<span>  prior_surv <span class="op">=</span> <span class="va">prior_surv_default</span>,</span>
+<span>  prior_surv_final <span class="op">=</span> <span class="va">prior_surv_final</span>,</span>
+<span>  prior_bin <span class="op">=</span> <span class="va">prior_bin</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"quadrature"</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -813,8 +818,9 @@ accidentally for safety, or vice versa.</p>
 <span>  lambda_time <span class="op">=</span> <span class="va">enrollment_rate_change_day</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="va">interim_look</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study_day</span>,</span>
-<span>  prior <span class="op">=</span> <span class="va">prior</span>,</span>
-<span>  bin_prior <span class="op">=</span> <span class="va">bin_prior</span>,</span>
+<span>  prior_surv <span class="op">=</span> <span class="va">prior_surv_default</span>,</span>
+<span>  prior_surv_final <span class="op">=</span> <span class="va">prior_surv_final</span>,</span>
+<span>  prior_bin <span class="op">=</span> <span class="va">prior_bin</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"quadrature"</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -830,6 +836,7 @@ accidentally for safety, or vice versa.</p>
 <span></span>
 <span><span class="va">advent_effectiveness_args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">advent_common</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  cutpoints <span class="op">=</span> <span class="va">eff_event_cutpoints_day</span>,</span>
+<span>  prior_surv <span class="op">=</span> <span class="va">prior_surv_effectiveness</span>,</span>
 <span>  prop_loss <span class="op">=</span> <span class="va">effectiveness_prop_loss</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -855,10 +862,16 @@ accidentally for safety, or vice versa.</p>
 <span><span class="co">#&gt; $end_of_study</span></span>
 <span><span class="co">#&gt; [1] 360</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $prior</span></span>
-<span><span class="co">#&gt; [1] 0.500 0.001</span></span>
+<span><span class="co">#&gt; $prior_surv</span></span>
+<span><span class="co">#&gt;        [,1]  [,2]  [,3]  [,4]  [,5]</span></span>
+<span><span class="co">#&gt; shape 0.500 0.500 0.500 0.500     5</span></span>
+<span><span class="co">#&gt; rate  0.001 0.001 0.001 0.001 10000</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $bin_prior</span></span>
+<span><span class="co">#&gt; $prior_surv_final</span></span>
+<span><span class="co">#&gt; shape  rate </span></span>
+<span><span class="co">#&gt; 0.500 0.001 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $prior_bin</span></span>
 <span><span class="co">#&gt; [1] 0.5 0.5</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $bin_method</span></span>
@@ -959,22 +972,22 @@ accidentally for safety, or vice versa.</p>
 <tr class="odd">
 <td align="left">margin: PFA failure 50%</td>
 <td align="right">0.064</td>
-<td align="right">0.064</td>
+<td align="right">0.076</td>
 <td align="right">0.644</td>
-<td align="right">0.292</td>
-<td align="right">556.8</td>
-<td align="right">151.789</td>
-<td align="right">0.040</td>
+<td align="right">0.280</td>
+<td align="right">559.6</td>
+<td align="right">149.105</td>
+<td align="right">0.042</td>
 </tr>
 <tr class="even">
 <td align="left">target: equal 35% failure</td>
-<td align="right">0.976</td>
-<td align="right">0.940</td>
-<td align="right">0.010</td>
-<td align="right">0.050</td>
-<td align="right">481.8</td>
-<td align="right">112.223</td>
-<td align="right">0.012</td>
+<td align="right">0.984</td>
+<td align="right">0.952</td>
+<td align="right">0.006</td>
+<td align="right">0.042</td>
+<td align="right">466.8</td>
+<td align="right">111.636</td>
+<td align="right">0.008</td>
 </tr>
 </tbody>
 </table>

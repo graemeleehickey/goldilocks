@@ -57,8 +57,8 @@ time-to-event endpoint</p>
 <span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">end_of_study</span>,</span>
-<span>  prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
-<span>  bin_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  prior_surv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>  prior_bin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"mc"</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -74,7 +74,8 @@ time-to-event endpoint</p>
 <span>  method <span class="op">=</span> <span class="st">"logrank"</span>,</span>
 <span>  imputed_final <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_trace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  binary_imputation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event-time"</span>, <span class="st">"bernoulli"</span><span class="op">)</span></span>
+<span>  binary_imputation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event-time"</span>, <span class="st">"bernoulli"</span><span class="op">)</span>,</span>
+<span>  prior_surv_final <span class="op">=</span> <span class="va">prior_surv</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -129,17 +130,18 @@ the interim posterior undefined for the missing group.</p></dd>
 cutpoint.</p></dd>
 
 
-<dt id="arg-prior">prior<a class="anchor" aria-label="anchor" href="#arg-prior"></a></dt>
-<dd><p>vector. The prior distributions for the piecewise hazard rate
-parameters are each \(Gamma(a_0, b_0)\), where \(a_0\) is the shape
-parameter and \(b_0\) is the rate parameter (i.e., the inverse of the
-scale). This follows R's <code><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">stats::rgamma()</a></code> parameterization. The
-same prior is applied to all piecewise intervals and to both treatment
-groups. The default non-informative prior distribution used is
-<code>Gamma(0.1, 0.1)</code>, which is specified by setting <code>prior = c(0.1, 0.1)</code>.</p></dd>
+<dt id="arg-prior-surv">prior_surv<a class="anchor" aria-label="anchor" href="#arg-prior-surv"></a></dt>
+<dd><p>numeric vector or matrix. Gamma prior for the
+piecewise-exponential hazards used during interim prediction. A length-two
+vector supplies shape and rate and is broadcast across all intervals. A
+<code>2</code> by <code>length(cutpoints) + 1</code> matrix supplies interval-specific values,
+with shapes in row 1, rates in row 2, and columns ordered from the earliest
+to the latest interval. The same interval prior is applied to both
+treatment groups. Rates must use the same time unit as event times,
+exposure, and cutpoints. The default is <code>c(0.1, 0.1)</code>.</p></dd>
 
 
-<dt id="arg-bin-prior">bin_prior<a class="anchor" aria-label="anchor" href="#arg-bin-prior"></a></dt>
+<dt id="arg-prior-bin">prior_bin<a class="anchor" aria-label="anchor" href="#arg-prior-bin"></a></dt>
 <dd><p>vector. Prior distribution for the event probability when
 <code>method = "bayes-bin"</code>. The two values are the shape parameters of the
 <code>Beta(a, b)</code> prior. The same prior is applied to both treatment arms.</p></dd>
@@ -250,7 +252,8 @@ analysis time. <code>"propagate"</code> (the default, matching earlier package
 behavior) copies exposure time and event counts from the nearest non-empty
 interval in the same treatment arm and emits a warning. <code>"prior"</code> leaves
 the interval at zero exposure time and zero events, so its posterior is
-driven only by <code>prior</code>. <code>"error"</code> stops when any empty interval is found.</p></dd>
+driven only by its assigned survival prior. <code>"error"</code> stops when any empty
+interval is found.</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
@@ -288,6 +291,12 @@ draws a conditional piecewise-exponential event time and reduces it to
 event status at <code>end_of_study</code>. <code>"bernoulli"</code> draws the endpoint status
 directly from its conditional event probability. This argument is ignored
 for time-to-event analysis methods.</p></dd>
+
+
+<dt id="arg-prior-surv-final">prior_surv_final<a class="anchor" aria-label="anchor" href="#arg-prior-surv-final"></a></dt>
+<dd><p>numeric vector or matrix. Gamma prior used for
+final-stage piecewise-exponential imputation and, for <code>method = "bayes-surv"</code>, final analysis. It accepts the same forms as <code>prior_surv</code>
+and defaults to <code>prior_surv</code>, preserving the historical behavior.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -368,7 +377,8 @@ freedom. When <code>imputed_final = FALSE</code>, the existing single Cox model 
 fitted directly to the observed right-censored data.</p></li>
 <li><p>Bayesian absolute difference (<code>method = "bayes-surv"</code>).
 Each imputed dataset is used to update the conjugate Gamma prior
-(defined by <code>prior</code>), yielding a posterior distribution for the
+(defined by <code>prior_surv</code> at interim looks and <code>prior_surv_final</code> at the
+final stage), yielding a posterior distribution for the
 piecewise exponential rate parameters. In turn, the posterior
 distribution of the cumulative incidence function (\(1 - S(t)\), where
 \(S(t)\) is the survival function) evaluated at time
@@ -393,7 +403,7 @@ interval is encountered.</p></li>
 <li><p>Bayesian beta-binomial analysis (<code>method = "bayes-bin"</code>).
 Each complete or imputed dataset is reduced to binary event outcomes at
 <code>end_of_study</code>. A conjugate <code>Beta(a, b)</code> prior, specified with
-<code>bin_prior</code>, is updated with the number of events and non-events in
+<code>prior_bin</code>, is updated with the number of events and non-events in
 each arm. In a single-arm study, inference is based on the posterior
 event probability. In a two-arm study, inference is based on
 \(p_\textrm{treatment} - p_\textrm{control}\). This posterior
@@ -490,7 +500,7 @@ approach to sample size selection. <em>Journal of Biopharmaceutical Statistics</
 <span class="r-in"><span> lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span> interim_look <span class="op">=</span> <span class="fl">400</span>,</span></span>
 <span class="r-in"><span> end_of_study <span class="op">=</span> <span class="fl">36</span>,</span></span>
-<span class="r-in"><span> prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span> prior_surv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> block <span class="op">=</span> <span class="fl">2</span>,</span></span>
 <span class="r-in"><span> rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> prop_loss <span class="op">=</span> <span class="fl">0.30</span>,</span></span>

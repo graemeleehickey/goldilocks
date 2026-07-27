@@ -78,22 +78,23 @@ time-to-event hazards to model not-yet-observed outcomes at interim
 looks, but it can either impute a future event time or draw the binary
 endpoint status directly. The final analysis reduces each completed
 dataset to binary event status by <code>end_of_study</code>.</p>
-<p>Two distinct priors can therefore enter a Bayesian binary design. The
-<code>prior</code> argument is a Gamma prior on the
-piecewise-exponential hazards. It is used only for the event-time model
-that generates predictive imputations at interim looks (and at the final
-analysis when <code>imputed_final = TRUE</code>). The
-<code>bin_prior</code> argument is a Beta prior on the binary endpoint
-event probability in each arm. It is used for the Bayesian binary
-analysis of every completed or imputed dataset. Thus, interim predictive
-probabilities are affected by both priors, whereas a non-imputed final
-binary analysis is affected by <code>bin_prior</code> alone.</p>
+<p>Two distinct kinds of prior can therefore enter a Bayesian binary
+design. <code>prior_surv</code> is the Gamma prior on
+piecewise-exponential hazards used for interim predictive imputation,
+and <code>prior_surv_final</code> optionally overrides it for final
+imputation. <code>prior_bin</code> is the Beta prior on the binary
+endpoint event probability in each arm and is used to analyze every
+completed or imputed dataset. Thus, interim predictive probabilities are
+affected by <code>prior_surv</code> and <code>prior_bin</code>; a final
+imputed analysis uses <code>prior_surv_final</code> and
+<code>prior_bin</code>; and a non-imputed final binary analysis is
+affected by <code>prior_bin</code> alone.</p>
 <p>For the examples below, we use the default weakly informative <span class="math inline">\operatorname{Gamma}(0.1, 0.1)</span> hazard prior
 and a uniform <span class="math inline">\operatorname{Beta}(1, 1)</span>
 binary-endpoint prior:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hazard_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>  <span class="co"># Gamma shape and rate for predictive imputation</span></span>
-<span><span class="va">bin_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>         <span class="co"># Beta shapes for the binary endpoint analysis</span></span></code></pre></div>
+<span><span class="va">prior_bin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>         <span class="co"># Beta shapes for the binary endpoint analysis</span></span></code></pre></div>
 <p>Two practical consequences follow:</p>
 <ul>
 <li>
@@ -132,8 +133,8 @@ p_{\text{control}}</span></p>
 <span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="fl">80</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>  prior <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
-<span>  bin_prior <span class="op">=</span> <span class="va">bin_prior</span>,</span>
+<span>  prior_surv <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
+<span>  prior_bin <span class="op">=</span> <span class="va">prior_bin</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"quadrature"</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -239,8 +240,8 @@ exceeds <code>prob_ha</code>.</p>
 <span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>  prior <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
-<span>  bin_prior <span class="op">=</span> <span class="va">bin_prior</span>,</span>
+<span>  prior_surv <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
+<span>  prior_bin <span class="op">=</span> <span class="va">prior_bin</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"quadrature"</span>,</span>
 <span>  prop_loss <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  alternative <span class="op">=</span> <span class="st">"less"</span>,</span>
@@ -307,8 +308,8 @@ Windows.</p>
 <span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="fl">80</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>  prior <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
-<span>  bin_prior <span class="op">=</span> <span class="va">bin_prior</span>,</span>
+<span>  prior_surv <span class="op">=</span> <span class="va">hazard_prior</span>,</span>
+<span>  prior_bin <span class="op">=</span> <span class="va">prior_bin</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"quadrature"</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
