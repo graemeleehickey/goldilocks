@@ -65,7 +65,7 @@
 #'   lambda_time = NULL,
 #'   interim_look = c(400, 500),
 #'   end_of_study = 36,
-#'   prior = c(0.1, 0.1),
+#'   prior_surv = c(0.1, 0.1),
 #'   block = 2,
 #'   rand_ratio = c(1, 1),
 #'   prop_loss = 0.30,
@@ -91,8 +91,8 @@ sim_trials <- function(
   lambda_time = NULL,
   interim_look = NULL,
   end_of_study,
-  prior = c(0.1, 0.1),
-  bin_prior = c(1, 1),
+  prior_surv = c(0.1, 0.1),
+  prior_bin = c(1, 1),
   bin_method = "mc",
   block = 2,
   rand_ratio = c(1, 1),
@@ -112,7 +112,8 @@ sim_trials <- function(
   ncores = 1L,
   backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL,
-  binary_imputation = c("event-time", "bernoulli")
+  binary_imputation = c("event-time", "bernoulli"),
+  prior_surv_final = prior_surv
 ) {
   Call <- match.call()
   empty_interval <- match.arg(empty_interval)
@@ -182,8 +183,8 @@ sim_trials <- function(
       lambda_time = lambda_time,
       interim_look = interim_look,
       end_of_study = end_of_study,
-      prior = prior,
-      bin_prior = bin_prior,
+      prior_surv = prior_surv,
+      prior_bin = prior_bin,
       bin_method = bin_method,
       binary_imputation = binary_imputation,
       block = block,
@@ -199,7 +200,8 @@ sim_trials <- function(
       method = method,
       imputed_final = imputed_final,
       empty_interval = empty_interval,
-      return_trace = return_trace
+      return_trace = return_trace,
+      prior_surv_final = prior_surv_final
     )
   }
 

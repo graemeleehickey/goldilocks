@@ -43,7 +43,7 @@
 test_final <- function(
   data_in,
   cutpoints,
-  prior,
+  prior_surv_final,
   N_mcmc,
   single_arm,
   imputed_final,
@@ -51,7 +51,7 @@ test_final <- function(
   N_impute,
   alternative,
   h0,
-  bin_prior,
+  prior_bin,
   bin_method,
   binary_imputation,
   empty_interval,
@@ -77,7 +77,7 @@ test_final <- function(
     post_lambda_final <- posterior(
       data = data_in,
       cutpoints = cutpoints,
-      prior = prior,
+      prior_surv = prior_surv_final,
       N_mcmc = N_impute,
       single_arm = single_arm,
       empty_interval = empty_interval
@@ -105,7 +105,7 @@ test_final <- function(
         # The draw used by impute_data() came from the observed final-data
         # posterior. Preserve the documented two-stage procedure by forming a
         # new posterior from the completed imputation's sufficient statistics
-        # and the original prior. Passing statistics directly avoids rebuilding
+        # and the final-stage prior. Passing statistics directly avoids rebuilding
         # a reduced patient-level analysis data frame for every imputation.
         data_summ <- posterior_sufficient_stats(
           data = data_success_impute,
@@ -116,7 +116,7 @@ test_final <- function(
           data_summ = data_summ,
           cutpoints = cutpoints,
           end_of_study = end_of_study,
-          prior = prior,
+          prior_surv = prior_surv_final,
           N_mcmc = N_mcmc,
           single_arm = single_arm,
           alternative = alternative,
@@ -156,13 +156,13 @@ test_final <- function(
           data = data,
           cutpoints = cutpoints,
           end_of_study = end_of_study,
-          prior = prior,
+          prior_surv = prior_surv_final,
           N_mcmc = N_mcmc,
           single_arm = single_arm,
           method = method,
           alternative = alternative,
           h0 = h0,
-          bin_prior = bin_prior,
+          prior_bin = prior_bin,
           bin_method = bin_method,
           empty_interval = empty_interval
         )
@@ -201,13 +201,13 @@ test_final <- function(
       data = data_in,
       cutpoints = cutpoints,
       end_of_study = end_of_study,
-      prior = prior,
+      prior_surv = prior_surv_final,
       N_mcmc = N_mcmc,
       single_arm = single_arm,
       method = method,
       alternative = alternative,
       h0 = h0,
-      bin_prior = bin_prior,
+      prior_bin = prior_bin,
       bin_method = bin_method,
       empty_interval = empty_interval
     )

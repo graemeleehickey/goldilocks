@@ -99,24 +99,45 @@ validate_logical_scalar <- function(x, name) {
   invisible(TRUE)
 }
 
-#' @title Validate a Gamma prior
+#' @title Validate and normalize a Gamma survival prior
 #'
-#' @description Checks that a Gamma prior supplies two finite, strictly positive
-#'   shape and rate parameters.
+#' @description Checks that a Gamma prior supplies finite, strictly positive
+#'   shape and rate parameters, then broadcasts a length-two vector over all
+#'   piecewise intervals.
 #'
 #' @noRd
-validate_gamma_prior <- function(prior, name = "prior") {
-  if (
-    !is.numeric(prior) ||
-      length(prior) != 2 ||
-      any(is.na(prior)) ||
-      any(!is.finite(prior)) ||
-      any(prior <= 0)
-  ) {
-    stop("'", name, "' must contain two positive finite values")
+normalize_gamma_prior <- function(
+  prior_surv,
+  n_intervals,
+  name = "prior_surv"
+) {
+  valid_values <- is.numeric(prior_surv) &&
+    !anyNA(prior_surv) &&
+    all(is.finite(prior_surv)) &&
+    all(prior_surv > 0)
+  is_vector <- is.null(dim(prior_surv)) && length(prior_surv) == 2L
+  is_interval_matrix <- is.matrix(prior_surv) &&
+    identical(dim(prior_surv), c(2L, as.integer(n_intervals)))
+
+  if (!valid_values || (!is_vector && !is_interval_matrix)) {
+    stop(
+      "'",
+      name,
+      "' must be a length-two positive finite numeric vector or a 2 x ",
+      n_intervals,
+      " matrix with shape in row 1 and rate in row 2"
+    )
   }
 
-  invisible(TRUE)
+  if (is_vector) {
+    prior_surv <- matrix(
+      rep(prior_surv, n_intervals),
+      nrow = 2L,
+      dimnames = list(c("shape", "rate"), NULL)
+    )
+  }
+
+  prior_surv
 }
 
 #' @title Validate piecewise cutpoints
@@ -491,13 +512,15 @@ validate_interim_looks <- function(interim_look, N_total, min_look = NULL) {
 #'   sample size before a Bayesian binomial analysis is run.
 #'
 #' @noRd
-validate_bayes_binomial_args <- function(bin_prior, bin_method, N_mcmc) {
+validate_bayes_binomial_args <- function(prior_bin, bin_method, N_mcmc) {
   if (
-    length(bin_prior) != 2 ||
-      any(!is.finite(bin_prior)) ||
-      any(bin_prior <= 0)
+    !is.numeric(prior_bin) ||
+      length(prior_bin) != 2 ||
+      anyNA(prior_bin) ||
+      any(!is.finite(prior_bin)) ||
+      any(prior_bin <= 0)
   ) {
-    stop("'bin_prior' must contain two positive finite values")
+    stop("'prior_bin' must contain two positive finite values")
   }
   if (!bin_method %in% c("mc", "normal", "quadrature")) {
     stop("'bin_method' must be one of 'mc', 'normal', or 'quadrature'")

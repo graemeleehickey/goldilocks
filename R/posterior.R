@@ -29,7 +29,7 @@
 posterior <- function(
   data,
   cutpoints,
-  prior,
+  prior_surv,
   N_mcmc,
   single_arm,
   empty_interval = "propagate"
@@ -55,7 +55,7 @@ posterior <- function(
 
   posterior_from_sufficient_stats(
     data_summ = data_summ,
-    prior = prior,
+    prior_surv = prior_surv,
     N_mcmc = N_mcmc,
     single_arm = single_arm,
     empty_interval = empty_interval
@@ -81,7 +81,7 @@ posterior <- function(
 #'   \deqn{\lambda_{ak} \mid data \sim Gamma(\alpha + D_{ak},
 #'   \beta + Y_{ak}),}
 #'   where \eqn{D_{ak}} is `tot_events`, \eqn{Y_{ak}} is `tot_time`, and
-#'   `prior = c(alpha, beta)` uses the shape-rate parameterization.
+#'   `prior_surv = c(alpha, beta)` uses the shape-rate parameterization.
 #'
 #'   Keeping this function separate is important for the package's two-stage
 #'   Bayesian imputation procedure. A first posterior draw generates a completed
@@ -95,7 +95,7 @@ posterior <- function(
 #' @noRd
 posterior_from_sufficient_stats <- function(
   data_summ,
-  prior,
+  prior_surv,
   N_mcmc,
   single_arm,
   empty_interval = "propagate"
@@ -122,6 +122,11 @@ posterior_from_sufficient_stats <- function(
   treatment_values <- if (single_arm) 1 else c(0, 1)
   interval_values <- unique(as.character(data_summ$interval))
   n_intervals <- length(interval_values)
+  prior_surv <- normalize_gamma_prior(
+    prior_surv,
+    n_intervals = n_intervals,
+    name = "prior_surv"
+  )
   expected_combinations <- expand.grid(
     treatment = treatment_values,
     interval = interval_values,
@@ -214,8 +219,8 @@ posterior_from_sufficient_stats <- function(
   for (j in 1:n_intervals) {
     post[, j, 1] <- rgamma(
       N_mcmc,
-      prior[1] + treatment_summ$tot_events[j],
-      prior[2] + treatment_summ$tot_time[j]
+      prior_surv[1, j] + treatment_summ$tot_events[j],
+      prior_surv[2, j] + treatment_summ$tot_time[j]
     )
   }
 
@@ -229,8 +234,8 @@ posterior_from_sufficient_stats <- function(
     for (j in 1:n_intervals) {
       post[, j, 2] <- rgamma(
         N_mcmc,
-        prior[1] + control_summ$tot_events[j],
-        prior[2] + control_summ$tot_time[j]
+        prior_surv[1, j] + control_summ$tot_events[j],
+        prior_surv[2, j] + control_summ$tot_time[j]
       )
     }
   }

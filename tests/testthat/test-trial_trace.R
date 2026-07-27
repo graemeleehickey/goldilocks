@@ -8,7 +8,7 @@ trace_args <- function() {
     lambda_time = NULL,
     interim_look = c(40, 60),
     end_of_study = 24,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.05,

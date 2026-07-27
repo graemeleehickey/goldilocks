@@ -16,7 +16,7 @@ out_power <- sim_trials(
   lambda_time = NULL,
   interim_look = seq(100, 275, 25),
   end_of_study = 12,
-  prior = c(0.1, 0.1),
+  prior_surv = c(0.1, 0.1),
   block = 2,
   rand_ratio = c(1, 1),
   prop_loss = 0,

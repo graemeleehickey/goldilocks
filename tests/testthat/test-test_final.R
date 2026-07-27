@@ -61,3 +61,39 @@ test_that("pool_rubin_scalar can use between-imputation variance alone", {
   expect_gt(pooled$std_error, 0)
   expect_equal(pooled$estimate, 0)
 })
+
+test_that("prior_surv_final controls final-stage imputation", {
+  data_in <- data.frame(
+    time = rep(0.1, 20),
+    event = 0,
+    treatment = 1,
+    subject_impute_success = TRUE
+  )
+  run_final <- function(prior_surv_final) {
+    test_final(
+      data_in = data_in,
+      cutpoints = NULL,
+      prior_surv_final = prior_surv_final,
+      N_mcmc = 50,
+      single_arm = TRUE,
+      imputed_final = TRUE,
+      method = "bayes-bin",
+      N_impute = 5,
+      alternative = "less",
+      h0 = 0.5,
+      prior_bin = c(1, 1),
+      bin_method = "quadrature",
+      binary_imputation = "event-time",
+      empty_interval = "prior",
+      end_of_study = 1
+    )
+  }
+
+  set.seed(5109)
+  low_hazard <- run_final(c(1e6, 1e14))
+  set.seed(5109)
+  high_hazard <- run_final(c(1e6, 1e4))
+
+  expect_lt(low_hazard[2], 0.1)
+  expect_gt(high_hazard[2], 0.9)
+})

@@ -46,13 +46,13 @@ analyse_data <- function(
   data,
   cutpoints,
   end_of_study,
-  prior,
+  prior_surv,
   N_mcmc,
   single_arm,
   method,
   alternative,
   h0,
-  bin_prior = c(1, 1),
+  prior_bin = c(1, 1),
   bin_method = "mc",
   empty_interval = "propagate"
 ) {
@@ -78,7 +78,7 @@ analyse_data <- function(
       data_summ = data_summ,
       cutpoints = cutpoints,
       end_of_study = end_of_study,
-      prior = prior,
+      prior_surv = prior_surv,
       N_mcmc = N_mcmc,
       single_arm = single_arm,
       alternative = alternative,
@@ -98,7 +98,7 @@ analyse_data <- function(
       single_arm = single_arm,
       alternative = alternative,
       h0 = h0,
-      bin_prior = bin_prior,
+      prior_bin = prior_bin,
       bin_method = bin_method,
       N_mcmc = N_mcmc
     )
@@ -196,7 +196,7 @@ analyse_data <- function(
 #'      data.
 #'   2. Use those hazards to impute a completed trial.
 #'   3. Form a fresh posterior from the completed trial's sufficient statistics
-#'      and the original `prior`.
+#'      and the original `prior_surv`.
 #'
 #'   Step 3 deliberately does not update from the first posterior. The first
 #'   posterior is used to generate the missing outcomes; treating it as the new
@@ -211,7 +211,7 @@ analyse_bayes_surv_sufficient_stats <- function(
   data_summ,
   cutpoints,
   end_of_study,
-  prior,
+  prior_surv,
   N_mcmc,
   single_arm,
   alternative,
@@ -231,7 +231,7 @@ analyse_bayes_surv_sufficient_stats <- function(
   # original Gamma prior and preserves the configured empty-interval policy.
   post_lambda <- posterior_from_sufficient_stats(
     data_summ = data_summ,
-    prior = prior,
+    prior_surv = prior_surv,
     N_mcmc = N_mcmc,
     single_arm = single_arm,
     empty_interval = empty_interval
@@ -276,11 +276,11 @@ bayes_binomial_test <- function(
   single_arm,
   alternative,
   h0,
-  bin_prior,
+  prior_bin,
   bin_method,
   N_mcmc
 ) {
-  validate_bayes_binomial_args(bin_prior, bin_method, N_mcmc)
+  validate_bayes_binomial_args(prior_bin, bin_method, N_mcmc)
   if (alternative == "two.sided") {
     stop(
       "Bayesian binomial analysis can only be used with alternative equal ",
@@ -294,8 +294,8 @@ bayes_binomial_test <- function(
     if (length(event) == 0) {
       stop("Bayesian binomial analysis requires at least one subject per arm")
     }
-    alpha <- bin_prior[1] + sum(event)
-    beta <- bin_prior[2] + length(event) - sum(event)
+    alpha <- prior_bin[1] + sum(event)
+    beta <- prior_bin[2] + length(event) - sum(event)
     list(
       alpha = alpha,
       beta = beta,

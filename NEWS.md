@@ -2,6 +2,14 @@
 
 ## Improvements
 
+* Survival-prior arguments are now named `prior_surv` and
+  `prior_surv_final`, while the Bayesian binary prior is named `prior_bin`.
+  `prior_surv_final` defaults to `prior_surv`, but can specify a different
+  Gamma prior for final imputation and final piecewise-exponential analysis.
+  Survival priors may be length-two shape-rate vectors shared across intervals
+  or two-row matrices with one shape-rate column per piecewise interval. The
+  ADVENT vignette now expresses its interval- and stage-specific imputation
+  priors directly (#59).
 * **Major behavior change from goldilocks 0.5.0 and earlier:**
   `enrollment()` now simulates exact continuous-time arrivals from a
   piecewise-constant Poisson process by inverting its cumulative intensity.

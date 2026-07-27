@@ -11,7 +11,7 @@ test_that("sim_trials-logrank", {
     lambda_time = NULL,
     interim_look = c(400, 500),
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -47,7 +47,7 @@ test_that("sim_trials-bayes-surv", {
     lambda_time = NULL,
     interim_look = c(400, 500),
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -83,8 +83,8 @@ test_that("sim_trials-bayes-bin", {
     lambda_time = NULL,
     interim_look = 100,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
-    bin_prior = c(1, 1),
+    prior_surv = c(0.1, 0.1),
+    prior_bin = c(1, 1),
     bin_method = "normal",
     block = 2,
     rand_ratio = c(1, 1),
@@ -121,7 +121,7 @@ test_that("sim_trials rejects invalid ncores", {
       lambda_time = NULL,
       interim_look = c(400, 500),
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,
@@ -158,7 +158,7 @@ test_that("sim_trials optionally retains traces without changing summaries", {
     lambda_time = NULL,
     interim_look = c(40, 60),
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.05,
@@ -252,7 +252,7 @@ test_that("sim_trials is reproducible with seed and ncores = 1", {
       lambda_time = NULL,
       interim_look = 100,
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,
@@ -276,20 +276,24 @@ test_that("sim_trials is reproducible with seed and ncores = 1", {
 test_that("sim_trials uses reproducible per-trial streams in parallel", {
   skip_on_os("windows")
 
-  hc <- -log(0.7) / 36
-  ht <- -log(0.85) / 36
+  hc <- rep(-log(0.7) / 36, 2)
+  ht <- rep(-log(0.85) / 36, 2)
 
   run_with_cores <- function(ncores) {
     sim_trials(
       hazard_treatment = ht,
       hazard_control = hc,
-      cutpoints = NULL,
+      cutpoints = 12,
       N_total = 200,
       lambda = 20,
       lambda_time = NULL,
       interim_look = 100,
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = rbind(
+        shape = c(0.1, 2),
+        rate = c(0.1, 20)
+      ),
+      prior_surv_final = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,
@@ -302,6 +306,7 @@ test_that("sim_trials uses reproducible per-trial streams in parallel", {
       N_mcmc = 2,
       N_trials = 2,
       method = "logrank",
+      empty_interval = "prior",
       return_trace = TRUE,
       ncores = ncores,
       seed = 4101
@@ -328,7 +333,7 @@ test_that("sim_trials produces identical seeded PSOCK results", {
       lambda_time = NULL,
       interim_look = 50,
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,
@@ -398,7 +403,7 @@ test_that("sim_trials validates seed", {
       lambda_time = NULL,
       interim_look = 100,
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,

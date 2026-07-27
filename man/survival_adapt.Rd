@@ -14,8 +14,8 @@ survival_adapt(
   lambda_time = NULL,
   interim_look = NULL,
   end_of_study,
-  prior = c(0.1, 0.1),
-  bin_prior = c(1, 1),
+  prior_surv = c(0.1, 0.1),
+  prior_bin = c(1, 1),
   bin_method = "mc",
   block = 2,
   rand_ratio = c(1, 1),
@@ -31,7 +31,8 @@ survival_adapt(
   method = "logrank",
   imputed_final = FALSE,
   return_trace = FALSE,
-  binary_imputation = c("event-time", "bernoulli")
+  binary_imputation = c("event-time", "bernoulli"),
+  prior_surv_final = prior_surv
 )
 }
 \arguments{
@@ -66,15 +67,16 @@ the interim posterior undefined for the missing group.}
 \item{end_of_study}{finite study endpoint, strictly greater than the last
 cutpoint.}
 
-\item{prior}{vector. The prior distributions for the piecewise hazard rate
-parameters are each \eqn{Gamma(a_0, b_0)}, where \eqn{a_0} is the shape
-parameter and \eqn{b_0} is the rate parameter (i.e., the inverse of the
-scale). This follows R's \code{\link[stats:GammaDist]{stats::rgamma()}} parameterization. The
-same prior is applied to all piecewise intervals and to both treatment
-groups. The default non-informative prior distribution used is
-\code{Gamma(0.1, 0.1)}, which is specified by setting \code{prior = c(0.1, 0.1)}.}
+\item{prior_surv}{numeric vector or matrix. Gamma prior for the
+piecewise-exponential hazards used during interim prediction. A length-two
+vector supplies shape and rate and is broadcast across all intervals. A
+\code{2} by \code{length(cutpoints) + 1} matrix supplies interval-specific values,
+with shapes in row 1, rates in row 2, and columns ordered from the earliest
+to the latest interval. The same interval prior is applied to both
+treatment groups. Rates must use the same time unit as event times,
+exposure, and cutpoints. The default is \code{c(0.1, 0.1)}.}
 
-\item{bin_prior}{vector. Prior distribution for the event probability when
+\item{prior_bin}{vector. Prior distribution for the event probability when
 \code{method = "bayes-bin"}. The two values are the shape parameters of the
 \code{Beta(a, b)} prior. The same prior is applied to both treatment arms.}
 
@@ -162,7 +164,8 @@ analysis time. \code{"propagate"} (the default, matching earlier package
 behavior) copies exposure time and event counts from the nearest non-empty
 interval in the same treatment arm and emits a warning. \code{"prior"} leaves
 the interval at zero exposure time and zero events, so its posterior is
-driven only by \code{prior}. \code{"error"} stops when any empty interval is found.}
+driven only by its assigned survival prior. \code{"error"} stops when any empty
+interval is found.}
 
 \item{method}{character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
@@ -192,6 +195,10 @@ draws a conditional piecewise-exponential event time and reduces it to
 event status at \code{end_of_study}. \code{"bernoulli"} draws the endpoint status
 directly from its conditional event probability. This argument is ignored
 for time-to-event analysis methods.}
+
+\item{prior_surv_final}{numeric vector or matrix. Gamma prior used for
+final-stage piecewise-exponential imputation and, for \code{method = "bayes-surv"}, final analysis. It accepts the same forms as \code{prior_surv}
+and defaults to \code{prior_surv}, preserving the historical behavior.}
 }
 \value{
 With return_trace = FALSE (the default), a data frame containing
@@ -287,7 +294,8 @@ freedom. When \code{imputed_final = FALSE}, the existing single Cox model is
 fitted directly to the observed right-censored data.
 \item Bayesian absolute difference (\code{method = "bayes-surv"}).
 Each imputed dataset is used to update the conjugate Gamma prior
-(defined by \code{prior}), yielding a posterior distribution for the
+(defined by \code{prior_surv} at interim looks and \code{prior_surv_final} at the
+final stage), yielding a posterior distribution for the
 piecewise exponential rate parameters. In turn, the posterior
 distribution of the cumulative incidence function (\eqn{1 - S(t)}, where
 \eqn{S(t)} is the survival function) evaluated at time
@@ -313,7 +321,7 @@ interval is encountered.
 \item Bayesian beta-binomial analysis (\code{method = "bayes-bin"}).
 Each complete or imputed dataset is reduced to binary event outcomes at
 \code{end_of_study}. A conjugate \code{Beta(a, b)} prior, specified with
-\code{bin_prior}, is updated with the number of events and non-events in
+\code{prior_bin}, is updated with the number of events and non-events in
 each arm. In a single-arm study, inference is based on the posterior
 event probability. In a two-arm study, inference is based on
 \eqn{p_\textrm{treatment} - p_\textrm{control}}. This posterior
@@ -408,7 +416,7 @@ survival_adapt(
  lambda_time = NULL,
  interim_look = 400,
  end_of_study = 36,
- prior = c(0.1, 0.1),
+ prior_surv = c(0.1, 0.1),
  block = 2,
  rand_ratio = c(1, 1),
  prop_loss = 0.30,

@@ -8,7 +8,7 @@ test_that("posterior returns correct dimensions (two-arm, single interval)", {
   res <- posterior(
     data,
     cutpoints = NULL,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     N_mcmc = 50,
     single_arm = FALSE
   )
@@ -28,11 +28,136 @@ test_that("posterior returns correct dimensions (two-arm, piecewise)", {
   res <- posterior(
     data,
     cutpoints = c(12, 24),
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     N_mcmc = 30,
     single_arm = FALSE
   )
   expect_equal(dim(res), c(30, 3, 2))
+})
+
+test_that("vector survival priors broadcast exactly across intervals", {
+  data <- data.frame(
+    time = c(3, 8, 15, 4, 10, 18),
+    event = c(1, 0, 1, 0, 1, 1),
+    treatment = c(0, 0, 0, 1, 1, 1)
+  )
+  prior_matrix <- matrix(rep(c(0.5, 0.25), 3), nrow = 2)
+
+  set.seed(3817)
+  from_vector <- posterior(
+    data = data,
+    cutpoints = c(5, 12),
+    prior_surv = c(0.5, 0.25),
+    N_mcmc = 50,
+    single_arm = FALSE
+  )
+  set.seed(3817)
+  from_matrix <- posterior(
+    data = data,
+    cutpoints = c(5, 12),
+    prior_surv = prior_matrix,
+    N_mcmc = 50,
+    single_arm = FALSE
+  )
+
+  expect_identical(from_matrix, from_vector)
+})
+
+test_that("posterior applies the assigned prior to each interval", {
+  data <- data.frame(
+    time = c(3, 8, 15, 4, 10, 18),
+    event = c(1, 0, 1, 0, 1, 1),
+    treatment = c(0, 0, 0, 1, 1, 1)
+  )
+  data_summ <- posterior_sufficient_stats(
+    data,
+    cutpoints = c(5, 12),
+    single_arm = FALSE
+  )
+  prior_surv <- rbind(
+    shape = c(0.5, 2, 5),
+    rate = c(0.25, 1, 4)
+  )
+
+  set.seed(9017)
+  actual <- posterior_from_sufficient_stats(
+    data_summ = data_summ,
+    prior_surv = prior_surv,
+    N_mcmc = 20,
+    single_arm = FALSE
+  )
+
+  expected <- array(NA_real_, dim = c(20, 3, 2))
+  set.seed(9017)
+  for (arm_slice in seq_len(2)) {
+    treatment_value <- if (arm_slice == 1L) 1 else 0
+    arm_summ <- data_summ[data_summ$treatment == treatment_value, ]
+    for (j in seq_len(3)) {
+      expected[, j, arm_slice] <- rgamma(
+        20,
+        shape = prior_surv[1, j] + arm_summ$tot_events[j],
+        rate = prior_surv[2, j] + arm_summ$tot_time[j]
+      )
+    }
+  }
+
+  expect_identical(actual, expected)
+})
+
+test_that("single-interval survival prior matrices are supported", {
+  data <- data.frame(
+    time = c(2, 4, 3, 5),
+    event = c(1, 0, 0, 1),
+    treatment = c(0, 0, 1, 1)
+  )
+
+  set.seed(749)
+  from_vector <- posterior(
+    data,
+    cutpoints = NULL,
+    prior_surv = c(2, 0.5),
+    N_mcmc = 20,
+    single_arm = FALSE
+  )
+  set.seed(749)
+  from_matrix <- posterior(
+    data,
+    cutpoints = NULL,
+    prior_surv = matrix(c(2, 0.5), nrow = 2),
+    N_mcmc = 20,
+    single_arm = FALSE
+  )
+
+  expect_identical(from_matrix, from_vector)
+})
+
+test_that("posterior rejects malformed interval-specific priors", {
+  data <- data.frame(
+    time = c(3, 8, 15, 4, 10, 18),
+    event = c(1, 0, 1, 0, 1, 1),
+    treatment = c(0, 0, 0, 1, 1, 1)
+  )
+
+  expect_error(
+    posterior(
+      data,
+      cutpoints = c(5, 12),
+      prior_surv = matrix(1, nrow = 2, ncol = 2),
+      N_mcmc = 10,
+      single_arm = FALSE
+    ),
+    "2 x 3"
+  )
+  expect_error(
+    posterior(
+      data,
+      cutpoints = c(5, 12),
+      prior_surv = rbind(c(1, 1, 1), c(1, 0, 1)),
+      N_mcmc = 10,
+      single_arm = FALSE
+    ),
+    "positive finite"
+  )
 })
 
 test_that("posterior returns correct dimensions (single-arm)", {
@@ -45,7 +170,7 @@ test_that("posterior returns correct dimensions (single-arm)", {
   res <- posterior(
     data,
     cutpoints = NULL,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     N_mcmc = 40,
     single_arm = TRUE
   )
@@ -113,14 +238,14 @@ test_that("statistics-based posterior exactly matches patient-level posterior", 
     from_data <- posterior(
       data = case$data,
       cutpoints = case$cutpoints,
-      prior = c(0.5, 0.25),
+      prior_surv = c(0.5, 0.25),
       N_mcmc = 50,
       single_arm = case$single_arm
     )
     set.seed(3817)
     from_stats <- posterior_from_sufficient_stats(
       data_summ = data_summ,
-      prior = c(0.5, 0.25),
+      prior_surv = c(0.5, 0.25),
       N_mcmc = 50,
       single_arm = case$single_arm
     )
@@ -166,7 +291,7 @@ test_that("posterior warns on zero-exposure interval", {
     posterior(
       data,
       cutpoints = 10,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE
     ),
@@ -188,7 +313,7 @@ test_that("posterior propagates zero-exposure intervals within treatment group",
     posterior(
       data,
       cutpoints = c(10, 20),
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       N_mcmc = 4000,
       single_arm = FALSE
     )
@@ -213,7 +338,10 @@ test_that("posterior can leave zero-exposure intervals prior-driven", {
   res <- posterior(
     data,
     cutpoints = c(10, 20),
-    prior = c(2, 0.5),
+    prior_surv = rbind(
+      shape = c(0.5, 1, 5),
+      rate = c(0.25, 0.5, 4)
+    ),
     N_mcmc = 10000,
     single_arm = FALSE,
     empty_interval = "prior"
@@ -221,7 +349,7 @@ test_that("posterior can leave zero-exposure intervals prior-driven", {
 
   # Treatment interval 3 has no exposure, so with empty_interval = "prior"
   # the posterior mean should be close to the Gamma prior mean.
-  expect_equal(mean(res[, 3, 1]), 2 / 0.5, tolerance = 0.15)
+  expect_equal(mean(res[, 3, 1]), 5 / 4, tolerance = 0.05)
 })
 
 test_that("posterior can error on zero-exposure intervals", {
@@ -235,7 +363,7 @@ test_that("posterior can error on zero-exposure intervals", {
     posterior(
       data,
       cutpoints = c(10, 20),
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE,
       empty_interval = "error"
@@ -256,7 +384,7 @@ test_that("posterior errors when the treatment group has no subjects (factor)", 
     posterior(
       data,
       cutpoints = 10,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE
     ),
@@ -280,7 +408,7 @@ test_that("posterior errors on single-arm interim data with numeric treatment", 
     posterior(
       data_no_trt,
       cutpoints = NULL,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE
     ),
@@ -297,7 +425,7 @@ test_that("posterior errors on single-arm interim data with numeric treatment", 
     posterior(
       data_no_ctrl,
       cutpoints = NULL,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE
     ),
@@ -308,7 +436,7 @@ test_that("posterior errors on single-arm interim data with numeric treatment", 
   res <- posterior(
     data_no_ctrl,
     cutpoints = NULL,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     N_mcmc = 10,
     single_arm = TRUE
   )
@@ -326,7 +454,7 @@ test_that("posterior returns positive draws", {
   res <- posterior(
     data,
     cutpoints = 12,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     N_mcmc = 100,
     single_arm = FALSE
   )

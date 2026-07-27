@@ -8,7 +8,7 @@ test_that("survival_adapt-bayes-surv", {
     lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -36,8 +36,8 @@ test_that("survival_adapt-bayes-bin", {
     lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
-    bin_prior = c(1, 1),
+    prior_surv = c(0.1, 0.1),
+    prior_bin = c(1, 1),
     bin_method = "normal",
     block = 2,
     rand_ratio = c(1, 1),
@@ -87,7 +87,7 @@ test_that("survival_adapt-logrank", {
     lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -115,7 +115,7 @@ test_that("survival_adapt-cox", {
     lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -144,7 +144,7 @@ test_that("survival_adapt-riskdiff", {
     lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -173,7 +173,7 @@ test_that("survival_adapt-riskdiff excludes LTFU when imputed_final = FALSE", {
     lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -203,7 +203,7 @@ test_that("survival_adapt pools imputed Cox final analyses", {
     lambda_time = NULL,
     interim_look = NULL,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -303,7 +303,7 @@ test_that("survival_adapt-complex", {
     lambda_time = 6,
     interim_look = c(200, 350),
     end_of_study = 24,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 3,
     rand_ratio = c(2, 1),
     prop_loss = 0,
@@ -332,7 +332,7 @@ test_that("error-interim-looks", {
       lambda_time = NULL,
       interim_look = c(200, 300, 400, 500),
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,
@@ -362,7 +362,7 @@ test_that("error-interim-look-below-block-size", {
       lambda_time = NULL,
       interim_look = 3,
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 4,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,
@@ -390,7 +390,7 @@ test_that("error-alternative", {
       lambda_time = NULL,
       interim_look = 200,
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,
@@ -417,7 +417,7 @@ test_that("error-cutpoint", {
       lambda_time = NULL,
       interim_look = 200,
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,
@@ -444,7 +444,7 @@ test_that("error-alternative-bayes-surv", {
       lambda_time = NULL,
       interim_look = 200,
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,
@@ -470,7 +470,7 @@ test_that("survival_adapt-logrank-one-sided", {
     lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -500,7 +500,7 @@ test_that("survival_adapt-cox-one-sided-less", {
     lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -530,7 +530,7 @@ test_that("survival_adapt-cox-one-sided-greater", {
     lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -559,7 +559,7 @@ test_that("survival_adapt-riskdiff supports one-sided margins", {
     lambda_time = NULL,
     interim_look = 200,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -616,7 +616,7 @@ test_that("error-logrank-single_arm", {
       lambda_time = NULL,
       interim_look = 200,
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,
@@ -643,7 +643,7 @@ test_that("error-prob-thresholds-length_v1", {
       lambda_time = NULL,
       interim_look = c(100, 200),
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,
@@ -670,7 +670,7 @@ test_that("survival_adapt works with no interim looks and default thresholds", {
     lambda_time = NULL,
     interim_look = NULL,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0,
@@ -699,7 +699,7 @@ test_that("survival_adapt validates probability, count, and prior arguments", {
     lambda_time = NULL,
     interim_look = 100,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -724,9 +724,26 @@ test_that("survival_adapt validates probability, count, and prior arguments", {
   expect_error(
     do.call(
       survival_adapt,
-      modifyList(common_args, list(prior = c(-0.1, 0.1)))
+      modifyList(common_args, list(prior_surv = c(-0.1, 0.1)))
     ),
-    "prior"
+    "prior_surv"
+  )
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(
+        common_args,
+        list(prior_surv = matrix(1, nrow = 2, ncol = 2))
+      )
+    ),
+    "2 x 1"
+  )
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(common_args, list(prior_surv_final = c(0.1, Inf)))
+    ),
+    "prior_surv_final"
   )
   expect_error(
     do.call(survival_adapt, modifyList(common_args, list(N_impute = 1.5))),
@@ -746,6 +763,68 @@ test_that("survival_adapt validates probability, count, and prior arguments", {
   )
 })
 
+test_that("prior_surv_final defaults exactly to prior_surv", {
+  common_args <- list(
+    hazard_treatment = c(0.02, 0.01),
+    hazard_control = c(0.03, 0.015),
+    cutpoints = 12,
+    N_total = 40,
+    lambda = 10,
+    lambda_time = NULL,
+    interim_look = NULL,
+    end_of_study = 24,
+    prior_surv = rbind(
+      shape = c(0.5, 2),
+      rate = c(0.25, 1)
+    ),
+    alternative = "less",
+    h0 = 0,
+    N_mcmc = 100,
+    method = "bayes-surv"
+  )
+
+  set.seed(8041)
+  from_default <- do.call(survival_adapt, common_args)
+  set.seed(8041)
+  from_explicit <- do.call(
+    survival_adapt,
+    c(common_args, list(prior_surv_final = common_args$prior_surv))
+  )
+
+  expect_identical(from_default, from_explicit)
+})
+
+test_that("the final survival prior is independent of the interim prior", {
+  common_args <- list(
+    hazard_treatment = c(0.02, 0.01),
+    hazard_control = c(0.03, 0.015),
+    cutpoints = 12,
+    N_total = 40,
+    lambda = 10,
+    lambda_time = NULL,
+    interim_look = NULL,
+    end_of_study = 24,
+    prior_surv_final = c(0.5, 0.25),
+    alternative = "less",
+    h0 = 0,
+    N_mcmc = 100,
+    method = "bayes-surv"
+  )
+
+  set.seed(8042)
+  weak_interim <- do.call(
+    survival_adapt,
+    c(common_args, list(prior_surv = c(0.1, 0.1)))
+  )
+  set.seed(8042)
+  strong_interim <- do.call(
+    survival_adapt,
+    c(common_args, list(prior_surv = c(100, 100)))
+  )
+
+  expect_identical(weak_interim, strong_interim)
+})
+
 test_that("survival_adapt validates interim ordering and h0", {
   common_args <- list(
     hazard_treatment = -log(0.85) / 36,
@@ -756,7 +835,7 @@ test_that("survival_adapt validates interim ordering and h0", {
     lambda_time = NULL,
     interim_look = 100,
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0,
@@ -822,7 +901,7 @@ test_that("survival_adapt keeps futility disabled when Fn = 0", {
     lambda_time = NULL,
     interim_look = c(100, 150),
     end_of_study = 36,
-    prior = c(0.1, 0.1),
+    prior_surv = c(0.1, 0.1),
     block = 2,
     rand_ratio = c(1, 1),
     prop_loss = 0.30,
@@ -851,7 +930,7 @@ test_that("error-prob-thresholds-length_v2", {
       lambda_time = NULL,
       interim_look = c(100, 200),
       end_of_study = 36,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,

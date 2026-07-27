@@ -131,7 +131,7 @@ benchmark_results <- bench::mark(
     posterior_internal(
       data = posterior_data,
       cutpoints = cutpoints_piecewise,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       N_mcmc = 1000,
       single_arm = FALSE
     )
@@ -140,7 +140,7 @@ benchmark_results <- bench::mark(
     set.seed(1001)
     posterior_from_sufficient_stats_internal(
       data_summ = posterior_stats,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       N_mcmc = 1000,
       single_arm = FALSE
     )
@@ -178,7 +178,7 @@ benchmark_results <- bench::mark(
       lambda_time = NULL,
       interim_look = c(250, 375),
       end_of_study = end_of_study,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.2,
@@ -204,7 +204,7 @@ benchmark_results <- bench::mark(
       lambda_time = NULL,
       interim_look = c(250, 375),
       end_of_study = end_of_study,
-      prior = c(0.1, 0.1),
+      prior_surv = c(0.1, 0.1),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.2,
