@@ -159,9 +159,33 @@ sets. That keeps a traced trial small enough to inspect and share while
 leaving the underlying random-number path unchanged.</p>
 </div>
 <div class="section level2">
+<h2 id="visualizing-the-enrollment-plan">Visualizing the enrollment plan<a class="anchor" aria-label="anchor" href="#visualizing-the-enrollment-plan"></a>
+</h2>
+<p>Trial and simulation results retain their evaluated enrollment
+design, so the enrollment projection can be drawn without repeating
+<code>lambda</code>, <code>N_total</code>, or the interim looks:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_enrollment.html">plot_enrollment</a></span><span class="op">(</span></span>
+<span>  <span class="va">trial</span>,</span>
+<span>  n_sim <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">20260727</span>,</span>
+<span>  time_unit <span class="op">=</span> <span class="st">"months"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="decision-traces_files/figure-html/enrollment-plot-1.png" class="r-plt" alt="" width="672"></p>
+<p>The blue line is expected cumulative enrollment and the grey step
+functions are newly simulated enrollment trajectories. Dashed guides
+mark the two interim looks and the maximum sample size. Because this
+design has a constant enrollment rate, each displayed milestone time is
+its mean arrival time, <span class="math inline">(N - 1) /
+\lambda</span>. For piecewise enrollment rates, the plot instead labels
+the time at which expected cumulative enrollment reaches the milestone.
+Supplying <code>seed</code> makes the displayed trajectories
+reproducible without changing the caller’s random-number state.</p>
+</div>
+<div class="section level2">
 <h2 id="visualizing-the-path">Visualizing the path<a class="anchor" aria-label="anchor" href="#visualizing-the-path"></a>
 </h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_trial_trace.html">plot_trial_trace</a></span><span class="op">(</span><span class="va">trial</span><span class="op">)</span></span></code></pre></div>
 <p><img src="decision-traces_files/figure-html/trace-plot-1.png" class="r-plt" alt="" width="672"></p>
 <p>The first two panels show the two predictive probabilities alongside
@@ -183,7 +207,7 @@ flowchart views, while <code><a href="../reference/plot_sim_decisions.html">plot
 two predictive probabilities map to the decision regions at each look.
 Supplying the complete traced result ensures that stopping views include
 reached looks at which no trial stopped.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sims</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">hazard_treatment</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">hazard_control</span>,</span>
@@ -222,7 +246,7 @@ how interim predictive probabilities produced those decisions. To
 compare operating characteristics across a grid of true treatment
 effects, summarize the scenarios together and supply their numeric
 effect values to <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code>:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scenario_oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="st">"null"</span> <span class="op">=</span> <span class="va">sims_null</span><span class="op">$</span><span class="va">sims</span>,</span>
 <span>  <span class="st">"moderate"</span> <span class="op">=</span> <span class="va">sims_moderate</span><span class="op">$</span><span class="va">sims</span>,</span>

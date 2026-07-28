@@ -4,6 +4,16 @@
 
 ### Improvements
 
+- New
+  [`plot_enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/plot_enrollment.md)
+  draws the expected enrollment projection, simulated trial
+  trajectories, and interim and maximum-sample-size milestones for
+  constant or piecewise enrollment rates. It accepts explicit design
+  arguments or extracts the evaluated design retained on
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  and
+  [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  results, with optional follow-up and time-unit annotations.
 - Survival-prior arguments are now named `prior_surv` and
   `prior_surv_final`, while the Bayesian binary prior is named
   `prior_bin`. `prior_surv_final` defaults to `prior_surv`, but can
@@ -235,6 +245,7 @@
 
 - Expanded the simulation, design, and technical vignettes with examples
   of
+  [`plot_enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/plot_enrollment.md),
   [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md),
   [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md),
   and

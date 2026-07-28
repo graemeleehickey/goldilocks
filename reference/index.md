@@ -18,6 +18,8 @@ designs.
   parameters and treatment effect
 - [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
   : Summarize simulations to get operating characteristics
+- [`plot_enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/plot_enrollment.md)
+  : Plot an enrollment projection
 - [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)
   : Plot operating characteristics across simulation scenarios
 - [`plot_sim_decisions()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_decisions.md)
