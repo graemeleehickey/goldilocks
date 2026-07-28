@@ -67,6 +67,30 @@ For each completed look, `ppp_stop_now` is the predictive probability of success
 
 The trace does not retain posterior draws or completed imputed data sets. That keeps a traced trial small enough to inspect and share while leaving the underlying random-number path unchanged.
 
+## Visualizing the enrollment plan
+
+Trial and simulation results retain their evaluated enrollment design, so the
+enrollment projection can be drawn without repeating `lambda`, `N_total`, or
+the interim looks:
+
+```{r enrollment-plot, fig.width = 7, fig.height = 4.8}
+plot_enrollment(
+  trial,
+  n_sim = 20,
+  seed = 20260727,
+  time_unit = "months"
+)
+```
+
+The blue line is expected cumulative enrollment and the grey step functions
+are newly simulated enrollment trajectories. Dashed guides mark the two
+interim looks and the maximum sample size. Because this design has a constant
+enrollment rate, each displayed milestone time is its mean arrival time,
+$(N - 1) / \lambda$. For piecewise enrollment rates, the plot instead labels
+the time at which expected cumulative enrollment reaches the milestone.
+Supplying `seed` makes the displayed trajectories reproducible without changing
+the caller's random-number state.
+
 ## Visualizing the path
 
 ```{r trace-plot, fig.width = 7, fig.height = 8}

@@ -762,6 +762,14 @@ survival_adapt <- function(
     stop_futility = stop_futility,
     stop_expected_success = stop_expected_success
   )
+  enrollment_design <- new_enrollment_design(
+    lambda = lambda,
+    N_total = N_total,
+    lambda_time = lambda_time,
+    interim_look = interim_look,
+    end_of_study = end_of_study
+  )
+  attr(results, "enrollment_design") <- enrollment_design
 
   if (return_trace) {
     out <- list(
@@ -770,6 +778,7 @@ survival_adapt <- function(
       call = Call
     )
     class(out) <- "goldilocks_trial"
+    attr(out, "enrollment_design") <- enrollment_design
     return(out)
   }
 

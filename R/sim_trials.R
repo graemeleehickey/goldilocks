@@ -229,6 +229,13 @@ sim_trials <- function(
     sims <- bind_rows(trial_results)
     out <- list(sims = sims, call = Call)
   }
+  attr(out, "enrollment_design") <- new_enrollment_design(
+    lambda = lambda,
+    N_total = N_total,
+    lambda_time = lambda_time,
+    interim_look = interim_look,
+    end_of_study = end_of_study
+  )
 
   return(out)
 }

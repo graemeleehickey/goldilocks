@@ -2,6 +2,11 @@
 
 ## Improvements
 
+* New `plot_enrollment()` draws the expected enrollment projection, simulated
+  trial trajectories, and interim and maximum-sample-size milestones for
+  constant or piecewise enrollment rates. It accepts explicit design arguments
+  or extracts the evaluated design retained on `survival_adapt()` and
+  `sim_trials()` results, with optional follow-up and time-unit annotations.
 * Survival-prior arguments are now named `prior_surv` and
   `prior_surv_final`, while the Bayesian binary prior is named `prior_bin`.
   `prior_surv_final` defaults to `prior_surv`, but can specify a different
@@ -116,7 +121,8 @@
 ## Documentation
 
 * Expanded the simulation, design, and technical vignettes with examples of
-  `plot_sim_ocs()`, `plot_sim_stopping()`, and `plot_sim_decisions()`.
+  `plot_enrollment()`, `plot_sim_ocs()`, `plot_sim_stopping()`, and
+  `plot_sim_decisions()`.
 * Modernized roxygen2 source comments to use markdown tables, links, code spans, and emphasis in place of older Rd markup where appropriate.
 * Added a new vignette, "Technical details of the Goldilocks design", documenting the design notation, piecewise-exponential event-time model, Gamma posterior updating, posterior predictive probabilities, interim decision rules, final analysis options, and simulation-based calibration.
 * Added a new vignette, "Bayesian binary outcome designs", documenting `method = "bayes-bin"` for two-arm and single-arm complete binary endpoint analyses.
