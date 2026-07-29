@@ -21,12 +21,14 @@ changes, including migration from `lambda_time = 0` to `lambda_time = NULL`,
 from `method = "chisq"` to `method = "riskdiff"`, and from `method = "bayes"`
 to `method = "bayes-surv"`.
 
-## Current test environment
+## Test environments
 
 * local macOS (Tahoe 26.5.2), R 4.5.3, `R CMD check --as-cran`
-
-Before submission, the final release version should also be checked on the
-repository's Linux, macOS, and Windows GitHub Actions matrix and on win-builder.
+* GitHub Actions, Windows latest, R release
+* GitHub Actions, macOS latest, R release
+* GitHub Actions, Ubuntu latest, R oldrel-1
+* GitHub Actions, Ubuntu latest, R release
+* GitHub Actions, Ubuntu latest, R devel
 
 ## R CMD check results
 
