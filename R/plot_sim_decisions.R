@@ -31,16 +31,18 @@
 #'
 #' @export
 plot_sim_decisions <- function(x) {
-  traces <- if (
-    is.list(x) && !is.data.frame(x) && "traces" %in% names(x)
-  ) {
+  traces <- if (is.list(x) && !is.data.frame(x) && "traces" %in% names(x)) {
     x$traces
   } else {
     x
   }
   required <- c(
-    "look", "ppp_stop_now", "success_threshold", "ppp_success_at_max",
-    "futility_threshold", "decision"
+    "look",
+    "ppp_stop_now",
+    "success_threshold",
+    "ppp_success_at_max",
+    "futility_threshold",
+    "decision"
   )
   if (!is.data.frame(traces) || !all(required %in% names(traces))) {
     stop(
@@ -76,7 +78,9 @@ plot_sim_decisions <- function(x) {
     stop("predictive probabilities and thresholds must lie between 0 and 1")
   }
   allowed_decisions <- c(
-    "continue", "stop_expected_success", "stop_futility"
+    "continue",
+    "stop_expected_success",
+    "stop_futility"
   )
   if (
     !is.character(traces$decision) ||
@@ -88,8 +92,10 @@ plot_sim_decisions <- function(x) {
   futility_available <- is.finite(traces$ppp_success_at_max) &
     is.finite(traces$futility_threshold)
   if (
-    any(xor(is.finite(traces$ppp_success_at_max),
-      is.finite(traces$futility_threshold)))
+    any(xor(
+      is.finite(traces$ppp_success_at_max),
+      is.finite(traces$futility_threshold)
+    ))
   ) {
     stop("maximum-sample-size predictions and futility thresholds must align")
   }
@@ -163,17 +169,26 @@ plot_sim_decisions <- function(x) {
       main = panel_title
     )
     graphics::rect(
-      0, 0, 1, 1,
+      0,
+      0,
+      1,
+      1,
       col = grDevices::adjustcolor("#0072B2", alpha.f = 0.06),
       border = NA
     )
     graphics::rect(
-      0, 0, futility_threshold, success_threshold,
+      0,
+      0,
+      futility_threshold,
+      success_threshold,
       col = grDevices::adjustcolor("#D55E00", alpha.f = 0.14),
       border = NA
     )
     graphics::rect(
-      0, success_threshold, 1, 1,
+      0,
+      success_threshold,
+      1,
+      1,
       col = grDevices::adjustcolor("#009E73", alpha.f = 0.14),
       border = NA
     )

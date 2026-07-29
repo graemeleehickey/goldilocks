@@ -36,6 +36,7 @@ digraph goldilocks {
   sim_trials       [label = 'sim_trials()',       fillcolor = '#dae8fc', color = '#6c8ebf']
   survival_adapt   [label = 'survival_adapt()',   fillcolor = '#dae8fc', color = '#6c8ebf']
   summarise_sims   [label = 'summarise_sims()',   fillcolor = '#dae8fc', color = '#6c8ebf']
+  plot_enrollment  [label = 'plot_enrollment()',  fillcolor = '#dae8fc', color = '#6c8ebf']
   summarise_trial_trace [label = 'summarise_trial_trace()', fillcolor = '#dae8fc', color = '#6c8ebf']
   plot_trial_trace [label = 'plot_trial_trace()', fillcolor = '#dae8fc', color = '#6c8ebf']
   plot_sim_stopping [label = 'plot_sim_stopping()', fillcolor = '#dae8fc', color = '#6c8ebf']
@@ -47,6 +48,7 @@ digraph goldilocks {
   pwe_sim          [label = 'pwe_sim()',          fillcolor = '#dae8fc', color = '#6c8ebf']
   pwe_impute       [label = 'pwe_impute()',       fillcolor = '#dae8fc', color = '#6c8ebf']
   ppwe             [label = 'ppwe()',             fillcolor = '#dae8fc', color = '#6c8ebf']
+  prop_to_haz      [label = 'prop_to_haz()',      fillcolor = '#dae8fc', color = '#6c8ebf']
 
   # Internal functions (grey)
   test_stop_success [label = 'test_stop_success()', fillcolor = '#f5f5f5', color = '#999999']
@@ -63,6 +65,7 @@ digraph goldilocks {
   sim_trials      -> summarise_sims  [style = dashed, label = 'output list']
   sim_trials      -> plot_sim_stopping [style = dashed, label = 'simulation output']
   sim_trials      -> plot_sim_decisions [style = dashed, label = 'simulation traces']
+  sim_trials      -> plot_enrollment [style = dashed, label = 'stored design']
   summarise_sims  -> plot_sim_ocs [style = dashed, label = 'scenario summaries']
 
   survival_adapt  -> sim_comp_data
@@ -71,6 +74,7 @@ digraph goldilocks {
   survival_adapt  -> test_final
   survival_adapt  -> summarise_trial_trace [style = dashed, label = 'optional trace']
   survival_adapt  -> plot_trial_trace [style = dashed, label = 'optional trace']
+  survival_adapt  -> plot_enrollment [style = dashed, label = 'stored design']
 
   sim_comp_data   -> enrollment
   sim_comp_data   -> randomization
@@ -89,6 +93,7 @@ digraph goldilocks {
   analyse_data    -> logrank_test
 
   haz_to_prop     -> ppwe
+  prop_to_haz     -> sim_comp_data [style = dashed, label = 'hazard inputs']
 
   impute_data     -> pwe_impute
   impute_data     -> pwe_sim
@@ -109,6 +114,7 @@ The functions fall into three layers:
 ### Post-processing functions
 
 -   **`summarise_sims()`**: Summarizes the output of `sim_trials()`, computing operating characteristics such as power, expected sample size, and stopping probabilities.
+-   **`plot_enrollment()`**: Draws the expected enrollment projection, optional simulated trajectories, and interim and maximum-sample-size milestones from explicit arguments or a stored trial design.
 -   **`summarise_trial_trace()`**: Condenses an optional single-trial interim trace into a one-row stopping-path summary.
 -   **`plot_trial_trace()`**: Visualizes predictive probabilities, thresholds, enrollment, and observed events for an optional single-trial trace.
 -   **`plot_sim_stopping()`**: Visualizes marginal, conditional, cumulative, or flowchart stopping outcomes and enrolled sample sizes across simulated trials.
@@ -117,7 +123,14 @@ The functions fall into three layers:
 
 ### Data generation and analysis utilities
 
+-   **`enrollment()`**: Simulates exact continuous-time arrivals under constant or piecewise-constant enrollment rates.
+-   **`randomization()`**: Generates the blocked two-arm treatment allocation.
+-   **`pwe_sim()`** and **`pwe_impute()`**: Simulate event times from, or conditionally impute them under, the piecewise-exponential model.
+-   **`ppwe()`**: Computes cumulative event probabilities under piecewise-exponential hazards.
+-   **`prop_to_haz()`**: Converts cumulative event probabilities at specified times to the corresponding piecewise hazards.
 -   **`posterior()`**: Estimates the posterior distribution of piecewise exponential hazard rates using a conjugate Gamma model.
 -   **`analyse_data()`**: Applies the chosen analysis method (`logrank`, `cox`, `bayes-surv`, `bayes-bin`, or `riskdiff`) to an (imputed) dataset.
 -   **`impute_data()`**: Imputes missing event times for censored subjects using `pwe_impute()` or `pwe_sim()`.
 -   **`haz_to_prop()`**: Converts posterior hazard rate draws to cumulative incidence proportions via `ppwe()`.
+
+The first five utilities in this section are exported for direct use. The final four are internal components of the adaptive analysis pipeline.

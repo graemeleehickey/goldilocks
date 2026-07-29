@@ -33,7 +33,10 @@
 #' @export
 plot_sim_ocs <- function(x, effect, xlab = "True treatment effect") {
   probability_columns <- c(
-    "power", "stop_success", "stop_futility", "stop_max_N"
+    "power",
+    "stop_success",
+    "stop_futility",
+    "stop_max_N"
   )
   required <- c(probability_columns, "mean_N")
   if (!is.data.frame(x) || !all(required %in% names(x))) {

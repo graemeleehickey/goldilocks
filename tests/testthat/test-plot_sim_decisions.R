@@ -8,8 +8,14 @@ sim_decision_traces <- function() {
     ppp_success_at_max = c(0.8, 0.5, 0.02, 0.5, 0.85, 0.4, 0.01, 0.4),
     futility_threshold = 0.05,
     decision = c(
-      "stop_expected_success", "continue", "stop_futility", "continue",
-      "stop_expected_success", "continue", "stop_futility", "continue"
+      "stop_expected_success",
+      "continue",
+      "stop_futility",
+      "continue",
+      "stop_expected_success",
+      "continue",
+      "stop_futility",
+      "continue"
     ),
     stringsAsFactors = FALSE
   )

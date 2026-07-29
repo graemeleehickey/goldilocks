@@ -3,9 +3,9 @@
 \docType{package}
 \name{goldilocks-package}
 \alias{goldilocks-package}
-\title{goldilocks: Goldilocks Adaptive Trial Designs for Time-to-Event Endpoints}
+\title{goldilocks: Adaptive Trial Designs for Survival and Binary Endpoints}
 \description{
-Implements the Goldilocks adaptive trial design for a time to event outcome using a piecewise exponential model and conjugate Gamma prior distributions. The method closely follows the article by Broglio and colleagues \doi{10.1080/10543406.2014.888569}, which allows users to explore the operating characteristics of different trial designs.
+Implements Goldilocks adaptive trial designs for time-to-event and fixed-time binary endpoints. Outcomes are generated with a piecewise exponential model, with conjugate Gamma priors used for predictive imputation. Final analyses may use log-rank or Cox tests, Bayesian piecewise-exponential inference, frequentist risk differences, or Bayesian beta-binomial inference. The method closely follows Broglio and colleagues \doi{10.1080/10543406.2014.888569} and supports simulation of design operating characteristics.
 }
 \seealso{
 Useful links:

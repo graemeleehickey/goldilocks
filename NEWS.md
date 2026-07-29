@@ -1,4 +1,4 @@
-# goldilocks 0.5.0.9000
+# goldilocks 0.6.0
 
 ## Improvements
 
@@ -120,6 +120,12 @@
 
 ## Documentation
 
+* Updated the package title, description, help landing page, README, and
+  architecture overview to reflect the current support for both survival and
+  fixed-time binary endpoints, all five final-analysis methods, and the complete
+  plotting API.
+* Corrected the technical-methods vignette's section numbering and updated its
+  overview to cover the package's binary endpoint methods.
 * Expanded the simulation, design, and technical vignettes with examples of
   `plot_enrollment()`, `plot_sim_ocs()`, `plot_sim_stopping()`, and
   `plot_sim_decisions()`.

@@ -99,7 +99,11 @@ summarise_trial_trace <- function(x) {
       last_look = NA_integer_,
       last_decision = "no_interim_looks",
       final_N = if (is.null(summary)) NA_integer_ else summary$N_enrolled,
-      final_post_prob_ha = if (is.null(summary)) NA_real_ else summary$post_prob_ha,
+      final_post_prob_ha = if (is.null(summary)) {
+        NA_real_
+      } else {
+        summary$post_prob_ha
+      },
       stringsAsFactors = FALSE
     ))
   }
@@ -110,7 +114,11 @@ summarise_trial_trace <- function(x) {
     last_look = last$look,
     last_decision = last$decision,
     final_N = if (is.null(summary)) NA_integer_ else summary$N_enrolled,
-    final_post_prob_ha = if (is.null(summary)) NA_real_ else summary$post_prob_ha,
+    final_post_prob_ha = if (is.null(summary)) {
+      NA_real_
+    } else {
+      summary$post_prob_ha
+    },
     ppp_stop_now = last$ppp_stop_now,
     ppp_success_at_max = last$ppp_success_at_max,
     warning_count = sum(trace$warning_count),
@@ -271,7 +279,12 @@ plot_trial_trace <- function(x) {
   )
   graphics::legend(
     "topleft",
-    legend = c("Treatment enrolled", "Control enrolled", "Treatment events", "Control events"),
+    legend = c(
+      "Treatment enrolled",
+      "Control enrolled",
+      "Treatment events",
+      "Control events"
+    ),
     col = c("#0072B2", "#D55E00", "#56B4E9", "#E69F00"),
     pch = c(16, 16, 1, 1),
     lty = c(1, 1, 2, 2),
