@@ -2,86 +2,21 @@
 
 ## Improvements
 
-* New `plot_enrollment()` draws the expected enrollment projection, simulated
-  trial trajectories, and interim and maximum-sample-size milestones for
-  constant or piecewise enrollment rates. It accepts explicit design arguments
-  or extracts the evaluated design retained on `survival_adapt()` and
-  `sim_trials()` results, with optional follow-up and time-unit annotations.
-* Survival-prior arguments are now named `prior_surv` and
-  `prior_surv_final`, while the Bayesian binary prior is named `prior_bin`.
-  `prior_surv_final` defaults to `prior_surv`, but can specify a different
-  Gamma prior for final imputation and final piecewise-exponential analysis.
-  Survival priors may be length-two shape-rate vectors shared across intervals
-  or two-row matrices with one shape-rate column per piecewise interval. The
-  ADVENT vignette now expresses its interval- and stage-specific imputation
-  priors directly (#59).
-* **Major behavior change from goldilocks 0.5.0 and earlier:**
-  `enrollment()` now simulates exact continuous-time arrivals from a
-  piecewise-constant Poisson process by inverting its cumulative intensity.
-  Fractional enrollment-rate changes are handled exactly, and runtime depends
-  on the requested sample size rather than the number of empty unit-time bins.
-  Enrollment schedules now follow the internal-knot convention used by hazard
-  schedules: `lambda_time = NULL` represents a constant rate, each supplied
-  positive internal knot requires one additional `lambda` value, and time zero
-  remains the implicit first-patient-in origin. `sim_comp_data()` now consumes
-  these continuous enrollment times directly without post-hoc uniform jitter
-  (#55). Previously, `enrollment()` generated Poisson counts in unit-time bins,
-  returned rebased integer bin times, and `sim_comp_data()` added uniform
-  jitter. Existing calls must replace `lambda_time = 0` with `NULL` and remove
-  the leading zero from piecewise schedules. Seeded simulations will not
-  reproduce results from version 0.5.0 or earlier, and operating-characteristic
-  estimates may change, especially for fractional knots or low enrollment
-  rates.
-* The frequentist binary `method = "chisq"` analysis has been replaced by
-  `method = "riskdiff"`. It estimates the treatment-minus-control event-risk
-  difference, supports one- and two-sided Wald tests against `h0`, and reports
-  that difference in `est_final`. When `imputed_final = TRUE`, estimates and
-  within-imputation variances are combined using Rubin's rules. The historical
-  mean-of-`1 - P` rule is no longer used. Imputed log-rank final analyses remain
-  unsupported (#56).
-* Cox regression now supports `imputed_final = TRUE`. The final log hazard
-  ratios and within-imputation variances are combined using Rubin's rules, and
-  `post_prob_ha` reports `1 - P` from the pooled Wald test. Non-imputed Cox
-  analyses are unchanged (#56).
-* Bayesian survival and Monte Carlo beta-binomial analyses now use the shared
-  `N_mcmc` argument for posterior sampling; the separate `bin_N` argument has
-  been removed. Their internal analysis results return the posterior mean
-  effect instead of all posterior draws.
-* survival_adapt() can now return an optional, tidy interim decision trace with
-  predictive probabilities, thresholds, stopping decisions, arm-level counts,
-  and relevant warnings. New helpers summarize and plot individual traces and
-  simulation stopping outcomes (#57).
-* `plot_sim_stopping()` now offers marginal, conditional, cumulative, and
-  flowchart views of stopping outcomes by enrolled sample size. Plot subtitles
-  state bar-chart denominators explicitly, while the flowchart shows trial
-  counts branching through futility, continued enrollment, and early success
-  at successive looks. Bar-chart legends are placed beyond the plotting region
-  with margins sized to their labels, avoiding overlap across device themes and
-  text sizes. Subtitles are left-aligned so long denominator descriptions stay
-  visible, and the cumulative view uses a compact y-axis label that remains
-  clear of its title. Percentage labels use a compact, consistent size across
-  bar-chart views to avoid collisions between adjacent looks. When retained
-  simulation traces are supplied,
-  conditional, cumulative, and flowchart views include reached looks at which
-  no trial stopped.
-* New `plot_sim_ocs()` plots success and stopping probabilities together with
-  expected sample size across treatment-effect simulation scenarios.
-* `sim_trials(return_trace = TRUE)` now retains compact interim traces across
-  simulations, and new `plot_sim_decisions()` visualizes their predictive-
-  probability decision regions by interim look.
-* `sim_trials()` now supports reproducible PSOCK parallel execution on Windows
-  and an explicit `backend` argument. The default Unix fork path is retained;
-  `backend = "auto"` selects the appropriate implementation for the platform.
-  Seeded simulations now also restore the caller's RNG state (#40).
-* Consolidated the Bayesian binomial analysis implementation so its posterior
-  calculations and method-specific branches are co-located in
-  `bayes_binomial_test()`.
+* New `plot_enrollment()` draws the expected enrollment projection, simulated trial trajectories, and interim and maximum-sample-size milestones for constant or piecewise enrollment rates. It accepts explicit design arguments or extracts the evaluated design retained on `survival_adapt()` and `sim_trials()` results, with optional follow-up and time-unit annotations.
+* Survival-prior arguments are now named `prior_surv` and `prior_surv_final`, while the Bayesian binary prior is named `prior_bin`. `prior_surv_final` defaults to `prior_surv`, but can specify a different Gamma prior for final imputation and final piecewise-exponential analysis. Survival priors may be length-two shape-rate vectors shared across intervals or two-row matrices with one shape-rate column per piecewise interval. The ADVENT vignette now expresses its interval- and stage-specific imputation priors directly (#59).
+* **Major behavior change from goldilocks 0.5.0 and earlier:** `enrollment()` now simulates exact continuous-time arrivals from a piecewise-constant Poisson process by inverting its cumulative intensity. Fractional enrollment-rate changes are handled exactly, and runtime depends on the requested sample size rather than the number of empty unit-time bins. Enrollment schedules now follow the internal-knot convention used by hazard schedules: `lambda_time = NULL` represents a constant rate, each supplied positive internal knot requires one additional `lambda` value, and time zero remains the implicit first-patient-in origin. `sim_comp_data()` now consumes these continuous enrollment times directly without post-hoc uniform jitter (#55). Previously, `enrollment()` generated Poisson counts in unit-time bins, returned rebased integer bin times, and `sim_comp_data()` added uniform jitter. Existing calls must replace `lambda_time = 0` with `NULL` and remove the leading zero from piecewise schedules. Seeded simulations will not reproduce results from version 0.5.0 or earlier, and operating-characteristic estimates may change, especially for fractional knots or low enrollment rates.
+* The frequentist binary `method = "chisq"` analysis has been replaced by `method = "riskdiff"`. It estimates the treatment-minus-control event-risk difference, supports one- and two-sided Wald tests against `h0`, and reports that difference in `est_final`. When `imputed_final = TRUE`, estimates and within-imputation variances are combined using Rubin's rules. The historical mean-of-`1 - P` rule is no longer used. Imputed log-rank final analyses remain unsupported (#56).
+* Cox regression now supports `imputed_final = TRUE`. The final log hazard ratios and within-imputation variances are combined using Rubin's rules, and `post_prob_ha` reports `1 - P` from the pooled Wald test. Non-imputed Cox analyses are unchanged (#56).
+* Bayesian survival and Monte Carlo beta-binomial analyses now use the shared `N_mcmc` argument for posterior sampling; the separate `bin_N` argument has been removed. Their internal analysis results return the posterior mean effect instead of all posterior draws.
+* survival_adapt() can now return an optional, tidy interim decision trace with predictive probabilities, thresholds, stopping decisions, arm-level counts, and relevant warnings. New helpers summarize and plot individual traces and simulation stopping outcomes (#57).
+* `plot_sim_stopping()` now offers marginal, conditional, cumulative, and flowchart views of stopping outcomes by enrolled sample size. Plot subtitles state bar-chart denominators explicitly, while the flowchart shows trial counts branching through futility, continued enrollment, and early success at successive looks. Bar-chart legends are placed beyond the plotting region with margins sized to their labels, avoiding overlap across device themes and text sizes. Subtitles are left-aligned so long denominator descriptions stay visible, and the cumulative view uses a compact y-axis label that remains clear of its title. Percentage labels use a compact, consistent size across bar-chart views to avoid collisions between adjacent looks. When retained simulation traces are supplied, conditional, cumulative, and flowchart views include reached looks at which no trial stopped.
+* New `plot_sim_ocs()` plots success and stopping probabilities together with expected sample size across treatment-effect simulation scenarios.
+* `sim_trials(return_trace = TRUE)` now retains compact interim traces across simulations, and new `plot_sim_decisions()` visualizes their predictive-probability decision regions by interim look.
+* `sim_trials()` now supports reproducible PSOCK parallel execution on Windows and an explicit `backend` argument. The default Unix fork path is retained; `backend = "auto"` selects the appropriate implementation for the platform. Seeded simulations now also restore the caller's RNG state (#40).
+* Consolidated the Bayesian binomial analysis implementation so its posterior calculations and method-specific branches are co-located in `bayes_binomial_test()`.
 * Renamed the piecewise-exponential Bayesian survival analysis method from `method = "bayes"` to `method = "bayes-surv"` to distinguish it from `method = "bayes-bin"`.
 * Added `method = "bayes-bin"` for Bayesian beta-binomial analysis of complete binary outcomes, with Monte Carlo, normal approximation, and quadrature options for treatment-control differences.
-* Binary endpoint analyses can now set `binary_imputation = "bernoulli"` to
-  draw event status directly from the conditional piecewise-exponential event
-  probability. The existing conditional event-time approach remains the
-  default (#21).
+* Binary endpoint analyses can now set `binary_imputation = "bernoulli"` to draw event status directly from the conditional piecewise-exponential event probability. The existing conditional event-time approach remains the default (#21).
 * Cox model analyses now use a lower-level survival fit for repeated Wald tests, avoiding formula and summary overhead in simulation hot paths.
 * `survival_adapt()` now uses `h0` as the null log hazard ratio for Cox model tests, allowing non-inferiority testing with `h0 = log(margin)`.
 * Added maintainer performance benchmarks for simulation hot paths, including posterior probability conversion, posterior sampling, imputation, and representative `survival_adapt()` runs (#42).
@@ -89,25 +24,20 @@
 * `sim_trials()` now accepts a `seed` argument that creates independent per-trial `"L'Ecuyer-CMRG"` random-number streams for reproducible simulations, including when using multiple cores (#41).
 * `ppwe()` now computes piecewise-exponential cumulative event probabilities directly from the cumulative hazard, avoiding row-wise calls to `PWEALL::pwe()` in Bayesian posterior summaries (#34).
 * `posterior()` now computes piecewise-exponential sufficient statistics directly, avoiding `survSplit()` and grouped `dplyr` summarization in a simulation hot path.
-* Bayesian survival analyses after predictive imputation now draw their fresh
-  completed-data posterior directly from arm-by-interval exposure and event
-  sufficient statistics. This preserves the documented two-stage posterior
-  procedure while avoiding repeated patient-level posterior setup (#38).
+* Bayesian survival analyses after predictive imputation now draw their fresh completed-data posterior directly from arm-by-interval exposure and event sufficient statistics. This preserves the documented two-stage posterior procedure while avoiding repeated patient-level posterior setup (#38).
 * `enrollment()` and `randomization()` no longer grow vectors repeatedly inside their simulation loops (#44).
 * `sim_trials()` and `summarise_sims()` now use `dplyr::bind_rows()` for faster binding of simulation result data frames (#43).
 
 ## Bug fixes
 
-* Piecewise Bayesian analyses now retain the posterior-draw dimension when
-  `N_mcmc = 1`, avoiding a matrix-validation error in probability conversion.
+* Piecewise Bayesian analyses now retain the posterior-draw dimension when `N_mcmc = 1`, avoiding a matrix-validation error in probability conversion.
 * `sim_trials()` now uses the same default alternative hypothesis and futility threshold as `survival_adapt()`, so omitted arguments define the same adaptive design (#47).
 * `survival_adapt()` now requires interim looks to be strictly increasing, preventing non-chronological or duplicated analyses (#48).
 * Piecewise hazard inputs are now validated as finite and non-negative across simulation, imputation, and probability helpers. A finite `maxtime` is now required when the final hazard is zero (#49).
 * `h0` must now be a single finite value, with probability-scale bounds enforced for Bayesian analyses (#50).
 * The `cutpoints` API now accepts only interior hazard-change times: `NULL` represents a constant hazard, and each supplied cutpoint requires one additional hazard rate. The implicit interval start at zero is handled internally (#58). Piecewise model inputs require finite, positive, strictly increasing cutpoints and a finite study endpoint after the final cutpoint; this validation is shared by simulation and probability helpers (#52).
 * `enrollment()` now validates its complete schedule before generating data, including integer sample size, finite positive rates, and finite strictly increasing knots (#53).
-* `sim_trials()` now defaults to serial execution with `ncores = 1L`, matching
-  its documentation and avoiding unexpected use of available cores (#54).
+* `sim_trials()` now defaults to serial execution with `ncores = 1L`, matching its documentation and avoiding unexpected use of available cores (#54).
 * `survival_adapt()` now works with the documented default success and futility thresholds when `interim_look = NULL`; thresholds are ignored when there are no interim looks.
 * `survival_adapt()`, `sim_comp_data()`, and `sim_trials()` now validate probability, prior, and positive-integer count arguments up front, avoiding invalid simulations or low-level downstream errors.
 * `sim_trials()` now falls back to `ncores = 1L` when the available core count cannot be detected.
@@ -120,15 +50,9 @@
 
 ## Documentation
 
-* Updated the package title, description, help landing page, README, and
-  architecture overview to reflect the current support for both survival and
-  fixed-time binary endpoints, all five final-analysis methods, and the complete
-  plotting API.
-* Corrected the technical-methods vignette's section numbering and updated its
-  overview to cover the package's binary endpoint methods.
-* Expanded the simulation, design, and technical vignettes with examples of
-  `plot_enrollment()`, `plot_sim_ocs()`, `plot_sim_stopping()`, and
-  `plot_sim_decisions()`.
+* Updated the package title, description, help landing page, README, and architecture overview to reflect the current support for both survival and fixed-time binary endpoints, all five final-analysis methods, and the complete plotting API.
+* Corrected the technical-methods vignette's section numbering and updated its overview to cover the package's binary endpoint methods.
+* Expanded the simulation, design, and technical vignettes with examples of `plot_enrollment()`, `plot_sim_ocs()`, `plot_sim_stopping()`, and `plot_sim_decisions()`.
 * Modernized roxygen2 source comments to use markdown tables, links, code spans, and emphasis in place of older Rd markup where appropriate.
 * Added a new vignette, "Technical details of the Goldilocks design", documenting the design notation, piecewise-exponential event-time model, Gamma posterior updating, posterior predictive probabilities, interim decision rules, final analysis options, and simulation-based calibration.
 * Added a new vignette, "Bayesian binary outcome designs", documenting `method = "bayes-bin"` for two-arm and single-arm complete binary endpoint analyses.
