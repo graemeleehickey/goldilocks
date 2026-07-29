@@ -91,7 +91,7 @@
 - `sim_trials(return_trace = TRUE)` now retains compact interim traces
   across simulations, and new
   [`plot_sim_decisions()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_decisions.md)
-  visualizes their predictive- probability decision regions by interim
+  visualizes their predictive-probability decision regions by interim
   look.
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   now supports reproducible PSOCK parallel execution on Windows and an
