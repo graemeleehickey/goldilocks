@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,7 +87,7 @@ pipeline.</p>
 <p><strong>Exported functions</strong> are shown in blue.
 <strong>Internal functions</strong> are shown in grey.</p>
 <div class="grViz html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:768px;height:768px;"></div>
-<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\ndigraph goldilocks {\n\n  graph [rankdir = TB, fontsize = 12, nodesep = 0.4, ranksep = 0.6]\n\n  node [shape = box, style = \"filled, rounded\", fontname = Helvetica, fontsize = 10]\n\n  # Exported functions (blue)\n  sim_trials       [label = \"sim_trials()\",       fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  survival_adapt   [label = \"survival_adapt()\",   fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  summarise_sims   [label = \"summarise_sims()\",   fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  summarise_trial_trace [label = \"summarise_trial_trace()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  plot_trial_trace [label = \"plot_trial_trace()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  plot_sim_stopping [label = \"plot_sim_stopping()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  plot_sim_ocs      [label = \"plot_sim_ocs()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  plot_sim_decisions [label = \"plot_sim_decisions()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  sim_comp_data    [label = \"sim_comp_data()\",    fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  enrollment       [label = \"enrollment()\",       fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  randomization    [label = \"randomization()\",    fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  pwe_sim          [label = \"pwe_sim()\",          fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  pwe_impute       [label = \"pwe_impute()\",       fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  ppwe             [label = \"ppwe()\",             fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n  # Internal functions (grey)\n  test_stop_success [label = \"test_stop_success()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  test_final        [label = \"test_final()\",         fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  analyse_data      [label = \"analyse_data()\",       fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  bayes_binomial_test [label = \"bayes_binomial_test()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  impute_data       [label = \"impute_data()\",        fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  posterior          [label = \"posterior()\",           fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  haz_to_prop       [label = \"haz_to_prop()\",        fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  logrank_test      [label = \"logrank_test()\",        fillcolor = \"#f5f5f5\", color = \"#999999\"]\n\n  # Edges\n  sim_trials      -> survival_adapt\n  sim_trials      -> summarise_sims  [style = dashed, label = \"output list\"]\n  sim_trials      -> plot_sim_stopping [style = dashed, label = \"simulation output\"]\n  sim_trials      -> plot_sim_decisions [style = dashed, label = \"simulation traces\"]\n  summarise_sims  -> plot_sim_ocs [style = dashed, label = \"scenario summaries\"]\n\n  survival_adapt  -> sim_comp_data\n  survival_adapt  -> posterior\n  survival_adapt  -> test_stop_success\n  survival_adapt  -> test_final\n  survival_adapt  -> summarise_trial_trace [style = dashed, label = \"optional trace\"]\n  survival_adapt  -> plot_trial_trace [style = dashed, label = \"optional trace\"]\n\n  sim_comp_data   -> enrollment\n  sim_comp_data   -> randomization\n  sim_comp_data   -> pwe_sim\n\n  test_stop_success -> impute_data\n  test_stop_success -> analyse_data\n\n  test_final      -> posterior\n  test_final      -> impute_data\n  test_final      -> analyse_data\n\n  analyse_data    -> posterior\n  analyse_data    -> haz_to_prop\n  analyse_data    -> bayes_binomial_test\n  analyse_data    -> logrank_test\n\n  haz_to_prop     -> ppwe\n\n  impute_data     -> pwe_impute\n  impute_data     -> pwe_sim\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\ndigraph goldilocks {\n\n  graph [rankdir = TB, fontsize = 12, nodesep = 0.4, ranksep = 0.6]\n\n  node [shape = box, style = \"filled, rounded\", fontname = Helvetica, fontsize = 10]\n\n  # Exported functions (blue)\n  sim_trials       [label = \"sim_trials()\",       fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  survival_adapt   [label = \"survival_adapt()\",   fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  summarise_sims   [label = \"summarise_sims()\",   fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  plot_enrollment  [label = \"plot_enrollment()\",  fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  summarise_trial_trace [label = \"summarise_trial_trace()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  plot_trial_trace [label = \"plot_trial_trace()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  plot_sim_stopping [label = \"plot_sim_stopping()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  plot_sim_ocs      [label = \"plot_sim_ocs()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  plot_sim_decisions [label = \"plot_sim_decisions()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  sim_comp_data    [label = \"sim_comp_data()\",    fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  enrollment       [label = \"enrollment()\",       fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  randomization    [label = \"randomization()\",    fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  pwe_sim          [label = \"pwe_sim()\",          fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  pwe_impute       [label = \"pwe_impute()\",       fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  ppwe             [label = \"ppwe()\",             fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  prop_to_haz      [label = \"prop_to_haz()\",      fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n  # Internal functions (grey)\n  test_stop_success [label = \"test_stop_success()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  test_final        [label = \"test_final()\",         fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  analyse_data      [label = \"analyse_data()\",       fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  bayes_binomial_test [label = \"bayes_binomial_test()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  impute_data       [label = \"impute_data()\",        fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  posterior          [label = \"posterior()\",           fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  haz_to_prop       [label = \"haz_to_prop()\",        fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  logrank_test      [label = \"logrank_test()\",        fillcolor = \"#f5f5f5\", color = \"#999999\"]\n\n  # Edges\n  sim_trials      -> survival_adapt\n  sim_trials      -> summarise_sims  [style = dashed, label = \"output list\"]\n  sim_trials      -> plot_sim_stopping [style = dashed, label = \"simulation output\"]\n  sim_trials      -> plot_sim_decisions [style = dashed, label = \"simulation traces\"]\n  sim_trials      -> plot_enrollment [style = dashed, label = \"stored design\"]\n  summarise_sims  -> plot_sim_ocs [style = dashed, label = \"scenario summaries\"]\n\n  survival_adapt  -> sim_comp_data\n  survival_adapt  -> posterior\n  survival_adapt  -> test_stop_success\n  survival_adapt  -> test_final\n  survival_adapt  -> summarise_trial_trace [style = dashed, label = \"optional trace\"]\n  survival_adapt  -> plot_trial_trace [style = dashed, label = \"optional trace\"]\n  survival_adapt  -> plot_enrollment [style = dashed, label = \"stored design\"]\n\n  sim_comp_data   -> enrollment\n  sim_comp_data   -> randomization\n  sim_comp_data   -> pwe_sim\n\n  test_stop_success -> impute_data\n  test_stop_success -> analyse_data\n\n  test_final      -> posterior\n  test_final      -> impute_data\n  test_final      -> analyse_data\n\n  analyse_data    -> posterior\n  analyse_data    -> haz_to_prop\n  analyse_data    -> bayes_binomial_test\n  analyse_data    -> logrank_test\n\n  haz_to_prop     -> ppwe\n  prop_to_haz     -> sim_comp_data [style = dashed, label = \"hazard inputs\"]\n\n  impute_data     -> pwe_impute\n  impute_data     -> pwe_sim\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div class="section level2">
 <h2 id="function-roles">Function roles<a class="anchor" aria-label="anchor" href="#function-roles"></a>
@@ -123,6 +123,11 @@ parallel) and collates results.</li>
 output of <code><a href="../reference/sim_trials.html">sim_trials()</a></code>, computing operating characteristics
 such as power, expected sample size, and stopping probabilities.</li>
 <li>
+<strong><code><a href="../reference/plot_enrollment.html">plot_enrollment()</a></code></strong>: Draws the expected
+enrollment projection, optional simulated trajectories, and interim and
+maximum-sample-size milestones from explicit arguments or a stored trial
+design.</li>
+<li>
 <strong><code><a href="../reference/summarise_trial_trace.html">summarise_trial_trace()</a></code></strong>: Condenses an
 optional single-trial interim trace into a one-row stopping-path
 summary.</li>
@@ -149,6 +154,25 @@ futility regions at each interim look.</li>
 </h3>
 <ul>
 <li>
+<strong><code><a href="../reference/enrollment.html">enrollment()</a></code></strong>: Simulates exact
+continuous-time arrivals under constant or piecewise-constant enrollment
+rates.</li>
+<li>
+<strong><code><a href="../reference/randomization.html">randomization()</a></code></strong>: Generates the blocked
+two-arm treatment allocation.</li>
+<li>
+<strong><code><a href="../reference/pwe_sim.html">pwe_sim()</a></code></strong> and
+<strong><code><a href="../reference/pwe_impute.html">pwe_impute()</a></code></strong>: Simulate event times from,
+or conditionally impute them under, the piecewise-exponential
+model.</li>
+<li>
+<strong><code><a href="../reference/ppwe.html">ppwe()</a></code></strong>: Computes cumulative event
+probabilities under piecewise-exponential hazards.</li>
+<li>
+<strong><code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code></strong>: Converts cumulative
+event probabilities at specified times to the corresponding piecewise
+hazards.</li>
+<li>
 <strong><code>posterior()</code></strong>: Estimates the posterior
 distribution of piecewise exponential hazard rates using a conjugate
 Gamma model.</li>
@@ -166,6 +190,9 @@ times for censored subjects using <code><a href="../reference/pwe_impute.html">p
 hazard rate draws to cumulative incidence proportions via
 <code><a href="../reference/ppwe.html">ppwe()</a></code>.</li>
 </ul>
+<p>The first five utilities in this section are exported for direct use.
+The final four are internal components of the adaptive analysis
+pipeline.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

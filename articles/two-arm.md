@@ -236,8 +236,8 @@ the null (treatment OS 30%). {.table style="width:100%;"}
 The type I error under this design (scenario 2, `power` column) is
 slightly too large to be considered acceptable. This was to be expected,
 since we kept the P-value threshold as 0.05 despite having multiple
-interim looks. However, we note that only simulated `N_trials = 500`
-trials, meaning if the type I error was truly 0.05, then values in the
+interim looks. However, we simulated only `N_trials = 500` trials,
+meaning that, if the type I error were truly 0.05, values in the
 interval (`0.05 + c(-1, 1) * 1.96 * sqrt(0.05 * (1 - 0.05) / 500)`)
 would be consistent with this.
 

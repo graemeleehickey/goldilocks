@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,14 +73,15 @@
 </h2>
 <p>The <code>goldilocks</code> package implements the Goldilocks
 adaptive sample-size design of Broglio, Connor, and Berry (2014) for
-time-to-event endpoints. This vignette outlines the technical details of
-the design, including notation, the continuous-time enrollment process,
-the piecewise-exponential event-time model, Gamma posterior updating,
-posterior <strong>predictive probabilities</strong>, interim decision
-rules, final analysis options, and simulation-based calibration. The
-package vignettes “Two-arm randomized trials”, “Bayesian
-piecewise-exponential designs”, and “Single-arm designs with a
-performance goal” provide more application-focused examples in R.</p>
+time-to-event and fixed-time binary endpoints. This vignette outlines
+the technical details of the design, including notation, the
+continuous-time enrollment process, the piecewise-exponential event-time
+model, Gamma posterior updating, posterior <strong>predictive
+probabilities</strong>, interim decision rules, final analysis options,
+and simulation-based calibration. The package vignettes “Two-arm
+randomized trials”, “Bayesian piecewise-exponential designs”, “Bayesian
+binary outcome designs”, and “Single-arm designs with a performance
+goal” provide more application-focused examples in R.</p>
 </div>
 <div class="section level2">
 <h2 id="design-and-notation">1. Design and notation<a class="anchor" aria-label="anchor" href="#design-and-notation"></a>
@@ -406,7 +407,7 @@ method:</p>
 <td><code>logrank</code></td>
 <td>
 <span class="math inline">1-p(\mathcal{D})</span>, where <span class="math inline">p(\mathcal{D})</span> is the traditional log-rank
-test P-value, with one-sided variants defined in Section 6.1</td>
+test P-value, with one-sided variants defined in Section 7.1</td>
 <td>
 <code>"less"</code>, <code>"greater"</code>,
 <code>"two.sided"</code>
@@ -417,7 +418,7 @@ test P-value, with one-sided variants defined in Section 6.1</td>
 <td><code>cox</code></td>
 <td>
 <span class="math inline">1-p(\mathcal{D})</span>, where <span class="math inline">p(\mathcal{D})</span> is the traditional Wald-test
-P-value, with one-sided variants defined in Section 6.1</td>
+P-value, with one-sided variants defined in Section 7.1</td>
 <td>
 <code>"less"</code>, <code>"greater"</code>,
 <code>"two.sided"</code>
@@ -491,7 +492,7 @@ corresponds to a one-sided <span class="math inline">\alpha =
 to control the desired type I error rate across relevant null
 scenarios.</p>
 <div class="section level3">
-<h3 id="predictive-probability-at-the-current-sample-size">5.1 Predictive probability at the current sample size<a class="anchor" aria-label="anchor" href="#predictive-probability-at-the-current-sample-size"></a>
+<h3 id="predictive-probability-at-the-current-sample-size">6.1 Predictive probability at the current sample size<a class="anchor" aria-label="anchor" href="#predictive-probability-at-the-current-sample-size"></a>
 </h3>
 <p>The current-sample-size predictive probability <span class="math inline">P_{n_\ell}</span> is estimated by:</p>
 <ol style="list-style-type: decimal">
@@ -531,7 +532,7 @@ S_\ell,</span></p>
 followed to the planned final analysis time.</p>
 </div>
 <div class="section level3">
-<h3 id="predictive-probability-at-the-maximum-sample-size">5.2 Predictive probability at the maximum sample size<a class="anchor" aria-label="anchor" href="#predictive-probability-at-the-maximum-sample-size"></a>
+<h3 id="predictive-probability-at-the-maximum-sample-size">6.2 Predictive probability at the maximum sample size<a class="anchor" aria-label="anchor" href="#predictive-probability-at-the-maximum-sample-size"></a>
 </h3>
 <p>The maximum-sample-size predictive probability <span class="math inline">P_{\max,\ell}</span> is estimated similarly, except
 that the completed trial includes both currently enrolled subjects and
@@ -582,7 +583,7 @@ handling of loss to follow-up described below. The final rule supplies
 the binary success indicator used inside the predictive probability
 calculations.</p>
 <div class="section level3">
-<h3 id="frequentist-final-tests">6.1 Frequentist final tests<a class="anchor" aria-label="anchor" href="#frequentist-final-tests"></a>
+<h3 id="frequentist-final-tests">7.1 Frequentist final tests<a class="anchor" aria-label="anchor" href="#frequentist-final-tests"></a>
 </h3>
 <p>For <code>method = "logrank"</code>, success is based on a log-rank
 test. For <code>method = "cox"</code>, success is based on the Wald test
@@ -709,7 +710,7 @@ is <span class="math inline">1-p</span> from this pooled test with the
 direction determined by <code>alternative</code>.</p>
 </div>
 <div class="section level3">
-<h3 id="bayesian-survival-final-test">6.2 Bayesian survival final test<a class="anchor" aria-label="anchor" href="#bayesian-survival-final-test"></a>
+<h3 id="bayesian-survival-final-test">7.2 Bayesian survival final test<a class="anchor" aria-label="anchor" href="#bayesian-survival-final-test"></a>
 </h3>
 <p>For <code>method = "bayes-surv"</code>, posterior hazard draws are
 mapped to cumulative event probabilities at <span class="math inline">\tau</span>. In a two-arm design the treatment
@@ -754,7 +755,7 @@ require <code>method = "bayes-surv"</code>; complete binary single-arm
 designs can use <code>method = "bayes-bin"</code>.</p>
 </div>
 <div class="section level3">
-<h3 id="bayesian-binary-final-test">6.3 Bayesian binary final test<a class="anchor" aria-label="anchor" href="#bayesian-binary-final-test"></a>
+<h3 id="bayesian-binary-final-test">7.3 Bayesian binary final test<a class="anchor" aria-label="anchor" href="#bayesian-binary-final-test"></a>
 </h3>
 <p>For <code>method = "bayes-bin"</code>, each analysis dataset is
 reduced to the binary indicator of whether the endpoint has occurred by
@@ -796,7 +797,7 @@ numerical integration for the two-arm posterior difference. The argument
 when <code>bin_method = "mc"</code>.</p>
 </div>
 <div class="section level3">
-<h3 id="loss-to-follow-up-at-the-final-analysis">6.4 Loss to follow-up at the final analysis<a class="anchor" aria-label="anchor" href="#loss-to-follow-up-at-the-final-analysis"></a>
+<h3 id="loss-to-follow-up-at-the-final-analysis">7.4 Loss to follow-up at the final analysis<a class="anchor" aria-label="anchor" href="#loss-to-follow-up-at-the-final-analysis"></a>
 </h3>
 <p>Interim predictions impute outcomes that are not yet known. At the
 final analysis, <code>imputed_final</code> controls whether subjects
@@ -926,7 +927,7 @@ the final analysis does not meet the success criterion.</p>
 <span></span>
 <span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
-<h3 id="visual-diagnostics">7.1 Visual diagnostics<a class="anchor" aria-label="anchor" href="#visual-diagnostics"></a>
+<h3 id="visual-diagnostics">8.1 Visual diagnostics<a class="anchor" aria-label="anchor" href="#visual-diagnostics"></a>
 </h3>
 <p>The simulation plotting functions expose three different levels of
 the design:</p>

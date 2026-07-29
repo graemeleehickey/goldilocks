@@ -11,8 +11,7 @@ Core functions for simulating and summarizing Goldilocks adaptive trial
 designs.
 
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-  : Simulate and execute a single adaptive clinical trial design with a
-  time-to-event endpoint
+  : Simulate and analyze one Goldilocks adaptive trial
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   : Simulate one or more clinical trials subject to known design
   parameters and treatment effect

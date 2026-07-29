@@ -49,6 +49,10 @@ The functions fall into three layers:
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md),
   computing operating characteristics such as power, expected sample
   size, and stopping probabilities.
+- **[`plot_enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/plot_enrollment.md)**:
+  Draws the expected enrollment projection, optional simulated
+  trajectories, and interim and maximum-sample-size milestones from
+  explicit arguments or a stored trial design.
 - **[`summarise_trial_trace()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_trial_trace.md)**:
   Condenses an optional single-trial interim trace into a one-row
   stopping-path summary.
@@ -67,6 +71,22 @@ The functions fall into three layers:
 
 ### Data generation and analysis utilities
 
+- **[`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)**:
+  Simulates exact continuous-time arrivals under constant or
+  piecewise-constant enrollment rates.
+- **[`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)**:
+  Generates the blocked two-arm treatment allocation.
+- **[`pwe_sim()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_sim.md)**
+  and
+  **[`pwe_impute()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.md)**:
+  Simulate event times from, or conditionally impute them under, the
+  piecewise-exponential model.
+- **[`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)**:
+  Computes cumulative event probabilities under piecewise-exponential
+  hazards.
+- **[`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)**:
+  Converts cumulative event probabilities at specified times to the
+  corresponding piecewise hazards.
 - **`posterior()`**: Estimates the posterior distribution of piecewise
   exponential hazard rates using a conjugate Gamma model.
 - **`analyse_data()`**: Applies the chosen analysis method (`logrank`,
@@ -80,3 +100,7 @@ The functions fall into three layers:
 - **`haz_to_prop()`**: Converts posterior hazard rate draws to
   cumulative incidence proportions via
   [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md).
+
+The first five utilities in this section are exported for direct use.
+The final four are internal components of the adaptive analysis
+pipeline.

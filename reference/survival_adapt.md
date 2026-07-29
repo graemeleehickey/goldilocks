@@ -1,7 +1,6 @@
-# Simulate and execute a single adaptive clinical trial design with a time-to-event endpoint
+# Simulate and analyze one Goldilocks adaptive trial
 
-Simulate and execute a single adaptive clinical trial design with a
-time-to-event endpoint
+Simulate and analyze one Goldilocks adaptive trial
 
 ## Usage
 

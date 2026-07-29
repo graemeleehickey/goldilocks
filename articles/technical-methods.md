@@ -3,13 +3,14 @@
 ## Vignette summary
 
 The `goldilocks` package implements the Goldilocks adaptive sample-size
-design of Broglio, Connor, and Berry (2014) for time-to-event endpoints.
-This vignette outlines the technical details of the design, including
-notation, the continuous-time enrollment process, the
-piecewise-exponential event-time model, Gamma posterior updating,
-posterior **predictive probabilities**, interim decision rules, final
-analysis options, and simulation-based calibration. The package
-vignettes “Two-arm randomized trials”, “Bayesian piecewise-exponential
+design of Broglio, Connor, and Berry (2014) for time-to-event and
+fixed-time binary endpoints. This vignette outlines the technical
+details of the design, including notation, the continuous-time
+enrollment process, the piecewise-exponential event-time model, Gamma
+posterior updating, posterior **predictive probabilities**, interim
+decision rules, final analysis options, and simulation-based
+calibration. The package vignettes “Two-arm randomized trials”,
+“Bayesian piecewise-exponential designs”, “Bayesian binary outcome
 designs”, and “Single-arm designs with a performance goal” provide more
 application-focused examples in R.
 
@@ -334,8 +335,8 @@ analysis quantity Q(\mathcal{D}) depends on the analysis method:
 
 | Design setting | `method` | Q(\mathcal{D}) | Supported alternatives |
 |----|----|----|----|
-| Two-arm randomized trial | `logrank` | 1-p(\mathcal{D}), where p(\mathcal{D}) is the traditional log-rank test P-value, with one-sided variants defined in Section 6.1 | `"less"`, `"greater"`, `"two.sided"` |
-| Two-arm randomized trial | `cox` | 1-p(\mathcal{D}), where p(\mathcal{D}) is the traditional Wald-test P-value, with one-sided variants defined in Section 6.1 | `"less"`, `"greater"`, `"two.sided"` |
+| Two-arm randomized trial | `logrank` | 1-p(\mathcal{D}), where p(\mathcal{D}) is the traditional log-rank test P-value, with one-sided variants defined in Section 7.1 | `"less"`, `"greater"`, `"two.sided"` |
+| Two-arm randomized trial | `cox` | 1-p(\mathcal{D}), where p(\mathcal{D}) is the traditional Wald-test P-value, with one-sided variants defined in Section 7.1 | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `riskdiff` | 1-p(\mathcal{D}), where p(\mathcal{D}) is the Wald-test P-value for the treatment-control event-risk difference | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `bayes-surv` | \Pr(\Delta \< h_0 \mid \mathcal{D}) or \Pr(\Delta \> h_0 \mid \mathcal{D}) | `"less"`, `"greater"` |
 | Single-arm trial | `bayes-surv` | \Pr(p_1(\tau) \< h_0 \mid \mathcal{D}) or \Pr(p_1(\tau) \> h_0 \mid \mathcal{D}) | `"less"`, `"greater"` |
@@ -348,7 +349,7 @@ threshold. For example, `prob_ha = 0.975` corresponds to a one-sided
 calibration to control the desired type I error rate across relevant
 null scenarios.
 
-### 5.1 Predictive probability at the current sample size
+### 6.1 Predictive probability at the current sample size
 
 The current-sample-size predictive probability P\_{n\_\ell} is estimated
 by:
@@ -388,7 +389,7 @@ If
 accrual is stopped for expected success. Enrolled subjects are still
 followed to the planned final analysis time.
 
-### 5.2 Predictive probability at the maximum sample size
+### 6.2 Predictive probability at the maximum sample size
 
 The maximum-sample-size predictive probability P\_{\max,\ell} is
 estimated similarly, except that the completed trial includes both
@@ -434,7 +435,7 @@ handling of loss to follow-up described below. The final rule supplies
 the binary success indicator used inside the predictive probability
 calculations.
 
-### 6.1 Frequentist final tests
+### 7.1 Frequentist final tests
 
 For `method = "logrank"`, success is based on a log-rank test. For
 `method = "cox"`, success is based on the Wald test from a Cox
@@ -524,7 +525,7 @@ required. The returned `est_final` is \bar{\theta}, while `post_prob_ha`
 is 1-p from this pooled test with the direction determined by
 `alternative`.
 
-### 6.2 Bayesian survival final test
+### 7.2 Bayesian survival final test
 
 For `method = "bayes-surv"`, posterior hazard draws are mapped to
 cumulative event probabilities at \tau. In a two-arm design the
@@ -571,7 +572,7 @@ single-arm survival designs in `goldilocks` require
 `method = "bayes-surv"`; complete binary single-arm designs can use
 `method = "bayes-bin"`.
 
-### 6.3 Bayesian binary final test
+### 7.3 Bayesian binary final test
 
 For `method = "bayes-bin"`, each analysis dataset is reduced to the
 binary indicator of whether the endpoint has occurred by \tau. Subjects
@@ -613,7 +614,7 @@ posterior mean or treatment-control difference. With
 two-arm posterior difference. The argument `N_mcmc` controls the number
 of Monte Carlo beta draws only when `bin_method = "mc"`.
 
-### 6.4 Loss to follow-up at the final analysis
+### 7.4 Loss to follow-up at the final analysis
 
 Interim predictions impute outcomes that are not yet known. At the final
 analysis, `imputed_final` controls whether subjects lost to follow-up
@@ -729,7 +730,7 @@ out <- sim_trials(
 summarise_sims(out$sims)
 ```
 
-### 7.1 Visual diagnostics
+### 8.1 Visual diagnostics
 
 The simulation plotting functions expose three different levels of the
 design:

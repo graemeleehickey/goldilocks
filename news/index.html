@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,9 +39,9 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.5.0.9000" id="goldilocks-0509000">goldilocks 0.5.0.9000<a class="anchor" aria-label="anchor" href="#goldilocks-0509000"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.6.0" id="goldilocks-060">goldilocks 0.6.0<a class="anchor" aria-label="anchor" href="#goldilocks-060"></a></h2>
 <div class="section level3">
-<h3 id="improvements-0-5-0-9000">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-5-0-9000"></a></h3>
+<h3 id="improvements-0-6-0">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-6-0"></a></h3>
 <ul><li>New <code><a href="../reference/plot_enrollment.html">plot_enrollment()</a></code> draws the expected enrollment projection, simulated trial trajectories, and interim and maximum-sample-size milestones for constant or piecewise enrollment rates. It accepts explicit design arguments or extracts the evaluated design retained on <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> and <code><a href="../reference/sim_trials.html">sim_trials()</a></code> results, with optional follow-up and time-unit annotations.</li>
 <li>Survival-prior arguments are now named <code>prior_surv</code> and <code>prior_surv_final</code>, while the Bayesian binary prior is named <code>prior_bin</code>. <code>prior_surv_final</code> defaults to <code>prior_surv</code>, but can specify a different Gamma prior for final imputation and final piecewise-exponential analysis. Survival priors may be length-two shape-rate vectors shared across intervals or two-row matrices with one shape-rate column per piecewise interval. The ADVENT vignette now expresses its interval- and stage-specific imputation priors directly (<a href="https://github.com/graemeleehickey/goldilocks/issues/59" class="external-link">#59</a>).</li>
 <li>
@@ -79,7 +79,7 @@
 <code><a href="../reference/sim_trials.html">sim_trials()</a></code> and <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> now use <code><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">dplyr::bind_rows()</a></code> for faster binding of simulation result data frames (<a href="https://github.com/graemeleehickey/goldilocks/issues/43" class="external-link">#43</a>).</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-0-5-0-9000">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-0-9000"></a></h3>
+<h3 id="bug-fixes-0-6-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-6-0"></a></h3>
 <ul><li>Piecewise Bayesian analyses now retain the posterior-draw dimension when <code>N_mcmc = 1</code>, avoiding a matrix-validation error in probability conversion.</li>
 <li>
 <code><a href="../reference/sim_trials.html">sim_trials()</a></code> now uses the same default alternative hypothesis and futility threshold as <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>, so omitted arguments define the same adaptive design (<a href="https://github.com/graemeleehickey/goldilocks/issues/47" class="external-link">#47</a>).</li>
@@ -112,8 +112,10 @@
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> and <code><a href="../reference/sim_trials.html">sim_trials()</a></code> now expose an <code>empty_interval</code> policy for Bayesian piecewise-exponential posterior calculations, allowing empty intervals to use legacy propagation, prior-only updating, or strict errors.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="documentation-0-5-0-9000">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-5-0-9000"></a></h3>
-<ul><li>Expanded the simulation, design, and technical vignettes with examples of <code><a href="../reference/plot_enrollment.html">plot_enrollment()</a></code>, <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code>, <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code>, and <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code>.</li>
+<h3 id="documentation-0-6-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-6-0"></a></h3>
+<ul><li>Updated the package title, description, help landing page, README, and architecture overview to reflect the current support for both survival and fixed-time binary endpoints, all five final-analysis methods, and the complete plotting API.</li>
+<li>Corrected the technical-methods vignette’s section numbering and updated its overview to cover the package’s binary endpoint methods.</li>
+<li>Expanded the simulation, design, and technical vignettes with examples of <code><a href="../reference/plot_enrollment.html">plot_enrollment()</a></code>, <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code>, <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code>, and <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code>.</li>
 <li>Modernized roxygen2 source comments to use markdown tables, links, code spans, and emphasis in place of older Rd markup where appropriate.</li>
 <li>Added a new vignette, “Technical details of the Goldilocks design”, documenting the design notation, piecewise-exponential event-time model, Gamma posterior updating, posterior predictive probabilities, interim decision rules, final analysis options, and simulation-based calibration.</li>
 <li>Added a new vignette, “Bayesian binary outcome designs”, documenting <code>method = "bayes-bin"</code> for two-arm and single-arm complete binary endpoint analyses.</li>
