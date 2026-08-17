@@ -3,8 +3,10 @@
 # Run from the package root with:
 #   source("benchmarks/parallel-backends.R")
 #
-# This benchmark includes PSOCK startup time because a typical sim_trials()
-# call creates a fresh cluster. Compare relative results on the same machine.
+# PSOCK timings include cluster startup. The benchmark also measures equivalent
+# cluster creation and teardown separately, then reports the remaining elapsed
+# time as an estimate of compute and dispatch cost. Compare relative results on
+# the same macOS or Windows machine.
 
 if (!requireNamespace("bench", quietly = TRUE)) {
   stop("Install the 'bench' package to run these benchmarks.", call. = FALSE)
@@ -93,7 +95,7 @@ workloads <- list(
   )
 )
 
-backends <- c("sequential", "psock")
+backends <- c("auto", "sequential", "psock")
 if (.Platform$OS.type != "windows") {
   backends <- c(backends, "fork")
 }
@@ -121,26 +123,64 @@ benchmark_case <- function(workload, N_trials, backend, ncores) {
       seed = 4101
     )
   )
+
+  timings <- lapply(seq_len(iterations), function(i) {
+    started <- unname(proc.time()[["elapsed"]])
+    out <- do.call(sim_trials, args)
+    total_seconds <- unname(proc.time()[["elapsed"]]) - started
+    metadata <- attr(out, "parallel_metadata", exact = TRUE)
+    list(
+      total_seconds = total_seconds,
+      metadata = metadata
+    )
+  })
+  metadata <- timings[[1]]$metadata
+  total_seconds <- vapply(timings, `[[`, numeric(1), "total_seconds")
+  setup_seconds <- if (metadata$backend == "psock") {
+    vapply(
+      seq_len(iterations),
+      function(i) {
+        started <- unname(proc.time()[["elapsed"]])
+        cluster <- parallel::makeCluster(metadata$workers)
+        parallel::stopCluster(cluster)
+        unname(proc.time()[["elapsed"]]) - started
+      },
+      numeric(1)
+    )
+  } else {
+    rep.int(0, iterations)
+  }
+  median_seconds <- stats::median(total_seconds)
+  median_setup_seconds <- stats::median(setup_seconds)
+
   profile_memory <- backend == "sequential"
-  result <- bench::mark(
-    do.call(sim_trials, args),
-    iterations = iterations,
-    check = FALSE,
-    filter_gc = FALSE,
-    memory = profile_memory
-  )
+  memory_bytes <- NA_real_
+  if (profile_memory) {
+    memory_result <- bench::mark(
+      do.call(sim_trials, args),
+      iterations = 1L,
+      check = FALSE,
+      filter_gc = FALSE,
+      memory = TRUE
+    )
+    memory_bytes <- as.numeric(memory_result$mem_alloc)
+  }
 
   data.frame(
     workload = workload,
     N_trials = N_trials,
     backend = backend,
-    ncores = ncores,
-    median_seconds = as.numeric(result$median),
-    memory_bytes = if (profile_memory) {
-      as.numeric(result$mem_alloc)
-    } else {
-      NA_real_
-    },
+    effective_backend = metadata$backend,
+    requested_ncores = ncores,
+    effective_workers = metadata$workers,
+    selection_reason = metadata$selection_reason,
+    median_seconds = median_seconds,
+    median_setup_seconds = median_setup_seconds,
+    estimated_compute_seconds = max(
+      median_seconds - median_setup_seconds,
+      0
+    ),
+    memory_bytes = memory_bytes,
     memory_measurement = if (profile_memory) {
       "parent allocation"
     } else {
@@ -171,7 +211,12 @@ results$R_version <- R.version.string
 results$os_type <- .Platform$OS.type
 
 results <- results[
-  order(results$workload, results$N_trials, results$backend, results$ncores),
+  order(
+    results$workload,
+    results$N_trials,
+    results$backend,
+    results$requested_ncores
+  ),
 ]
 print(results, row.names = FALSE)
 

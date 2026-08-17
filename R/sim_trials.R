@@ -8,11 +8,16 @@
 #' @inheritParams sim_comp_data
 #' @param N_trials integer. Number of trials to simulate.
 #' @param ncores positive integer. Number of cores to use for parallel
-#'   processing. Defaults to `1L` (serial execution).
+#'   processing. Defaults to `1L` (serial execution). Package-owned worker
+#'   pools are capped at the number of trials. With `backend = "auto"`, at
+#'   least two trials per worker are required so that small workloads avoid
+#'   parallel startup overhead.
 #' @param backend character. Parallel backend. "auto" (the default) uses
-#'   serial execution for `ncores = 1`, the existing fork backend on Unix-like
-#'   platforms, and a PSOCK cluster on Windows. "fork", "psock", and
-#'   "sequential" select a backend explicitly.
+#'   serial execution for `ncores = 1` or fewer than four trials. Otherwise it
+#'   uses the existing fork backend on Unix-like platforms and a PSOCK cluster
+#'   on Windows, with at least two trials assigned per worker. "fork",
+#'   "psock", and "sequential" select a backend explicitly and bypass this
+#'   workload crossover.
 #' @param seed optional integer. Seed used to generate independent per-trial
 #'   `"L'Ecuyer-CMRG"` random-number streams. The default, `NULL`,
 #'   does not reset the global RNG state, preserving the usual unseeded
@@ -21,7 +26,7 @@
 #'   every simulated trial be retained? The default, `FALSE`, preserves the
 #'   compact output. When `TRUE`, the returned list also contains a `traces`
 #'   data frame with a `trial` column linking each trace row to the corresponding
-#'   row of `sims`.
+#'   original simulated trial.
 #'
 #' @details This is basically a wrapper function for
 #'   [survival_adapt()], whereby we repeatedly run the function for independent
@@ -29,9 +34,25 @@
 #'
 #'   To use multiple cores (where available), the argument `ncores`
 #'   can be increased from the default of 1. The default `backend = "auto"`
-#'   uses [pbmcapply::pbmclapply()] on Unix-like platforms and a PSOCK cluster
-#'   on Windows, where forked processes are unavailable. Set `backend`
-#'   explicitly to compare backends or to require serial execution.
+#'   stays sequential for fewer than four trials and otherwise uses at most one
+#'   worker per two trials. This simple workload heuristic amortizes process
+#'   startup without trying to predict the cost of an individual trial. When
+#'   it selects parallel execution, it uses [pbmcapply::pbmclapply()] on
+#'   Unix-like platforms and a PSOCK cluster on Windows, where forked processes
+#'   are unavailable. Set `backend` explicitly to bypass the crossover.
+#'
+#'   A PSOCK cluster created by `sim_trials()` is always stopped before the
+#'   function returns, including when worker evaluation fails. PSOCK tasks use
+#'   static worker chunks, so the invariant simulation design is serialized
+#'   once per active worker rather than once per trial.
+#'
+#'   Errors raised by an individual [survival_adapt()] call are isolated so
+#'   other trials can finish. Failed trials are excluded from `sims`, recorded
+#'   in `failures` with their trial number, error class, and message, and
+#'   reported together in one warning. If every requested trial fails,
+#'   `sim_trials()` stops and attaches the same failure table to the error as
+#'   `failures`. With a supplied `seed`, the original call and failed trial
+#'   number reproduce the same per-trial random-number stream.
 #'
 #'   Set `seed` to make `sim_trials()` reproducible. When a seed is
 #'   supplied, `sim_trials()` first generates one independent
@@ -48,14 +69,17 @@
 #'   the caller to the same state therefore reproduces an unseeded PSOCK call,
 #'   while consecutive calls do not reuse streams.
 #'
-#' @return A list containing `sims`, a data frame with one row per simulated
-#'   trial, and `call`. When `return_trace = TRUE`, the list also contains
-#'   `traces`, a data frame with one row per completed interim look and a
-#'   `trial` identifier. See [survival_adapt()] for details of the summary and
-#'   trace columns. The returned object also retains the normalized
-#'   `decision_design` attribute from [survival_adapt()]. An `rng_metadata`
-#'   attribute records the caller RNG kind, effective backend, seed policy, and
-#'   stream seed when applicable.
+#' @return A list containing `sims`, a data frame with one row per successfully
+#'   simulated trial; `failures`, a data frame with columns `trial`,
+#'   `error_class`, and `message`; and `call`. When `return_trace = TRUE`, the
+#'   list also contains `traces`, a data frame with one row per completed
+#'   interim look and a `trial` identifier. See [survival_adapt()] for details
+#'   of the summary and trace columns. The returned object also retains the
+#'   normalized `decision_design` attribute from [survival_adapt()]. An
+#'   `rng_metadata` attribute records the caller RNG kind, effective backend,
+#'   seed policy, and stream seed when applicable. A deterministic
+#'   `parallel_metadata` attribute records the requested and effective backend
+#'   and worker counts, task count, and backend-selection reason.
 #'
 #' @importFrom pbmcapply pbmclapply
 #' @export
@@ -128,6 +152,7 @@ sim_trials <- function(
   empty_interval <- match.arg(empty_interval)
   binary_imputation <- match.arg(binary_imputation)
   backend <- match.arg(backend)
+  requested_backend <- backend
   caller_rng_kind <- RNGkind()
 
   validate_positive_integer_scalar(N_trials, "N_trials")
@@ -144,7 +169,13 @@ sim_trials <- function(
   }
 
   validate_positive_integer_scalar(ncores, "ncores")
-  backend <- resolve_sim_backend(backend, ncores)
+  execution <- resolve_sim_execution(
+    backend = backend,
+    ncores = ncores,
+    N_trials = N_trials
+  )
+  backend <- execution$backend
+  workers <- execution$workers
 
   stream_seed <- NULL
   if (!is.null(seed)) {
@@ -207,7 +238,8 @@ sim_trials <- function(
       "caller_state"
     },
     backend = backend,
-    ncores = as.integer(ncores),
+    ncores = as.integer(workers),
+    requested_ncores = as.integer(ncores),
     stream_seed = stream_seed
   )
 
@@ -218,38 +250,54 @@ sim_trials <- function(
   }
 
   survival_adapt_wrapper <- function(x) {
-    if (!is.null(trial_streams)) {
-      assign(".Random.seed", trial_streams[[x]], envir = .GlobalEnv)
-    }
-    survival_adapt_fn(
-      hazard_treatment = hazard_treatment,
-      hazard_control = hazard_control,
-      cutpoints = cutpoints,
-      N_total = N_total,
-      lambda = lambda,
-      lambda_time = lambda_time,
-      interim_look = interim_look,
-      end_of_study = end_of_study,
-      prior_surv = prior_surv,
-      prior_bin = prior_bin,
-      bin_method = bin_method,
-      binary_imputation = binary_imputation,
-      block = block,
-      rand_ratio = rand_ratio,
-      prop_loss = prop_loss,
-      alternative = alternative,
-      h0 = h0,
-      Fn = Fn,
-      Sn = Sn,
-      prob_ha = prob_ha,
-      N_impute = N_impute,
-      N_mcmc = N_mcmc,
-      mc_conf_level = mc_conf_level,
-      method = method,
-      imputed_final = imputed_final,
-      empty_interval = empty_interval,
-      return_trace = return_trace,
-      prior_surv_final = prior_surv_final
+    tryCatch(
+      {
+        if (!is.null(trial_streams)) {
+          assign(".Random.seed", trial_streams[[x]], envir = .GlobalEnv)
+        }
+        result <- survival_adapt_fn(
+          hazard_treatment = hazard_treatment,
+          hazard_control = hazard_control,
+          cutpoints = cutpoints,
+          N_total = N_total,
+          lambda = lambda,
+          lambda_time = lambda_time,
+          interim_look = interim_look,
+          end_of_study = end_of_study,
+          prior_surv = prior_surv,
+          prior_bin = prior_bin,
+          bin_method = bin_method,
+          binary_imputation = binary_imputation,
+          block = block,
+          rand_ratio = rand_ratio,
+          prop_loss = prop_loss,
+          alternative = alternative,
+          h0 = h0,
+          Fn = Fn,
+          Sn = Sn,
+          prob_ha = prob_ha,
+          N_impute = N_impute,
+          N_mcmc = N_mcmc,
+          mc_conf_level = mc_conf_level,
+          method = method,
+          imputed_final = imputed_final,
+          empty_interval = empty_interval,
+          return_trace = return_trace,
+          prior_surv_final = prior_surv_final
+        )
+        list(
+          trial = as.integer(x),
+          result = result
+        )
+      },
+      error = function(error) {
+        list(
+          trial = as.integer(x),
+          result = NULL,
+          error_class = class(error)[1L],
+          message = conditionMessage(error)
+        )
+      }
     )
   }
 
@@ -257,25 +305,70 @@ sim_trials <- function(
   trial_results <- switch(
     backend,
     sequential = lapply(trial_index, survival_adapt_wrapper),
-    fork = pbmclapply(trial_index, survival_adapt_wrapper, mc.cores = ncores),
+    fork = pbmclapply(
+      trial_index,
+      survival_adapt_wrapper,
+      mc.cores = workers
+    ),
     psock = {
-      cluster <- parallel::makeCluster(ncores)
-      on.exit(parallel::stopCluster(cluster), add = TRUE)
-      parallel::parLapply(cluster, trial_index, survival_adapt_wrapper)
+      active_cluster <- make_sim_cluster(workers)
+      on.exit(stop_sim_cluster(active_cluster), add = TRUE)
+      run_sim_cluster(
+        active_cluster,
+        trial_index,
+        survival_adapt_wrapper
+      )
     }
   )
 
+  failed <- vapply(
+    trial_results,
+    function(x) is.null(x$result),
+    logical(1)
+  )
+  failed_results <- trial_results[failed]
+  failures <- data.frame(
+    trial = vapply(failed_results, `[[`, integer(1), "trial"),
+    error_class = vapply(
+      failed_results,
+      `[[`,
+      character(1),
+      "error_class"
+    ),
+    message = vapply(failed_results, `[[`, character(1), "message"),
+    stringsAsFactors = FALSE
+  )
+  if (all(failed)) {
+    error <- simpleError(paste0(
+      "All ",
+      N_trials,
+      " simulated trials failed. First error: ",
+      failures$message[1L]
+    ))
+    error$failures <- failures
+    class(error) <- c("goldilocks_all_trials_failed", class(error))
+    stop(error)
+  }
+
+  successful_trials <- trial_results[!failed]
+  successful_results <- lapply(successful_trials, `[[`, "result")
   if (return_trace) {
-    sims <- bind_rows(lapply(trial_results, function(x) x$summary))
-    traces <- bind_rows(lapply(seq_along(trial_results), function(i) {
-      trace <- trial_results[[i]]$trace
-      trace$trial <- rep.int(i, nrow(trace))
+    sims <- bind_rows(lapply(successful_results, function(x) x$summary))
+    traces <- bind_rows(lapply(seq_along(successful_results), function(i) {
+      trace <- successful_results[[i]]$trace
+      trial <- successful_trials[[i]]$trial
+      trace$trial <- rep.int(trial, nrow(trace))
       trace[c("trial", setdiff(names(trace), "trial"))]
     }))
-    out <- list(sims = sims, traces = traces, call = Call)
+    out <- list(
+      sims = sims,
+      traces = traces,
+      failures = failures,
+      call = Call
+    )
   } else {
-    sims <- bind_rows(trial_results)
-    out <- list(sims = sims, call = Call)
+    sims <- bind_rows(successful_results)
+    out <- list(sims = sims, failures = failures, call = Call)
   }
   attr(out, "enrollment_design") <- new_enrollment_design(
     lambda = lambda,
@@ -285,13 +378,103 @@ sim_trials <- function(
     end_of_study = end_of_study
   )
   attr(out, "decision_design") <- attr(
-    trial_results[[1]],
+    successful_results[[1]],
     "decision_design",
     exact = TRUE
   )
   attr(out, "rng_metadata") <- rng_metadata
+  attr(out, "parallel_metadata") <- list(
+    requested_backend = requested_backend,
+    backend = backend,
+    selection_reason = execution$reason,
+    requested_ncores = as.integer(ncores),
+    workers = as.integer(workers),
+    tasks = as.integer(N_trials)
+  )
+
+  if (nrow(failures) > 0L) {
+    warning(
+      nrow(failures),
+      " of ",
+      N_trials,
+      " simulated trials failed and were excluded. See `result$failures` ",
+      "for details.",
+      call. = FALSE
+    )
+  }
 
   return(out)
+}
+
+#' Resolve a trial-simulation execution plan
+#'
+#' @title Resolve trial-simulation execution details
+#'
+#' @description Applies the automatic workload crossover, caps package-owned
+#'   workers at useful independent work.
+#'
+#' @param backend Requested backend name.
+#' @param ncores Requested number of workers.
+#' @param N_trials Number of independent trial tasks.
+#'
+#' @return A list describing the effective backend and worker pool.
+#'
+#' @keywords internal
+#' @noRd
+resolve_sim_execution <- function(backend, ncores, N_trials) {
+  if (backend != "auto") {
+    backend <- resolve_sim_backend(backend, ncores)
+  }
+  if (backend == "sequential") {
+    return(list(
+      backend = "sequential",
+      workers = 1L,
+      reason = "explicit_sequential"
+    ))
+  }
+
+  if (backend == "auto") {
+    auto_workers <- min(ncores, max(1L, N_trials %/% 2L))
+    if (auto_workers < 2L) {
+      reason <- if (ncores == 1L) {
+        "single_worker"
+      } else {
+        "auto_small_workload"
+      }
+      return(list(
+        backend = "sequential",
+        workers = 1L,
+        reason = reason
+      ))
+    }
+    effective_backend <- resolve_sim_backend("auto", auto_workers)
+    return(list(
+      backend = effective_backend,
+      workers = as.integer(auto_workers),
+      reason = "auto_parallel"
+    ))
+  }
+
+  workers <- as.integer(min(ncores, N_trials))
+  list(
+    backend = backend,
+    workers = workers,
+    reason = "explicit_parallel"
+  )
+}
+
+# Small wrappers keep package-owned cluster lifecycle behavior independently
+# testable without opening worker processes.
+make_sim_cluster <- function(workers) {
+  parallel::makeCluster(workers)
+}
+
+run_sim_cluster <- function(cluster, trial_index, fun) {
+  parallel::parLapply(cluster, trial_index, fun)
+}
+
+stop_sim_cluster <- function(cluster) {
+  parallel::stopCluster(cluster)
 }
 
 #' Resolve the execution backend for trial simulation

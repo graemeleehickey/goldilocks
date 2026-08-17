@@ -574,8 +574,8 @@ eff_null_boundary <- do.call(sim_trials, c(
 ))
 
 oc_small <- summarise_sims(list(
-  "target: equal 35% failure" = eff_target$sims,
-  "margin: PFA failure 50%" = eff_null_boundary$sims
+  "target: equal 35% failure" = eff_target,
+  "margin: PFA failure 50%" = eff_null_boundary
 ))
 
 knitr::kable(oc_small, digits = 3)
@@ -680,10 +680,10 @@ safety_margin_full <- do.call(sim_trials, c(
 ))
 
 summarise_sims(list(
-  "effectiveness target" = eff_target_full$sims,
-  "effectiveness margin" = eff_margin_full$sims,
-  "safety target" = safety_target_full$sims,
-  "safety margin" = safety_margin_full$sims
+  "effectiveness target" = eff_target_full,
+  "effectiveness margin" = eff_margin_full,
+  "safety target" = safety_target_full,
+  "safety margin" = safety_margin_full
 ))
 ```
 

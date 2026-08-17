@@ -140,9 +140,15 @@ test_that("analyse_data errors clearly for non-estimable Cox tests", {
     ),
     "Cox analysis is non-estimable"
   )
+  for (engine in c("auto", "public")) {
+    expect_error(
+      cox_wald_test_checked(data, engine = engine),
+      "Cox analysis is non-estimable"
+    )
+  }
 })
 
-test_that("cox_wald_test matches coxph treatment estimate and standard error", {
+test_that("guarded Cox engines match coxph estimates and standard errors", {
   set.seed(4291)
   data <- data.frame(
     time = c(rexp(50, rate = 0.06), rexp(50, rate = 0.04)),
@@ -150,11 +156,151 @@ test_that("cox_wald_test matches coxph treatment estimate and standard error", {
     treatment = rep(0:1, each = 50)
   )
 
-  fast_fit <- cox_wald_test(data)
+  automatic_fit <- cox_wald_test(data)
+  public_fit <- cox_wald_test(data, engine = "public")
   survival_fit <- coxph(Surv(time, event) ~ treatment, data = data)
 
-  expect_equal(fast_fit$estimate, unname(survival_fit$coefficients[1]))
-  expect_equal(fast_fit$std_error, sqrt(unname(survival_fit$var[1, 1])))
+  expect_equal(automatic_fit$estimate, unname(survival_fit$coefficients[1]))
+  expect_equal(
+    automatic_fit$std_error,
+    sqrt(unname(survival_fit$var[1, 1]))
+  )
+  expect_equal(public_fit, automatic_fit)
+
+  compatibility <- coxph_fit_compatibility(refresh = TRUE)
+  if (compatibility$compatible) {
+    expect_equal(
+      cox_wald_test(data, engine = "fast"),
+      public_fit
+    )
+  }
+})
+
+test_that("cox_wald_test matches public coxph for tied event times", {
+  data <- data.frame(
+    time = c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6),
+    event = c(1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1),
+    treatment = rep(0:1, 6)
+  )
+
+  fit <- cox_wald_test(data)
+  reference <- survival::coxph(
+    survival::Surv(time, event) ~ treatment,
+    data = data,
+    ties = "efron",
+    singular.ok = FALSE,
+    model = FALSE,
+    x = FALSE,
+    y = FALSE
+  )
+
+  expect_equal(fit$estimate, unname(stats::coef(reference)["treatment"]))
+  expect_equal(
+    fit$std_error,
+    sqrt(unname(stats::vcov(reference)["treatment", "treatment"]))
+  )
+})
+
+test_that("Cox compatibility resolver records and validates survival", {
+  compatibility <- coxph_fit_compatibility(refresh = TRUE)
+
+  expect_named(
+    compatibility,
+    c("compatible", "fitter", "version", "reason")
+  )
+  expect_type(compatibility$compatible, "logical")
+  expect_length(compatibility$compatible, 1L)
+  expect_match(compatibility$version, "^[0-9]+\\.[0-9]+")
+  expect_type(compatibility$reason, "character")
+  if (compatibility$compatible) {
+    expect_type(compatibility$fitter, "closure")
+  } else {
+    expect_null(compatibility$fitter)
+  }
+})
+
+test_that("Cox auto engine falls back when the fast path is incompatible", {
+  set.seed(7701)
+  data <- data.frame(
+    time = rexp(100, rate = 0.04),
+    event = rbinom(100, size = 1, prob = 0.65),
+    treatment = rep(0:1, each = 50)
+  )
+  unavailable <- list(
+    compatible = FALSE,
+    fitter = NULL,
+    version = "test",
+    reason = "simulated incompatible signature"
+  )
+
+  expect_equal(
+    cox_wald_test(data, compatibility = unavailable),
+    cox_wald_test(data, engine = "public")
+  )
+  expect_error(
+    cox_wald_test(
+      data,
+      engine = "fast",
+      compatibility = unavailable
+    ),
+    "fast path is unavailable.*simulated incompatible signature"
+  )
+})
+
+test_that("Cox auto engine rejects malformed fast-path results safely", {
+  set.seed(7702)
+  data <- data.frame(
+    time = rexp(100, rate = 0.04),
+    event = rbinom(100, size = 1, prob = 0.65),
+    treatment = rep(0:1, each = 50)
+  )
+  malformed <- list(
+    compatible = TRUE,
+    fitter = function(...) {
+      list(coefficients = 0, var = matrix(1))
+    },
+    version = "test",
+    reason = "simulated malformed result"
+  )
+
+  expect_equal(
+    cox_wald_test(data, compatibility = malformed),
+    cox_wald_test(data, engine = "public")
+  )
+  expect_error(
+    cox_wald_test(
+      data,
+      engine = "fast",
+      compatibility = malformed
+    ),
+    "incompatible result structure"
+  )
+})
+
+test_that("Cox analysis defines singular and convergence-failure behavior", {
+  singular_data <- data.frame(
+    time = seq_len(10),
+    event = rep(1, 10),
+    treatment = rep(0, 10)
+  )
+  for (engine in c("auto", "public")) {
+    expect_error(
+      cox_wald_test_checked(singular_data, engine = engine),
+      "Cox analysis is non-estimable"
+    )
+  }
+
+  separated_data <- data.frame(
+    time = seq_len(20),
+    event = c(rep(1, 10), rep(0, 10)),
+    treatment = rep(0:1, each = 10)
+  )
+  for (engine in c("auto", "public")) {
+    expect_error(
+      cox_wald_test_checked(separated_data, engine = engine),
+      "Cox analysis is non-estimable:.*reported:.*coefficient may be infinite"
+    )
+  }
 })
 
 test_that("analyse_data works with method = 'bayes-surv' (two-arm)", {

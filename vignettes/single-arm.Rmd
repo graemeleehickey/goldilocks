@@ -144,8 +144,8 @@ out_t1error <- sim_trials(
   seed             = 3083)
 
 oc <- summarise_sims(list(
-  "target event probability" = out_power$sims,
-  "benchmark event probability" = out_t1error$sims
+  "target event probability" = out_power,
+  "benchmark event probability" = out_t1error
 ))
 oc$true_event_probability <- c(target, benchmark)
 

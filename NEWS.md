@@ -2,6 +2,31 @@
 
 ## Bug fixes
 
+* `sim_trials()` now caps package-owned workers at useful trial tasks and uses
+  a documented automatic crossover of at least two trials per worker, avoiding
+  parallel startup for workloads smaller than four trials. Package-owned PSOCK
+  clusters are cleaned up on errors, returned parallel metadata records the
+  deterministic execution plan, and benchmarks report setup separately from
+  estimated compute and dispatch time (#93).
+* `sim_trials()` now isolates trial-level errors across sequential and parallel
+  execution. Successful trials are retained, failures are excluded into a
+  compact `failures` table, and one warning reports the affected count; an
+  all-failed batch still stops with the failure table attached to its error.
+  Complete-result summaries retain the requested denominator and report the
+  analyzed and failed counts without adding a new public argument (#72).
+* Cox analyses now isolate the low-overhead `survival::coxph.fit()` path behind
+  a cached version/signature compatibility check and validate its returned
+  coefficient and variance structure. Incompatible installations fall back
+  automatically to exported `survival::coxph()`, without a new public argument.
+  Singular fits, zero-event data, and convergence warnings produce targeted
+  non-estimability errors; tests exercise both engines and benchmarks document
+  their material performance tradeoff on realistic tied data (#77).
+* `summarise_sims()` now accepts complete `sim_trials()` results directly as
+  well as the existing data-frame form. Named and grouped scenario identifiers
+  are retained; summaries of complete results preserve backend, seed, failure,
+  RNG, parallel, call, and design metadata and expose requested, analyzed, and
+  failed trial counts so failed runs cannot silently leave the denominator
+  unchanged (#78).
 * Interim Monte Carlo decisions now require one-sided exact binomial bounds to
   cross their thresholds, at both the completed-data posterior layer and the
   outer predictive-imputation layer. Equality and estimates whose bounds do not

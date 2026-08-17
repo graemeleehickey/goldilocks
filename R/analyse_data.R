@@ -140,7 +140,6 @@ analyse_data <- function(
 
   if (method == "cox") {
     fit_cox <- cox_wald_test_checked(data)
-    assert_cox_estimable(fit_cox)
     z <- (fit_cox$estimate - h0) / fit_cox$std_error
     if (alternative == "two.sided") {
       success <- 1 - (2 * pnorm(-abs(z)))
@@ -585,25 +584,39 @@ assert_logrank_estimable <- function(lr) {
 #'   standard error (`std_error`).
 #'
 #' @noRd
-cox_wald_test_checked <- function(data) {
+cox_wald_test_checked <- function(data, ...) {
   fit_state <- new.env(parent = emptyenv())
-  fit_state$warning <- NULL
-  fit <- withCallingHandlers(
-    cox_wald_test(data),
-    warning = function(w) {
-      fit_state$warning <- conditionMessage(w)
-      invokeRestart("muffleWarning")
+  fit_state$warnings <- character()
+  fit <- tryCatch(
+    withCallingHandlers(
+      cox_wald_test(data, ...),
+      warning = function(w) {
+        fit_state$warnings <- c(
+          fit_state$warnings,
+          conditionMessage(w)
+        )
+        invokeRestart("muffleWarning")
+      }
+    ),
+    error = function(e) {
+      stop(
+        "Cox analysis is non-estimable: the Cox fitter failed: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
     }
   )
 
-  if (!is.null(fit_state$warning)) {
+  if (length(fit_state$warnings) > 0L) {
     stop(
       "Cox analysis is non-estimable: the Cox model did not produce a ",
-      "reliable Wald statistic. survival::coxph.fit reported: ",
-      fit_state$warning
+      "reliable Wald statistic. The Cox fitter reported: ",
+      paste(unique(fit_state$warnings), collapse = " | "),
+      call. = FALSE
     )
   }
 
+  assert_cox_estimable(fit)
   fit
 }
 
@@ -634,26 +647,133 @@ assert_cox_estimable <- function(fit) {
   invisible(TRUE)
 }
 
-#' @title Fit a low-overhead Cox Wald test
+#' @title Fit a low-overhead Cox Wald test with a public fallback
 #'
-#' @description Calls survival's internal Cox fitter directly and returns the
-#'   treatment log hazard ratio with its standard error.
+#' @description Uses an isolated, compatibility-checked `coxph.fit()` fast path
+#'   when available and otherwise calls the exported [survival::coxph()]
+#'   interface. `engine` and `compatibility` exist only to exercise both
+#'   internal branches in tests and maintainer benchmarks.
 #'
 #' @noRd
-cox_wald_test <- function(data) {
-  y <- Surv(data$time, data$event)
-  x <- matrix(as.double(data$treatment), ncol = 1)
+cox_wald_test <- function(
+  data,
+  engine = c("auto", "fast", "public"),
+  compatibility = coxph_fit_compatibility()
+) {
+  engine <- match.arg(engine)
+  if (engine == "public") {
+    return(cox_wald_test_public(data))
+  }
 
-  # Use the lower-level fitter to avoid formula/model-frame and summary
-  # overhead in repeated simulation analyses.
-  coxph_fit <- getFromNamespace("coxph.fit", "survival")
-  fit <- coxph_fit(
+  fast_available <- isTRUE(compatibility$compatible) &&
+    is.function(compatibility$fitter)
+  if (!fast_available) {
+    if (engine == "fast") {
+      stop(
+        "The survival::coxph.fit() fast path is unavailable: ",
+        compatibility$reason,
+        call. = FALSE
+      )
+    }
+    return(cox_wald_test_public(data))
+  }
+
+  fast_fit <- tryCatch(
+    cox_wald_test_fast(data, compatibility$fitter),
+    error = identity
+  )
+  if (!inherits(fast_fit, "error")) {
+    return(fast_fit)
+  }
+  if (engine == "fast") {
+    stop(fast_fit)
+  }
+
+  cox_wald_test_public(data)
+}
+
+#' @title Resolve the survival Cox fast path once per package session
+#'
+#' @description Records the installed `survival` version and verifies every
+#'   unexported fitter argument used by the package. Installations outside the
+#'   supported compatibility boundary use the exported fallback.
+#'
+#' @noRd
+coxph_fit_compatibility <- local({
+  cached <- NULL
+
+  function(refresh = FALSE) {
+    if (!refresh && !is.null(cached)) {
+      return(cached)
+    }
+
+    version <- as.character(utils::packageVersion("survival"))
+    fitter <- tryCatch(
+      getFromNamespace("coxph.fit", "survival"),
+      error = function(e) NULL
+    )
+    required_arguments <- c(
+      "x",
+      "y",
+      "strata",
+      "offset",
+      "init",
+      "control",
+      "weights",
+      "method",
+      "rownames",
+      "resid",
+      "nocenter"
+    )
+    version_supported <- utils::compareVersion(version, "3.2-0") >= 0L
+    missing_arguments <- if (is.function(fitter)) {
+      setdiff(required_arguments, names(formals(fitter)))
+    } else {
+      required_arguments
+    }
+    compatible <- version_supported &&
+      is.function(fitter) &&
+      length(missing_arguments) == 0L
+    reason <- if (!version_supported) {
+      paste0("survival ", version, " predates the guarded fast path")
+    } else if (!is.function(fitter)) {
+      "survival::coxph.fit() could not be resolved"
+    } else if (length(missing_arguments) > 0L) {
+      paste0(
+        "survival::coxph.fit() lacks required argument(s): ",
+        paste(missing_arguments, collapse = ", ")
+      )
+    } else {
+      paste0("compatible survival ", version, " signature")
+    }
+
+    cached <<- list(
+      compatible = compatible,
+      fitter = if (compatible) fitter else NULL,
+      version = version,
+      reason = reason
+    )
+    cached
+  }
+})
+
+#' @title Fit a Cox Wald test through the guarded fast path
+#'
+#' @noRd
+cox_wald_test_fast <- function(data, fitter) {
+  y <- survival::Surv(data$time, data$event)
+  x <- matrix(
+    as.double(data$treatment),
+    ncol = 1L,
+    dimnames = list(NULL, "treatment")
+  )
+  fit <- fitter(
     x = x,
     y = y,
     strata = NULL,
     offset = NULL,
     init = NULL,
-    control = coxph.control(),
+    control = survival::coxph.control(),
     weights = NULL,
     method = "efron",
     rownames = NULL,
@@ -661,8 +781,42 @@ cox_wald_test <- function(data) {
     nocenter = NULL
   )
 
+  valid_result <- is.list(fit) &&
+    is.numeric(fit$coefficients) &&
+    identical(names(fit$coefficients), "treatment") &&
+    is.matrix(fit$var) &&
+    identical(dim(fit$var), c(1L, 1L))
+  if (!valid_result) {
+    stop(
+      "survival::coxph.fit() returned an incompatible result structure",
+      call. = FALSE
+    )
+  }
+
   list(
-    estimate = fit$coefficients[1],
-    std_error = sqrt(fit$var[1, 1])
+    estimate = unname(fit$coefficients[["treatment"]]),
+    std_error = sqrt(unname(fit$var[1L, 1L]))
+  )
+}
+
+#' @title Fit a Cox Wald test through survival's public API
+#'
+#' @noRd
+cox_wald_test_public <- function(data) {
+  fit <- survival::coxph(
+    survival::Surv(time, event) ~ treatment,
+    data = data,
+    ties = "efron",
+    singular.ok = FALSE,
+    model = FALSE,
+    x = FALSE,
+    y = FALSE
+  )
+  estimate <- stats::coef(fit)["treatment"]
+  variance <- stats::vcov(fit)["treatment", "treatment"]
+
+  list(
+    estimate = unname(estimate),
+    std_error = sqrt(unname(variance))
   )
 }

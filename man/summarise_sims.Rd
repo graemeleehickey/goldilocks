@@ -7,11 +7,10 @@
 summarise_sims(data)
 }
 \arguments{
-\item{data}{list (of data frames) or a single data frame. If summarizing a
-single run of simulations, \code{data} will be a \code{data.frame} object returned
-from \code{\link[=survival_adapt]{survival_adapt()}}. If summarizing multiple simulation scenarios,
-\code{data} will be a \code{list} object, with each element being a \code{data.frame}
-object.}
+\item{data}{A complete result returned by \code{\link[=sim_trials]{sim_trials()}}, a simulation
+\code{data.frame}, or a list of either form. Named list elements identify
+scenarios. Existing \code{scenario} columns and grouping variables are
+preserved.}
 }
 \value{
 Data frame reporting the operating characteristics, including the
@@ -20,7 +19,10 @@ proportion of trials that stopped for early expected success, futility, or
 went to the maximum sample size. The average stopping sample size (and
 standard deviation) are also recorded. The proportion of trials that
 stopped early for expected success, yet went to ultimately fail are also
-reported.
+reported. When complete \code{\link[=sim_trials]{sim_trials()}} results are supplied, the output
+also reports the requested, analyzed, and failed trial counts plus the
+effective backend and seed. Full call, RNG, parallel, timing, failure, and
+design metadata are retained in the \code{simulation_metadata} attribute.
 }
 \description{
 Summarize simulations to get operating characteristics

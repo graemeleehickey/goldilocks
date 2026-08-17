@@ -140,7 +140,6 @@ test_final <- function(
 
       if (method == "cox") {
         fit_cox <- cox_wald_test_checked(data)
-        assert_cox_estimable(fit_cox)
         effect_final[j] <- fit_cox$estimate
         variance_final[j] <- fit_cox$std_error^2
       } else if (method == "riskdiff") {

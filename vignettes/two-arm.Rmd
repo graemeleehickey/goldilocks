@@ -93,7 +93,10 @@ The operating characteristics will be determined using 500 simulated trials. At 
 -   Number of simulated trials: `N_trials = 500`
 -   Number of imputations from predictive distribution: `N_impute = 100`
 -   Independent prior distribution for each hazard rate parameter: `prior_surv = c(0.1, 0.1)`
--   Parallel computation: `ncores = 8`. The default `backend = "auto"` uses forked workers on Unix-like platforms and PSOCK workers on Windows.
+-   Parallel computation: `ncores = 8`. The default `backend = "auto"` uses
+    serial execution for fewer than four trials and otherwise assigns at least
+    two trials per worker, using forked workers on Unix-like platforms and
+    PSOCK workers on Windows.
 -   Reproducible simulation streams: `seed = 123`
 
 Similar to above, the parameter `N_mcmc` is not required when using a log-rank test, meaning we do not need to enter a value for this argument. Since we do not allow for attrition, the data at the final analysis will be complete, and we can set `imputed_final = FALSE`. If attrition occurred and `method = "cox"` or `method = "riskdiff"` were selected, `imputed_final = TRUE` would analyze each completed dataset and pool the scalar estimates and variances using Rubin's rules; at least two imputations are required. Imputed final analyses are not available for `method = "logrank"`.
@@ -142,7 +145,7 @@ out_t1error <- update(out_power, hazard_treatment = hc, seed = 124)
 
 ```{r summarise_sims}
 knitr::kable(
-  summarise_sims(list(out_power$sims, out_t1error$sims)),
+  summarise_sims(list(out_power, out_t1error)),
   digits = 3,
   caption = "Operating characteristics with a two-sided log-rank test at the 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is the null (treatment OS 30%)."
 )
@@ -164,8 +167,8 @@ out_t1error2 <- update(
 
 ```{r summarise_sims_p0.04}
 oc_calibrated <- summarise_sims(list(
-  "target: treatment OS 50%" = out_power2$sims,
-  "null: treatment OS 30%" = out_t1error2$sims
+  "target: treatment OS 50%" = out_power2,
+  "null: treatment OS 30%" = out_t1error2
 ))
 knitr::kable(
   oc_calibrated,

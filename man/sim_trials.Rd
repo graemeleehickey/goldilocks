@@ -207,15 +207,20 @@ is found.}
 every simulated trial be retained? The default, \code{FALSE}, preserves the
 compact output. When \code{TRUE}, the returned list also contains a \code{traces}
 data frame with a \code{trial} column linking each trace row to the corresponding
-row of \code{sims}.}
+original simulated trial.}
 
 \item{ncores}{positive integer. Number of cores to use for parallel
-processing. Defaults to \code{1L} (serial execution).}
+processing. Defaults to \code{1L} (serial execution). Package-owned worker
+pools are capped at the number of trials. With \code{backend = "auto"}, at
+least two trials per worker are required so that small workloads avoid
+parallel startup overhead.}
 
 \item{backend}{character. Parallel backend. "auto" (the default) uses
-serial execution for \code{ncores = 1}, the existing fork backend on Unix-like
-platforms, and a PSOCK cluster on Windows. "fork", "psock", and
-"sequential" select a backend explicitly.}
+serial execution for \code{ncores = 1} or fewer than four trials. Otherwise it
+uses the existing fork backend on Unix-like platforms and a PSOCK cluster
+on Windows, with at least two trials assigned per worker. "fork",
+"psock", and "sequential" select a backend explicitly and bypass this
+workload crossover.}
 
 \item{seed}{optional integer. Seed used to generate independent per-trial
 \code{"L'Ecuyer-CMRG"} random-number streams. The default, \code{NULL},
@@ -234,14 +239,17 @@ final-stage piecewise-exponential imputation and, for \code{method = "bayes-surv
 and defaults to \code{prior_surv}, preserving the historical behavior.}
 }
 \value{
-A list containing \code{sims}, a data frame with one row per simulated
-trial, and \code{call}. When \code{return_trace = TRUE}, the list also contains
-\code{traces}, a data frame with one row per completed interim look and a
-\code{trial} identifier. See \code{\link[=survival_adapt]{survival_adapt()}} for details of the summary and
-trace columns. The returned object also retains the normalized
-\code{decision_design} attribute from \code{\link[=survival_adapt]{survival_adapt()}}. An \code{rng_metadata}
-attribute records the caller RNG kind, effective backend, seed policy, and
-stream seed when applicable.
+A list containing \code{sims}, a data frame with one row per successfully
+simulated trial; \code{failures}, a data frame with columns \code{trial},
+\code{error_class}, and \code{message}; and \code{call}. When \code{return_trace = TRUE}, the
+list also contains \code{traces}, a data frame with one row per completed
+interim look and a \code{trial} identifier. See \code{\link[=survival_adapt]{survival_adapt()}} for details
+of the summary and trace columns. The returned object also retains the
+normalized \code{decision_design} attribute from \code{\link[=survival_adapt]{survival_adapt()}}. An
+\code{rng_metadata} attribute records the caller RNG kind, effective backend,
+seed policy, and stream seed when applicable. A deterministic
+\code{parallel_metadata} attribute records the requested and effective backend
+and worker counts, task count, and backend-selection reason.
 }
 \description{
 Simulate multiple clinical trials with fixed input parameters,
@@ -254,9 +262,25 @@ trials (all with the same input design parameters and treatment effect).
 
 To use multiple cores (where available), the argument \code{ncores}
 can be increased from the default of 1. The default \code{backend = "auto"}
-uses \code{\link[pbmcapply:pbmclapply]{pbmcapply::pbmclapply()}} on Unix-like platforms and a PSOCK cluster
-on Windows, where forked processes are unavailable. Set \code{backend}
-explicitly to compare backends or to require serial execution.
+stays sequential for fewer than four trials and otherwise uses at most one
+worker per two trials. This simple workload heuristic amortizes process
+startup without trying to predict the cost of an individual trial. When
+it selects parallel execution, it uses \code{\link[pbmcapply:pbmclapply]{pbmcapply::pbmclapply()}} on
+Unix-like platforms and a PSOCK cluster on Windows, where forked processes
+are unavailable. Set \code{backend} explicitly to bypass the crossover.
+
+A PSOCK cluster created by \code{sim_trials()} is always stopped before the
+function returns, including when worker evaluation fails. PSOCK tasks use
+static worker chunks, so the invariant simulation design is serialized
+once per active worker rather than once per trial.
+
+Errors raised by an individual \code{\link[=survival_adapt]{survival_adapt()}} call are isolated so
+other trials can finish. Failed trials are excluded from \code{sims}, recorded
+in \code{failures} with their trial number, error class, and message, and
+reported together in one warning. If every requested trial fails,
+\code{sim_trials()} stops and attaches the same failure table to the error as
+\code{failures}. With a supplied \code{seed}, the original call and failed trial
+number reproduce the same per-trial random-number stream.
 
 Set \code{seed} to make \code{sim_trials()} reproducible. When a seed is
 supplied, \code{sim_trials()} first generates one independent

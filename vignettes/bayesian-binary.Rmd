@@ -167,7 +167,7 @@ The Monte Carlo method has simulation error, controlled by `N_mcmc`. Quadrature 
 
 ## Operating characteristics
 
-As with the survival methods, operating characteristics should be evaluated by simulation. The `seed` argument makes the simulation reproducible, including when `ncores` is greater than 1. With `backend = "auto"`, `sim_trials()` uses forked workers on Unix-like platforms and PSOCK workers on Windows.
+As with the survival methods, operating characteristics should be evaluated by simulation. The `seed` argument makes the simulation reproducible, including when `ncores` is greater than 1. With `backend = "auto"`, `sim_trials()` keeps workloads smaller than four trials serial and otherwise uses at least two trials per worker, selecting forked workers on Unix-like platforms and PSOCK workers on Windows.
 
 ```{r oc, eval=FALSE}
 out_power <- sim_trials(
@@ -202,8 +202,8 @@ out_power <- sim_trials(
 out_null <- update(out_power, hazard_treatment = hc, seed = 5108)
 
 oc <- summarise_sims(list(
-  "target: treatment event probability 25%" = out_power$sims,
-  "null: treatment event probability 35%" = out_null$sims
+  "target: treatment event probability 25%" = out_power,
+  "null: treatment event probability 35%" = out_null
 ))
 oc$true_treatment_event_probability <- c(0.25, 0.35)
 

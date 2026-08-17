@@ -556,7 +556,7 @@ out <- sim_trials(
   method           = method,
   seed             = 12345)
 
-summarise_sims(out$sims)
+summarise_sims(out)
 ```
 
 ### 8.1 Visual diagnostics
@@ -578,9 +578,9 @@ or event probability depending on the analysis:
 
 ```{r, eval=FALSE}
 scenario_oc <- summarise_sims(list(
-  "null" = null_sims$sims,
-  "moderate" = moderate_sims$sims,
-  "target" = target_sims$sims
+  "null" = null_sims,
+  "moderate" = moderate_sims,
+  "target" = target_sims
 ))
 scenario_oc$true_effect <- c(0, -0.10, -0.20)
 

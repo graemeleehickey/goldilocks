@@ -29,6 +29,11 @@ test_that("sim_trials-logrank", {
 
   expect_type(out, "list")
   expect_s3_class(out$sims, "data.frame")
+  expect_named(
+    out$failures,
+    c("trial", "error_class", "message")
+  )
+  expect_equal(nrow(out$failures), 0L)
 
   summ_out <- summarise_sims(out$sims)
   expect_s3_class(summ_out, "data.frame")
@@ -179,7 +184,7 @@ test_that("sim_trials optionally retains traces without changing summaries", {
   traced <- do.call(sim_trials, c(args, list(return_trace = TRUE)))
 
   expect_equal(traced$sims, compact$sims)
-  expect_named(traced, c("sims", "traces", "call"))
+  expect_named(traced, c("sims", "traces", "failures", "call"))
   expect_s3_class(traced$traces, "data.frame")
   expect_true(all(
     c(
@@ -192,6 +197,160 @@ test_that("sim_trials optionally retains traces without changing summaries", {
       names(traced$traces)
   ))
   expect_setequal(unique(traced$traces$trial), 1:2)
+})
+
+test_that("sim_trials isolates failed trials and warns once", {
+  run_fake_trials <- function(backend, fail_trial = 2L) {
+    trial <- 0L
+    fake_survival_adapt <- function(..., return_trace = FALSE) {
+      trial <<- trial + 1L
+      value <- stats::runif(1)
+      if (identical(trial, fail_trial)) {
+        rlang::abort(
+          "simulated non-estimable analysis",
+          class = "simulated_trial_error"
+        )
+      }
+      summary <- data.frame(
+        prob_threshold = 0.95,
+        margin = 0,
+        alternative = "less",
+        N_treatment = 5L,
+        N_control = 5L,
+        N_enrolled = 10L,
+        N_max = 10L,
+        post_prob_ha = 0.99,
+        est_final = value,
+        ppp_success = 0.5,
+        stop_futility = FALSE,
+        stop_expected_success = FALSE
+      )
+      attr(summary, "decision_design") <- list(interim_look = NULL)
+      if (!return_trace) {
+        return(summary)
+      }
+      result <- list(
+        summary = summary,
+        trace = data.frame(look = 1L, N_enrolled = 10L),
+        call = quote(fake_survival_adapt())
+      )
+      attr(result, "decision_design") <- attr(
+        summary,
+        "decision_design",
+        exact = TRUE
+      )
+      result
+    }
+
+    fake_cluster <- structure(vector("list", 2L), class = "cluster")
+    local_mocked_bindings(
+      survival_adapt = fake_survival_adapt,
+      make_psock_callable = function(...) fake_survival_adapt,
+      make_sim_cluster = function(...) fake_cluster,
+      run_sim_cluster = function(cluster, trial_index, fun) {
+        lapply(trial_index, fun)
+      },
+      stop_sim_cluster = function(...) invisible(NULL),
+      .package = "goldilocks"
+    )
+
+    warnings <- character()
+    result <- withCallingHandlers(
+      sim_trials(
+        hazard_treatment = 0.02,
+        hazard_control = 0.03,
+        N_total = 10,
+        lambda = 10,
+        end_of_study = 12,
+        N_trials = 3,
+        method = "logrank",
+        backend = backend,
+        ncores = 2,
+        return_trace = TRUE,
+        seed = 7201
+      ),
+      warning = function(warning) {
+        warnings <<- c(warnings, conditionMessage(warning))
+        invokeRestart("muffleWarning")
+      }
+    )
+    list(result = result, warnings = warnings)
+  }
+
+  sequential <- run_fake_trials("sequential")
+  psock <- run_fake_trials("psock")
+  complete <- run_fake_trials("sequential", fail_trial = NA_integer_)
+
+  expect_length(sequential$warnings, 1L)
+  expect_length(psock$warnings, 1L)
+  expect_length(complete$warnings, 0L)
+  expect_match(
+    sequential$warnings,
+    "1 of 3 simulated trials failed and were excluded"
+  )
+  expect_identical(sequential$result$failures, psock$result$failures)
+  expect_identical(
+    sequential$result$failures,
+    data.frame(
+      trial = 2L,
+      error_class = "simulated_trial_error",
+      message = "simulated non-estimable analysis"
+    )
+  )
+  expect_equal(sequential$result$sims, psock$result$sims)
+  expect_equal(
+    sequential$result$sims$est_final,
+    complete$result$sims$est_final[c(1L, 3L)]
+  )
+  expect_setequal(sequential$result$traces$trial, c(1L, 3L))
+
+  summary <- summarise_sims(sequential$result)
+  expect_identical(summary$n_requested, 3L)
+  expect_identical(summary$n_analyzed, 2L)
+  expect_identical(summary$n_failed, 1L)
+  expect_identical(
+    attr(summary, "simulation_metadata", exact = TRUE)[[1]]$failures,
+    sequential$result$failures
+  )
+})
+
+test_that("sim_trials stops with structured details when every trial fails", {
+  fake_survival_adapt <- function(...) {
+    rlang::abort(
+      "simulated terminal failure",
+      class = "simulated_trial_error"
+    )
+  }
+  local_mocked_bindings(
+    survival_adapt = fake_survival_adapt,
+    .package = "goldilocks"
+  )
+
+  error <- tryCatch(
+    sim_trials(
+      hazard_treatment = 0.02,
+      hazard_control = 0.03,
+      N_total = 10,
+      lambda = 10,
+      end_of_study = 12,
+      N_trials = 2,
+      method = "logrank",
+      backend = "sequential",
+      seed = 7202
+    ),
+    error = identity
+  )
+
+  expect_s3_class(error, "goldilocks_all_trials_failed")
+  expect_match(
+    conditionMessage(error),
+    "All 2 simulated trials failed.*simulated terminal failure"
+  )
+  expect_identical(error$failures$trial, 1:2)
+  expect_identical(
+    error$failures$error_class,
+    rep("simulated_trial_error", 2)
+  )
 })
 
 test_that("sim_trials validates return_trace", {
@@ -304,7 +463,7 @@ test_that("sim_trials uses reproducible per-trial streams in parallel", {
       prob_ha = 0.975,
       N_impute = 2,
       N_mcmc = 2,
-      N_trials = 2,
+      N_trials = 4,
       method = "logrank",
       empty_interval = "prior",
       return_trace = TRUE,
@@ -355,8 +514,14 @@ test_that("sim_trials produces identical seeded PSOCK results", {
 
   sequential <- run_with_backend("sequential", 1)
   psock <- run_with_backend("psock", 2)
+  psock_repeated <- run_with_backend("psock", 2)
   expect_equal(sequential$sims, psock$sims)
   expect_equal(sequential$traces, psock$traces)
+  expect_equal(psock_repeated$sims, psock$sims)
+  expect_identical(
+    attr(psock_repeated, "parallel_metadata", exact = TRUE),
+    attr(psock, "parallel_metadata", exact = TRUE)
+  )
 })
 
 test_that("unseeded PSOCK simulations derive streams from caller RNG state", {
@@ -456,6 +621,86 @@ test_that("sim_trials auto backend selects the platform default", {
   expected <- if (.Platform$OS.type == "windows") "psock" else "fork"
   expect_identical(resolve_sim_backend("auto", 2L), expected)
   expect_identical(resolve_sim_backend("auto", 1L), "sequential")
+})
+
+test_that("automatic execution uses a documented workload crossover", {
+  expected_parallel <- if (.Platform$OS.type == "windows") "psock" else "fork"
+
+  small <- resolve_sim_execution("auto", 8L, N_trials = 3L)
+  expect_identical(small$backend, "sequential")
+  expect_identical(small$workers, 1L)
+  expect_identical(small$reason, "auto_small_workload")
+
+  medium <- resolve_sim_execution("auto", 8L, N_trials = 10L)
+  expect_identical(medium$backend, expected_parallel)
+  expect_identical(medium$workers, 5L)
+  expect_identical(medium$reason, "auto_parallel")
+
+  explicit <- resolve_sim_execution("psock", 8L, N_trials = 3L)
+  expect_identical(explicit$backend, "psock")
+  expect_identical(explicit$workers, 3L)
+})
+
+test_that("small automatic workloads do not start parallel workers", {
+  local_mocked_bindings(
+    make_sim_cluster = function(...) stop("PSOCK cluster was started"),
+    pbmclapply = function(...) stop("fork workers were started"),
+    .package = "goldilocks"
+  )
+
+  out <- sim_trials(
+    hazard_treatment = 0.02,
+    hazard_control = 0.03,
+    N_total = 20,
+    lambda = 10,
+    end_of_study = 12,
+    N_trials = 3,
+    method = "logrank",
+    backend = "auto",
+    ncores = 8,
+    seed = 9301
+  )
+
+  metadata <- attr(out, "parallel_metadata", exact = TRUE)
+  expect_identical(metadata$backend, "sequential")
+  expect_identical(metadata$workers, 1L)
+  expect_identical(metadata$selection_reason, "auto_small_workload")
+})
+
+test_that("package-owned PSOCK clusters are capped and stopped on errors", {
+  made_workers <- NULL
+  stopped <- FALSE
+  fake_cluster <- structure(vector("list", 2L), class = "cluster")
+
+  local_mocked_bindings(
+    make_sim_cluster = function(workers) {
+      made_workers <<- workers
+      fake_cluster
+    },
+    run_sim_cluster = function(...) stop("simulated worker failure"),
+    stop_sim_cluster = function(cluster) {
+      stopped <<- identical(cluster, fake_cluster)
+    },
+    .package = "goldilocks"
+  )
+
+  expect_error(
+    sim_trials(
+      hazard_treatment = 0.02,
+      hazard_control = 0.03,
+      N_total = 20,
+      lambda = 10,
+      end_of_study = 12,
+      N_trials = 2,
+      method = "logrank",
+      backend = "psock",
+      ncores = 8,
+      seed = 9302
+    ),
+    "simulated worker failure"
+  )
+  expect_identical(made_workers, 2L)
+  expect_true(stopped)
 })
 
 test_that("sim_trials preserves the caller RNG state when seeded", {

@@ -19,6 +19,20 @@ The stable cumulative-hazard/probability transformations are benchmarked over
 boundaries. This guards the use of `expm1()` and `log1p()` against a material
 regression in simulation hot paths.
 
+The Cox benchmark exercises 1,000 subjects with tied event times through both
+the package's guarded automatic path and its forced public `survival::coxph()`
+fallback. The automatic path checks the installed `survival` version and
+`coxph.fit()` signature once, validates each returned coefficient/variance
+structure, and falls back to `coxph()` after any incompatibility. Access to the
+unexported fitter is confined to that compatibility boundary.
+
+The public formula interface can take roughly eight to twelve times as long as
+the low-level fitter for one small Cox model. Because an adaptive trial may fit
+hundreds or thousands of imputed Cox models, compare `cox_guarded_auto` with
+`cox_public_fallback` before changing the compatibility boundary. Exact timing
+depends on the installed `survival` version and hardware; the script prints the
+detected fast-path status and reason with its results.
+
 The benchmarks are excluded from R package builds with `.Rbuildignore`, so they
 do not run on CRAN or during ordinary package checks.
 
@@ -43,14 +57,19 @@ source("benchmarks/hot-paths.R")
 
 ## Parallel Backends
 
-The cross-platform parallel benchmark compares serial, PSOCK, and (on Unix-like
-platforms) the existing fork backend over small-overhead, representative
-log-rank, and heavier Bayesian-survival workloads. It records median elapsed
-time, serial-relative speedup, R version, and platform metadata. It also
-records parent-process allocation for the serial baseline; allocation profiling
-is unavailable for parallel rows because bench cannot profile expressions that
-create child processes. PSOCK timings include cluster startup because each
-simulation call creates a cluster.
+The cross-platform parallel benchmark compares automatic selection, serial,
+PSOCK, and (on Unix-like platforms) the existing fork backend over
+small-overhead, representative log-rank, and heavier Bayesian-survival
+workloads. Its default trial counts of 2, 8, and 32 exercise the
+serial/parallel crossover as well as medium and larger task sets.
+
+The results record requested and effective workers, the backend-selection
+reason, median total time, separately measured PSOCK cluster startup, estimated
+compute/dispatch time, and serial-relative speedup, plus R version and
+operating-system metadata. PSOCK setup remains included in total call time; the
+compute estimate subtracts the median time to create and stop an equivalent
+cluster. Parent-process allocation is reported for the serial baseline;
+allocation profiling is unavailable for child-process rows.
 
 ```r
 source("benchmarks/parallel-backends.R")
@@ -72,6 +91,8 @@ source("benchmarks/parallel-backends.R")
 The package deliberately retains the established Unix fork path. Replace it
 only when this benchmark shows reproducible results, no material regression
 against the fork baseline, and a consistent capability or speed advantage.
+On Windows, compare `auto` with `psock`; on macOS, compare those rows with
+`fork` to quantify the platform-specific PSOCK startup cost.
 
 ## Interpreting Results
 

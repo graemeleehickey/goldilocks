@@ -39,6 +39,19 @@ probability_to_cumulative_hazard_internal <- getFromNamespace(
   "probability_to_cumulative_hazard",
   "goldilocks"
 )
+cox_wald_test_internal <- getFromNamespace("cox_wald_test", "goldilocks")
+coxph_fit_compatibility_internal <- getFromNamespace(
+  "coxph_fit_compatibility",
+  "goldilocks"
+)
+cox_compatibility <- coxph_fit_compatibility_internal()
+message(
+  "Cox fast path: ",
+  if (cox_compatibility$compatible) "enabled" else "disabled",
+  " (",
+  cox_compatibility$reason,
+  ")"
+)
 
 iterations <- as.integer(Sys.getenv("GOLDILOCKS_BENCHMARK_ITERATIONS", "5"))
 if (is.na(iterations) || iterations < 1L) {
@@ -84,6 +97,12 @@ posterior_stats <- posterior_sufficient_stats_internal(
   data = posterior_data,
   cutpoints = cutpoints_piecewise,
   single_arm = FALSE
+)
+
+cox_data <- data.frame(
+  time = round(stats::rexp(1000, rate = 0.03), digits = 1),
+  event = stats::rbinom(1000, size = 1, prob = 0.65),
+  treatment = rep(0:1, each = 500)
 )
 
 imputation_data <- data.frame(
@@ -169,6 +188,12 @@ benchmark_results <- bench::mark(
       N_mcmc = 1000,
       single_arm = FALSE
     )
+  },
+  cox_guarded_auto = {
+    cox_wald_test_internal(cox_data)
+  },
+  cox_public_fallback = {
+    cox_wald_test_internal(cox_data, engine = "public")
   },
   impute_success = {
     set.seed(1002)
