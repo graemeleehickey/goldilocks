@@ -359,6 +359,99 @@ test_that("sim_trials produces identical seeded PSOCK results", {
   expect_equal(sequential$traces, psock$traces)
 })
 
+test_that("unseeded PSOCK simulations derive streams from caller RNG state", {
+  run_psock <- function(ncores) {
+    sim_trials(
+      hazard_treatment = 0.02,
+      hazard_control = 0.03,
+      N_total = 30,
+      lambda = 10,
+      end_of_study = 12,
+      N_trials = 3,
+      method = "logrank",
+      backend = "psock",
+      ncores = ncores,
+      seed = NULL
+    )
+  }
+
+  set.seed(7101)
+  first <- run_psock(2)
+  set.seed(7101)
+  repeated <- run_psock(2)
+  set.seed(7101)
+  one_worker <- run_psock(1)
+
+  expect_equal(repeated$sims, first$sims)
+  expect_equal(one_worker$sims, first$sims)
+
+  metadata <- attr(first, "rng_metadata", exact = TRUE)
+  expect_identical(metadata$seed_policy, "caller_derived_psock")
+  expect_identical(metadata$backend, "psock")
+  expect_identical(metadata$ncores, 2L)
+  expect_identical(metadata$stream_kind, "L'Ecuyer-CMRG")
+  expect_length(metadata$caller_kind, 3)
+  expect_true(is.numeric(metadata$stream_seed))
+})
+
+test_that("unseeded PSOCK advances the parent RNG by one documented draw", {
+  set.seed(7102)
+  invisible(sample.int(.Machine$integer.max - 1L, size = 1L))
+  expected_state <- .Random.seed
+
+  set.seed(7102)
+  sim_trials(
+    hazard_treatment = 0.02,
+    hazard_control = 0.03,
+    N_total = 20,
+    lambda = 10,
+    end_of_study = 12,
+    N_trials = 2,
+    method = "logrank",
+    backend = "psock",
+    ncores = 2,
+    seed = NULL
+  )
+
+  expect_identical(.Random.seed, expected_state)
+})
+
+test_that("consecutive unseeded sequential simulations advance caller streams", {
+  set.seed(7103)
+  initial_state <- .Random.seed
+  first <- sim_trials(
+    hazard_treatment = 0.02,
+    hazard_control = 0.03,
+    N_total = 30,
+    lambda = 10,
+    end_of_study = 12,
+    N_trials = 2,
+    method = "logrank",
+    backend = "sequential",
+    seed = NULL
+  )
+  first_state <- .Random.seed
+  second <- sim_trials(
+    hazard_treatment = 0.02,
+    hazard_control = 0.03,
+    N_total = 30,
+    lambda = 10,
+    end_of_study = 12,
+    N_trials = 2,
+    method = "logrank",
+    backend = "sequential",
+    seed = NULL
+  )
+
+  expect_false(identical(first_state, initial_state))
+  expect_false(identical(.Random.seed, first_state))
+  expect_false(identical(first$sims, second$sims))
+  expect_identical(
+    attr(first, "rng_metadata", exact = TRUE)$seed_policy,
+    "caller_state"
+  )
+})
+
 test_that("sim_trials auto backend selects the platform default", {
   expected <- if (.Platform$OS.type == "windows") "psock" else "fork"
   expect_identical(resolve_sim_backend("auto", 2L), expected)

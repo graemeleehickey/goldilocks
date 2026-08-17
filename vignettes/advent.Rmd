@@ -215,7 +215,7 @@ prior_surv_final <- prior_surv_default
 
 The safety endpoint uses `prior_surv_default` at both stages. The distinction from `prior_bin` is important: the survival priors control predictive imputation, whereas `prior_bin` is the ADVENT-aligned $\operatorname{Beta}(0.5, 0.5)$ prior for the completed binary-endpoint analysis. Because the Gamma rates are expressed in patient-days, all event times, exposure, and cutpoints supplied below are also in days.
 
-Later follow-up intervals can have no exposure at an early look. The SAP's conjugate model then leaves the corresponding hazard governed by its prior. The package's historical default instead propagates sufficient statistics from a neighboring interval, so the examples explicitly set `empty_interval = "prior"`.
+Later follow-up intervals can have no exposure at an early look. The SAP's conjugate model then leaves the corresponding hazard governed by its prior, which is also the package default. The examples set `empty_interval = "prior"` explicitly for auditability. Historical results that used neighboring-interval propagation can be reproduced with the legacy `empty_interval = "propagate"` option.
 
 The SAP reports $M = 5000$ completed datasets for its predictive-probability and multiple-imputation calculations. The evaluated parts of this vignette deliberately use fewer imputations: 50 for the worked single trials and 30 for the operating-characteristic example. We do not use $M = 5000$ in evaluated code in order to keep vignette computation time to a minimum. The unevaluated fuller template does use $M = 5000$ to show the ADVENT setting. Consequently, the numerical results shown in the vignette are demonstrations of package workflow rather than reproductions of the ADVENT calibration.
 

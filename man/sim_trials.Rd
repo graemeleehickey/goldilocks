@@ -25,12 +25,13 @@ sim_trials(
   Fn = 0.05,
   Sn = 0.9,
   prob_ha = 0.95,
-  N_impute = 10,
-  N_mcmc = 10,
+  N_impute = 500,
+  N_mcmc = 1000,
+  mc_conf_level = 0.95,
   N_trials = 10,
   method = "logrank",
   imputed_final = FALSE,
-  empty_interval = c("propagate", "prior", "error"),
+  empty_interval = c("prior", "propagate", "error"),
   return_trace = FALSE,
   ncores = 1L,
   backend = c("auto", "fork", "psock", "sequential"),
@@ -132,34 +133,46 @@ use \code{alternative = "less"}.
 \item When \code{method = "riskdiff"}, \code{h0} is the null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
 \verb{[-1, 1]}.
-\item The argument is ignored for \code{method = "logrank"} after its finite-value
-validation; the usual equal-survival null hypothesis is used.
+\item When \code{method = "logrank"}, only \code{h0 = 0} is supported; this denotes the
+usual equal-survival null. Nonzero values are rejected because the
+standard log-rank statistic does not implement a nonzero effect margin.
 }}
 
 \item{Fn}{vector of values between 0 and 1. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for futility. If there are
 no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
 used in the simulations or analysis. Set \code{Fn = 0} to disable futility
-monitoring. The length of \code{Fn} should be the same as
-\code{interim_look}, else the values are recycled.}
+monitoring; \code{Fn = NULL} has the same effect. Supply either one value,
+which is broadcast to every interim look, or exactly one value per
+\code{interim_look}. Other lengths are rejected rather than recycled.}
 
 \item{Sn}{vector of values between 0 and 1. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for expected success. If
 there are no interim looks (i.e. \code{interim_look = NULL}), then
-\code{Sn} is not used in the simulations or analysis. The length of
-\code{Sn} should be the same as \code{interim_look}, else the values are
-recycled.}
+\code{Sn} is not used in the simulations or analysis. Supply either one value,
+which is broadcast to every interim look, or exactly one value per
+\code{interim_look}. Other lengths are rejected rather than recycled.}
 
 \item{prob_ha}{scalar value between 0 and 1. Probability threshold of alternative
 hypothesis.}
 
-\item{N_impute}{integer. Number of imputations for Monte Carlo simulation of
-missing data. An imputed Cox or risk-difference final analysis requires at
-least two.}
+\item{N_impute}{integer. Number of predictive imputations used at each
+interim look and, when requested, for final multiple imputation. The
+default is 500. An imputed Cox or risk-difference final analysis requires
+at least two.}
 
-\item{N_mcmc}{integer. Number of posterior samples used by
+\item{N_mcmc}{integer. Number of posterior samples used within each
 \code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
-\code{bin_method = "mc"}.}
+\code{bin_method = "mc"}. The default is 1000.}
+
+\item{mc_conf_level}{probability strictly between 0.5 and 1. Confidence
+level for one-sided exact binomial bounds that guard finite Monte Carlo
+interim decisions. A completed-data Bayesian analysis is counted as
+successful only when its lower Monte Carlo bound exceeds \code{prob_ha}.
+Expected-success stopping requires the lower bound for the outer
+predictive estimate to exceed \code{Sn}; futility stopping requires its upper
+bound to be below \code{Fn}. Equality or an unresolved bound continues
+enrollment. The default is 0.95.}
 
 \item{N_trials}{integer. Number of trials to simulate.}
 
@@ -183,12 +196,12 @@ requires \code{N_impute >= 2}. Imputed final analyses remain unavailable for
 \item{empty_interval}{character. Policy for empty piecewise-exponential
 intervals in \code{method = "bayes-surv"} posterior calculations. An empty
 interval is an interval with no exposed subjects in a treatment arm at the
-analysis time. \code{"propagate"} (the default, matching earlier package
-behavior) copies exposure time and event counts from the nearest non-empty
-interval in the same treatment arm and emits a warning. \code{"prior"} leaves
-the interval at zero exposure time and zero events, so its posterior is
-driven only by its assigned survival prior. \code{"error"} stops when any empty
-interval is found.}
+analysis time. \code{"prior"} (the default) leaves the interval at zero exposure
+time and zero events, so its posterior is driven only by its assigned
+survival prior. \code{"propagate"} is a legacy heuristic that copies exposure
+time and event counts from the nearest non-empty interval in the same
+treatment arm and emits a warning. \code{"error"} stops when any empty interval
+is found.}
 
 \item{return_trace}{logical. Should the compact interim decision trace from
 every simulated trial be retained? The default, \code{FALSE}, preserves the
@@ -225,7 +238,10 @@ A list containing \code{sims}, a data frame with one row per simulated
 trial, and \code{call}. When \code{return_trace = TRUE}, the list also contains
 \code{traces}, a data frame with one row per completed interim look and a
 \code{trial} identifier. See \code{\link[=survival_adapt]{survival_adapt()}} for details of the summary and
-trace columns.
+trace columns. The returned object also retains the normalized
+\code{decision_design} attribute from \code{\link[=survival_adapt]{survival_adapt()}}. An \code{rng_metadata}
+attribute records the caller RNG kind, effective backend, seed policy, and
+stream seed when applicable.
 }
 \description{
 Simulate multiple clinical trials with fixed input parameters,
@@ -249,8 +265,13 @@ supplied, \code{sim_trials()} first generates one independent
 reusing the same random-number stream across workers when
 \code{ncores > 1}, and produces identical seeded results across supported
 backends. A seeded call restores the caller's RNG state on exit. With
-\code{seed = NULL}, the function uses and advances R's current global RNG
-state.
+\code{seed = NULL}, sequential execution uses and advances R's current global
+RNG state directly. Fork execution delegates stream setup to
+\code{\link[pbmcapply:pbmclapply]{pbmcapply::pbmclapply()}}. PSOCK execution draws one integer seed from the
+caller's current RNG state, thereby advancing that state predictably, and
+expands it into independent per-trial \code{"L'Ecuyer-CMRG"} streams. Resetting
+the caller to the same state therefore reproduces an unseeded PSOCK call,
+while consecutive calls do not reuse streams.
 }
 \examples{
 hc <- prop_to_haz(c(0.20, 0.30), 12, 36)

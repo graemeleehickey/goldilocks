@@ -29,14 +29,12 @@
 haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
   if (length(cutpoints) == 0) {
     # Standard exponential for when there are no interior cutpoints
-    p_treatment <- pexp(
-      q = end_of_study,
-      rate = post[,, 1]
+    p_treatment <- cumulative_hazard_to_probability(
+      end_of_study * post[,, 1]
     )
     if (!single_arm) {
-      p_control <- pexp(
-        q = end_of_study,
-        rate = post[,, 2]
+      p_control <- cumulative_hazard_to_probability(
+        end_of_study * post[,, 2]
       )
     } else {
       p_control <- NA

@@ -6,9 +6,10 @@
 #'   closed-form formulae. This utility function can be useful when simulating
 #'   trial datasets with plausible event rates.
 #'
-#' @param probs vector. Cumulative event probabilities at each cutpoint and at
-#'   `endtime`, in that order. Its length must be one greater than the number of
-#'   cutpoints. With no cutpoints, supply a single probability at `endtime`.
+#' @param probs vector. Finite cumulative event probabilities in `[0, 1)` at
+#'   each cutpoint and at `endtime`, in that order. Its length must be one
+#'   greater than the number of cutpoints. With no cutpoints, supply a single
+#'   probability at `endtime`. Values are not recycled.
 #' @param cutpoints finite, positive, strictly increasing vector of interior
 #'   times at which the baseline hazard changes. Default is `NULL`, which
 #'   corresponds to a simple (non-piecewise) exponential model.
@@ -49,16 +50,17 @@ prop_to_haz <- function(probs, cutpoints = NULL, endtime) {
   }
 
   lambda <- vector(length = J)
+  cumulative_hazard <- probability_to_cumulative_hazard(probs)
 
   if (J == 1) {
-    lambda <- -log(1 - probs) / endtime
+    lambda <- cumulative_hazard / endtime
   } else {
     s <- c(0, cutpoints, endtime)
     s_diff <- diff(s)
-    lambda[1] <- -log(1 - probs[1]) / s_diff[1]
+    lambda[1] <- cumulative_hazard[1] / s_diff[1]
     for (j in 2:J) {
       offset <- sum(lambda[1:(j - 1)] * s_diff[1:(j - 1)])
-      lambda[j] <- (-log(1 - probs[j]) - offset) / s_diff[j]
+      lambda[j] <- (cumulative_hazard[j] - offset) / s_diff[j]
     }
   }
 

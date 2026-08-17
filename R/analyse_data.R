@@ -54,7 +54,7 @@ analyse_data <- function(
   h0,
   prior_bin = c(1, 1),
   bin_method = "mc",
-  empty_interval = "propagate"
+  empty_interval = "prior"
 ) {
   validate_h0(h0, method, single_arm)
 
@@ -172,10 +172,14 @@ analyse_data <- function(
     effect <- fit_riskdiff$estimate
   }
 
-  return(list(
+  result <- list(
     "success" = success,
     "effect" = effect
-  ))
+  )
+  if (method == "bayes-bin") {
+    attr(result, "mc_counts") <- attr(bin_res, "mc_counts", exact = TRUE)
+  }
+  return(result)
 }
 
 #' @title Analyze Bayesian survival sufficient statistics
@@ -216,7 +220,7 @@ analyse_bayes_surv_sufficient_stats <- function(
   single_arm,
   alternative,
   h0,
-  empty_interval = "propagate"
+  empty_interval = "prior"
 ) {
   validate_h0(h0, method = "bayes-surv", single_arm = single_arm)
   if (!alternative %in% c("greater", "less")) {
@@ -248,15 +252,21 @@ analyse_bayes_surv_sufficient_stats <- function(
   )
   effect_draws <- post_event_probability$effect
 
-  success <- if (alternative == "greater") {
-    mean(effect_draws > h0)
+  success_indicator <- if (alternative == "greater") {
+    effect_draws > h0
   } else {
-    mean(effect_draws < h0)
+    effect_draws < h0
   }
+  success <- mean(success_indicator)
 
-  list(
+  result <- list(
     success = success,
     effect = mean(effect_draws)
+  )
+  set_analysis_mc_counts(
+    result,
+    successes = sum(success_indicator),
+    draws = length(success_indicator)
   )
 }
 
@@ -329,11 +339,12 @@ bayes_binomial_test <- function(
         treatment_stats$alpha,
         treatment_stats$beta
       )
-      success <- if (alternative == "greater") {
-        mean(effect_draws > h0)
+      success_indicator <- if (alternative == "greater") {
+        effect_draws > h0
       } else {
-        mean(effect_draws < h0)
+        effect_draws < h0
       }
+      success <- mean(success_indicator)
       effect <- mean(effect_draws)
     } else {
       effect <- treatment_stats$mean
@@ -352,7 +363,15 @@ bayes_binomial_test <- function(
         }
       }
     }
-    return(list(success = success, effect = effect))
+    result <- list(success = success, effect = effect)
+    if (bin_method == "mc") {
+      result <- set_analysis_mc_counts(
+        result,
+        successes = sum(success_indicator),
+        draws = length(success_indicator)
+      )
+    }
+    return(result)
   }
 
   control_stats <- beta_binomial_stats(data$event[data$treatment == 0])
@@ -361,11 +380,12 @@ bayes_binomial_test <- function(
     effect_draws <-
       rbeta(N_mcmc, treatment_stats$alpha, treatment_stats$beta) -
       rbeta(N_mcmc, control_stats$alpha, control_stats$beta)
-    success <- if (alternative == "greater") {
-      mean(effect_draws > h0)
+    success_indicator <- if (alternative == "greater") {
+      effect_draws > h0
     } else {
-      mean(effect_draws < h0)
+      effect_draws < h0
     }
+    success <- mean(success_indicator)
     effect <- mean(effect_draws)
   } else if (bin_method == "normal") {
     effect <- treatment_stats$mean - control_stats$mean
@@ -380,7 +400,15 @@ bayes_binomial_test <- function(
     success <- beta_binomial_difference_success(treatment_stats, control_stats)
   }
 
-  list(success = success, effect = effect)
+  result <- list(success = success, effect = effect)
+  if (bin_method == "mc") {
+    result <- set_analysis_mc_counts(
+      result,
+      successes = sum(success_indicator),
+      draws = length(success_indicator)
+    )
+  }
+  result
 }
 
 #' @title Validate complete binary outcomes
@@ -390,9 +418,17 @@ bayes_binomial_test <- function(
 #'
 #' @noRd
 assert_complete_binary_outcomes <- function(data, end_of_study, method_label) {
-  if (any(!data$event %in% c(0, 1))) {
-    stop(method_label, " analysis requires binary event outcomes")
-  }
+  tryCatch(
+    validate_binary_vector(data$event, "data$event"),
+    error = function(error) {
+      stop(
+        method_label,
+        " analysis requires binary event outcomes: ",
+        conditionMessage(error)
+      )
+    }
+  )
+  validate_nonnegative_numeric_vector(data$time, "data$time")
   if (any(data$event == 0 & data$time < end_of_study)) {
     stop(
       method_label,

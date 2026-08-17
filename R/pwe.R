@@ -3,11 +3,12 @@
 #' @description Simulate time-to-event outcomes using the piecewise constant
 #'   hazard exponential function.
 #'
-#' @param n integer. The number of random samples to generate. Default is
-#'   `n = 1`.
+#' @param n single non-negative integer. The number of random samples to
+#'   generate. Default is `n = 1`; `n = 0` returns a zero-row data frame.
 #' @param hazard vector. Finite non-negative constant hazard rates for
-#'   exponential failures. If the final rate is zero, `maxtime` must be
-#'   supplied so that subjects without an event can be administratively censored.
+#'   exponential failures. If at least one outcome is requested and the final
+#'   rate is zero, `maxtime` must be supplied so that subjects without an event
+#'   can be administratively censored.
 #' @param cutpoints finite, positive, strictly increasing vector of interior
 #'   times at which the hazard rate changes. The number of hazard rates must be
 #'   one greater than the number of cutpoints. Use `NULL` for a constant hazard.
@@ -29,9 +30,14 @@
 #' y <- pwe_sim(n = 1, hazard = c(2.585924e-02, 3.685254e-09),
 #'              cutpoints = 12)
 pwe_sim <- function(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL) {
+  validate_nonnegative_integer_scalar(n, "n")
   validate_cutpoints(cutpoints)
   validate_piecewise_hazard(hazard, cutpoints)
   validate_maxtime(maxtime, cutpoints)
+
+  if (n == 0L) {
+    return(data.frame(time = numeric(), event = numeric()))
+  }
 
   if (is.null(maxtime) && tail(hazard, 1) == 0) {
     stop("'maxtime' must be supplied when the final hazard rate is zero")
@@ -63,8 +69,9 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL) {
 #'   constant hazard exponential function conditional on observed exposure.
 #'
 #' @inheritParams pwe_sim
-#' @param time vector. The observed time for patient that have had no event or
-#'   passed `maxtime`.
+#' @param time numeric vector. Finite, non-negative observed times for patients
+#'   who have not had an event or passed `maxtime`. A zero-length vector returns
+#'   a zero-row data frame. Values are not recycled against other arguments.
 #'
 #' @details If a subject is event-free at time \eqn{s < t}, then the conditional
 #'   probability is
@@ -93,13 +100,13 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL) {
 #' pwe_impute(time = 19.621870008, hazard = c(2.585924e-02, 3.685254e-09),
 #'            cutpoints = 12, maxtime = 36)
 pwe_impute <- function(time, hazard, cutpoints = NULL, maxtime = NULL) {
+  validate_nonnegative_numeric_vector(time, "time", allow_empty = TRUE)
   validate_cutpoints(cutpoints)
   validate_piecewise_hazard(hazard, cutpoints)
   validate_maxtime(maxtime, cutpoints)
 
-  # Check: 'time' is positive integer
-  if (any(time < 0)) {
-    stop("'time' must always be positive")
+  if (length(time) == 0L) {
+    return(data.frame(time = numeric(), event = numeric()))
   }
 
   if (!is.null(maxtime)) {
@@ -158,15 +165,7 @@ pwe_conditional_event_probability <- function(
   validate_piecewise_hazard(hazard, cutpoints)
   validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
 
-  if (
-    !is.numeric(time) ||
-      !is.null(dim(time)) ||
-      any(is.na(time)) ||
-      any(!is.finite(time)) ||
-      any(time < 0)
-  ) {
-    stop("'time' must contain finite non-negative values")
-  }
+  validate_nonnegative_numeric_vector(time, "time", allow_empty = TRUE)
   if (any(time > end_of_study)) {
     stop("'time' must not be later than 'end_of_study'")
   }
@@ -191,7 +190,13 @@ pwe_conditional_event_probability <- function(
 
   # P(T <= end_of_study | T > time) = 1 - exp(-(H(T*) - H(T))).
   # expm1 avoids cancellation when the remaining cumulative hazard is small.
-  pmin(1, pmax(0, -expm1(-remaining_cumulative_hazard)))
+  pmin(
+    1,
+    pmax(
+      0,
+      cumulative_hazard_to_probability(remaining_cumulative_hazard)
+    )
+  )
 }
 
 
@@ -203,14 +208,14 @@ pwe_conditional_event_probability <- function(
 #'
 #' @param hazard matrix. A matrix of hazard rate parameters with number of
 #'   columns one greater than the length of the `cutpoints` vector. The number
-#'   of rows can be anything, and is typically dictated by the number of MCMC
-#'   draws.
+#'   of rows must be at least one and is typically dictated by the number of
+#'   MCMC draws.
 #' @param end_of_study finite positive time at which the cumulative event
 #'   probability is evaluated. It must be greater than every cutpoint.
 #' @inheritParams pwe_sim
 #' @inheritParams survival_adapt
 #'
-#' @return A vector of (0, 1) probabilities from evaluation of the PWE
+#' @return A vector of `[0, 1]` probabilities from evaluation of the PWE
 #'   cumulative distribution function. Length of the vector matches the number
 #'   of rows of the `hazard` matrix parameter.
 #'
@@ -223,5 +228,5 @@ ppwe <- function(hazard, end_of_study, cutpoints = NULL) {
   interval_lower <- c(0, cutpoints)
   interval_upper <- c(cutpoints, Inf)
   duration <- pmax(0, pmin(end_of_study, interval_upper) - interval_lower)
-  1 - exp(-drop(hazard %*% duration))
+  cumulative_hazard_to_probability(drop(hazard %*% duration))
 }

@@ -14,6 +14,11 @@ patient-level data frame and from precomputed sufficient statistics. The latter
 isolates the repeated second-stage posterior work performed after Bayesian
 predictive imputation.
 
+The stable cumulative-hazard/probability transformations are benchmarked over
+100,000 values spanning near-zero inputs through their mathematical
+boundaries. This guards the use of `expm1()` and `log1p()` against a material
+regression in simulation hot paths.
+
 The benchmarks are excluded from R package builds with `.Rbuildignore`, so they
 do not run on CRAN or during ordinary package checks.
 

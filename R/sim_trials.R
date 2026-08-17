@@ -40,14 +40,22 @@
 #'   reusing the same random-number stream across workers when
 #'   `ncores > 1`, and produces identical seeded results across supported
 #'   backends. A seeded call restores the caller's RNG state on exit. With
-#'   `seed = NULL`, the function uses and advances R's current global RNG
-#'   state.
+#'   `seed = NULL`, sequential execution uses and advances R's current global
+#'   RNG state directly. Fork execution delegates stream setup to
+#'   [pbmcapply::pbmclapply()]. PSOCK execution draws one integer seed from the
+#'   caller's current RNG state, thereby advancing that state predictably, and
+#'   expands it into independent per-trial `"L'Ecuyer-CMRG"` streams. Resetting
+#'   the caller to the same state therefore reproduces an unseeded PSOCK call,
+#'   while consecutive calls do not reuse streams.
 #'
 #' @return A list containing `sims`, a data frame with one row per simulated
 #'   trial, and `call`. When `return_trace = TRUE`, the list also contains
 #'   `traces`, a data frame with one row per completed interim look and a
 #'   `trial` identifier. See [survival_adapt()] for details of the summary and
-#'   trace columns.
+#'   trace columns. The returned object also retains the normalized
+#'   `decision_design` attribute from [survival_adapt()]. An `rng_metadata`
+#'   attribute records the caller RNG kind, effective backend, seed policy, and
+#'   stream seed when applicable.
 #'
 #' @importFrom pbmcapply pbmclapply
 #' @export
@@ -102,12 +110,13 @@ sim_trials <- function(
   Fn = 0.05,
   Sn = 0.9,
   prob_ha = 0.95,
-  N_impute = 10,
-  N_mcmc = 10,
+  N_impute = 500,
+  N_mcmc = 1000,
+  mc_conf_level = 0.95,
   N_trials = 10,
   method = "logrank",
   imputed_final = FALSE,
-  empty_interval = c("propagate", "prior", "error"),
+  empty_interval = c("prior", "propagate", "error"),
   return_trace = FALSE,
   ncores = 1L,
   backend = c("auto", "fork", "psock", "sequential"),
@@ -119,13 +128,25 @@ sim_trials <- function(
   empty_interval <- match.arg(empty_interval)
   binary_imputation <- match.arg(binary_imputation)
   backend <- match.arg(backend)
+  caller_rng_kind <- RNGkind()
 
   validate_positive_integer_scalar(N_trials, "N_trials")
   validate_logical_scalar(return_trace, "return_trace")
+  validate_positive_integer_scalar(N_impute, "N_impute")
+  validate_positive_integer_scalar(N_mcmc, "N_mcmc")
+  validate_single_probability(
+    mc_conf_level,
+    "mc_conf_level",
+    upper_open = TRUE
+  )
+  if (mc_conf_level <= 0.5) {
+    stop("'mc_conf_level' must be greater than 0.5 and less than 1")
+  }
 
   validate_positive_integer_scalar(ncores, "ncores")
   backend <- resolve_sim_backend(backend, ncores)
 
+  stream_seed <- NULL
   if (!is.null(seed)) {
     if (
       length(seed) != 1 ||
@@ -159,10 +180,36 @@ sim_trials <- function(
       add = TRUE
     )
 
-    trial_streams <- make_rng_streams(seed, N_trials)
+    stream_seed <- seed
+    trial_streams <- make_rng_streams(stream_seed, N_trials)
+  } else if (backend == "psock") {
+    # PSOCK workers otherwise initialize independently of the caller. Consume
+    # exactly one draw from the caller's RNG, then deterministically expand it
+    # into one independent stream per simulated trial.
+    stream_seed <- sample.int(.Machine$integer.max - 1L, size = 1L)
+    trial_streams <- make_rng_streams(stream_seed, N_trials)
   } else {
     trial_streams <- NULL
   }
+
+  rng_metadata <- list(
+    caller_kind = caller_rng_kind,
+    stream_kind = if (is.null(trial_streams)) {
+      caller_rng_kind[1]
+    } else {
+      "L'Ecuyer-CMRG"
+    },
+    seed_policy = if (!is.null(seed)) {
+      "explicit_preserve_caller"
+    } else if (backend == "psock") {
+      "caller_derived_psock"
+    } else {
+      "caller_state"
+    },
+    backend = backend,
+    ncores = as.integer(ncores),
+    stream_seed = stream_seed
+  )
 
   survival_adapt_fn <- if (backend == "psock") {
     make_psock_callable("survival_adapt")
@@ -197,6 +244,7 @@ sim_trials <- function(
       prob_ha = prob_ha,
       N_impute = N_impute,
       N_mcmc = N_mcmc,
+      mc_conf_level = mc_conf_level,
       method = method,
       imputed_final = imputed_final,
       empty_interval = empty_interval,
@@ -236,6 +284,12 @@ sim_trials <- function(
     interim_look = interim_look,
     end_of_study = end_of_study
   )
+  attr(out, "decision_design") <- attr(
+    trial_results[[1]],
+    "decision_design",
+    exact = TRUE
+  )
+  attr(out, "rng_metadata") <- rng_metadata
 
   return(out)
 }

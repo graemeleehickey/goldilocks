@@ -7,6 +7,9 @@
 #' @inheritParams sim_comp_data
 #' @param check_futility Logical. Does the adaptive design include a test for
 #'   assessment of futility?
+#' @param prob_ha Final completed-data success threshold.
+#' @param mc_conf_level Confidence level for finite posterior Monte Carlo
+#'   classification.
 #'
 #' @return See analyse_data
 #' @noRd
@@ -25,7 +28,9 @@ test_stop_success <- function(
   bin_method,
   binary_imputation,
   empty_interval,
-  check_futility
+  check_futility,
+  prob_ha,
+  mc_conf_level
 ) {
   ##############################################################################
   ### Test for success at current sample size (-> stop for success)
@@ -162,8 +167,25 @@ test_stop_success <- function(
     success_max <- NA
   }
 
+  classification_now <- classify_completed_analysis(
+    success_now,
+    prob_ha = prob_ha,
+    mc_conf_level = mc_conf_level
+  )
+  classification_max <- if (check_futility) {
+    classify_completed_analysis(
+      success_max,
+      prob_ha = prob_ha,
+      mc_conf_level = mc_conf_level
+    )
+  } else {
+    NULL
+  }
+
   return(list(
     success_now = success_now,
-    success_max = success_max
+    success_max = success_max,
+    classification_now = classification_now,
+    classification_max = classification_max
   ))
 }

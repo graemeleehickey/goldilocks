@@ -9,11 +9,11 @@ randomization(N_total, block = 2, allocation = c(1, 1))
 \arguments{
 \item{N_total}{integer. Total sample size for randomization allocation.}
 
-\item{block}{vector. Block size for randomization. Note that it needs to be a
-multiple of the sum of \code{allocation}.}
+\item{block}{vector. One or more positive integer block sizes. Every block
+size must be a multiple of \code{sum(allocation)}.}
 
-\item{allocation}{vector. The randomization allocation in the order
-\code{c(control, treatment)}.}
+\item{allocation}{length-two positive integer vector. The two-arm
+randomization allocation in the order \code{c(control, treatment)}.}
 }
 \value{
 An integer treatment assignment vector, coded \code{0} for control and
@@ -29,10 +29,10 @@ Complete randomization may not always be ideal due to the chance of
 drawing a large block assigned to one treatment group, potentially
 impacting the time to enrollment completion. Therefore, a block
 randomization allocation may be preferable. The block randomization
-allocation specification allows for different randomization ratios, but
-they must be given in integer form. Additionally, the block size should be
-an integer that is divisible by the sum of the randomization allocation;
-see the examples.
+allocation specification allows for different two-arm randomization
+ratios, but they must be given in integer form. For every value \code{b} in
+\code{block}, the required relationship is \code{b \%\% sum(allocation) == 0}; see the
+equal- and unequal-allocation examples below.
 }
 \examples{
 # Implementing treatment allocation for control to treatment with 1:1.5
@@ -48,4 +48,11 @@ randomization(N_total = 100, block = c(3, 9, 6), allocation = c(1, 2))
 
 # For complete randomization set the N_total to block size
 randomization(N_total = 100, block = 100, allocation = c(1, 1))
+
+# randomization() is a two-arm helper; a multi-arm allocation is rejected.
+try(randomization(
+  N_total = 60,
+  block = 6,
+  allocation = c(1, 1, 1)
+), silent = TRUE)
 }

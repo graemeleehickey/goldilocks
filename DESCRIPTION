@@ -1,6 +1,6 @@
 Package: goldilocks
 Title: Adaptive Trial Designs for Survival and Binary Endpoints
-Version: 0.6.0
+Version: 0.6.0.9000
 Authors@R: c(
     person(given = "Graeme L.", family = "Hickey",
            role = c("aut", "cre"),

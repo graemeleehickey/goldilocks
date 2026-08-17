@@ -293,7 +293,8 @@ test_that("posterior warns on zero-exposure interval", {
       cutpoints = 10,
       prior_surv = c(0.1, 0.1),
       N_mcmc = 10,
-      single_arm = FALSE
+      single_arm = FALSE,
+      empty_interval = "propagate"
     ),
     "zero subjects"
   )
@@ -315,7 +316,8 @@ test_that("posterior propagates zero-exposure intervals within treatment group",
       cutpoints = c(10, 20),
       prior_surv = c(0.1, 0.1),
       N_mcmc = 4000,
-      single_arm = FALSE
+      single_arm = FALSE,
+      empty_interval = "propagate"
     )
   )
 
@@ -327,7 +329,7 @@ test_that("posterior propagates zero-exposure intervals within treatment group",
   expect_lt(abs(trt_int3 - trt_int2), abs(trt_int3 - ctrl_int3))
 })
 
-test_that("posterior can leave zero-exposure intervals prior-driven", {
+test_that("posterior leaves zero-exposure intervals prior-driven by default", {
   data <- data.frame(
     time = c(2, 25, 3, 4),
     event = c(1, 1, 1, 0),
@@ -343,13 +345,103 @@ test_that("posterior can leave zero-exposure intervals prior-driven", {
       rate = c(0.25, 0.5, 4)
     ),
     N_mcmc = 10000,
-    single_arm = FALSE,
-    empty_interval = "prior"
+    single_arm = FALSE
   )
 
   # Treatment interval 3 has no exposure, so with empty_interval = "prior"
   # the posterior mean should be close to the Gamma prior mean.
   expect_equal(mean(res[, 3, 1]), 5 / 4, tolerance = 0.05)
+})
+
+test_that("prior-only handling covers empty first, middle, and final intervals", {
+  prior_surv <- rbind(
+    shape = c(2, 6, 12),
+    rate = c(4, 3, 4)
+  )
+  data_summ <- data.frame(
+    treatment = c(0, 0, 0, 1, 1, 1),
+    interval = factor(rep(1:3, 2), levels = 1:3),
+    n = c(2, 0, 2, 0, 2, 0),
+    tot_time = c(5, 0, 8, 0, 6, 0),
+    tot_events = c(1, 0, 1, 0, 1, 0)
+  )
+
+  set.seed(621)
+  post <- posterior_from_sufficient_stats(
+    data_summ = data_summ,
+    prior_surv = prior_surv,
+    N_mcmc = 10000,
+    single_arm = FALSE
+  )
+
+  # Control interval 2 and treatment intervals 1 and 3 are empty. Their
+  # posterior means remain the corresponding interval-specific prior means.
+  expect_equal(mean(post[, 2, 2]), 6 / 3, tolerance = 0.05)
+  expect_equal(mean(post[, 1, 1]), 2 / 4, tolerance = 0.03)
+  expect_equal(mean(post[, 3, 1]), 12 / 4, tolerance = 0.07)
+})
+
+test_that("single-arm prior-only handling covers every empty interval position", {
+  prior_surv <- rbind(
+    shape = c(2, 6, 12),
+    rate = c(4, 3, 4)
+  )
+
+  for (empty_interval in 1:3) {
+    data_summ <- data.frame(
+      treatment = rep(1, 3),
+      interval = factor(1:3, levels = 1:3),
+      n = rep(2, 3),
+      tot_time = rep(5, 3),
+      tot_events = rep(1, 3)
+    )
+    data_summ[empty_interval, c("n", "tot_time", "tot_events")] <- 0
+
+    set.seed(630 + empty_interval)
+    post <- posterior_from_sufficient_stats(
+      data_summ = data_summ,
+      prior_surv = prior_surv,
+      N_mcmc = 8000,
+      single_arm = TRUE
+    )
+
+    expect_equal(
+      mean(post[, empty_interval, 1]),
+      unname(
+        prior_surv[1, empty_interval] / prior_surv[2, empty_interval]
+      ),
+      tolerance = 0.07,
+      info = paste("empty interval", empty_interval)
+    )
+  }
+})
+
+test_that("prior-only empty-interval results are invariant to row ordering", {
+  data_summ <- data.frame(
+    treatment = c(0, 0, 0, 1, 1, 1),
+    interval = factor(rep(1:3, 2), levels = 1:3),
+    n = c(2, 0, 2, 0, 2, 0),
+    tot_time = c(5, 0, 8, 0, 6, 0),
+    tot_events = c(1, 0, 1, 0, 1, 0)
+  )
+  shuffled <- data_summ[c(6, 2, 4, 1, 5, 3), ]
+
+  set.seed(622)
+  ordered_post <- posterior_from_sufficient_stats(
+    data_summ,
+    prior_surv = c(0.5, 0.25),
+    N_mcmc = 100,
+    single_arm = FALSE
+  )
+  set.seed(622)
+  shuffled_post <- posterior_from_sufficient_stats(
+    shuffled,
+    prior_surv = c(0.5, 0.25),
+    N_mcmc = 100,
+    single_arm = FALSE
+  )
+
+  expect_identical(shuffled_post, ordered_post)
 })
 
 test_that("posterior can error on zero-exposure intervals", {

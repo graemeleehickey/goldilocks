@@ -22,6 +22,56 @@ test_that("analyse_data works with method = 'logrank'", {
   expect_true(is.na(res$effect))
 })
 
+test_that("log-rank analysis rejects a nonzero h0 instead of ignoring it", {
+  data <- data.frame(
+    time = c(1, 2, 3, 4),
+    event = c(1, 1, 1, 1),
+    treatment = c(0, 0, 1, 1)
+  )
+
+  expect_error(
+    analyse_data(
+      data = data,
+      cutpoints = NULL,
+      end_of_study = 4,
+      prior_surv = c(0.1, 0.1),
+      N_mcmc = 10,
+      single_arm = FALSE,
+      method = "logrank",
+      alternative = "two.sided",
+      h0 = 0.1
+    ),
+    "'h0' must be 0 for log-rank analyses.*equal survival distributions"
+  )
+})
+
+test_that("binary analyses reject missing and non-binary event indicators", {
+  base_data <- data.frame(
+    time = rep(36, 4),
+    event = c(0, 1, 0, 1),
+    treatment = c(0, 0, 1, 1)
+  )
+  args <- list(
+    cutpoints = NULL,
+    end_of_study = 36,
+    prior_surv = c(0.1, 0.1),
+    N_mcmc = 10,
+    single_arm = FALSE,
+    method = "riskdiff",
+    alternative = "two.sided",
+    h0 = 0
+  )
+
+  for (bad_event in list(c(0, 1, NA, 1), c(0, 1, 2, 1))) {
+    data <- base_data
+    data$event <- bad_event
+    expect_error(
+      do.call(analyse_data, c(list(data = data), args)),
+      "requires binary event outcomes.*'data\\$event'.*only 0 and 1"
+    )
+  }
+})
+
 test_that("analyse_data works with method = 'cox'", {
   set.seed(3729)
   data <- data.frame(

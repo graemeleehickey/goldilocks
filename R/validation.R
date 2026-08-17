@@ -30,6 +30,7 @@ validate_single_probability <- function(x, name, upper_open = FALSE) {
 validate_probability_vector <- function(x, name, upper_open = FALSE) {
   if (
     !is.numeric(x) ||
+      !is.null(dim(x)) ||
       length(x) == 0 ||
       any(is.na(x)) ||
       any(!is.finite(x)) ||
@@ -65,6 +66,28 @@ validate_positive_integer_scalar <- function(x, name) {
   invisible(TRUE)
 }
 
+#' @title Validate one non-negative integer
+#'
+#' @description Checks that an input is a single finite, non-negative integer.
+#'   Unlike `validate_positive_integer_scalar()`, zero is accepted so callers
+#'   can define an explicit zero-draw result.
+#'
+#' @noRd
+validate_nonnegative_integer_scalar <- function(x, name) {
+  if (
+    length(x) != 1 ||
+      !is.numeric(x) ||
+      is.na(x) ||
+      !is.finite(x) ||
+      x < 0 ||
+      x != floor(x)
+  ) {
+    stop("'", name, "' must be a single non-negative integer")
+  }
+
+  invisible(TRUE)
+}
+
 #' @title Validate a positive integer vector
 #'
 #' @description Checks that an input vector contains only finite, strictly
@@ -74,6 +97,7 @@ validate_positive_integer_scalar <- function(x, name) {
 validate_positive_integer_vector <- function(x, name) {
   if (
     !is.numeric(x) ||
+      !is.null(dim(x)) ||
       length(x) == 0 ||
       any(is.na(x)) ||
       any(!is.finite(x)) ||
@@ -94,6 +118,67 @@ validate_positive_integer_vector <- function(x, name) {
 validate_logical_scalar <- function(x, name) {
   if (!is.logical(x) || length(x) != 1 || is.na(x)) {
     stop("'", name, "' must be TRUE or FALSE")
+  }
+
+  invisible(TRUE)
+}
+
+#' @title Validate finite non-negative values
+#'
+#' @description Checks that a numeric vector contains finite, non-negative
+#'   values. Callers opt in explicitly when a zero-length vector has a defined
+#'   result.
+#'
+#' @noRd
+validate_nonnegative_numeric_vector <- function(
+  x,
+  name,
+  allow_empty = FALSE
+) {
+  if (
+    !is.numeric(x) ||
+      !is.null(dim(x)) ||
+      (!allow_empty && length(x) == 0) ||
+      anyNA(x) ||
+      any(!is.finite(x)) ||
+      any(x < 0)
+  ) {
+    empty_note <- if (allow_empty) "" else " non-empty"
+    stop(
+      "'",
+      name,
+      "' must be a",
+      empty_note,
+      " numeric vector of finite non-negative values"
+    )
+  }
+
+  invisible(TRUE)
+}
+
+#' @title Validate binary indicators
+#'
+#' @description Checks that a vector contains only non-missing zero-one event
+#'   indicators.
+#'
+#' @noRd
+validate_binary_vector <- function(x, name, allow_empty = FALSE) {
+  if (
+    !(is.numeric(x) || is.logical(x)) ||
+      !is.null(dim(x)) ||
+      (!allow_empty && length(x) == 0) ||
+      anyNA(x) ||
+      any(!is.finite(x)) ||
+      any(!x %in% c(0, 1))
+  ) {
+    empty_note <- if (allow_empty) "" else " non-empty"
+    stop(
+      "'",
+      name,
+      "' must be a",
+      empty_note,
+      " numeric or logical vector containing only 0 and 1"
+    )
   }
 
   invisible(TRUE)
@@ -361,11 +446,21 @@ validate_randomization_args <- function(N_total, block, allocation) {
   }
 
   if (any(block %% sum(allocation) != 0)) {
-    stop("Sum of 'allocation' must be a multiple of 'block'")
+    stop(
+      "Each 'block' value must be a multiple of sum('allocation') (",
+      sum(allocation),
+      "); observed 'block' value(s): ",
+      paste(block, collapse = ", ")
+    )
   }
 
   if (N_total < sum(block)) {
-    stop("Number of subjects must be at least the size of 'block'")
+    stop(
+      "'N_total' must be at least sum('block') (",
+      sum(block),
+      "); observed 'N_total': ",
+      N_total
+    )
   }
 
   invisible(TRUE)
@@ -385,6 +480,13 @@ validate_h0 <- function(h0, method, single_arm) {
       !is.finite(h0)
   ) {
     stop("'h0' must be a single finite numeric value")
+  }
+
+  if (method == "logrank" && h0 != 0) {
+    stop(
+      "'h0' must be 0 for log-rank analyses; the supported null is equal ",
+      "survival distributions"
+    )
   }
 
   if (method %in% c("bayes-surv", "bayes-bin", "riskdiff")) {
@@ -408,6 +510,55 @@ validate_h0 <- function(h0, method, single_arm) {
   }
 
   invisible(TRUE)
+}
+
+#' @title Normalize an interim decision threshold
+#'
+#' @description Applies the shared scalar-or-one-per-look contract used by
+#'   futility and expected-success thresholds. A scalar is broadcast to every
+#'   interim look; any non-scalar vector must have exactly one value per look.
+#'
+#' @noRd
+normalize_interim_threshold <- function(
+  threshold,
+  n_interims,
+  name,
+  null_disables = FALSE
+) {
+  validate_nonnegative_integer_scalar(n_interims, "n_interims")
+
+  if (n_interims == 0L) {
+    return(numeric())
+  }
+
+  if (is.null(threshold)) {
+    if (null_disables) {
+      return(rep.int(0, n_interims))
+    }
+    stop("'", name, "' must contain finite probabilities in [0, 1]")
+  }
+
+  observed <- length(threshold)
+  if (!(observed %in% c(1L, n_interims))) {
+    direction <- if (observed < n_interims) "too few" else "too many"
+    stop(
+      "'",
+      name,
+      "' has ",
+      direction,
+      " values: expected 1 or ",
+      n_interims,
+      " (one per interim look), observed ",
+      observed
+    )
+  }
+
+  validate_probability_vector(threshold, name)
+  if (observed == 1L) {
+    return(rep.int(as.numeric(threshold), n_interims))
+  }
+
+  as.numeric(threshold)
 }
 
 #' @title Validate analysis-method configuration

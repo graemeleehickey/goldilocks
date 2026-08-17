@@ -59,37 +59,48 @@
 #'   * When `method = "riskdiff"`, `h0` is the null value of
 #'     \eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
 #'     `[-1, 1]`.
-#'   * The argument is ignored for `method = "logrank"` after its finite-value
-#'     validation; the usual equal-survival null hypothesis is used.
+#'   * When `method = "logrank"`, only `h0 = 0` is supported; this denotes the
+#'     usual equal-survival null. Nonzero values are rejected because the
+#'     standard log-rank statistic does not implement a nonzero effect margin.
 #' @param Fn vector of values between 0 and 1. Each element is the probability
 #'   threshold to stop at the \eqn{i}-th look early for futility. If there are
 #'   no interim looks (i.e. `interim_look = NULL`), then `Fn` is not
 #'   used in the simulations or analysis. Set `Fn = 0` to disable futility
-#'   monitoring. The length of `Fn` should be the same as
-#'   `interim_look`, else the values are recycled.
+#'   monitoring; `Fn = NULL` has the same effect. Supply either one value,
+#'   which is broadcast to every interim look, or exactly one value per
+#'   `interim_look`. Other lengths are rejected rather than recycled.
 #' @param Sn vector of values between 0 and 1. Each element is the probability
 #'   threshold to stop at the \eqn{i}-th look early for expected success. If
 #'   there are no interim looks (i.e. `interim_look = NULL`), then
-#'   `Sn` is not used in the simulations or analysis. The length of
-#'   `Sn` should be the same as `interim_look`, else the values are
-#'   recycled.
+#'   `Sn` is not used in the simulations or analysis. Supply either one value,
+#'   which is broadcast to every interim look, or exactly one value per
+#'   `interim_look`. Other lengths are rejected rather than recycled.
 #' @param prob_ha scalar value between 0 and 1. Probability threshold of alternative
 #'   hypothesis.
-#' @param N_impute integer. Number of imputations for Monte Carlo simulation of
-#'   missing data. An imputed Cox or risk-difference final analysis requires at
-#'   least two.
-#' @param N_mcmc integer. Number of posterior samples used by
+#' @param N_impute integer. Number of predictive imputations used at each
+#'   interim look and, when requested, for final multiple imputation. The
+#'   default is 500. An imputed Cox or risk-difference final analysis requires
+#'   at least two.
+#' @param N_mcmc integer. Number of posterior samples used within each
 #'   `method = "bayes-surv"` and by `method = "bayes-bin"` when
-#'   `bin_method = "mc"`.
+#'   `bin_method = "mc"`. The default is 1000.
+#' @param mc_conf_level probability strictly between 0.5 and 1. Confidence
+#'   level for one-sided exact binomial bounds that guard finite Monte Carlo
+#'   interim decisions. A completed-data Bayesian analysis is counted as
+#'   successful only when its lower Monte Carlo bound exceeds `prob_ha`.
+#'   Expected-success stopping requires the lower bound for the outer
+#'   predictive estimate to exceed `Sn`; futility stopping requires its upper
+#'   bound to be below `Fn`. Equality or an unresolved bound continues
+#'   enrollment. The default is 0.95.
 #' @param empty_interval character. Policy for empty piecewise-exponential
 #'   intervals in `method = "bayes-surv"` posterior calculations. An empty
 #'   interval is an interval with no exposed subjects in a treatment arm at the
-#'   analysis time. `"propagate"` (the default, matching earlier package
-#'   behavior) copies exposure time and event counts from the nearest non-empty
-#'   interval in the same treatment arm and emits a warning. `"prior"` leaves
-#'   the interval at zero exposure time and zero events, so its posterior is
-#'   driven only by its assigned survival prior. `"error"` stops when any empty
-#'   interval is found.
+#'   analysis time. `"prior"` (the default) leaves the interval at zero exposure
+#'   time and zero events, so its posterior is driven only by its assigned
+#'   survival prior. `"propagate"` is a legacy heuristic that copies exposure
+#'   time and event counts from the nearest non-empty interval in the same
+#'   treatment arm and emits a warning. `"error"` stops when any empty interval
+#'   is found.
 #' @param method character. For an imputed data set (or the final data set after
 #'   follow-up is complete), whether the analysis should be a log-rank
 #'   (`method = "logrank"`) test, Cox proportional hazards regression model
@@ -118,16 +129,18 @@
 #'   1. **The posterior predictive probability of eventual success.** This is
 #'      calculated as the proportion of imputed datasets at the *current* sample
 #'      size that would go on to be success at the specified threshold. At each
-#'      interim analysis it is compared to the corresponding element of
-#'      `Sn`, and if it exceeds the threshold,
+#'      interim analysis its one-sided exact lower Monte Carlo confidence bound
+#'      is compared to the corresponding element of `Sn`, and if the bound
+#'      exceeds the threshold,
 #'      accrual/enrollment is suspended and the outstanding follow-up allowed to
 #'      complete before conducting the pre-specified final analysis.
 #'
 #'   2. **The posterior predictive probability of final success**. This is
 #'      calculated as the proportion of imputed datasets at the *maximum*
 #'      threshold that would go on to be successful. Similar to above, it is
-#'      compared to the corresponding element of `Fn`, and if it
-#'      is less than the threshold, accrual/enrollment is suspended and the
+#'      compared to the corresponding element of `Fn`, and if its one-sided
+#'      exact upper Monte Carlo confidence bound is below the threshold,
+#'      accrual/enrollment is suspended and the
 #'      trial terminated. Typically this would be a binding decision. If it is
 #'      not a binding decision, then one should also explore the simulations
 #'      with `Fn = 0`.
@@ -187,14 +200,13 @@
 #'      contain intervals with no exposed subjects in one treatment arm,
 #'      especially when later cutpoints occur after the available follow-up at
 #'      early looks. The `empty_interval` argument controls this case.
-#'      The default, `"propagate"`, preserves historical package behavior by
-#'      borrowing sufficient statistics from the nearest non-empty interval
-#'      within the same treatment arm. This is operationally stable but
-#'      statistically consequential because the empty interval's posterior is
-#'      informed by adjacent observed data. `"prior"` instead leaves the empty
-#'      interval prior-driven, making the absence of interval data explicit.
-#'      `"error"` is strict and stops the simulation or analysis when an empty
-#'      interval is encountered.
+#'      The default, `"prior"`, leaves an empty interval prior-driven, making
+#'      the absence of interval data explicit. The legacy `"propagate"` option
+#'      borrows sufficient statistics from the nearest non-empty interval
+#'      within the same treatment arm. It is operationally stable but
+#'      statistically consequential because adjacent observed data then inform
+#'      the empty interval's posterior. `"error"` is strict and stops the
+#'      simulation or analysis when an empty interval is encountered.
 #'
 #'   * Bayesian beta-binomial analysis (`method = "bayes-bin"`).
 #'      Each complete or imputed dataset is reduced to binary event outcomes at
@@ -304,11 +316,17 @@
 #'   - `stop_expected_success`: Logical indicator of whether the trial stopped
 #'     early for expected success.
 #'
+#'   The returned object has a `decision_design` attribute containing
+#'   `interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
+#'   this metadata are normalized to one value per interim look (and have
+#'   length zero when no interim looks are planned).
+#'
 #'   With return_trace = TRUE, a goldilocks_trial object is returned. Its
 #'   summary element is the same data frame and its trace element has one row
 #'   per interim look. The trace records enrollment and observed events by arm,
-#'   predictive probabilities and their thresholds, the decision taken, and
-#'   warnings raised during that look. It deliberately excludes imputed data
+#'   predictive probabilities, Monte Carlo standard errors and exact bounds,
+#'   draw counts, thresholds, the decision and reason, empty-interval fallback
+#'   diagnostics, and warnings raised during that look. It deliberately excludes imputed data
 #'   sets and posterior draws to keep the output compact.
 #'
 #' @references
@@ -364,9 +382,10 @@ survival_adapt <- function(
   Fn = 0.05,
   Sn = 0.9,
   prob_ha = 0.95,
-  N_impute = 10,
-  N_mcmc = 10,
-  empty_interval = c("propagate", "prior", "error"),
+  N_impute = 500,
+  N_mcmc = 1000,
+  mc_conf_level = 0.95,
+  empty_interval = c("prior", "propagate", "error"),
   method = "logrank",
   imputed_final = FALSE,
   return_trace = FALSE,
@@ -396,6 +415,14 @@ survival_adapt <- function(
   validate_single_probability(prob_ha, "prob_ha")
   validate_positive_integer_scalar(N_impute, "N_impute")
   validate_positive_integer_scalar(N_mcmc, "N_mcmc")
+  validate_single_probability(
+    mc_conf_level,
+    "mc_conf_level",
+    upper_open = TRUE
+  )
+  if (mc_conf_level <= 0.5) {
+    stop("'mc_conf_level' must be greater than 0.5 and less than 1")
+  }
   validate_cutpoints(cutpoints)
   n_intervals <- length(cutpoints) + 1L
   prior_surv <- normalize_gamma_prior(
@@ -443,35 +470,26 @@ survival_adapt <- function(
     validate_bayes_binomial_args(prior_bin, bin_method, N_mcmc)
   }
 
-  # Assign: if no interim looks, set thresholds to 0, as they are not needed
-  if (N_looks == 1) {
-    Sn <- 0
-    Fn <- 0
-    check_futility <- FALSE
-  } else {
-    validate_probability_vector(Sn, "Sn")
-    if (!is.null(Fn)) {
-      validate_probability_vector(Fn, "Fn")
-    }
-
-    N_interims <- N_looks - 1
-
-    if (length(Sn) == 1) {
-      Sn <- rep(Sn, N_interims)
-    } else if (length(Sn) != N_interims) {
-      stop("More thresholds specified than actual interim looks")
-    }
-
-    if (is.null(Fn)) {
-      Fn <- rep(0, N_interims)
-    } else if (length(Fn) == 1) {
-      Fn <- rep(Fn, N_interims)
-    } else if (length(Fn) != N_interims) {
-      stop("More thresholds specified than actual interim looks")
-    }
-
-    check_futility <- any(Fn != 0)
-  }
+  # A scalar threshold is broadcast; any non-scalar must supply exactly one
+  # value per interim look. This normalization is shared by both decision rules
+  # and retained in the returned design metadata.
+  N_interims <- N_looks - 1L
+  Sn <- normalize_interim_threshold(Sn, N_interims, "Sn")
+  Fn <- normalize_interim_threshold(
+    Fn,
+    N_interims,
+    "Fn",
+    null_disables = TRUE
+  )
+  check_futility <- N_interims > 0L && any(Fn != 0)
+  decision_design <- list(
+    interim_look = interim_look,
+    Fn = Fn,
+    Sn = Sn,
+    N_impute = N_impute,
+    N_mcmc = N_mcmc,
+    mc_conf_level = mc_conf_level
+  )
 
   # Posterior samples are not used by frequentist methods
   if (!method %in% c("bayes-surv", "bayes-bin")) {
@@ -558,11 +576,28 @@ survival_adapt <- function(
       # Capture warnings for this look while preserving their usual output.
       warning_state <- new.env(parent = emptyenv())
       warning_state$messages <- character()
+      warning_state$empty_interval_fallbacks <- character()
       capture_warning <- function(warning) {
         if (return_trace) {
           warning_state$messages <- unique(c(
             warning_state$messages,
             conditionMessage(warning)
+          ))
+        }
+      }
+      capture_empty_interval <- function(condition) {
+        if (return_trace) {
+          detail <- condition$details
+          entries <- paste0(
+            condition$policy,
+            ": treatment=",
+            detail$treatment,
+            ", interval=",
+            detail$interval
+          )
+          warning_state$empty_interval_fallbacks <- unique(c(
+            warning_state$empty_interval_fallbacks,
+            entries
           ))
         }
       }
@@ -577,7 +612,8 @@ survival_adapt <- function(
           single_arm = single_arm,
           empty_interval = empty_interval
         ),
-        warning = capture_warning
+        warning = capture_warning,
+        goldilocks_empty_interval = capture_empty_interval
       )
 
       ##########################################################################
@@ -586,6 +622,8 @@ survival_adapt <- function(
 
       futility_test <- 0
       expected_success_test <- 0
+      inner_mc_uncertain_now <- 0L
+      inner_mc_uncertain_max <- 0L
       for (j in 1:N_impute) {
         h <- post_lambda[j, , , drop = FALSE]
 
@@ -609,41 +647,85 @@ survival_adapt <- function(
               "event-time"
             },
             empty_interval = empty_interval,
-            check_futility = check_futility
+            check_futility = check_futility,
+            mc_conf_level = mc_conf_level,
+            prob_ha = prob_ha
           ),
-          warning = capture_warning
+          warning = capture_warning,
+          goldilocks_empty_interval = capture_empty_interval
         )
 
-        # Increment counter if P(efficacy | data) > prob_ha
-        prob_now <- stop_check$success_now$success
-        if (prob_now > prob_ha) {
+        # Bayesian completed-data analyses use an inner exact Monte Carlo
+        # bound; deterministic frequentist and quadrature analyses retain their
+        # strict point comparison with prob_ha.
+        analysis_now <- stop_check$classification_now
+        if (analysis_now$crossed) {
           expected_success_test <- expected_success_test + 1
         }
+        inner_mc_uncertain_now <- inner_mc_uncertain_now +
+          as.integer(analysis_now$uncertain)
 
         if (check_futility) {
-          # Increase futility counter by 1 if P(efficacy | data) > prob_ha
-          prob_max <- stop_check$success_max$success
-          if (prob_max > prob_ha) {
+          analysis_max <- stop_check$classification_max
+          if (analysis_max$crossed) {
             futility_test <- futility_test + 1
           }
+          inner_mc_uncertain_max <- inner_mc_uncertain_max +
+            as.integer(analysis_max$uncertain)
         }
       }
 
-      # Test if expected success criteria met
-      # Note: ppp_success = posterior predictive probability of eventual success
-      ppp_success <- expected_success_test / N_impute
+      # The outer Monte Carlo estimands are probabilities that a completed
+      # dataset meets its final success rule. Exact one-sided bounds prevent a
+      # coarse point estimate from triggering an unsupported trial decision.
+      ppp_now_mc <- monte_carlo_probability_summary(
+        successes = expected_success_test,
+        draws = N_impute,
+        threshold = Sn[i],
+        direction = "greater",
+        confidence = mc_conf_level
+      )
+      ppp_success <- ppp_now_mc$estimate
+      ppp_max_mc <- if (check_futility) {
+        monte_carlo_probability_summary(
+          successes = futility_test,
+          draws = N_impute,
+          threshold = Fn[i],
+          direction = "less",
+          confidence = mc_conf_level
+        )
+      } else {
+        NULL
+      }
       ppp_success_at_max <- if (check_futility) {
-        futility_test / N_impute
+        ppp_max_mc$estimate
       } else {
         NA_real_
       }
 
-      decision <- if (ppp_success > Sn[i]) {
+      decision <- if (ppp_now_mc$crossed) {
         "stop_expected_success"
-      } else if (check_futility && ppp_success_at_max < Fn[i]) {
+      } else if (check_futility && ppp_max_mc$crossed) {
         "stop_futility"
       } else {
         "continue"
+      }
+      decision_reason <- if (decision == "stop_expected_success") {
+        "expected_success_lower_bound_above_threshold"
+      } else if (decision == "stop_futility") {
+        "futility_upper_bound_below_threshold"
+      } else if (
+        inner_mc_uncertain_now > 0L || inner_mc_uncertain_max > 0L
+      ) {
+        "continue_inner_monte_carlo_uncertain"
+      } else if (ppp_now_mc$reason == "monte_carlo_uncertain") {
+        "continue_expected_success_monte_carlo_uncertain"
+      } else if (
+        check_futility && ppp_max_mc$reason == "monte_carlo_uncertain"
+      ) {
+        "continue_futility_monte_carlo_uncertain"
+      } else {
+        "continue_thresholds_not_crossed"
       }
 
       if (return_trace) {
@@ -662,10 +744,48 @@ survival_adapt <- function(
           ),
           N_not_enrolled = sum(data_interim$subject_impute_futility),
           ppp_stop_now = ppp_success,
+          ppp_stop_now_mcse = ppp_now_mc$mcse,
+          ppp_stop_now_lower = ppp_now_mc$lower,
+          ppp_stop_now_upper = ppp_now_mc$upper,
+          ppp_stop_now_draws = ppp_now_mc$draws,
           success_threshold = Sn[i],
           ppp_success_at_max = ppp_success_at_max,
+          ppp_success_at_max_mcse = if (check_futility) {
+            ppp_max_mc$mcse
+          } else {
+            NA_real_
+          },
+          ppp_success_at_max_lower = if (check_futility) {
+            ppp_max_mc$lower
+          } else {
+            NA_real_
+          },
+          ppp_success_at_max_upper = if (check_futility) {
+            ppp_max_mc$upper
+          } else {
+            NA_real_
+          },
+          ppp_success_at_max_draws = if (check_futility) {
+            ppp_max_mc$draws
+          } else {
+            NA_integer_
+          },
           futility_threshold = if (check_futility) Fn[i] else NA_real_,
+          inner_mc_uncertain_stop_now = inner_mc_uncertain_now,
+          inner_mc_uncertain_success_at_max = if (check_futility) {
+            inner_mc_uncertain_max
+          } else {
+            NA_integer_
+          },
           decision = decision,
+          decision_reason = decision_reason,
+          empty_interval_fallback_count = length(
+            warning_state$empty_interval_fallbacks
+          ),
+          empty_interval_fallbacks = paste(
+            warning_state$empty_interval_fallbacks,
+            collapse = " | "
+          ),
           warning_count = length(warning_state$messages),
           warning_messages = paste(warning_state$messages, collapse = " | "),
           stringsAsFactors = FALSE
@@ -769,6 +889,7 @@ survival_adapt <- function(
     end_of_study = end_of_study
   )
   attr(results, "enrollment_design") <- enrollment_design
+  attr(results, "decision_design") <- decision_design
 
   if (return_trace) {
     out <- list(
@@ -778,6 +899,7 @@ survival_adapt <- function(
     )
     class(out) <- "goldilocks_trial"
     attr(out, "enrollment_design") <- enrollment_design
+    attr(out, "decision_design") <- decision_design
     return(out)
   }
 

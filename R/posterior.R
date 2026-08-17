@@ -32,9 +32,9 @@ posterior <- function(
   prior_surv,
   N_mcmc,
   single_arm,
-  empty_interval = "propagate"
+  empty_interval = "prior"
 ) {
-  empty_interval <- match.arg(empty_interval, c("propagate", "prior", "error"))
+  empty_interval <- match.arg(empty_interval, c("prior", "propagate", "error"))
   n_intervals <- length(cutpoints) + 1L
 
   # Verify the expected treatment groups are actually present before
@@ -98,9 +98,9 @@ posterior_from_sufficient_stats <- function(
   prior_surv,
   N_mcmc,
   single_arm,
-  empty_interval = "propagate"
+  empty_interval = "prior"
 ) {
-  empty_interval <- match.arg(empty_interval, c("propagate", "prior", "error"))
+  empty_interval <- match.arg(empty_interval, c("prior", "propagate", "error"))
   required_columns <- c(
     "treatment",
     "interval",
@@ -120,7 +120,12 @@ posterior_from_sufficient_stats <- function(
   # expected arm/interval combination. Validate this here because malformed
   # tables could otherwise recycle values silently inside rgamma().
   treatment_values <- if (single_arm) 1 else c(0, 1)
-  interval_values <- unique(as.character(data_summ$interval))
+  interval_values <- if (is.factor(data_summ$interval)) {
+    levels(data_summ$interval)
+  } else {
+    sort(unique(data_summ$interval))
+  }
+  interval_values <- as.character(interval_values)
   n_intervals <- length(interval_values)
   prior_surv <- normalize_gamma_prior(
     prior_surv,
@@ -193,6 +198,26 @@ posterior_from_sufficient_stats <- function(
   }
 
   if (any(data_summ$n == 0)) {
+    empty_details <- data_summ[
+      data_summ$n == 0,
+      c("treatment", "interval"),
+      drop = FALSE
+    ]
+    empty_details$interval <- as.character(empty_details$interval)
+    signalCondition(structure(
+      list(
+        message = paste0(
+          "Empty piecewise-exponential interval(s) handled with policy '",
+          empty_interval,
+          "'"
+        ),
+        call = NULL,
+        policy = empty_interval,
+        details = empty_details
+      ),
+      class = c("goldilocks_empty_interval", "condition")
+    ))
+
     if (empty_interval == "error") {
       stop(
         "At least one treatment arm interval has zero subjects; set ",
@@ -303,6 +328,18 @@ posterior_sufficient_stats <- function(
   single_arm,
   rows = NULL
 ) {
+  required_columns <- c("time", "event", "treatment")
+  missing_columns <- setdiff(required_columns, names(data))
+  if (!is.data.frame(data) || length(missing_columns) > 0L) {
+    stop(
+      "'data' must be a data frame containing columns: time, event, treatment"
+    )
+  }
+  validate_cutpoints(cutpoints)
+  validate_nonnegative_numeric_vector(data$time, "data$time")
+  validate_binary_vector(data$event, "data$event")
+  validate_binary_vector(data$treatment, "data$treatment")
+
   n_intervals <- length(cutpoints) + 1L
   interval_lower <- c(0, cutpoints)
   interval_upper <- c(cutpoints, Inf)

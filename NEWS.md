@@ -1,3 +1,42 @@
+# goldilocks 0.6.0.9000
+
+## Bug fixes
+
+* Interim Monte Carlo decisions now require one-sided exact binomial bounds to
+  cross their thresholds, at both the completed-data posterior layer and the
+  outer predictive-imputation layer. Equality and estimates whose bounds do not
+  separate from a threshold continue enrollment. The defaults are now
+  `N_impute = 500` and `N_mcmc = 1000`, and decision traces report estimates,
+  Monte Carlo standard errors, bounds, draw counts, uncertainty counts, and the
+  decision reason (#60).
+* Empty piecewise-exponential intervals are now prior-driven by default. The
+  former `empty_interval = "propagate"` behavior remains available only as an
+  explicit legacy heuristic. To reproduce earlier results, set it explicitly;
+  otherwise review the interval-specific prior because it now supplies all
+  information for an empty interval. Decision traces identify every interval
+  handled by either policy (#62).
+* Unseeded PSOCK simulations now derive independent per-trial streams from one
+  draw from the caller's RNG state. Resetting the caller state reproduces the
+  call, consecutive calls advance rather than reuse streams, and returned RNG
+  metadata records the effective backend and seed policy (#71).
+* Log-rank analyses now reject nonzero `h0` values instead of silently testing
+  the equal-survival null. Cox margins remain on the log-hazard-ratio scale,
+  while Bayesian and risk-difference margins remain on their documented event-
+  probability scales (#73).
+* Interim futility and expected-success thresholds now share a documented
+  scalar-or-exact-length contract, report expected and observed lengths in
+  errors, and are retained in normalized decision-design metadata (#74).
+* Exported piecewise-exponential utilities now validate draw counts and
+  observed times consistently, with explicit zero-draw and zero-length
+  behavior. Related binary-outcome validation now rejects missing and malformed
+  event indicators before analysis (#75).
+* Cumulative-hazard/event-probability conversions now use stable `expm1()` and
+  `log1p()` transformations, retaining precision near zero and defining exact
+  behavior at zero and infinite boundaries (#76).
+* Randomization errors now state correctly that every block size must be a
+  multiple of the sum of the two-arm allocation weights and include the
+  observed values (#79).
+
 # goldilocks 0.6.0
 
 ## Improvements

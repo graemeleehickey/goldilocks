@@ -10,8 +10,8 @@ ppwe(hazard, end_of_study, cutpoints = NULL)
 \arguments{
 \item{hazard}{matrix. A matrix of hazard rate parameters with number of
 columns one greater than the length of the \code{cutpoints} vector. The number
-of rows can be anything, and is typically dictated by the number of MCMC
-draws.}
+of rows must be at least one and is typically dictated by the number of
+MCMC draws.}
 
 \item{end_of_study}{finite positive time at which the cumulative event
 probability is evaluated. It must be greater than every cutpoint.}
@@ -21,7 +21,7 @@ times at which the hazard rate changes. The number of hazard rates must be
 one greater than the number of cutpoints. Use \code{NULL} for a constant hazard.}
 }
 \value{
-A vector of (0, 1) probabilities from evaluation of the PWE
+A vector of \verb{[0, 1]} probabilities from evaluation of the PWE
 cumulative distribution function. Length of the vector matches the number
 of rows of the \code{hazard} matrix parameter.
 }

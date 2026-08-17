@@ -6,6 +6,30 @@ test_that("pwe_sim returns correct number of rows", {
   expect_equal(nrow(out), 50)
 })
 
+test_that("pwe_sim validates its draw count and defines zero draws", {
+  invalid_n <- list(
+    numeric(),
+    c(1, 2),
+    -1,
+    1.5,
+    NA_real_,
+    NaN,
+    Inf,
+    "1"
+  )
+  for (n in invalid_n) {
+    expect_error(
+      pwe_sim(n = n, hazard = 0.01),
+      "'n' must be a single non-negative integer"
+    )
+  }
+
+  out <- pwe_sim(n = 0, hazard = 0.01)
+  expect_s3_class(out, "data.frame")
+  expect_named(out, c("time", "event"))
+  expect_equal(nrow(out), 0)
+})
+
 test_that("pwe_sim returns data frame with time and event columns", {
   set.seed(3891)
   out <- pwe_sim(n = 10, hazard = 0.05, cutpoints = NULL, maxtime = 36)
@@ -112,6 +136,28 @@ test_that("pwe_impute returns data frame with correct dimensions", {
   expect_named(out, c("time", "event"))
 })
 
+test_that("pwe_impute validates observed times and defines empty input", {
+  invalid_time <- list(
+    -1,
+    NA_real_,
+    NaN,
+    Inf,
+    matrix(1, nrow = 1),
+    "1"
+  )
+  for (time in invalid_time) {
+    expect_error(
+      pwe_impute(time = time, hazard = 0.01),
+      "'time'.*numeric vector of finite non-negative values"
+    )
+  }
+
+  out <- pwe_impute(time = numeric(), hazard = 0.01)
+  expect_s3_class(out, "data.frame")
+  expect_named(out, c("time", "event"))
+  expect_equal(nrow(out), 0)
+})
+
 test_that("pwe_impute generates times after observed times", {
   set.seed(2615)
   obs_times <- c(1, 5, 10)
@@ -206,7 +252,7 @@ test_that("pwe utilities require maxtime for a zero final hazard", {
 test_that("pwe_impute errors on negative time", {
   expect_error(
     pwe_impute(time = -1, hazard = 0.01, cutpoints = NULL),
-    "positive"
+    "finite non-negative"
   )
 })
 
@@ -261,6 +307,43 @@ test_that("ppwe returns probabilities in (0, 1)", {
   out <- ppwe(hazard = haz_matrix, end_of_study = 36, cutpoints = 12)
   expect_length(out, nrow(haz_matrix))
   expect_true(all(out > 0 & out < 1))
+})
+
+test_that("stable hazard-probability transforms retain boundary precision", {
+  cumulative_hazard <- c(0, 1e-20, .Machine$double.eps, 1, 1000, Inf, NA)
+  probability <- cumulative_hazard_to_probability(cumulative_hazard)
+
+  expect_identical(probability[1], 0)
+  expect_equal(probability[2], 1e-20, tolerance = 1e-35)
+  expect_identical(probability[5], 1)
+  expect_identical(probability[6], 1)
+  expect_true(is.na(probability[7]))
+
+  input_probability <- c(0, 1e-20, .Machine$double.eps, 0.5, 1, NA)
+  recovered_hazard <- probability_to_cumulative_hazard(input_probability)
+  expect_identical(recovered_hazard[1], 0)
+  expect_equal(recovered_hazard[2], 1e-20, tolerance = 1e-35)
+  expect_equal(recovered_hazard[4], log(2), tolerance = 1e-15)
+  expect_identical(recovered_hazard[5], Inf)
+  expect_true(is.na(recovered_hazard[6]))
+})
+
+test_that("ppwe handles zero and infinite cumulative-hazard boundaries", {
+  expect_identical(ppwe(matrix(0), end_of_study = 1), 0)
+  expect_no_warning(
+    saturated <- ppwe(matrix(.Machine$double.xmax), end_of_study = 2)
+  )
+  expect_identical(saturated, 1)
+})
+
+test_that("exported conversions are stable and round trip near zero", {
+  probability <- 1e-20
+  hazard <- prop_to_haz(probability, endtime = 1)
+  recovered <- ppwe(matrix(hazard, nrow = 1), end_of_study = 1)
+
+  expect_equal(hazard, probability, tolerance = 1e-35)
+  expect_equal(recovered, probability, tolerance = 1e-35)
+  expect_gt(recovered, 0)
 })
 
 test_that("ppwe matches PWEALL after the final cutpoint", {
@@ -332,4 +415,33 @@ test_that("piecewise helpers validate cutpoints and endpoint time", {
     ppwe(matrix(c(0.01, 0.02), ncol = 2), end_of_study = 12, cutpoints = 12),
     "greater than the last cutpoint"
   )
+})
+
+test_that("exported PWE utilities reject empty and malformed vectors", {
+  invalid_hazards <- list(
+    matrix(numeric(), nrow = 0, ncol = 1),
+    matrix(NA_real_, nrow = 1),
+    matrix(NaN, nrow = 1),
+    matrix(Inf, nrow = 1),
+    matrix(-1, nrow = 1)
+  )
+  for (hazard in invalid_hazards) {
+    expect_error(
+      ppwe(hazard, end_of_study = 1),
+      "'hazard'.*non-empty matrix of finite non-negative hazard rates"
+    )
+  }
+
+  invalid_probabilities <- list(
+    numeric(),
+    NA_real_,
+    NaN,
+    Inf,
+    -0.1,
+    1,
+    matrix(0.1, nrow = 1)
+  )
+  for (probs in invalid_probabilities) {
+    expect_error(prop_to_haz(probs, endtime = 1), "'probs'")
+  }
 })

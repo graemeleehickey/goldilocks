@@ -7,12 +7,13 @@
 pwe_sim(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL)
 }
 \arguments{
-\item{n}{integer. The number of random samples to generate. Default is
-\code{n = 1}.}
+\item{n}{single non-negative integer. The number of random samples to
+generate. Default is \code{n = 1}; \code{n = 0} returns a zero-row data frame.}
 
 \item{hazard}{vector. Finite non-negative constant hazard rates for
-exponential failures. If the final rate is zero, \code{maxtime} must be
-supplied so that subjects without an event can be administratively censored.}
+exponential failures. If at least one outcome is requested and the final
+rate is zero, \code{maxtime} must be supplied so that subjects without an event
+can be administratively censored.}
 
 \item{cutpoints}{finite, positive, strictly increasing vector of interior
 times at which the hazard rate changes. The number of hazard rates must be

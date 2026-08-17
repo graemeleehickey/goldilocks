@@ -8,9 +8,10 @@ summary event proportions}
 prop_to_haz(probs, cutpoints = NULL, endtime)
 }
 \arguments{
-\item{probs}{vector. Cumulative event probabilities at each cutpoint and at
-\code{endtime}, in that order. Its length must be one greater than the number of
-cutpoints. With no cutpoints, supply a single probability at \code{endtime}.}
+\item{probs}{vector. Finite cumulative event probabilities in \verb{[0, 1)} at
+each cutpoint and at \code{endtime}, in that order. Its length must be one
+greater than the number of cutpoints. With no cutpoints, supply a single
+probability at \code{endtime}. Values are not recycled.}
 
 \item{cutpoints}{finite, positive, strictly increasing vector of interior
 times at which the baseline hazard changes. Default is \code{NULL}, which

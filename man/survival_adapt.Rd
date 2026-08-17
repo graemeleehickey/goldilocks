@@ -24,9 +24,10 @@ survival_adapt(
   Fn = 0.05,
   Sn = 0.9,
   prob_ha = 0.95,
-  N_impute = 10,
-  N_mcmc = 10,
-  empty_interval = c("propagate", "prior", "error"),
+  N_impute = 500,
+  N_mcmc = 1000,
+  mc_conf_level = 0.95,
+  empty_interval = c("prior", "propagate", "error"),
   method = "logrank",
   imputed_final = FALSE,
   return_trace = FALSE,
@@ -127,44 +128,56 @@ use \code{alternative = "less"}.
 \item When \code{method = "riskdiff"}, \code{h0} is the null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
 \verb{[-1, 1]}.
-\item The argument is ignored for \code{method = "logrank"} after its finite-value
-validation; the usual equal-survival null hypothesis is used.
+\item When \code{method = "logrank"}, only \code{h0 = 0} is supported; this denotes the
+usual equal-survival null. Nonzero values are rejected because the
+standard log-rank statistic does not implement a nonzero effect margin.
 }}
 
 \item{Fn}{vector of values between 0 and 1. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for futility. If there are
 no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
 used in the simulations or analysis. Set \code{Fn = 0} to disable futility
-monitoring. The length of \code{Fn} should be the same as
-\code{interim_look}, else the values are recycled.}
+monitoring; \code{Fn = NULL} has the same effect. Supply either one value,
+which is broadcast to every interim look, or exactly one value per
+\code{interim_look}. Other lengths are rejected rather than recycled.}
 
 \item{Sn}{vector of values between 0 and 1. Each element is the probability
 threshold to stop at the \eqn{i}-th look early for expected success. If
 there are no interim looks (i.e. \code{interim_look = NULL}), then
-\code{Sn} is not used in the simulations or analysis. The length of
-\code{Sn} should be the same as \code{interim_look}, else the values are
-recycled.}
+\code{Sn} is not used in the simulations or analysis. Supply either one value,
+which is broadcast to every interim look, or exactly one value per
+\code{interim_look}. Other lengths are rejected rather than recycled.}
 
 \item{prob_ha}{scalar value between 0 and 1. Probability threshold of alternative
 hypothesis.}
 
-\item{N_impute}{integer. Number of imputations for Monte Carlo simulation of
-missing data. An imputed Cox or risk-difference final analysis requires at
-least two.}
+\item{N_impute}{integer. Number of predictive imputations used at each
+interim look and, when requested, for final multiple imputation. The
+default is 500. An imputed Cox or risk-difference final analysis requires
+at least two.}
 
-\item{N_mcmc}{integer. Number of posterior samples used by
+\item{N_mcmc}{integer. Number of posterior samples used within each
 \code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
-\code{bin_method = "mc"}.}
+\code{bin_method = "mc"}. The default is 1000.}
+
+\item{mc_conf_level}{probability strictly between 0.5 and 1. Confidence
+level for one-sided exact binomial bounds that guard finite Monte Carlo
+interim decisions. A completed-data Bayesian analysis is counted as
+successful only when its lower Monte Carlo bound exceeds \code{prob_ha}.
+Expected-success stopping requires the lower bound for the outer
+predictive estimate to exceed \code{Sn}; futility stopping requires its upper
+bound to be below \code{Fn}. Equality or an unresolved bound continues
+enrollment. The default is 0.95.}
 
 \item{empty_interval}{character. Policy for empty piecewise-exponential
 intervals in \code{method = "bayes-surv"} posterior calculations. An empty
 interval is an interval with no exposed subjects in a treatment arm at the
-analysis time. \code{"propagate"} (the default, matching earlier package
-behavior) copies exposure time and event counts from the nearest non-empty
-interval in the same treatment arm and emits a warning. \code{"prior"} leaves
-the interval at zero exposure time and zero events, so its posterior is
-driven only by its assigned survival prior. \code{"error"} stops when any empty
-interval is found.}
+analysis time. \code{"prior"} (the default) leaves the interval at zero exposure
+time and zero events, so its posterior is driven only by its assigned
+survival prior. \code{"propagate"} is a legacy heuristic that copies exposure
+time and event counts from the nearest non-empty interval in the same
+treatment arm and emits a warning. \code{"error"} stops when any empty interval
+is found.}
 
 \item{method}{character. For an imputed data set (or the final data set after
 follow-up is complete), whether the analysis should be a log-rank
@@ -223,11 +236,17 @@ futility.
 early for expected success.
 }
 
+The returned object has a \code{decision_design} attribute containing
+\code{interim_look}, \code{Fn}, \code{Sn}, and the Monte Carlo settings. Thresholds in
+this metadata are normalized to one value per interim look (and have
+length zero when no interim looks are planned).
+
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
 per interim look. The trace records enrollment and observed events by arm,
-predictive probabilities and their thresholds, the decision taken, and
-warnings raised during that look. It deliberately excludes imputed data
+predictive probabilities, Monte Carlo standard errors and exact bounds,
+draw counts, thresholds, the decision and reason, empty-interval fallback
+diagnostics, and warnings raised during that look. It deliberately excludes imputed data
 sets and posterior draws to keep the output compact.
 }
 \description{
@@ -240,15 +259,17 @@ Implements the Goldilocks design method described in Broglio et al.
 \item \strong{The posterior predictive probability of eventual success.} This is
 calculated as the proportion of imputed datasets at the \emph{current} sample
 size that would go on to be success at the specified threshold. At each
-interim analysis it is compared to the corresponding element of
-\code{Sn}, and if it exceeds the threshold,
+interim analysis its one-sided exact lower Monte Carlo confidence bound
+is compared to the corresponding element of \code{Sn}, and if the bound
+exceeds the threshold,
 accrual/enrollment is suspended and the outstanding follow-up allowed to
 complete before conducting the pre-specified final analysis.
 \item \strong{The posterior predictive probability of final success}. This is
 calculated as the proportion of imputed datasets at the \emph{maximum}
 threshold that would go on to be successful. Similar to above, it is
-compared to the corresponding element of \code{Fn}, and if it
-is less than the threshold, accrual/enrollment is suspended and the
+compared to the corresponding element of \code{Fn}, and if its one-sided
+exact upper Monte Carlo confidence bound is below the threshold,
+accrual/enrollment is suspended and the
 trial terminated. Typically this would be a binding decision. If it is
 not a binding decision, then one should also explore the simulations
 with \code{Fn = 0}.
@@ -308,14 +329,13 @@ For piecewise-exponential analyses, an interim or final dataset may
 contain intervals with no exposed subjects in one treatment arm,
 especially when later cutpoints occur after the available follow-up at
 early looks. The \code{empty_interval} argument controls this case.
-The default, \code{"propagate"}, preserves historical package behavior by
-borrowing sufficient statistics from the nearest non-empty interval
-within the same treatment arm. This is operationally stable but
-statistically consequential because the empty interval's posterior is
-informed by adjacent observed data. \code{"prior"} instead leaves the empty
-interval prior-driven, making the absence of interval data explicit.
-\code{"error"} is strict and stops the simulation or analysis when an empty
-interval is encountered.
+The default, \code{"prior"}, leaves an empty interval prior-driven, making
+the absence of interval data explicit. The legacy \code{"propagate"} option
+borrows sufficient statistics from the nearest non-empty interval
+within the same treatment arm. It is operationally stable but
+statistically consequential because adjacent observed data then inform
+the empty interval's posterior. \code{"error"} is strict and stops the
+simulation or analysis when an empty interval is encountered.
 \item Bayesian beta-binomial analysis (\code{method = "bayes-bin"}).
 Each complete or imputed dataset is reduced to binary event outcomes at
 \code{end_of_study}. A conjugate \code{Beta(a, b)} prior, specified with

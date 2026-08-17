@@ -754,6 +754,20 @@ test_that("survival_adapt validates probability, count, and prior arguments", {
     "N_mcmc"
   )
   expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(common_args, list(mc_conf_level = 0.5))
+    ),
+    "greater than 0.5 and less than 1"
+  )
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(common_args, list(mc_conf_level = 1))
+    ),
+    "mc_conf_level"
+  )
+  expect_error(
     do.call(survival_adapt, modifyList(common_args, list(N_total = 200.5))),
     "N_total"
   )
@@ -943,5 +957,38 @@ test_that("error-prob-thresholds-length_v2", {
       N_mcmc = 2,
       method = "logrank"
     )
+  )
+})
+
+test_that("interim thresholds use a scalar-or-exact-length contract", {
+  expect_equal(
+    normalize_interim_threshold(0.9, 4, "Sn"),
+    rep(0.9, 4)
+  )
+  expect_equal(
+    normalize_interim_threshold(c(0.95, 0.9, 0.85, 0.8), 4, "Sn"),
+    c(0.95, 0.9, 0.85, 0.8)
+  )
+  expect_equal(
+    normalize_interim_threshold(NULL, 4, "Fn", null_disables = TRUE),
+    rep(0, 4)
+  )
+  expect_equal(normalize_interim_threshold(0.9, 0, "Sn"), numeric())
+
+  expect_error(
+    normalize_interim_threshold(c(0.9, 0.8), 4, "Sn"),
+    "'Sn' has too few values: expected 1 or 4.*observed 2"
+  )
+  expect_error(
+    normalize_interim_threshold(rep(0.9, 5), 4, "Sn"),
+    "'Sn' has too many values: expected 1 or 4.*observed 5"
+  )
+  expect_error(
+    normalize_interim_threshold(c(0.1, 0.2, 0.3), 4, "Fn"),
+    "'Fn' has too few values: expected 1 or 4.*observed 3"
+  )
+  expect_error(
+    normalize_interim_threshold(numeric(), 4, "Fn"),
+    "'Fn' has too few values: expected 1 or 4.*observed 0"
   )
 })

@@ -41,14 +41,21 @@ test_that("randomization errors on non-integer block", {
 test_that("randomization errors when block not divisible by allocation sum", {
   expect_error(
     randomization(N_total = 100, block = 3, allocation = c(1, 1)),
-    "multiple"
+    paste0(
+      "Each 'block' value must be a multiple of sum\\('allocation'\\) ",
+      "\\(2\\); observed 'block' value\\(s\\): 3"
+    )
+  )
+  expect_error(
+    randomization(N_total = 100, block = c(6, 8), allocation = c(1, 2)),
+    "sum\\('allocation'\\) \\(3\\); observed 'block' value\\(s\\): 6, 8"
   )
 })
 
 test_that("randomization errors when N_total < block", {
   expect_error(
     randomization(N_total = 1, block = 4, allocation = c(1, 1)),
-    "at least the size"
+    "'N_total' must be at least sum\\('block'\\) \\(4\\); observed 'N_total': 1"
   )
 })
 

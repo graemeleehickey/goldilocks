@@ -31,6 +31,14 @@ posterior_from_sufficient_stats_internal <- getFromNamespace(
   "goldilocks"
 )
 impute_data_internal <- getFromNamespace("impute_data", "goldilocks")
+cumulative_hazard_to_probability_internal <- getFromNamespace(
+  "cumulative_hazard_to_probability",
+  "goldilocks"
+)
+probability_to_cumulative_hazard_internal <- getFromNamespace(
+  "probability_to_cumulative_hazard",
+  "goldilocks"
+)
 
 iterations <- as.integer(Sys.getenv("GOLDILOCKS_BENCHMARK_ITERATIONS", "5"))
 if (is.na(iterations) || iterations < 1L) {
@@ -49,6 +57,17 @@ n_intervals_piecewise <- length(cutpoints_piecewise) + 1L
 hazard_matrix <- matrix(
   stats::rgamma(15000, shape = 2, rate = 80),
   ncol = n_intervals_piecewise
+)
+
+cumulative_hazard_values <- c(
+  0,
+  10^seq(-20, 3, length.out = 100000),
+  Inf
+)
+probability_values <- c(
+  0,
+  10^seq(-20, -1, length.out = 100000),
+  1
 )
 
 posterior_draws <- array(
@@ -99,6 +118,12 @@ trial_hazard_treatment <- prop_to_haz(
 )
 
 benchmark_results <- bench::mark(
+  cumulative_hazard_to_probability = {
+    cumulative_hazard_to_probability_internal(cumulative_hazard_values)
+  },
+  probability_to_cumulative_hazard = {
+    probability_to_cumulative_hazard_internal(probability_values)
+  },
   enrollment_constant = {
     set.seed(1000)
     enrollment(lambda = 0.001, N_total = 10000)

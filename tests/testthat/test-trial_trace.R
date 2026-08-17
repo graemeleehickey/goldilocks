@@ -56,10 +56,23 @@ test_that("survival_adapt returns an auditable interim trace on request", {
     "N_pending",
     "N_not_enrolled",
     "ppp_stop_now",
+    "ppp_stop_now_mcse",
+    "ppp_stop_now_lower",
+    "ppp_stop_now_upper",
+    "ppp_stop_now_draws",
     "success_threshold",
     "ppp_success_at_max",
+    "ppp_success_at_max_mcse",
+    "ppp_success_at_max_lower",
+    "ppp_success_at_max_upper",
+    "ppp_success_at_max_draws",
     "futility_threshold",
+    "inner_mc_uncertain_stop_now",
+    "inner_mc_uncertain_success_at_max",
     "decision",
+    "decision_reason",
+    "empty_interval_fallback_count",
+    "empty_interval_fallbacks",
     "warning_count",
     "warning_messages"
   )
@@ -82,6 +95,30 @@ test_that("survival_adapt returns an auditable interim trace on request", {
     out$trace$N_treatment + out$trace$N_control,
     out$trace$N_enrolled
   )
+  expect_equal(
+    out$trace$ppp_stop_now_draws,
+    rep(trace_args()$N_impute, nrow(out$trace))
+  )
+  expect_true(all(out$trace$ppp_stop_now_mcse >= 0))
+  expect_true(all(
+    out$trace$ppp_stop_now_lower <= out$trace$ppp_stop_now &
+      out$trace$ppp_stop_now <= out$trace$ppp_stop_now_upper
+  ))
+  expect_true(all(nzchar(out$trace$decision_reason)))
+  success_rows <- out$trace$decision == "stop_expected_success"
+  if (any(success_rows)) {
+    expect_true(all(
+      out$trace$ppp_stop_now_lower[success_rows] >
+        out$trace$success_threshold[success_rows]
+    ))
+  }
+  futility_rows <- out$trace$decision == "stop_futility"
+  if (any(futility_rows)) {
+    expect_true(all(
+      out$trace$ppp_success_at_max_upper[futility_rows] <
+        out$trace$futility_threshold[futility_rows]
+    ))
+  }
 
   last_decision <- out$trace$decision[nrow(out$trace)]
   if (out$summary$stop_expected_success == 1) {
@@ -89,6 +126,18 @@ test_that("survival_adapt returns an auditable interim trace on request", {
   } else if (out$summary$stop_futility == 1) {
     expect_identical(last_decision, "stop_futility")
   }
+})
+
+test_that("decision metadata contains normalized thresholds", {
+  out <- run_traced_trial(Sn = 0.9, Fn = 0.05)
+  design <- attr(out, "decision_design", exact = TRUE)
+
+  expect_equal(design$interim_look, c(40, 60))
+  expect_equal(design$Sn, c(0.9, 0.9))
+  expect_equal(design$Fn, c(0.05, 0.05))
+  expect_equal(design$N_impute, trace_args()$N_impute)
+  expect_equal(design$N_mcmc, trace_args()$N_mcmc)
+  expect_equal(design$mc_conf_level, 0.95)
 })
 
 test_that("traced trials are reproducible with a fixed seed", {
@@ -120,6 +169,30 @@ test_that("trace captures warnings emitted during interim analysis", {
   expect_match(
     paste(out$trace$warning_messages, collapse = " "),
     "zero subjects"
+  )
+  expect_true(any(out$trace$empty_interval_fallback_count > 0))
+  expect_match(
+    paste(out$trace$empty_interval_fallbacks, collapse = " "),
+    "propagate: treatment="
+  )
+})
+
+test_that("trace records prior-only empty-interval handling without warnings", {
+  args <- trace_args()
+  args$cutpoints <- 12
+  args$hazard_treatment <- c(-log(0.85) / 12, -log(0.85) / 12)
+  args$hazard_control <- c(-log(0.7) / 12, -log(0.7) / 12)
+  args$N_impute <- 1
+  args$N_mcmc <- 1
+
+  set.seed(5701)
+  expect_no_warning(
+    out <- do.call(survival_adapt, c(args, list(return_trace = TRUE)))
+  )
+  expect_true(any(out$trace$empty_interval_fallback_count > 0))
+  expect_match(
+    paste(out$trace$empty_interval_fallbacks, collapse = " "),
+    "prior: treatment="
   )
 })
 
