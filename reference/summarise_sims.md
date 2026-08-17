@@ -12,11 +12,11 @@ summarise_sims(data)
 
 - data:
 
-  list (of data frames) or a single data frame. If summarizing a single
-  run of simulations, `data` will be a `data.frame` object returned from
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
-  If summarizing multiple simulation scenarios, `data` will be a `list`
-  object, with each element being a `data.frame` object.
+  A complete result returned by
+  [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md),
+  a simulation `data.frame`, or a list of either form. Named list
+  elements identify scenarios. Existing `scenario` columns and grouping
+  variables are preserved.
 
 ## Value
 
@@ -26,4 +26,9 @@ proportion of trials that stopped for early expected success, futility,
 or went to the maximum sample size. The average stopping sample size
 (and standard deviation) are also recorded. The proportion of trials
 that stopped early for expected success, yet went to ultimately fail are
-also reported.
+also reported. When complete
+[`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+results are supplied, the output also reports the requested, analyzed,
+and failed trial counts plus the effective backend and seed. Full call,
+RNG, parallel, timing, failure, and design metadata are retained in the
+`simulation_metadata` attribute.

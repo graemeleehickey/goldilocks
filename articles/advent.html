@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -294,9 +294,11 @@ expressed in patient-days, all event times, exposure, and cutpoints
 supplied below are also in days.</p>
 <p>Later follow-up intervals can have no exposure at an early look. The
 SAP’s conjugate model then leaves the corresponding hazard governed by
-its prior. The package’s historical default instead propagates
-sufficient statistics from a neighboring interval, so the examples
-explicitly set <code>empty_interval = "prior"</code>.</p>
+its prior, which is also the package default. The examples set
+<code>empty_interval = "prior"</code> explicitly for auditability.
+Historical results that used neighboring-interval propagation can be
+reproduced with the legacy <code>empty_interval = "propagate"</code>
+option.</p>
 <p>The SAP reports <span class="math inline">M = 5000</span> completed
 datasets for its predictive-probability and multiple-imputation
 calculations. The evaluated parts of this vignette deliberately use
@@ -942,24 +944,34 @@ accidentally for safety, or vice versa.</p>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">oc_small</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="st">"target: equal 35% failure"</span> <span class="op">=</span> <span class="va">eff_target</span><span class="op">$</span><span class="va">sims</span>,</span>
-<span>  <span class="st">"margin: PFA failure 50%"</span> <span class="op">=</span> <span class="va">eff_null_boundary</span><span class="op">$</span><span class="va">sims</span></span>
+<span>  <span class="st">"target: equal 35% failure"</span> <span class="op">=</span> <span class="va">eff_target</span>,</span>
+<span>  <span class="st">"margin: PFA failure 50%"</span> <span class="op">=</span> <span class="va">eff_null_boundary</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">oc_small</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
+<table style="width:100%;" class="table">
 <colgroup>
-<col width="26%">
-<col width="6%">
-<col width="13%">
-<col width="14%">
-<col width="11%">
-<col width="7%">
+<col width="18%">
+<col width="5%">
+<col width="3%">
 <col width="8%">
-<col width="14%">
+<col width="7%">
+<col width="6%">
+<col width="4%">
+<col width="9%">
+<col width="9%">
+<col width="7%">
+<col width="4%">
+<col width="5%">
+<col width="9%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">scenario</th>
+<th align="left">backend</th>
+<th align="right">seed</th>
+<th align="right">n_requested</th>
+<th align="right">n_analyzed</th>
+<th align="right">n_failed</th>
 <th align="right">power</th>
 <th align="right">stop_success</th>
 <th align="right">stop_futility</th>
@@ -971,23 +983,33 @@ accidentally for safety, or vice versa.</p>
 <tbody>
 <tr class="odd">
 <td align="left">margin: PFA failure 50%</td>
-<td align="right">0.064</td>
-<td align="right">0.076</td>
-<td align="right">0.644</td>
-<td align="right">0.280</td>
-<td align="right">559.6</td>
-<td align="right">149.105</td>
-<td align="right">0.042</td>
+<td align="left">fork</td>
+<td align="right">4611</td>
+<td align="right">500</td>
+<td align="right">500</td>
+<td align="right">0</td>
+<td align="right">0.066</td>
+<td align="right">0.03</td>
+<td align="right">0.434</td>
+<td align="right">0.969</td>
+<td align="right">653.6</td>
+<td align="right">118.385</td>
+<td align="right">0.014</td>
 </tr>
 <tr class="even">
 <td align="left">target: equal 35% failure</td>
-<td align="right">0.984</td>
-<td align="right">0.952</td>
-<td align="right">0.006</td>
-<td align="right">0.042</td>
-<td align="right">466.8</td>
-<td align="right">111.636</td>
-<td align="right">0.008</td>
+<td align="left">fork</td>
+<td align="right">4610</td>
+<td align="right">500</td>
+<td align="right">500</td>
+<td align="right">0</td>
+<td align="right">0.996</td>
+<td align="right">0.89</td>
+<td align="right">0.000</td>
+<td align="right">0.110</td>
+<td align="right">541.6</td>
+<td align="right">101.736</td>
+<td align="right">0.002</td>
 </tr>
 </tbody>
 </table>
@@ -1092,10 +1114,10 @@ vignette build. It is not evaluated here.</p>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="st">"effectiveness target"</span> <span class="op">=</span> <span class="va">eff_target_full</span><span class="op">$</span><span class="va">sims</span>,</span>
-<span>  <span class="st">"effectiveness margin"</span> <span class="op">=</span> <span class="va">eff_margin_full</span><span class="op">$</span><span class="va">sims</span>,</span>
-<span>  <span class="st">"safety target"</span> <span class="op">=</span> <span class="va">safety_target_full</span><span class="op">$</span><span class="va">sims</span>,</span>
-<span>  <span class="st">"safety margin"</span> <span class="op">=</span> <span class="va">safety_margin_full</span><span class="op">$</span><span class="va">sims</span></span>
+<span>  <span class="st">"effectiveness target"</span> <span class="op">=</span> <span class="va">eff_target_full</span>,</span>
+<span>  <span class="st">"effectiveness margin"</span> <span class="op">=</span> <span class="va">eff_margin_full</span>,</span>
+<span>  <span class="st">"safety target"</span> <span class="op">=</span> <span class="va">safety_target_full</span>,</span>
+<span>  <span class="st">"safety margin"</span> <span class="op">=</span> <span class="va">safety_margin_full</span></span>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The “margin” scenarios above set the treatment event probability
 equal to the control event probability plus the noninferiority margin.

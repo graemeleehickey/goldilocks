@@ -9,7 +9,7 @@ and tidily extract the relevant data to generate operating characteristics."></h
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,12 +68,13 @@ and tidily extract the relevant data to generate operating characteristics.</p>
 <span>  Fn <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  Sn <span class="op">=</span> <span class="fl">0.9</span>,</span>
 <span>  prob_ha <span class="op">=</span> <span class="fl">0.95</span>,</span>
-<span>  N_impute <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  N_mcmc <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  N_impute <span class="op">=</span> <span class="fl">500</span>,</span>
+<span>  N_mcmc <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  mc_conf_level <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  N_trials <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"logrank"</span>,</span>
 <span>  imputed_final <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  empty_interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"propagate"</span>, <span class="st">"prior"</span>, <span class="st">"error"</span><span class="op">)</span>,</span>
+<span>  empty_interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"prior"</span>, <span class="st">"propagate"</span>, <span class="st">"error"</span><span class="op">)</span>,</span>
 <span>  return_trace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  backend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"fork"</span>, <span class="st">"psock"</span>, <span class="st">"sequential"</span><span class="op">)</span>,</span>
@@ -208,8 +209,9 @@ use <code>alternative = "less"</code>.</p></li>
 <li><p>When <code>method = "riskdiff"</code>, <code>h0</code> is the null value of
 \(p_\textrm{treatment} - p_\textrm{control}\) and must lie in
 <code>[-1, 1]</code>.</p></li>
-<li><p>The argument is ignored for <code>method = "logrank"</code> after its finite-value
-validation; the usual equal-survival null hypothesis is used.</p></li>
+<li><p>When <code>method = "logrank"</code>, only <code>h0 = 0</code> is supported; this denotes the
+usual equal-survival null. Nonzero values are rejected because the
+standard log-rank statistic does not implement a nonzero effect margin.</p></li>
 </ul></dd>
 
 
@@ -218,17 +220,18 @@ validation; the usual equal-survival null hypothesis is used.</p></li>
 threshold to stop at the \(i\)-th look early for futility. If there are
 no interim looks (i.e. <code>interim_look = NULL</code>), then <code>Fn</code> is not
 used in the simulations or analysis. Set <code>Fn = 0</code> to disable futility
-monitoring. The length of <code>Fn</code> should be the same as
-<code>interim_look</code>, else the values are recycled.</p></dd>
+monitoring; <code>Fn = NULL</code> has the same effect. Supply either one value,
+which is broadcast to every interim look, or exactly one value per
+<code>interim_look</code>. Other lengths are rejected rather than recycled.</p></dd>
 
 
 <dt id="arg-sn">Sn<a class="anchor" aria-label="anchor" href="#arg-sn"></a></dt>
 <dd><p>vector of values between 0 and 1. Each element is the probability
 threshold to stop at the \(i\)-th look early for expected success. If
 there are no interim looks (i.e. <code>interim_look = NULL</code>), then
-<code>Sn</code> is not used in the simulations or analysis. The length of
-<code>Sn</code> should be the same as <code>interim_look</code>, else the values are
-recycled.</p></dd>
+<code>Sn</code> is not used in the simulations or analysis. Supply either one value,
+which is broadcast to every interim look, or exactly one value per
+<code>interim_look</code>. Other lengths are rejected rather than recycled.</p></dd>
 
 
 <dt id="arg-prob-ha">prob_ha<a class="anchor" aria-label="anchor" href="#arg-prob-ha"></a></dt>
@@ -237,15 +240,27 @@ hypothesis.</p></dd>
 
 
 <dt id="arg-n-impute">N_impute<a class="anchor" aria-label="anchor" href="#arg-n-impute"></a></dt>
-<dd><p>integer. Number of imputations for Monte Carlo simulation of
-missing data. An imputed Cox or risk-difference final analysis requires at
-least two.</p></dd>
+<dd><p>integer. Number of predictive imputations used at each
+interim look and, when requested, for final multiple imputation. The
+default is 500. An imputed Cox or risk-difference final analysis requires
+at least two.</p></dd>
 
 
 <dt id="arg-n-mcmc">N_mcmc<a class="anchor" aria-label="anchor" href="#arg-n-mcmc"></a></dt>
-<dd><p>integer. Number of posterior samples used by
+<dd><p>integer. Number of posterior samples used within each
 <code>method = "bayes-surv"</code> and by <code>method = "bayes-bin"</code> when
-<code>bin_method = "mc"</code>.</p></dd>
+<code>bin_method = "mc"</code>. The default is 1000.</p></dd>
+
+
+<dt id="arg-mc-conf-level">mc_conf_level<a class="anchor" aria-label="anchor" href="#arg-mc-conf-level"></a></dt>
+<dd><p>probability strictly between 0.5 and 1. Confidence
+level for one-sided exact binomial bounds that guard finite Monte Carlo
+interim decisions. A completed-data Bayesian analysis is counted as
+successful only when its lower Monte Carlo bound exceeds <code>prob_ha</code>.
+Expected-success stopping requires the lower bound for the outer
+predictive estimate to exceed <code>Sn</code>; futility stopping requires its upper
+bound to be below <code>Fn</code>. Equality or an unresolved bound continues
+enrollment. The default is 0.95.</p></dd>
 
 
 <dt id="arg-n-trials">N_trials<a class="anchor" aria-label="anchor" href="#arg-n-trials"></a></dt>
@@ -277,12 +292,12 @@ requires <code>N_impute &gt;= 2</code>. Imputed final analyses remain unavailabl
 <dd><p>character. Policy for empty piecewise-exponential
 intervals in <code>method = "bayes-surv"</code> posterior calculations. An empty
 interval is an interval with no exposed subjects in a treatment arm at the
-analysis time. <code>"propagate"</code> (the default, matching earlier package
-behavior) copies exposure time and event counts from the nearest non-empty
-interval in the same treatment arm and emits a warning. <code>"prior"</code> leaves
-the interval at zero exposure time and zero events, so its posterior is
-driven only by its assigned survival prior. <code>"error"</code> stops when any empty
-interval is found.</p></dd>
+analysis time. <code>"prior"</code> (the default) leaves the interval at zero exposure
+time and zero events, so its posterior is driven only by its assigned
+survival prior. <code>"propagate"</code> is a legacy heuristic that copies exposure
+time and event counts from the nearest non-empty interval in the same
+treatment arm and emits a warning. <code>"error"</code> stops when any empty interval
+is found.</p></dd>
 
 
 <dt id="arg-return-trace">return_trace<a class="anchor" aria-label="anchor" href="#arg-return-trace"></a></dt>
@@ -290,19 +305,24 @@ interval is found.</p></dd>
 every simulated trial be retained? The default, <code>FALSE</code>, preserves the
 compact output. When <code>TRUE</code>, the returned list also contains a <code>traces</code>
 data frame with a <code>trial</code> column linking each trace row to the corresponding
-row of <code>sims</code>.</p></dd>
+original simulated trial.</p></dd>
 
 
 <dt id="arg-ncores">ncores<a class="anchor" aria-label="anchor" href="#arg-ncores"></a></dt>
 <dd><p>positive integer. Number of cores to use for parallel
-processing. Defaults to <code>1L</code> (serial execution).</p></dd>
+processing. Defaults to <code>1L</code> (serial execution). Package-owned worker
+pools are capped at the number of trials. With <code>backend = "auto"</code>, at
+least two trials per worker are required so that small workloads avoid
+parallel startup overhead.</p></dd>
 
 
 <dt id="arg-backend">backend<a class="anchor" aria-label="anchor" href="#arg-backend"></a></dt>
 <dd><p>character. Parallel backend. "auto" (the default) uses
-serial execution for <code>ncores = 1</code>, the existing fork backend on Unix-like
-platforms, and a PSOCK cluster on Windows. "fork", "psock", and
-"sequential" select a backend explicitly.</p></dd>
+serial execution for <code>ncores = 1</code> or fewer than four trials. Otherwise it
+uses the existing fork backend on Unix-like platforms and a PSOCK cluster
+on Windows, with at least two trials assigned per worker. "fork",
+"psock", and "sequential" select a backend explicitly and bypass this
+workload crossover.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
@@ -329,11 +349,17 @@ and defaults to <code>prior_surv</code>, preserving the historical behavior.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing <code>sims</code>, a data frame with one row per simulated
-trial, and <code>call</code>. When <code>return_trace = TRUE</code>, the list also contains
-<code>traces</code>, a data frame with one row per completed interim look and a
-<code>trial</code> identifier. See <code><a href="survival_adapt.html">survival_adapt()</a></code> for details of the summary and
-trace columns.</p>
+    <p>A list containing <code>sims</code>, a data frame with one row per successfully
+simulated trial; <code>failures</code>, a data frame with columns <code>trial</code>,
+<code>error_class</code>, and <code>message</code>; and <code>call</code>. When <code>return_trace = TRUE</code>, the
+list also contains <code>traces</code>, a data frame with one row per completed
+interim look and a <code>trial</code> identifier. See <code><a href="survival_adapt.html">survival_adapt()</a></code> for details
+of the summary and trace columns. The returned object also retains the
+normalized <code>decision_design</code> attribute from <code><a href="survival_adapt.html">survival_adapt()</a></code>. An
+<code>rng_metadata</code> attribute records the caller RNG kind, effective backend,
+seed policy, and stream seed when applicable. A deterministic
+<code>parallel_metadata</code> attribute records the requested and effective backend
+and worker counts, task count, and backend-selection reason.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -342,9 +368,23 @@ trace columns.</p>
 trials (all with the same input design parameters and treatment effect).</p>
 <p>To use multiple cores (where available), the argument <code>ncores</code>
 can be increased from the default of 1. The default <code>backend = "auto"</code>
-uses <code><a href="https://rdrr.io/pkg/pbmcapply/man/pbmclapply.html" class="external-link">pbmcapply::pbmclapply()</a></code> on Unix-like platforms and a PSOCK cluster
-on Windows, where forked processes are unavailable. Set <code>backend</code>
-explicitly to compare backends or to require serial execution.</p>
+stays sequential for fewer than four trials and otherwise uses at most one
+worker per two trials. This simple workload heuristic amortizes process
+startup without trying to predict the cost of an individual trial. When
+it selects parallel execution, it uses <code><a href="https://rdrr.io/pkg/pbmcapply/man/pbmclapply.html" class="external-link">pbmcapply::pbmclapply()</a></code> on
+Unix-like platforms and a PSOCK cluster on Windows, where forked processes
+are unavailable. Set <code>backend</code> explicitly to bypass the crossover.</p>
+<p>A PSOCK cluster created by <code>sim_trials()</code> is always stopped before the
+function returns, including when worker evaluation fails. PSOCK tasks use
+static worker chunks, so the invariant simulation design is serialized
+once per active worker rather than once per trial.</p>
+<p>Errors raised by an individual <code><a href="survival_adapt.html">survival_adapt()</a></code> call are isolated so
+other trials can finish. Failed trials are excluded from <code>sims</code>, recorded
+in <code>failures</code> with their trial number, error class, and message, and
+reported together in one warning. If every requested trial fails,
+<code>sim_trials()</code> stops and attaches the same failure table to the error as
+<code>failures</code>. With a supplied <code>seed</code>, the original call and failed trial
+number reproduce the same per-trial random-number stream.</p>
 <p>Set <code>seed</code> to make <code>sim_trials()</code> reproducible. When a seed is
 supplied, <code>sim_trials()</code> first generates one independent
 <code>"L'Ecuyer-CMRG"</code> stream for each simulated trial, then each call to
@@ -352,8 +392,13 @@ supplied, <code>sim_trials()</code> first generates one independent
 reusing the same random-number stream across workers when
 <code>ncores &gt; 1</code>, and produces identical seeded results across supported
 backends. A seeded call restores the caller's RNG state on exit. With
-<code>seed = NULL</code>, the function uses and advances R's current global RNG
-state.</p>
+<code>seed = NULL</code>, sequential execution uses and advances R's current global
+RNG state directly. Fork execution delegates stream setup to
+<code><a href="https://rdrr.io/pkg/pbmcapply/man/pbmclapply.html" class="external-link">pbmcapply::pbmclapply()</a></code>. PSOCK execution draws one integer seed from the
+caller's current RNG state, thereby advancing that state predictably, and
+expands it into independent per-trial <code>"L'Ecuyer-CMRG"</code> streams. Resetting
+the caller to the same state therefore reproduces an unseeded PSOCK call,
+while consecutive calls do not reuse streams.</p>
     </div>
 
     <div class="section level2">

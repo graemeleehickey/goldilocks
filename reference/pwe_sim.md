@@ -13,13 +13,15 @@ pwe_sim(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL)
 
 - n:
 
-  integer. The number of random samples to generate. Default is `n = 1`.
+  single non-negative integer. The number of random samples to generate.
+  Default is `n = 1`; `n = 0` returns a zero-row data frame.
 
 - hazard:
 
   vector. Finite non-negative constant hazard rates for exponential
-  failures. If the final rate is zero, `maxtime` must be supplied so
-  that subjects without an event can be administratively censored.
+  failures. If at least one outcome is requested and the final rate is
+  zero, `maxtime` must be supplied so that subjects without an event can
+  be administratively censored.
 
 - cutpoints:
 

@@ -26,12 +26,13 @@ sim_trials(
   Fn = 0.05,
   Sn = 0.9,
   prob_ha = 0.95,
-  N_impute = 10,
-  N_mcmc = 10,
+  N_impute = 500,
+  N_mcmc = 1000,
+  mc_conf_level = 0.95,
   N_trials = 10,
   method = "logrank",
   imputed_final = FALSE,
-  empty_interval = c("propagate", "prior", "error"),
+  empty_interval = c("prior", "propagate", "error"),
   return_trace = FALSE,
   ncores = 1L,
   backend = c("auto", "fork", "psock", "sequential"),
@@ -173,9 +174,10 @@ sim_trials(
     \\p\_\textrm{treatment} - p\_\textrm{control}\\ and must lie in
     `[-1, 1]`.
 
-  - The argument is ignored for `method = "logrank"` after its
-    finite-value validation; the usual equal-survival null hypothesis is
-    used.
+  - When `method = "logrank"`, only `h0 = 0` is supported; this denotes
+    the usual equal-survival null. Nonzero values are rejected because
+    the standard log-rank statistic does not implement a nonzero effect
+    margin.
 
 - Fn:
 
@@ -183,16 +185,18 @@ sim_trials(
   threshold to stop at the \\i\\-th look early for futility. If there
   are no interim looks (i.e. `interim_look = NULL`), then `Fn` is not
   used in the simulations or analysis. Set `Fn = 0` to disable futility
-  monitoring. The length of `Fn` should be the same as `interim_look`,
-  else the values are recycled.
+  monitoring; `Fn = NULL` has the same effect. Supply either one value,
+  which is broadcast to every interim look, or exactly one value per
+  `interim_look`. Other lengths are rejected rather than recycled.
 
 - Sn:
 
   vector of values between 0 and 1. Each element is the probability
   threshold to stop at the \\i\\-th look early for expected success. If
   there are no interim looks (i.e. `interim_look = NULL`), then `Sn` is
-  not used in the simulations or analysis. The length of `Sn` should be
-  the same as `interim_look`, else the values are recycled.
+  not used in the simulations or analysis. Supply either one value,
+  which is broadcast to every interim look, or exactly one value per
+  `interim_look`. Other lengths are rejected rather than recycled.
 
 - prob_ha:
 
@@ -201,14 +205,27 @@ sim_trials(
 
 - N_impute:
 
-  integer. Number of imputations for Monte Carlo simulation of missing
-  data. An imputed Cox or risk-difference final analysis requires at
+  integer. Number of predictive imputations used at each interim look
+  and, when requested, for final multiple imputation. The default
+  is 500. An imputed Cox or risk-difference final analysis requires at
   least two.
 
 - N_mcmc:
 
-  integer. Number of posterior samples used by `method = "bayes-surv"`
-  and by `method = "bayes-bin"` when `bin_method = "mc"`.
+  integer. Number of posterior samples used within each
+  `method = "bayes-surv"` and by `method = "bayes-bin"` when
+  `bin_method = "mc"`. The default is 1000.
+
+- mc_conf_level:
+
+  probability strictly between 0.5 and 1. Confidence level for one-sided
+  exact binomial bounds that guard finite Monte Carlo interim decisions.
+  A completed-data Bayesian analysis is counted as successful only when
+  its lower Monte Carlo bound exceeds `prob_ha`. Expected-success
+  stopping requires the lower bound for the outer predictive estimate to
+  exceed `Sn`; futility stopping requires its upper bound to be below
+  `Fn`. Equality or an unresolved bound continues enrollment. The
+  default is 0.95.
 
 - N_trials:
 
@@ -242,12 +259,12 @@ sim_trials(
   character. Policy for empty piecewise-exponential intervals in
   `method = "bayes-surv"` posterior calculations. An empty interval is
   an interval with no exposed subjects in a treatment arm at the
-  analysis time. `"propagate"` (the default, matching earlier package
-  behavior) copies exposure time and event counts from the nearest
-  non-empty interval in the same treatment arm and emits a warning.
-  `"prior"` leaves the interval at zero exposure time and zero events,
-  so its posterior is driven only by its assigned survival prior.
-  `"error"` stops when any empty interval is found.
+  analysis time. `"prior"` (the default) leaves the interval at zero
+  exposure time and zero events, so its posterior is driven only by its
+  assigned survival prior. `"propagate"` is a legacy heuristic that
+  copies exposure time and event counts from the nearest non-empty
+  interval in the same treatment arm and emits a warning. `"error"`
+  stops when any empty interval is found.
 
 - return_trace:
 
@@ -255,19 +272,24 @@ sim_trials(
   simulated trial be retained? The default, `FALSE`, preserves the
   compact output. When `TRUE`, the returned list also contains a
   `traces` data frame with a `trial` column linking each trace row to
-  the corresponding row of `sims`.
+  the corresponding original simulated trial.
 
 - ncores:
 
   positive integer. Number of cores to use for parallel processing.
-  Defaults to `1L` (serial execution).
+  Defaults to `1L` (serial execution). Package-owned worker pools are
+  capped at the number of trials. With `backend = "auto"`, at least two
+  trials per worker are required so that small workloads avoid parallel
+  startup overhead.
 
 - backend:
 
   character. Parallel backend. "auto" (the default) uses serial
-  execution for `ncores = 1`, the existing fork backend on Unix-like
-  platforms, and a PSOCK cluster on Windows. "fork", "psock", and
-  "sequential" select a backend explicitly.
+  execution for `ncores = 1` or fewer than four trials. Otherwise it
+  uses the existing fork backend on Unix-like platforms and a PSOCK
+  cluster on Windows, with at least two trials assigned per worker.
+  "fork", "psock", and "sequential" select a backend explicitly and
+  bypass this workload crossover.
 
 - seed:
 
@@ -294,12 +316,19 @@ sim_trials(
 
 ## Value
 
-A list containing `sims`, a data frame with one row per simulated trial,
-and `call`. When `return_trace = TRUE`, the list also contains `traces`,
-a data frame with one row per completed interim look and a `trial`
-identifier. See
+A list containing `sims`, a data frame with one row per successfully
+simulated trial; `failures`, a data frame with columns `trial`,
+`error_class`, and `message`; and `call`. When `return_trace = TRUE`,
+the list also contains `traces`, a data frame with one row per completed
+interim look and a `trial` identifier. See
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-for details of the summary and trace columns.
+for details of the summary and trace columns. The returned object also
+retains the normalized `decision_design` attribute from
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
+An `rng_metadata` attribute records the caller RNG kind, effective
+backend, seed policy, and stream seed when applicable. A deterministic
+`parallel_metadata` attribute records the requested and effective
+backend and worker counts, task count, and backend-selection reason.
 
 ## Details
 
@@ -309,11 +338,30 @@ whereby we repeatedly run the function for independent trials (all with
 the same input design parameters and treatment effect).
 
 To use multiple cores (where available), the argument `ncores` can be
-increased from the default of 1. The default `backend = "auto"` uses
+increased from the default of 1. The default `backend = "auto"` stays
+sequential for fewer than four trials and otherwise uses at most one
+worker per two trials. This simple workload heuristic amortizes process
+startup without trying to predict the cost of an individual trial. When
+it selects parallel execution, it uses
 [`pbmcapply::pbmclapply()`](https://rdrr.io/pkg/pbmcapply/man/pbmclapply.html)
 on Unix-like platforms and a PSOCK cluster on Windows, where forked
-processes are unavailable. Set `backend` explicitly to compare backends
-or to require serial execution.
+processes are unavailable. Set `backend` explicitly to bypass the
+crossover.
+
+A PSOCK cluster created by `sim_trials()` is always stopped before the
+function returns, including when worker evaluation fails. PSOCK tasks
+use static worker chunks, so the invariant simulation design is
+serialized once per active worker rather than once per trial.
+
+Errors raised by an individual
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+call are isolated so other trials can finish. Failed trials are excluded
+from `sims`, recorded in `failures` with their trial number, error
+class, and message, and reported together in one warning. If every
+requested trial fails, `sim_trials()` stops and attaches the same
+failure table to the error as `failures`. With a supplied `seed`, the
+original call and failed trial number reproduce the same per-trial
+random-number stream.
 
 Set `seed` to make `sim_trials()` reproducible. When a seed is supplied,
 `sim_trials()` first generates one independent `"L'Ecuyer-CMRG"` stream
@@ -322,8 +370,15 @@ for each simulated trial, then each call to
 runs with its own per-trial stream. This avoids reusing the same
 random-number stream across workers when `ncores > 1`, and produces
 identical seeded results across supported backends. A seeded call
-restores the caller's RNG state on exit. With `seed = NULL`, the
-function uses and advances R's current global RNG state.
+restores the caller's RNG state on exit. With `seed = NULL`, sequential
+execution uses and advances R's current global RNG state directly. Fork
+execution delegates stream setup to
+[`pbmcapply::pbmclapply()`](https://rdrr.io/pkg/pbmcapply/man/pbmclapply.html).
+PSOCK execution draws one integer seed from the caller's current RNG
+state, thereby advancing that state predictably, and expands it into
+independent per-trial `"L'Ecuyer-CMRG"` streams. Resetting the caller to
+the same state therefore reproduces an unseeded PSOCK call, while
+consecutive calls do not reuse streams.
 
 ## Examples
 

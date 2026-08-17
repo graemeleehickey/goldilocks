@@ -147,8 +147,9 @@ exploit the option to parallelize the simulations over multiple cores.
 - Independent prior distribution for each hazard rate parameter:
   `prior_surv = c(0.1, 0.1)`
 - Parallel computation: `ncores = 8`. The default `backend = "auto"`
-  uses forked workers on Unix-like platforms and PSOCK workers on
-  Windows.
+  uses serial execution for fewer than four trials and otherwise assigns
+  at least two trials per worker, using forked workers on Unix-like
+  platforms and PSOCK workers on Windows.
 - Reproducible simulation streams: `seed = 123`
 
 Similar to above, the parameter `N_mcmc` is not required when using a
@@ -218,20 +219,20 @@ out_t1error <- update(out_power, hazard_treatment = hc, seed = 124)
 ``` r
 
 knitr::kable(
-  summarise_sims(list(out_power$sims, out_t1error$sims)),
+  summarise_sims(list(out_power, out_t1error)),
   digits = 3,
   caption = "Operating characteristics with a two-sided log-rank test at the 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is the null (treatment OS 30%)."
 )
 ```
 
-| scenario | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
-|:---|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 0.928 | 0.880 | 0.038 | 0.082 | 173.55 | 56.750 | 0.014 |
-| 2 | 0.064 | 0.058 | 0.828 | 0.114 | 211.45 | 48.398 | 0.006 |
+| scenario | backend | seed | n_requested | n_analyzed | n_failed | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | NA | 123 | 500 | 500 | 0 | 0.928 | 0.880 | 0.038 | 0.12 | 173.55 | 56.750 | 0.014 |
+| 2 | NA | 124 | 500 | 500 | 0 | 0.064 | 0.058 | 0.828 | 0.94 | 211.45 | 48.398 | 0.006 |
 
 Operating characteristics with a two-sided log-rank test at the 0.05
 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is
-the null (treatment OS 30%). {.table style="width:100%;"}
+the null (treatment OS 30%). {.table}
 
 The type I error under this design (scenario 2, `power` column) is
 slightly too large to be considered acceptable. This was to be expected,
@@ -261,8 +262,8 @@ out_t1error2 <- update(
 ``` r
 
 oc_calibrated <- summarise_sims(list(
-  "target: treatment OS 50%" = out_power2$sims,
-  "null: treatment OS 30%" = out_t1error2$sims
+  "target: treatment OS 50%" = out_power2,
+  "null: treatment OS 30%" = out_t1error2
 ))
 knitr::kable(
   oc_calibrated,
@@ -271,13 +272,13 @@ knitr::kable(
 )
 ```
 
-| scenario | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
-|:---|---:|---:|---:|---:|---:|---:|---:|
-| null: treatment OS 30% | 0.036 | 0.038 | 0.888 | 0.074 | 205.05 | 46.826 | 0.014 |
-| target: treatment OS 50% | 0.914 | 0.866 | 0.046 | 0.088 | 175.70 | 57.825 | 0.016 |
+| scenario | backend | seed | n_requested | n_analyzed | n_failed | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| null: treatment OS 30% | NA | 125 | 500 | 500 | 0 | 0.036 | 0.038 | 0.888 | 0.960 | 205.05 | 46.826 | 0.014 |
+| target: treatment OS 50% | NA | 123 | 500 | 500 | 0 | 0.914 | 0.866 | 0.046 | 0.134 | 175.70 | 57.825 | 0.016 |
 
 Operating characteristics with the more stringent P \< 0.04 threshold
-(`prob_ha = 0.96`). {.table style="width:100%;"}
+(`prob_ha = 0.96`). {.table}
 
 In the cached 500-trial simulation, assuming the treatment arm has an OS
 rate of 50% at 12 months, 86.6% of trials stopped early for expected

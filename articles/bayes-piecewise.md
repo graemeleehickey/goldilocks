@@ -247,7 +247,7 @@ out
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less          50        50        100   100
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1        0.969 -0.1761562        0.12             0                     0
+#> 1        0.969 -0.1761562        0.08             0                     0
 ```
 
 The output reports the posterior probability of the alternative at the
@@ -263,18 +263,16 @@ Two practical considerations are worth flagging:
 1.  **Empty intervals at interim looks.** Early interim looks may have
     no subjects with follow-up reaching the later piecewise intervals.
     The `empty_interval` argument controls how these intervals are
-    handled. The default, `empty_interval = "propagate"`, preserves
-    historical package behavior by propagating exposure time and event
-    counts from the nearest non-empty interval *within the same
-    treatment group*, and emits a warning when it does so. This supplies
-    a placeholder Gamma posterior for an interval with no information;
-    it is a fallback when an interim look has not yet generated
-    follow-up in later intervals, not a substantive estimate of those
-    intervals’ hazards. Use `empty_interval = "prior"` to leave such
+    handled. The default, `empty_interval = "prior"`, leaves such
     intervals at zero exposure and zero events, making their posteriors
-    prior-driven, or `empty_interval = "error"` to stop the analysis
-    whenever an empty interval is encountered. By the final analysis,
-    all intervals will typically be populated.
+    prior-driven. The legacy `empty_interval = "propagate"` option
+    reproduces historical behavior by copying exposure time and event
+    counts from the nearest non-empty interval *within the same
+    treatment group* and emitting a warning. This is a sensitivity or
+    migration option, not observed evidence about the empty interval.
+    Use `empty_interval = "error"` to stop the analysis whenever an
+    empty interval is encountered. By the final analysis, all intervals
+    will typically be populated.
 
 2.  **Number of cut-points.** Each additional cut-point adds two hazard
     parameters to estimate in a two-arm design (one per treatment

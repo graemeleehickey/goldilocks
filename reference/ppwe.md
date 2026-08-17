@@ -15,7 +15,7 @@ ppwe(hazard, end_of_study, cutpoints = NULL)
 
   matrix. A matrix of hazard rate parameters with number of columns one
   greater than the length of the `cutpoints` vector. The number of rows
-  can be anything, and is typically dictated by the number of MCMC
+  must be at least one and is typically dictated by the number of MCMC
   draws.
 
 - end_of_study:
@@ -32,6 +32,6 @@ ppwe(hazard, end_of_study, cutpoints = NULL)
 
 ## Value
 
-A vector of (0, 1) probabilities from evaluation of the PWE cumulative
+A vector of `[0, 1]` probabilities from evaluation of the PWE cumulative
 distribution function. Length of the vector matches the number of rows
 of the `hazard` matrix parameter.

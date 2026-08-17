@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -207,9 +207,9 @@ comparison uses the same design and random-number stream:</p>
 <span>  `conditional event time` <span class="op">=</span> <span class="fu">compare_binary_imputation</span><span class="op">(</span><span class="st">"event-time"</span><span class="op">)</span>,</span>
 <span>  `direct Bernoulli status` <span class="op">=</span> <span class="fu">compare_binary_imputation</span><span class="op">(</span><span class="st">"bernoulli"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;                         ppp_success post_prob_ha  est_final</span></span>
-<span><span class="co">#&gt; conditional event time            0    0.4042967 0.02380952</span></span>
-<span><span class="co">#&gt; direct Bernoulli status           0    0.4042967 0.02380952</span></span></code></pre></div>
+<span><span class="co">#&gt;                         ppp_success post_prob_ha   est_final</span></span>
+<span><span class="co">#&gt; conditional event time            0    0.6580338 -0.03225806</span></span>
+<span><span class="co">#&gt; direct Bernoulli status           0    0.6580338 -0.03225806</span></span></code></pre></div>
 <p>The direct Bernoulli calculation is also more stable in extreme tails
 because it evaluates the remaining cumulative hazard through
 <code>-expm1(-(H(T^*) - H(T)))</code>, rather than subtracting two
@@ -256,9 +256,9 @@ exceeds <code>prob_ha</code>.</p>
 <span></span>
 <span><span class="va">out_single_arm</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
-<span><span class="co">#&gt; 1           0.95    0.3        less          50         0         50    80</span></span>
+<span><span class="co">#&gt; 1           0.95    0.3        less          80         0         80    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9980375 0.1346154           1             0                     1</span></span></code></pre></div>
+<span><span class="co">#&gt; 1    0.9998388 0.1341463           1             0                     0</span></span></code></pre></div>
 <p>In this setting <code>est_final</code> is the posterior mean event
 probability in the single arm, and <code>post_prob_ha</code> is the
 posterior probability that this event probability is below the
@@ -295,8 +295,9 @@ sample sizes are small or event probabilities are near 0 or 1.</p>
 evaluated by simulation. The <code>seed</code> argument makes the
 simulation reproducible, including when <code>ncores</code> is greater
 than 1. With <code>backend = "auto"</code>, <code><a href="../reference/sim_trials.html">sim_trials()</a></code>
-uses forked workers on Unix-like platforms and PSOCK workers on
-Windows.</p>
+keeps workloads smaller than four trials serial and otherwise uses at
+least two trials per worker, selecting forked workers on Unix-like
+platforms and PSOCK workers on Windows.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  N_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
@@ -330,8 +331,8 @@ Windows.</p>
 <span><span class="va">out_null</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span>, seed <span class="op">=</span> <span class="fl">5108</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="st">"target: treatment event probability 25%"</span> <span class="op">=</span> <span class="va">out_power</span><span class="op">$</span><span class="va">sims</span>,</span>
-<span>  <span class="st">"null: treatment event probability 35%"</span> <span class="op">=</span> <span class="va">out_null</span><span class="op">$</span><span class="va">sims</span></span>
+<span>  <span class="st">"target: treatment event probability 25%"</span> <span class="op">=</span> <span class="va">out_power</span>,</span>
+<span>  <span class="st">"null: treatment event probability 35%"</span> <span class="op">=</span> <span class="va">out_null</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">oc</span><span class="op">$</span><span class="va">true_treatment_event_probability</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.35</span><span class="op">)</span></span>
 <span></span>

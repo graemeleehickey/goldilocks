@@ -22,13 +22,13 @@ Source:
 [`DESCRIPTION`](https://github.com/graemeleehickey/goldilocks/blob/main/DESCRIPTION)
 
 Hickey G, Wan Y, Chandereng T (2026). *goldilocks: Adaptive Trial
-Designs for Survival and Binary Endpoints*. R package version 0.6.0,
-<https://graemeleehickey.github.io/goldilocks/>.
+Designs for Survival and Binary Endpoints*. R package version
+0.6.0.9000, <https://graemeleehickey.github.io/goldilocks/>.
 
     @Manual{,
       title = {goldilocks: Adaptive Trial Designs for Survival and Binary Endpoints},
       author = {Graeme L. Hickey and Ying Wan and Thevaa Chandereng},
       year = {2026},
-      note = {R package version 0.6.0},
+      note = {R package version 0.6.0.9000},
       url = {https://graemeleehickey.github.io/goldilocks/},
     }

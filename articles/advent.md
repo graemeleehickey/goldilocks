@@ -173,9 +173,10 @@ event times, exposure, and cutpoints supplied below are also in days.
 
 Later follow-up intervals can have no exposure at an early look. The
 SAP’s conjugate model then leaves the corresponding hazard governed by
-its prior. The package’s historical default instead propagates
-sufficient statistics from a neighboring interval, so the examples
-explicitly set `empty_interval = "prior"`.
+its prior, which is also the package default. The examples set
+`empty_interval = "prior"` explicitly for auditability. Historical
+results that used neighboring-interval propagation can be reproduced
+with the legacy `empty_interval = "propagate"` option.
 
 The SAP reports M = 5000 completed datasets for its
 predictive-probability and multiple-imputation calculations. The
@@ -720,17 +721,17 @@ eff_null_boundary <- do.call(sim_trials, c(
 ))
 
 oc_small <- summarise_sims(list(
-  "target: equal 35% failure" = eff_target$sims,
-  "margin: PFA failure 50%" = eff_null_boundary$sims
+  "target: equal 35% failure" = eff_target,
+  "margin: PFA failure 50%" = eff_null_boundary
 ))
 
 knitr::kable(oc_small, digits = 3)
 ```
 
-| scenario | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
-|:---|---:|---:|---:|---:|---:|---:|---:|
-| margin: PFA failure 50% | 0.064 | 0.076 | 0.644 | 0.280 | 559.6 | 149.105 | 0.042 |
-| target: equal 35% failure | 0.984 | 0.952 | 0.006 | 0.042 | 466.8 | 111.636 | 0.008 |
+| scenario | backend | seed | n_requested | n_analyzed | n_failed | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 0.066 | 0.03 | 0.434 | 0.969 | 653.6 | 118.385 | 0.014 |
+| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 0.996 | 0.89 | 0.000 | 0.110 | 541.6 | 101.736 | 0.002 |
 
 Each scenario uses 500 simulated trials and two cores. This remains a
 workflow demonstration rather than a definitive estimate of power or
@@ -848,10 +849,10 @@ safety_margin_full <- do.call(sim_trials, c(
 ))
 
 summarise_sims(list(
-  "effectiveness target" = eff_target_full$sims,
-  "effectiveness margin" = eff_margin_full$sims,
-  "safety target" = safety_target_full$sims,
-  "safety margin" = safety_margin_full$sims
+  "effectiveness target" = eff_target_full,
+  "effectiveness margin" = eff_margin_full,
+  "safety target" = safety_target_full,
+  "safety margin" = safety_margin_full
 ))
 ```
 

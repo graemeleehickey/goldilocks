@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -358,7 +358,7 @@ hazard <code>cutpoints</code> used above.</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1          0.975      0        less          50        50        100   100</span></span>
 <span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1        0.969 -0.1761562        0.12             0                     0</span></span></code></pre></div>
+<span><span class="co">#&gt; 1        0.969 -0.1761562        0.08             0                     0</span></span></code></pre></div>
 <p>The output reports the posterior probability of the alternative at
 the final (or stopped) analysis (<code>post_prob_ha</code>), the
 posterior mean treatment effect on the cumulative-failure scale
@@ -375,15 +375,13 @@ early for futility or expected success.</p>
 looks may have no subjects with follow-up reaching the later piecewise
 intervals. The <code>empty_interval</code> argument controls how these
 intervals are handled. The default,
-<code>empty_interval = "propagate"</code>, preserves historical package
-behavior by propagating exposure time and event counts from the nearest
-non-empty interval <em>within the same treatment group</em>, and emits a
-warning when it does so. This supplies a placeholder Gamma posterior for
-an interval with no information; it is a fallback when an interim look
-has not yet generated follow-up in later intervals, not a substantive
-estimate of those intervals’ hazards. Use
-<code>empty_interval = "prior"</code> to leave such intervals at zero
-exposure and zero events, making their posteriors prior-driven, or
+<code>empty_interval = "prior"</code>, leaves such intervals at zero
+exposure and zero events, making their posteriors prior-driven. The
+legacy <code>empty_interval = "propagate"</code> option reproduces
+historical behavior by copying exposure time and event counts from the
+nearest non-empty interval <em>within the same treatment group</em> and
+emitting a warning. This is a sensitivity or migration option, not
+observed evidence about the empty interval. Use
 <code>empty_interval = "error"</code> to stop the analysis whenever an
 empty interval is encountered. By the final analysis, all intervals will
 typically be populated.</p></li>

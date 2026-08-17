@@ -9,7 +9,7 @@ hazard exponential function."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,14 +56,15 @@ hazard exponential function.</p>
 
 
 <dl><dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
-<dd><p>integer. The number of random samples to generate. Default is
-<code>n = 1</code>.</p></dd>
+<dd><p>single non-negative integer. The number of random samples to
+generate. Default is <code>n = 1</code>; <code>n = 0</code> returns a zero-row data frame.</p></dd>
 
 
 <dt id="arg-hazard">hazard<a class="anchor" aria-label="anchor" href="#arg-hazard"></a></dt>
 <dd><p>vector. Finite non-negative constant hazard rates for
-exponential failures. If the final rate is zero, <code>maxtime</code> must be
-supplied so that subjects without an event can be administratively censored.</p></dd>
+exponential failures. If at least one outcome is requested and the final
+rate is zero, <code>maxtime</code> must be supplied so that subjects without an event
+can be administratively censored.</p></dd>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>

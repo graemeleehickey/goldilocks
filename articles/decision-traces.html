@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -117,7 +117,7 @@ by 24 months.</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95      0        less          40        40         80    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha   est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1          0.7 -0.06199122         0.4             0                     0</span></span>
+<span><span class="co">#&gt; 1          0.7 -0.06199122           0             0                     0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Interim looks completed: 2</span></span></code></pre></div>
 <p>The summary element is the familiar final analysis output. The trace
@@ -127,25 +127,43 @@ element is an audit trail of the interim path.</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95      0        less          40        40         80    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha   est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1          0.7 -0.06199122         0.4             0                     0</span></span>
+<span><span class="co">#&gt; 1          0.7 -0.06199122           0             0                     0</span></span>
 <span><span class="va">trial</span><span class="op">$</span><span class="va">trace</span></span>
 <span><span class="co">#&gt;   look planned_N calendar_time N_enrolled N_treatment N_control</span></span>
 <span><span class="co">#&gt; 1    1        40      4.238838         40          20        20</span></span>
 <span><span class="co">#&gt; 2    2        60      6.628455         60          30        30</span></span>
 <span><span class="co">#&gt;   events_treatment events_control N_pending N_not_enrolled ppp_stop_now</span></span>
-<span><span class="co">#&gt; 1                0              1        39             40         0.35</span></span>
-<span><span class="co">#&gt; 2                1              1        58             20         0.40</span></span>
-<span><span class="co">#&gt;   success_threshold ppp_success_at_max futility_threshold decision</span></span>
-<span><span class="co">#&gt; 1              0.95                0.4               0.05 continue</span></span>
-<span><span class="co">#&gt; 2              0.90                0.5               0.05 continue</span></span>
-<span><span class="co">#&gt;   warning_count warning_messages</span></span>
-<span><span class="co">#&gt; 1             0                 </span></span>
-<span><span class="co">#&gt; 2             0</span></span>
+<span><span class="co">#&gt; 1                0              1        39             40            0</span></span>
+<span><span class="co">#&gt; 2                1              1        58             20            0</span></span>
+<span><span class="co">#&gt;   ppp_stop_now_mcse ppp_stop_now_lower ppp_stop_now_upper ppp_stop_now_draws</span></span>
+<span><span class="co">#&gt; 1                 0                  0          0.1391083                 20</span></span>
+<span><span class="co">#&gt; 2                 0                  0          0.1391083                 20</span></span>
+<span><span class="co">#&gt;   success_threshold ppp_success_at_max ppp_success_at_max_mcse</span></span>
+<span><span class="co">#&gt; 1              0.95                  0                       0</span></span>
+<span><span class="co">#&gt; 2              0.90                  0                       0</span></span>
+<span><span class="co">#&gt;   ppp_success_at_max_lower ppp_success_at_max_upper ppp_success_at_max_draws</span></span>
+<span><span class="co">#&gt; 1                        0                0.1391083                       20</span></span>
+<span><span class="co">#&gt; 2                        0                0.1391083                       20</span></span>
+<span><span class="co">#&gt;   futility_threshold inner_mc_uncertain_stop_now</span></span>
+<span><span class="co">#&gt; 1               0.05                           7</span></span>
+<span><span class="co">#&gt; 2               0.05                           8</span></span>
+<span><span class="co">#&gt;   inner_mc_uncertain_success_at_max decision</span></span>
+<span><span class="co">#&gt; 1                                 8 continue</span></span>
+<span><span class="co">#&gt; 2                                10 continue</span></span>
+<span><span class="co">#&gt;                        decision_reason empty_interval_fallback_count</span></span>
+<span><span class="co">#&gt; 1 continue_inner_monte_carlo_uncertain                             2</span></span>
+<span><span class="co">#&gt; 2 continue_inner_monte_carlo_uncertain                             2</span></span>
+<span><span class="co">#&gt;                                          empty_interval_fallbacks warning_count</span></span>
+<span><span class="co">#&gt; 1 prior: treatment=0, interval=2 | prior: treatment=1, interval=2             0</span></span>
+<span><span class="co">#&gt; 2 prior: treatment=0, interval=2 | prior: treatment=1, interval=2             0</span></span>
+<span><span class="co">#&gt;   warning_messages</span></span>
+<span><span class="co">#&gt; 1                 </span></span>
+<span><span class="co">#&gt; 2</span></span>
 <span><span class="fu"><a href="../reference/summarise_trial_trace.html">summarise_trial_trace</a></span><span class="op">(</span><span class="va">trial</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   interim_looks_completed last_look last_decision final_N final_post_prob_ha</span></span>
 <span><span class="co">#&gt; 1                       2         2      continue      80                0.7</span></span>
 <span><span class="co">#&gt;   ppp_stop_now ppp_success_at_max warning_count</span></span>
-<span><span class="co">#&gt; 1          0.4                0.5             0</span></span></code></pre></div>
+<span><span class="co">#&gt; 1            0                  0             0</span></span></code></pre></div>
 <p>For each completed look, <code>ppp_stop_now</code> is the predictive
 probability of success if enrollment stops at that look. It is compared
 with <code>success_threshold</code>. <code>ppp_success_at_max</code> is
@@ -234,7 +252,7 @@ reached looks at which no trial stopped.</p>
 <span>  seed <span class="op">=</span> <span class="fl">5702</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="va">sims</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="va">sims</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">sims</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">sims</span>, type <span class="op">=</span> <span class="st">"flowchart"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">sims</span><span class="op">)</span></span></code></pre></div>
@@ -248,9 +266,9 @@ effects, summarize the scenarios together and supply their numeric
 effect values to <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code>:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scenario_oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="st">"null"</span> <span class="op">=</span> <span class="va">sims_null</span><span class="op">$</span><span class="va">sims</span>,</span>
-<span>  <span class="st">"moderate"</span> <span class="op">=</span> <span class="va">sims_moderate</span><span class="op">$</span><span class="va">sims</span>,</span>
-<span>  <span class="st">"target"</span> <span class="op">=</span> <span class="va">sims</span><span class="op">$</span><span class="va">sims</span></span>
+<span>  <span class="st">"null"</span> <span class="op">=</span> <span class="va">sims_null</span>,</span>
+<span>  <span class="st">"moderate"</span> <span class="op">=</span> <span class="va">sims_moderate</span>,</span>
+<span>  <span class="st">"target"</span> <span class="op">=</span> <span class="va">sims</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">scenario_oc</span><span class="op">$</span><span class="va">true_event_probability_difference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="op">-</span><span class="fl">0.05</span>, <span class="op">-</span><span class="fl">0.10</span><span class="op">)</span></span>
 <span></span>

@@ -17,13 +17,13 @@ randomization(N_total, block = 2, allocation = c(1, 1))
 
 - block:
 
-  vector. Block size for randomization. Note that it needs to be a
-  multiple of the sum of `allocation`.
+  vector. One or more positive integer block sizes. Every block size
+  must be a multiple of `sum(allocation)`.
 
 - allocation:
 
-  vector. The randomization allocation in the order
-  `c(control, treatment)`.
+  length-two positive integer vector. The two-arm randomization
+  allocation in the order `c(control, treatment)`.
 
 ## Value
 
@@ -36,10 +36,10 @@ Complete randomization may not always be ideal due to the chance of
 drawing a large block assigned to one treatment group, potentially
 impacting the time to enrollment completion. Therefore, a block
 randomization allocation may be preferable. The block randomization
-allocation specification allows for different randomization ratios, but
-they must be given in integer form. Additionally, the block size should
-be an integer that is divisible by the sum of the randomization
-allocation; see the examples.
+allocation specification allows for different two-arm randomization
+ratios, but they must be given in integer form. For every value `b` in
+`block`, the required relationship is `b %% sum(allocation) == 0`; see
+the equal- and unequal-allocation examples below.
 
 ## Examples
 
@@ -68,4 +68,11 @@ randomization(N_total = 100, block = 100, allocation = c(1, 1))
 #>   [1] 0 1 0 0 0 1 1 1 0 0 1 1 0 0 1 1 0 1 1 0 0 0 0 0 0 1 0 0 0 1 1 1 1 1 1 0 1
 #>  [38] 1 1 0 1 1 0 0 1 1 0 0 1 0 0 1 0 1 0 0 0 0 0 1 1 0 1 1 1 0 0 1 0 1 1 0 1 0
 #>  [75] 1 0 0 0 1 0 1 1 0 1 1 0 1 0 0 1 1 1 1 0 1 1 1 0 0 0
+
+# randomization() is a two-arm helper; a multi-arm allocation is rejected.
+try(randomization(
+  N_total = 60,
+  block = 6,
+  allocation = c(1, 1, 1)
+), silent = TRUE)
 ```

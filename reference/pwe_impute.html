@@ -9,7 +9,7 @@ constant hazard exponential function conditional on observed exposure."></head><
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,14 +56,16 @@ constant hazard exponential function conditional on observed exposure.</p>
 
 
 <dl><dt id="arg-time">time<a class="anchor" aria-label="anchor" href="#arg-time"></a></dt>
-<dd><p>vector. The observed time for patient that have had no event or
-passed <code>maxtime</code>.</p></dd>
+<dd><p>numeric vector. Finite, non-negative observed times for patients
+who have not had an event or passed <code>maxtime</code>. A zero-length vector returns
+a zero-row data frame. Values are not recycled against other arguments.</p></dd>
 
 
 <dt id="arg-hazard">hazard<a class="anchor" aria-label="anchor" href="#arg-hazard"></a></dt>
 <dd><p>vector. Finite non-negative constant hazard rates for
-exponential failures. If the final rate is zero, <code>maxtime</code> must be
-supplied so that subjects without an event can be administratively censored.</p></dd>
+exponential failures. If at least one outcome is requested and the final
+rate is zero, <code>maxtime</code> must be supplied so that subjects without an event
+can be administratively censored.</p></dd>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>

@@ -25,9 +25,10 @@ survival_adapt(
   Fn = 0.05,
   Sn = 0.9,
   prob_ha = 0.95,
-  N_impute = 10,
-  N_mcmc = 10,
-  empty_interval = c("propagate", "prior", "error"),
+  N_impute = 500,
+  N_mcmc = 1000,
+  mc_conf_level = 0.95,
+  empty_interval = c("prior", "propagate", "error"),
   method = "logrank",
   imputed_final = FALSE,
   return_trace = FALSE,
@@ -168,9 +169,10 @@ survival_adapt(
     \\p\_\textrm{treatment} - p\_\textrm{control}\\ and must lie in
     `[-1, 1]`.
 
-  - The argument is ignored for `method = "logrank"` after its
-    finite-value validation; the usual equal-survival null hypothesis is
-    used.
+  - When `method = "logrank"`, only `h0 = 0` is supported; this denotes
+    the usual equal-survival null. Nonzero values are rejected because
+    the standard log-rank statistic does not implement a nonzero effect
+    margin.
 
 - Fn:
 
@@ -178,16 +180,18 @@ survival_adapt(
   threshold to stop at the \\i\\-th look early for futility. If there
   are no interim looks (i.e. `interim_look = NULL`), then `Fn` is not
   used in the simulations or analysis. Set `Fn = 0` to disable futility
-  monitoring. The length of `Fn` should be the same as `interim_look`,
-  else the values are recycled.
+  monitoring; `Fn = NULL` has the same effect. Supply either one value,
+  which is broadcast to every interim look, or exactly one value per
+  `interim_look`. Other lengths are rejected rather than recycled.
 
 - Sn:
 
   vector of values between 0 and 1. Each element is the probability
   threshold to stop at the \\i\\-th look early for expected success. If
   there are no interim looks (i.e. `interim_look = NULL`), then `Sn` is
-  not used in the simulations or analysis. The length of `Sn` should be
-  the same as `interim_look`, else the values are recycled.
+  not used in the simulations or analysis. Supply either one value,
+  which is broadcast to every interim look, or exactly one value per
+  `interim_look`. Other lengths are rejected rather than recycled.
 
 - prob_ha:
 
@@ -196,26 +200,39 @@ survival_adapt(
 
 - N_impute:
 
-  integer. Number of imputations for Monte Carlo simulation of missing
-  data. An imputed Cox or risk-difference final analysis requires at
+  integer. Number of predictive imputations used at each interim look
+  and, when requested, for final multiple imputation. The default
+  is 500. An imputed Cox or risk-difference final analysis requires at
   least two.
 
 - N_mcmc:
 
-  integer. Number of posterior samples used by `method = "bayes-surv"`
-  and by `method = "bayes-bin"` when `bin_method = "mc"`.
+  integer. Number of posterior samples used within each
+  `method = "bayes-surv"` and by `method = "bayes-bin"` when
+  `bin_method = "mc"`. The default is 1000.
+
+- mc_conf_level:
+
+  probability strictly between 0.5 and 1. Confidence level for one-sided
+  exact binomial bounds that guard finite Monte Carlo interim decisions.
+  A completed-data Bayesian analysis is counted as successful only when
+  its lower Monte Carlo bound exceeds `prob_ha`. Expected-success
+  stopping requires the lower bound for the outer predictive estimate to
+  exceed `Sn`; futility stopping requires its upper bound to be below
+  `Fn`. Equality or an unresolved bound continues enrollment. The
+  default is 0.95.
 
 - empty_interval:
 
   character. Policy for empty piecewise-exponential intervals in
   `method = "bayes-surv"` posterior calculations. An empty interval is
   an interval with no exposed subjects in a treatment arm at the
-  analysis time. `"propagate"` (the default, matching earlier package
-  behavior) copies exposure time and event counts from the nearest
-  non-empty interval in the same treatment arm and emits a warning.
-  `"prior"` leaves the interval at zero exposure time and zero events,
-  so its posterior is driven only by its assigned survival prior.
-  `"error"` stops when any empty interval is found.
+  analysis time. `"prior"` (the default) leaves the interval at zero
+  exposure time and zero events, so its posterior is driven only by its
+  assigned survival prior. `"propagate"` is a legacy heuristic that
+  copies exposure time and event counts from the nearest non-empty
+  interval in the same treatment arm and emits a warning. `"error"`
+  stops when any empty interval is found.
 
 - method:
 
@@ -293,12 +310,19 @@ including:
 - `stop_expected_success`: Logical indicator of whether the trial
   stopped early for expected success.
 
+The returned object has a `decision_design` attribute containing
+`interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
+this metadata are normalized to one value per interim look (and have
+length zero when no interim looks are planned).
+
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
 per interim look. The trace records enrollment and observed events by
-arm, predictive probabilities and their thresholds, the decision taken,
-and warnings raised during that look. It deliberately excludes imputed
-data sets and posterior draws to keep the output compact.
+arm, predictive probabilities, Monte Carlo standard errors and exact
+bounds, draw counts, thresholds, the decision and reason, empty-interval
+fallback diagnostics, and warnings raised during that look. It
+deliberately excludes imputed data sets and posterior draws to keep the
+output compact.
 
 ## Details
 
@@ -308,20 +332,20 @@ Implements the Goldilocks design method described in Broglio et al.
 1.  **The posterior predictive probability of eventual success.** This
     is calculated as the proportion of imputed datasets at the *current*
     sample size that would go on to be success at the specified
-    threshold. At each interim analysis it is compared to the
-    corresponding element of `Sn`, and if it exceeds the threshold,
-    accrual/enrollment is suspended and the outstanding follow-up
-    allowed to complete before conducting the pre-specified final
-    analysis.
+    threshold. At each interim analysis its one-sided exact lower Monte
+    Carlo confidence bound is compared to the corresponding element of
+    `Sn`, and if the bound exceeds the threshold, accrual/enrollment is
+    suspended and the outstanding follow-up allowed to complete before
+    conducting the pre-specified final analysis.
 
 2.  **The posterior predictive probability of final success**. This is
     calculated as the proportion of imputed datasets at the *maximum*
     threshold that would go on to be successful. Similar to above, it is
-    compared to the corresponding element of `Fn`, and if it is less
-    than the threshold, accrual/enrollment is suspended and the trial
-    terminated. Typically this would be a binding decision. If it is not
-    a binding decision, then one should also explore the simulations
-    with `Fn = 0`.
+    compared to the corresponding element of `Fn`, and if its one-sided
+    exact upper Monte Carlo confidence bound is below the threshold,
+    accrual/enrollment is suspended and the trial terminated. Typically
+    this would be a binding decision. If it is not a binding decision,
+    then one should also explore the simulations with `Fn = 0`.
 
 Hence, at each interim analysis look, 3 decisions are allowed:
 
@@ -378,14 +402,13 @@ At each interim (and final) analysis methods as:
   contain intervals with no exposed subjects in one treatment arm,
   especially when later cutpoints occur after the available follow-up at
   early looks. The `empty_interval` argument controls this case. The
-  default, `"propagate"`, preserves historical package behavior by
-  borrowing sufficient statistics from the nearest non-empty interval
-  within the same treatment arm. This is operationally stable but
-  statistically consequential because the empty interval's posterior is
-  informed by adjacent observed data. `"prior"` instead leaves the empty
-  interval prior-driven, making the absence of interval data explicit.
-  `"error"` is strict and stops the simulation or analysis when an empty
-  interval is encountered.
+  default, `"prior"`, leaves an empty interval prior-driven, making the
+  absence of interval data explicit. The legacy `"propagate"` option
+  borrows sufficient statistics from the nearest non-empty interval
+  within the same treatment arm. It is operationally stable but
+  statistically consequential because adjacent observed data then inform
+  the empty interval's posterior. `"error"` is strict and stops the
+  simulation or analysis when an empty interval is encountered.
 
 - Bayesian beta-binomial analysis (`method = "bayes-bin"`). Each
   complete or imputed dataset is reduced to binary event outcomes at
@@ -506,5 +529,5 @@ survival_adapt(
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less         300       300        600   600
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1            1 -0.1382612         0.5             0                     0
+#> 1            1 -0.1382612           0             0                     0
 ```

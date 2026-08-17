@@ -1,6 +1,97 @@
 # Changelog
 
+## goldilocks 0.6.0.9000
+
+### Bug fixes
+
+- [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  now caps package-owned workers at useful trial tasks and uses a
+  documented automatic crossover of at least two trials per worker,
+  avoiding parallel startup for workloads smaller than four trials.
+  Package-owned PSOCK clusters are cleaned up on errors, returned
+  parallel metadata records the deterministic execution plan, and
+  benchmarks report setup separately from estimated compute and dispatch
+  time
+  ([\#93](https://github.com/graemeleehickey/goldilocks/issues/93)).
+- [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  now isolates trial-level errors across sequential and parallel
+  execution. Successful trials are retained, failures are excluded into
+  a compact `failures` table, and one warning reports the affected
+  count; an all-failed batch still stops with the failure table attached
+  to its error. Complete-result summaries retain the requested
+  denominator and report the analyzed and failed counts without adding a
+  new public argument
+  ([\#72](https://github.com/graemeleehickey/goldilocks/issues/72)).
+- Cox analyses now isolate the low-overhead
+  [`survival::coxph.fit()`](https://rdrr.io/pkg/survival/man/agreg.fit.html)
+  path behind a cached version/signature compatibility check and
+  validate its returned coefficient and variance structure. Incompatible
+  installations fall back automatically to exported
+  [`survival::coxph()`](https://rdrr.io/pkg/survival/man/coxph.html),
+  without a new public argument. Singular fits, zero-event data, and
+  convergence warnings produce targeted non-estimability errors; tests
+  exercise both engines and benchmarks document their material
+  performance tradeoff on realistic tied data
+  ([\#77](https://github.com/graemeleehickey/goldilocks/issues/77)).
+- [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
+  now accepts complete
+  [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  results directly as well as the existing data-frame form. Named and
+  grouped scenario identifiers are retained; summaries of complete
+  results preserve backend, seed, failure, RNG, parallel, call, and
+  design metadata and expose requested, analyzed, and failed trial
+  counts so failed runs cannot silently leave the denominator unchanged
+  ([\#78](https://github.com/graemeleehickey/goldilocks/issues/78)).
+- Interim Monte Carlo decisions now require one-sided exact binomial
+  bounds to cross their thresholds, at both the completed-data posterior
+  layer and the outer predictive-imputation layer. Equality and
+  estimates whose bounds do not separate from a threshold continue
+  enrollment. The defaults are now `N_impute = 500` and `N_mcmc = 1000`,
+  and decision traces report estimates, Monte Carlo standard errors,
+  bounds, draw counts, uncertainty counts, and the decision reason
+  ([\#60](https://github.com/graemeleehickey/goldilocks/issues/60)).
+- Empty piecewise-exponential intervals are now prior-driven by default.
+  The former `empty_interval = "propagate"` behavior remains available
+  only as an explicit legacy heuristic. To reproduce earlier results,
+  set it explicitly; otherwise review the interval-specific prior
+  because it now supplies all information for an empty interval.
+  Decision traces identify every interval handled by either policy
+  ([\#62](https://github.com/graemeleehickey/goldilocks/issues/62)).
+- Unseeded PSOCK simulations now derive independent per-trial streams
+  from one draw from the caller’s RNG state. Resetting the caller state
+  reproduces the call, consecutive calls advance rather than reuse
+  streams, and returned RNG metadata records the effective backend and
+  seed policy
+  ([\#71](https://github.com/graemeleehickey/goldilocks/issues/71)).
+- Log-rank analyses now reject nonzero `h0` values instead of silently
+  testing the equal-survival null. Cox margins remain on the
+  log-hazard-ratio scale, while Bayesian and risk-difference margins
+  remain on their documented event- probability scales
+  ([\#73](https://github.com/graemeleehickey/goldilocks/issues/73)).
+- Interim futility and expected-success thresholds now share a
+  documented scalar-or-exact-length contract, report expected and
+  observed lengths in errors, and are retained in normalized
+  decision-design metadata
+  ([\#74](https://github.com/graemeleehickey/goldilocks/issues/74)).
+- Exported piecewise-exponential utilities now validate draw counts and
+  observed times consistently, with explicit zero-draw and zero-length
+  behavior. Related binary-outcome validation now rejects missing and
+  malformed event indicators before analysis
+  ([\#75](https://github.com/graemeleehickey/goldilocks/issues/75)).
+- Cumulative-hazard/event-probability conversions now use stable
+  [`expm1()`](https://rdrr.io/r/base/Log.html) and
+  [`log1p()`](https://rdrr.io/r/base/Log.html) transformations,
+  retaining precision near zero and defining exact behavior at zero and
+  infinite boundaries
+  ([\#76](https://github.com/graemeleehickey/goldilocks/issues/76)).
+- Randomization errors now state correctly that every block size must be
+  a multiple of the sum of the two-arm allocation weights and include
+  the observed values
+  ([\#79](https://github.com/graemeleehickey/goldilocks/issues/79)).
+
 ## goldilocks 0.6.0
+
+CRAN release: 2026-07-29
 
 ### Improvements
 

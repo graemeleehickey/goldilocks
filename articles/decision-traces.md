@@ -54,7 +54,7 @@ trial
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          40        40         80    80
 #>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
-#> 1          0.7 -0.06199122         0.4             0                     0
+#> 1          0.7 -0.06199122           0             0                     0
 #> 
 #> Interim looks completed: 2
 ```
@@ -68,25 +68,43 @@ trial$summary
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          40        40         80    80
 #>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
-#> 1          0.7 -0.06199122         0.4             0                     0
+#> 1          0.7 -0.06199122           0             0                     0
 trial$trace
 #>   look planned_N calendar_time N_enrolled N_treatment N_control
 #> 1    1        40      4.238838         40          20        20
 #> 2    2        60      6.628455         60          30        30
 #>   events_treatment events_control N_pending N_not_enrolled ppp_stop_now
-#> 1                0              1        39             40         0.35
-#> 2                1              1        58             20         0.40
-#>   success_threshold ppp_success_at_max futility_threshold decision
-#> 1              0.95                0.4               0.05 continue
-#> 2              0.90                0.5               0.05 continue
-#>   warning_count warning_messages
-#> 1             0                 
-#> 2             0
+#> 1                0              1        39             40            0
+#> 2                1              1        58             20            0
+#>   ppp_stop_now_mcse ppp_stop_now_lower ppp_stop_now_upper ppp_stop_now_draws
+#> 1                 0                  0          0.1391083                 20
+#> 2                 0                  0          0.1391083                 20
+#>   success_threshold ppp_success_at_max ppp_success_at_max_mcse
+#> 1              0.95                  0                       0
+#> 2              0.90                  0                       0
+#>   ppp_success_at_max_lower ppp_success_at_max_upper ppp_success_at_max_draws
+#> 1                        0                0.1391083                       20
+#> 2                        0                0.1391083                       20
+#>   futility_threshold inner_mc_uncertain_stop_now
+#> 1               0.05                           7
+#> 2               0.05                           8
+#>   inner_mc_uncertain_success_at_max decision
+#> 1                                 8 continue
+#> 2                                10 continue
+#>                        decision_reason empty_interval_fallback_count
+#> 1 continue_inner_monte_carlo_uncertain                             2
+#> 2 continue_inner_monte_carlo_uncertain                             2
+#>                                          empty_interval_fallbacks warning_count
+#> 1 prior: treatment=0, interval=2 | prior: treatment=1, interval=2             0
+#> 2 prior: treatment=0, interval=2 | prior: treatment=1, interval=2             0
+#>   warning_messages
+#> 1                 
+#> 2
 summarise_trial_trace(trial)
 #>   interim_looks_completed last_look last_decision final_N final_post_prob_ha
 #> 1                       2         2      continue      80                0.7
 #>   ppp_stop_now ppp_success_at_max warning_count
-#> 1          0.4                0.5             0
+#> 1            0                  0             0
 ```
 
 For each completed look, `ppp_stop_now` is the predictive probability of
@@ -187,7 +205,7 @@ sims <- sim_trials(
   seed = 5702
 )
 
-summarise_sims(sims$sims)
+summarise_sims(sims)
 plot_sim_stopping(sims)
 plot_sim_stopping(sims, type = "flowchart")
 plot_sim_decisions(sims)
@@ -207,9 +225,9 @@ effect values to
 ``` r
 
 scenario_oc <- summarise_sims(list(
-  "null" = sims_null$sims,
-  "moderate" = sims_moderate$sims,
-  "target" = sims$sims
+  "null" = sims_null,
+  "moderate" = sims_moderate,
+  "target" = sims
 ))
 scenario_oc$true_event_probability_difference <- c(0, -0.05, -0.10)
 

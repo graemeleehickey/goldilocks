@@ -15,10 +15,10 @@ prop_to_haz(probs, cutpoints = NULL, endtime)
 
 - probs:
 
-  vector. Cumulative event probabilities at each cutpoint and at
-  `endtime`, in that order. Its length must be one greater than the
-  number of cutpoints. With no cutpoints, supply a single probability at
-  `endtime`.
+  vector. Finite cumulative event probabilities in `[0, 1)` at each
+  cutpoint and at `endtime`, in that order. Its length must be one
+  greater than the number of cutpoints. With no cutpoints, supply a
+  single probability at `endtime`. Values are not recycled.
 
 - cutpoints:
 

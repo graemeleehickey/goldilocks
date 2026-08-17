@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -240,8 +240,8 @@ workflow:</p>
 <span>  seed             <span class="op">=</span> <span class="fl">3083</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="st">"target event probability"</span> <span class="op">=</span> <span class="va">out_power</span><span class="op">$</span><span class="va">sims</span>,</span>
-<span>  <span class="st">"benchmark event probability"</span> <span class="op">=</span> <span class="va">out_t1error</span><span class="op">$</span><span class="va">sims</span></span>
+<span>  <span class="st">"target event probability"</span> <span class="op">=</span> <span class="va">out_power</span>,</span>
+<span>  <span class="st">"benchmark event probability"</span> <span class="op">=</span> <span class="va">out_t1error</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">oc</span><span class="op">$</span><span class="va">true_event_probability</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">target</span>, <span class="va">benchmark</span><span class="op">)</span></span>
 <span></span>

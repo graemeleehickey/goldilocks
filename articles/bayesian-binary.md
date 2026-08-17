@@ -142,9 +142,9 @@ rbind(
   `conditional event time` = compare_binary_imputation("event-time"),
   `direct Bernoulli status` = compare_binary_imputation("bernoulli")
 )
-#>                         ppp_success post_prob_ha  est_final
-#> conditional event time            0    0.4042967 0.02380952
-#> direct Bernoulli status           0    0.4042967 0.02380952
+#>                         ppp_success post_prob_ha   est_final
+#> conditional event time            0    0.6580338 -0.03225806
+#> direct Bernoulli status           0    0.6580338 -0.03225806
 ```
 
 The direct Bernoulli calculation is also more stable in extreme tails
@@ -194,9 +194,9 @@ out_single_arm <- survival_adapt(
 
 out_single_arm
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
-#> 1           0.95    0.3        less          50         0         50    80
+#> 1           0.95    0.3        less          80         0         80    80
 #>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9980375 0.1346154           1             0                     1
+#> 1    0.9998388 0.1341463           1             0                     0
 ```
 
 In this setting `est_final` is the posterior mean event probability in
@@ -229,7 +229,9 @@ evaluated by simulation. The `seed` argument makes the simulation
 reproducible, including when `ncores` is greater than 1. With
 `backend = "auto"`,
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
-uses forked workers on Unix-like platforms and PSOCK workers on Windows.
+keeps workloads smaller than four trials serial and otherwise uses at
+least two trials per worker, selecting forked workers on Unix-like
+platforms and PSOCK workers on Windows.
 
 ``` r
 
@@ -265,8 +267,8 @@ out_power <- sim_trials(
 out_null <- update(out_power, hazard_treatment = hc, seed = 5108)
 
 oc <- summarise_sims(list(
-  "target: treatment event probability 25%" = out_power$sims,
-  "null: treatment event probability 35%" = out_null$sims
+  "target: treatment event probability 25%" = out_power,
+  "null: treatment event probability 35%" = out_null
 ))
 oc$true_treatment_event_probability <- c(0.25, 0.35)
 

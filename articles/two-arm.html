@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -238,8 +238,9 @@ cores.</p>
 <code>prior_surv = c(0.1, 0.1)</code>
 </li>
 <li>Parallel computation: <code>ncores = 8</code>. The default
-<code>backend = "auto"</code> uses forked workers on Unix-like platforms
-and PSOCK workers on Windows.</li>
+<code>backend = "auto"</code> uses serial execution for fewer than four
+trials and otherwise assigns at least two trials per worker, using
+forked workers on Unix-like platforms and PSOCK workers on Windows.</li>
 <li>Reproducible simulation streams: <code>seed = 123</code>
 </li>
 </ul>
@@ -298,26 +299,36 @@ everything else over again.</p>
 <code class="sourceCode R"><span><span class="va">out_t1error</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span>, seed <span class="op">=</span> <span class="fl">124</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power</span><span class="op">$</span><span class="va">sims</span>, <span class="va">out_t1error</span><span class="op">$</span><span class="va">sims</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power</span>, <span class="va">out_t1error</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  caption <span class="op">=</span> <span class="st">"Operating characteristics with a two-sided log-rank test at the 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is the null (treatment OS 30%)."</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<table style="width:100%;" class="table">
+<table class="table">
 <caption>Operating characteristics with a two-sided log-rank test at the
 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2
 is the null (treatment OS 30%).</caption>
 <colgroup>
-<col width="11%">
 <col width="7%">
-<col width="16%">
-<col width="17%">
-<col width="13%">
+<col width="6%">
+<col width="3%">
+<col width="9%">
 <col width="8%">
+<col width="7%">
+<col width="4%">
+<col width="10%">
+<col width="11%">
 <col width="8%">
-<col width="17%">
+<col width="5%">
+<col width="5%">
+<col width="11%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">scenario</th>
+<th align="left">backend</th>
+<th align="right">seed</th>
+<th align="right">n_requested</th>
+<th align="right">n_analyzed</th>
+<th align="right">n_failed</th>
 <th align="right">power</th>
 <th align="right">stop_success</th>
 <th align="right">stop_futility</th>
@@ -329,20 +340,30 @@ is the null (treatment OS 30%).</caption>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
+<td align="left">NA</td>
+<td align="right">123</td>
+<td align="right">500</td>
+<td align="right">500</td>
+<td align="right">0</td>
 <td align="right">0.928</td>
 <td align="right">0.880</td>
 <td align="right">0.038</td>
-<td align="right">0.082</td>
+<td align="right">0.12</td>
 <td align="right">173.55</td>
 <td align="right">56.750</td>
 <td align="right">0.014</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
+<td align="left">NA</td>
+<td align="right">124</td>
+<td align="right">500</td>
+<td align="right">500</td>
+<td align="right">0</td>
 <td align="right">0.064</td>
 <td align="right">0.058</td>
 <td align="right">0.828</td>
-<td align="right">0.114</td>
+<td align="right">0.94</td>
 <td align="right">211.45</td>
 <td align="right">48.398</td>
 <td align="right">0.006</td>
@@ -372,29 +393,39 @@ find the operating characteristics are more acceptable.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">oc_calibrated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="st">"target: treatment OS 50%"</span> <span class="op">=</span> <span class="va">out_power2</span><span class="op">$</span><span class="va">sims</span>,</span>
-<span>  <span class="st">"null: treatment OS 30%"</span> <span class="op">=</span> <span class="va">out_t1error2</span><span class="op">$</span><span class="va">sims</span></span>
+<span>  <span class="st">"target: treatment OS 50%"</span> <span class="op">=</span> <span class="va">out_power2</span>,</span>
+<span>  <span class="st">"null: treatment OS 30%"</span> <span class="op">=</span> <span class="va">out_t1error2</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
 <span>  <span class="va">oc_calibrated</span>,</span>
 <span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  caption <span class="op">=</span> <span class="st">"Operating characteristics with the more stringent P &lt; 0.04 threshold (`prob_ha = 0.96`)."</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<table style="width:100%;" class="table">
+<table class="table">
 <caption>Operating characteristics with the more stringent P &lt; 0.04
 threshold (<code>prob_ha = 0.96</code>).</caption>
 <colgroup>
-<col width="25%">
+<col width="17%">
+<col width="5%">
+<col width="3%">
+<col width="8%">
+<col width="7%">
 <col width="6%">
-<col width="13%">
-<col width="14%">
-<col width="11%">
+<col width="4%">
+<col width="9%">
+<col width="9%">
 <col width="7%">
-<col width="7%">
-<col width="14%">
+<col width="4%">
+<col width="4%">
+<col width="9%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">scenario</th>
+<th align="left">backend</th>
+<th align="right">seed</th>
+<th align="right">n_requested</th>
+<th align="right">n_analyzed</th>
+<th align="right">n_failed</th>
 <th align="right">power</th>
 <th align="right">stop_success</th>
 <th align="right">stop_futility</th>
@@ -406,20 +437,30 @@ threshold (<code>prob_ha = 0.96</code>).</caption>
 <tbody>
 <tr class="odd">
 <td align="left">null: treatment OS 30%</td>
+<td align="left">NA</td>
+<td align="right">125</td>
+<td align="right">500</td>
+<td align="right">500</td>
+<td align="right">0</td>
 <td align="right">0.036</td>
 <td align="right">0.038</td>
 <td align="right">0.888</td>
-<td align="right">0.074</td>
+<td align="right">0.960</td>
 <td align="right">205.05</td>
 <td align="right">46.826</td>
 <td align="right">0.014</td>
 </tr>
 <tr class="even">
 <td align="left">target: treatment OS 50%</td>
+<td align="left">NA</td>
+<td align="right">123</td>
+<td align="right">500</td>
+<td align="right">500</td>
+<td align="right">0</td>
 <td align="right">0.914</td>
 <td align="right">0.866</td>
 <td align="right">0.046</td>
-<td align="right">0.088</td>
+<td align="right">0.134</td>
 <td align="right">175.70</td>
 <td align="right">57.825</td>
 <td align="right">0.016</td>

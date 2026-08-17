@@ -9,7 +9,7 @@ hazard rates."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,8 +58,8 @@ hazard rates.</p>
 <dl><dt id="arg-hazard">hazard<a class="anchor" aria-label="anchor" href="#arg-hazard"></a></dt>
 <dd><p>matrix. A matrix of hazard rate parameters with number of
 columns one greater than the length of the <code>cutpoints</code> vector. The number
-of rows can be anything, and is typically dictated by the number of MCMC
-draws.</p></dd>
+of rows must be at least one and is typically dictated by the number of
+MCMC draws.</p></dd>
 
 
 <dt id="arg-end-of-study">end_of_study<a class="anchor" aria-label="anchor" href="#arg-end-of-study"></a></dt>
@@ -75,7 +75,7 @@ one greater than the number of cutpoints. Use <code>NULL</code> for a constant h
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A vector of (0, 1) probabilities from evaluation of the PWE
+    <p>A vector of <code>[0, 1]</code> probabilities from evaluation of the PWE
 cumulative distribution function. Length of the vector matches the number
 of rows of the <code>hazard</code> matrix parameter.</p>
     </div>

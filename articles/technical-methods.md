@@ -250,15 +250,17 @@ generated independently for each treatment group and interval. In early
 interim analyses, later piecewise intervals may have no exposure. The
 `empty_interval` argument controls the policy for these intervals:
 
-- `empty_interval = "propagate"` is the default and preserves historical
-  package behavior. It propagates exposure and event counts from the
-  nearest non-empty interval within the same treatment group and emits a
-  warning. This prevents undefined posterior draws, but it should be
-  interpreted as a computational fallback rather than evidence about
-  that later interval.
-- `empty_interval = "prior"` leaves the interval with d\_{zj} = 0 and
-  y\_{zj} = 0, so the posterior for that interval is exactly the
-  specified Gamma prior.
+- `empty_interval = "prior"` is the default. It leaves the interval with
+  d\_{zj} = 0 and y\_{zj} = 0, so the posterior for that interval is
+  exactly the specified Gamma prior. Interval-specific priors should
+  therefore be checked by prior-predictive simulation when little late
+  follow-up is expected.
+- `empty_interval = "propagate"` is an explicit legacy heuristic. It
+  propagates exposure and event counts from the nearest non-empty
+  interval within the same treatment group and emits a warning. This
+  should not be interpreted as observed evidence about the empty
+  interval. Set this option explicitly only to reproduce or
+  sensitivity-check historical analyses.
 - `empty_interval = "error"` stops the analysis when any treatment-arm
   interval has no exposed subjects.
 
@@ -382,9 +384,18 @@ Repeating the four-step procedure above for Monte Carlo replicate m =
 \widehat{P}\_{n\_\ell} = \frac{1}{M}\sum\_{m=1}^{M} I\\\textrm{success
 in replicate } m\\.
 
-If
+For Bayesian completed-data analyses that use `N_mcmc` posterior draws,
+a replicate is counted as successful only when the one-sided exact lower
+binomial confidence bound for its posterior success probability exceeds
+`prob_ha`. Deterministic quadrature, approximation, and frequentist
+analyses retain their strict point comparison. This inner rule separates
+posterior uncertainty from Monte Carlo uncertainty before the outer
+predictive probability is formed.
 
-\widehat{P}\_{n\_\ell} \> S\_\ell,
+Let L\_{n\_\ell} be the one-sided exact lower binomial confidence bound
+for \widehat{P}\_{n\_\ell} at confidence level `mc_conf_level`. If
+
+L\_{n\_\ell} \> S\_\ell,
 
 accrual is stopped for expected success. Enrolled subjects are still
 followed to the planned final analysis time.
@@ -404,9 +415,9 @@ P\_{\max,\ell} = \operatorname{E}\\
 \widehat{P}\_{\max,\ell} = \frac{1}{M}\sum\_{m=1}^{M} I\\\textrm{success
 at } N\_{\max} \textrm{ in replicate } m\\.
 
-If
+Let U\_{\max,\ell} be the corresponding one-sided exact upper bound. If
 
-\widehat{P}\_{\max,\ell} \< F\_\ell,
+U\_{\max,\ell} \< F\_\ell,
 
 the trial stops for futility. Otherwise, accrual continues to the next
 interim look.
@@ -414,15 +425,15 @@ interim look.
 Thus the interim action at look \ell can be represented as
 
 A\_\ell = \begin{cases} \textrm{stop accrual for expected success}, &
-\widehat{P}\_{n\_\ell} \> S\_\ell,\\ \textrm{stop for futility}, &
-\widehat{P}\_{\max,\ell} \< F\_\ell,\\ \textrm{continue accrual}, &
-\textrm{otherwise}. \end{cases}
+L\_{n\_\ell} \> S\_\ell,\\ \textrm{stop for futility}, & U\_{\max,\ell}
+\< F\_\ell,\\ \textrm{continue accrual}, & \textrm{otherwise}.
+\end{cases}
 
 The first look satisfying either stopping condition defines the adaptive
 stopping look,
 
-L^\* = \inf\\\ell : \widehat{P}\_{n\_\ell} \> S\_\ell \textrm{ or }
-\widehat{P}\_{\max,\ell} \< F\_\ell\\,
+L^\* = \inf\\\ell : L\_{n\_\ell} \> S\_\ell \textrm{ or } U\_{\max,\ell}
+\< F\_\ell\\,
 
 with L^\* = L + 1 if no interim stopping condition is met and the design
 continues to N\_{\max}.
@@ -450,9 +461,11 @@ scale. For example, a one-sided test at \alpha = 0.025 corresponds to
 For the log-rank option, let Z\_{\mathrm{LR}} denote the signed log-rank
 statistic, with positive values corresponding to excess events in the
 control arm under the package convention. Let p\_{\mathrm{LR}} denote
-the traditional two-sided log-rank test P-value. For the Cox option, let
+the traditional two-sided log-rank test P-value. The log-rank method
+supports only `h0 = 0`, denoting equal survival distributions; a nonzero
+margin is rejected rather than silently ignored. For the Cox option, let
 \widehat{\eta} be the estimated log hazard ratio for treatment versus
-control. The null value `h0` is on the log-hazard-ratio scale, so the
+control. For Cox analysis, `h0` is on the log-hazard-ratio scale, so the
 package uses
 
 Z\_{\mathrm{Cox}} = \frac{\widehat{\eta} - h_0}
@@ -727,7 +740,7 @@ out <- sim_trials(
   method           = method,
   seed             = 12345)
 
-summarise_sims(out$sims)
+summarise_sims(out)
 ```
 
 ### 8.1 Visual diagnostics
@@ -754,9 +767,9 @@ survival probability, or event probability depending on the analysis:
 ``` r
 
 scenario_oc <- summarise_sims(list(
-  "null" = null_sims$sims,
-  "moderate" = moderate_sims$sims,
-  "target" = target_sims$sims
+  "null" = null_sims,
+  "moderate" = moderate_sims,
+  "target" = target_sims
 ))
 scenario_oc$true_effect <- c(0, -0.10, -0.20)
 
@@ -797,9 +810,15 @@ observed before the final analysis.
 
 The Monte Carlo sizes `N_impute`, `N_mcmc`, and `N_trials` should be
 chosen so that simulation error is small relative to the decision being
-made. Small values are appropriate for examples and package tests, but
-final design calibration usually requires many more trials and
-imputations.
+made. `goldilocks` reports the outer estimate, Monte Carlo standard
+error, exact bounds, draw counts, and stopping reason in the decision
+trace. If a point estimate crosses a threshold but its relevant bound
+does not, equality or finite-draw uncertainty leads to continued
+enrollment. The default `N_impute = 500`, `N_mcmc = 1000`, and
+`mc_conf_level = 0.95` avoid the former undocumented 10/10 or 0/10 rules
+for common thresholds. Small values remain useful for examples and
+package tests, but operating characteristics must be calibrated with the
+exact Monte Carlo settings planned for the design.
 
 ## 9. Threshold selection
 

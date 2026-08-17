@@ -13,7 +13,7 @@ trial datasets with plausible event rates."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,9 +62,10 @@ trial datasets with plausible event rates.</p>
 
 
 <dl><dt id="arg-probs">probs<a class="anchor" aria-label="anchor" href="#arg-probs"></a></dt>
-<dd><p>vector. Cumulative event probabilities at each cutpoint and at
-<code>endtime</code>, in that order. Its length must be one greater than the number of
-cutpoints. With no cutpoints, supply a single probability at <code>endtime</code>.</p></dd>
+<dd><p>vector. Finite cumulative event probabilities in <code>[0, 1)</code> at
+each cutpoint and at <code>endtime</code>, in that order. Its length must be one
+greater than the number of cutpoints. With no cutpoints, supply a single
+probability at <code>endtime</code>. Values are not recycled.</p></dd>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
