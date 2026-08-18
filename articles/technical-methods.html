@@ -940,7 +940,24 @@ the final analysis does not meet the success criterion.</p>
 <span>  method           <span class="op">=</span> <span class="va">method</span>,</span>
 <span>  seed             <span class="op">=</span> <span class="fl">12345</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span></span>
+<span>  <span class="va">out</span>,</span>
+<span>  max_mcse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>power <span class="op">=</span> <span class="fl">0.005</span>, stop_futility <span class="op">=</span> <span class="fl">0.01</span>, mean_N <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> reports a Monte Carlo standard error
+and 95% Monte Carlo confidence interval for each probability and for
+mean sample size. Wilson intervals are used for probabilities so that
+zero or one observed outcome does not produce a misleading zero-width
+interval; mean sample size uses a t interval. These quantify
+repeated-simulation error under fixed design and data-generating
+assumptions. They are not clinical confidence intervals for a treatment
+effect and do not include uncertainty about the assumed outcome,
+accrual, or missing-data models. Requested, analyzed, failed, and used
+counts make the denominator explicit. Failed simulations are reported
+separately and are not treated as unsuccessful clinical trials. The
+optional named <code>max_mcse</code> targets produce a warning when the
+achieved Monte Carlo precision is too weak for the intended
+comparison.</p>
 <div class="section level3">
 <h3 id="visual-diagnostics">8.1 Visual diagnostics<a class="anchor" aria-label="anchor" href="#visual-diagnostics"></a>
 </h3>

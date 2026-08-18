@@ -45,7 +45,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">summarise_sims</span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">summarise_sims</span><span class="op">(</span><span class="va">data</span>, max_mcse <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -58,6 +58,14 @@
 scenarios. Existing <code>scenario</code> columns and grouping variables are
 preserved.</p></dd>
 
+
+<dt id="arg-max-mcse">max_mcse<a class="anchor" aria-label="anchor" href="#arg-max-mcse"></a></dt>
+<dd><p>Optional named numeric vector giving the largest acceptable
+Monte Carlo standard error for selected estimands. Supported names are
+<code>power</code>, <code>stop_success</code>, <code>stop_futility</code>, <code>stop_max_N</code>, <code>mean_N</code>,
+<code>stop_and_fail</code>, and <code>failure_rate</code>. A warning identifies every scenario
+and estimand whose Monte Carlo standard error exceeds its target.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -67,10 +75,21 @@ proportion of trials that stopped for early expected success, futility, or
 went to the maximum sample size. The average stopping sample size (and
 standard deviation) are also recorded. The proportion of trials that
 stopped early for expected success, yet went to ultimately fail are also
-reported. When complete <code><a href="sim_trials.html">sim_trials()</a></code> results are supplied, the output
-also reports the requested, analyzed, and failed trial counts plus the
-effective backend and seed. Full call, RNG, parallel, timing, failure, and
-design metadata are retained in the <code>simulation_metadata</code> attribute.</p>
+reported. Each probability and mean is accompanied by its Monte Carlo
+standard error and 95% Monte Carlo confidence limits, with columns ending
+in <code>_mcse</code>, <code>_mc_lower</code>, and <code>_mc_upper</code>. Probability intervals use the
+Wilson method; the mean sample-size interval uses a t distribution.</p>
+<p>These intervals describe uncertainty from using a finite number of
+simulated trials under fixed design and data-generating assumptions. They
+are <strong>not clinical confidence intervals</strong>, treatment-effect intervals, or
+measures of model uncertainty.</p>
+<p>The output always reports <code>n_used</code>, the number of successfully analyzed
+simulations used by the operating-characteristic estimands. When complete
+<code><a href="sim_trials.html">sim_trials()</a></code> results are supplied, it also reports requested, analyzed,
+and failed counts, the failure rate, effective backend, and seed. For a raw
+simulation data frame, requested and failed counts are unknown and are
+reported as <code>NA</code>. Full call, RNG, parallel, timing, failure, and design
+metadata are retained in the <code>simulation_metadata</code> attribute.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

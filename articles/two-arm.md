@@ -218,17 +218,28 @@ out_t1error <- update(out_power, hazard_treatment = hc, seed = 124)
 
 ``` r
 
+initial_oc <- summarise_sims(list(out_power, out_t1error))
 knitr::kable(
-  summarise_sims(list(out_power, out_t1error)),
+  initial_oc[c(
+    "scenario",
+    "n_requested",
+    "n_used",
+    "n_failed",
+    "power",
+    "stop_success",
+    "stop_futility",
+    "stop_max_N",
+    "mean_N"
+  )],
   digits = 3,
   caption = "Operating characteristics with a two-sided log-rank test at the 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is the null (treatment OS 30%)."
 )
 ```
 
-| scenario | backend | seed | n_requested | n_analyzed | n_failed | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
-|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | fork | 123 | 500 | 500 | 0 | 0.934 | 0.864 | 0.030 | 0.136 | 180.6 | 61.898 | 0.008 |
-| 2 | fork | 124 | 500 | 500 | 0 | 0.062 | 0.044 | 0.754 | 0.954 | 236.6 | 43.924 | 0.006 |
+| scenario | n_requested | n_used | n_failed | power | stop_success | stop_futility | stop_max_N | mean_N |
+|:---|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 500 | 500 | 0 | 0.934 | 0.864 | 0.030 | 0.106 | 180.6 |
+| 2 | 500 | 500 | 0 | 0.062 | 0.044 | 0.754 | 0.202 | 236.6 |
 
 Operating characteristics with a two-sided log-rank test at the 0.05
 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is
@@ -237,10 +248,9 @@ the null (treatment OS 30%). {.table}
 The type I error under this design (scenario 2, `power` column) is
 slightly too large to be considered acceptable. This was to be expected,
 since we kept the P-value threshold as 0.05 despite having multiple
-interim looks. However, we simulated only `N_trials = 500` trials,
-meaning that, if the type I error were truly 0.05, values in the
-interval (`0.05 + c(-1, 1) * 1.96 * sqrt(0.05 * (1 - 0.05) / 500)`)
-would be consistent with this.
+interim looks. The full `initial_oc` object also contains
+`power_mc_lower` and `power_mc_upper`, which provide a 95% Wilson
+interval for the finite-simulation Monte Carlo error.
 
 In practice, we need to use a more stringent threshold in order to
 control the overall type I error. This can be achieved by trial and
@@ -264,29 +274,89 @@ out_t1error2 <- update(
 oc_calibrated <- summarise_sims(list(
   "target: treatment OS 50%" = out_power2,
   "null: treatment OS 30%" = out_t1error2
-))
+), max_mcse = c(power = 0.02, mean_N = 3))
+
+format_mc_interval <- function(estimate, lower, upper, digits = 3) {
+  format_string <- paste0(
+    "%.", digits, "f [%.", digits, "f-%.", digits, "f]"
+  )
+  sprintf(format_string, estimate, lower, upper)
+}
+oc_calibrated_display <- data.frame(
+  scenario = oc_calibrated$scenario,
+  simulations = sprintf(
+    "%d/%d (%d)",
+    oc_calibrated$n_used,
+    oc_calibrated$n_requested,
+    oc_calibrated$n_failed
+  ),
+  power = format_mc_interval(
+    oc_calibrated$power,
+    oc_calibrated$power_mc_lower,
+    oc_calibrated$power_mc_upper
+  ),
+  expected_success = format_mc_interval(
+    oc_calibrated$stop_success,
+    oc_calibrated$stop_success_mc_lower,
+    oc_calibrated$stop_success_mc_upper
+  ),
+  futility = format_mc_interval(
+    oc_calibrated$stop_futility,
+    oc_calibrated$stop_futility_mc_lower,
+    oc_calibrated$stop_futility_mc_upper
+  ),
+  maximum_N = format_mc_interval(
+    oc_calibrated$stop_max_N,
+    oc_calibrated$stop_max_N_mc_lower,
+    oc_calibrated$stop_max_N_mc_upper
+  ),
+  mean_N = format_mc_interval(
+    oc_calibrated$mean_N,
+    oc_calibrated$mean_N_mc_lower,
+    oc_calibrated$mean_N_mc_upper,
+    digits = 1
+  )
+)
 knitr::kable(
-  oc_calibrated,
-  digits = 3,
+  oc_calibrated_display,
+  col.names = c(
+    "Scenario",
+    "Used/requested (failed)",
+    "Power [95% MC CI]",
+    "Expected success [95% MC CI]",
+    "Futility [95% MC CI]",
+    "Maximum N [95% MC CI]",
+    "Mean N [95% MC CI]"
+  ),
   caption = "Operating characteristics with the more stringent P < 0.04 threshold (`prob_ha = 0.96`)."
 )
 ```
 
-| scenario | backend | seed | n_requested | n_analyzed | n_failed | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
-|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| null: treatment OS 30% | fork | 125 | 500 | 500 | 0 | 0.058 | 0.046 | 0.814 | 0.952 | 227.05 | 43.942 | 0.002 |
-| target: treatment OS 50% | fork | 123 | 500 | 500 | 0 | 0.918 | 0.844 | 0.048 | 0.156 | 184.55 | 61.808 | 0.006 |
+| Scenario | Used/requested (failed) | Power \[95% MC CI\] | Expected success \[95% MC CI\] | Futility \[95% MC CI\] | Maximum N \[95% MC CI\] | Mean N \[95% MC CI\] |
+|:---|:---|:---|:---|:---|:---|:---|
+| null: treatment OS 30% | 500/500 (0) | 0.058 \[0.041-0.082\] | 0.046 \[0.031-0.068\] | 0.814 \[0.778-0.846\] | 0.140 \[0.112-0.173\] | 227.1 \[223.2-230.9\] |
+| target: treatment OS 50% | 500/500 (0) | 0.918 \[0.891-0.939\] | 0.844 \[0.810-0.873\] | 0.048 \[0.032-0.070\] | 0.108 \[0.084-0.138\] | 184.6 \[179.1-190.0\] |
 
 Operating characteristics with the more stringent P \< 0.04 threshold
 (`prob_ha = 0.96`). {.table}
+
+Here, “95% MC CI” means a Monte Carlo confidence interval: it describes
+how precisely this finite batch estimates the operating characteristic
+under the fixed simulation assumptions. It is **not a clinical
+confidence interval for the treatment effect** and does not represent
+uncertainty in the assumed event, accrual, or loss-to-follow-up models.
+Probability intervals use the Wilson method, while mean sample size uses
+a t interval based on its Monte Carlo standard error. The optional
+`max_mcse` argument warns when a named precision target is not met; it
+does not change the simulations or estimates.
 
 In the cached 500-trial simulation, assuming the treatment arm has an OS
 rate of 50% at 12 months, 84.4% of trials stopped early for expected
 success, 4.8% stopped early for futility, and the mean sample size was
 184.6. Overall power was 91.8%. When the treatment-arm OS rate equalled
-the control-arm rate, 81.4% of trials stopped early for futility. These
-Monte Carlo estimates have simulation error; larger calibration runs are
-appropriate for final design decisions.
+the control-arm rate, 81.4% of trials stopped early for futility. Larger
+calibration runs are appropriate for final design decisions when the
+displayed Monte Carlo precision is insufficient.
 
 The same simulation can be summarized on the calendar-time scale without
 adding any design arguments. Time zero is first patient enrolled, and

@@ -736,10 +736,10 @@ oc_small <- summarise_sims(list(
 knitr::kable(oc_small, digits = 3)
 ```
 
-| scenario | backend | seed | n_requested | n_analyzed | n_failed | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
-|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 0.066 | 0.03 | 0.434 | 0.969 | 653.6 | 118.385 | 0.014 |
-| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 0.996 | 0.89 | 0.000 | 0.110 | 541.6 | 101.736 | 0.002 |
+| scenario | backend | seed | n_requested | n_analyzed | n_failed | n_used | failure_rate | failure_rate_mcse | failure_rate_mc_lower | failure_rate_mc_upper | power | power_mcse | power_mc_lower | power_mc_upper | stop_success | stop_success_mcse | stop_success_mc_lower | stop_success_mc_upper | stop_futility | stop_futility_mcse | stop_futility_mc_lower | stop_futility_mc_upper | stop_max_N | stop_max_N_mcse | stop_max_N_mc_lower | stop_max_N_mc_upper | mean_N | mean_N_mcse | mean_N_mc_lower | mean_N_mc_upper | sd_N | stop_and_fail | stop_and_fail_mcse | stop_and_fail_mc_lower | stop_and_fail_mc_upper |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.066 | 0.011 | 0.047 | 0.091 | 0.03 | 0.008 | 0.018 | 0.049 | 0.434 | 0.022 | 0.391 | 0.478 | 0.536 | 0.022 | 0.492 | 0.579 | 653.6 | 5.294 | 643.198 | 664.002 | 118.385 | 0.014 | 0.005 | 0.007 | 0.029 |
+| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.996 | 0.003 | 0.986 | 0.999 | 0.89 | 0.014 | 0.860 | 0.915 | 0.000 | 0.000 | 0.000 | 0.008 | 0.110 | 0.014 | 0.085 | 0.140 | 541.6 | 4.550 | 532.661 | 550.539 | 101.736 | 0.002 | 0.002 | 0.000 | 0.011 |
 
 Each scenario uses 500 simulated trials and two cores. This remains a
 workflow demonstration rather than a definitive estimate of power or

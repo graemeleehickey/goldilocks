@@ -298,8 +298,19 @@ everything else over again.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_t1error</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span>, seed <span class="op">=</span> <span class="fl">124</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power</span>, <span class="va">out_t1error</span><span class="op">)</span><span class="op">)</span>,</span>
+<code class="sourceCode R"><span><span class="va">initial_oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">out_power</span>, <span class="va">out_t1error</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="va">initial_oc</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"scenario"</span>,</span>
+<span>    <span class="st">"n_requested"</span>,</span>
+<span>    <span class="st">"n_used"</span>,</span>
+<span>    <span class="st">"n_failed"</span>,</span>
+<span>    <span class="st">"power"</span>,</span>
+<span>    <span class="st">"stop_success"</span>,</span>
+<span>    <span class="st">"stop_futility"</span>,</span>
+<span>    <span class="st">"stop_max_N"</span>,</span>
+<span>    <span class="st">"mean_N"</span></span>
+<span>  <span class="op">)</span><span class="op">]</span>,</span>
 <span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  caption <span class="op">=</span> <span class="st">"Operating characteristics with a two-sided log-rank test at the 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is the null (treatment OS 30%)."</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -308,76 +319,59 @@ everything else over again.</p>
 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2
 is the null (treatment OS 30%).</caption>
 <colgroup>
-<col width="7%">
-<col width="6%">
-<col width="3%">
-<col width="9%">
-<col width="8%">
-<col width="7%">
-<col width="4%">
 <col width="10%">
-<col width="11%">
-<col width="8%">
-<col width="5%">
-<col width="5%">
-<col width="11%">
+<col width="13%">
+<col width="7%">
+<col width="10%">
+<col width="6%">
+<col width="14%">
+<col width="15%">
+<col width="12%">
+<col width="7%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">scenario</th>
-<th align="left">backend</th>
-<th align="right">seed</th>
 <th align="right">n_requested</th>
-<th align="right">n_analyzed</th>
+<th align="right">n_used</th>
 <th align="right">n_failed</th>
 <th align="right">power</th>
 <th align="right">stop_success</th>
 <th align="right">stop_futility</th>
 <th align="right">stop_max_N</th>
 <th align="right">mean_N</th>
-<th align="right">sd_N</th>
-<th align="right">stop_and_fail</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="left">fork</td>
-<td align="right">123</td>
 <td align="right">500</td>
 <td align="right">500</td>
 <td align="right">0</td>
 <td align="right">0.934</td>
 <td align="right">0.864</td>
 <td align="right">0.030</td>
-<td align="right">0.136</td>
+<td align="right">0.106</td>
 <td align="right">180.6</td>
-<td align="right">61.898</td>
-<td align="right">0.008</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="left">fork</td>
-<td align="right">124</td>
 <td align="right">500</td>
 <td align="right">500</td>
 <td align="right">0</td>
 <td align="right">0.062</td>
 <td align="right">0.044</td>
 <td align="right">0.754</td>
-<td align="right">0.954</td>
+<td align="right">0.202</td>
 <td align="right">236.6</td>
-<td align="right">43.924</td>
-<td align="right">0.006</td>
 </tr>
 </tbody>
 </table>
 <p>The type I error under this design (scenario 2, <code>power</code>
 column) is slightly too large to be considered acceptable. This was to
 be expected, since we kept the <span class="math inline">P</span>-value
-threshold as 0.05 despite having multiple interim looks. However, we
-simulated only <code>N_trials = 500</code> trials, meaning that, if the
-type I error were truly 0.05, values in the interval
-(<code>0.05 + c(-1, 1) * 1.96 * sqrt(0.05 * (1 - 0.05) / 500)</code>)
-would be consistent with this.</p>
+threshold as 0.05 despite having multiple interim looks. The full
+<code>initial_oc</code> object also contains <code>power_mc_lower</code>
+and <code>power_mc_upper</code>, which provide a 95% Wilson interval for
+the finite-simulation Monte Carlo error.</p>
 <p>In practice, we need to use a more stringent threshold in order to
 control the overall type I error. This can be achieved by trial and
 error. For example, if we use <span class="math inline">P &lt;
@@ -395,85 +389,121 @@ find the operating characteristics are more acceptable.</p>
 <code class="sourceCode R"><span><span class="va">oc_calibrated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="st">"target: treatment OS 50%"</span> <span class="op">=</span> <span class="va">out_power2</span>,</span>
 <span>  <span class="st">"null: treatment OS 30%"</span> <span class="op">=</span> <span class="va">out_t1error2</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span>, max_mcse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>power <span class="op">=</span> <span class="fl">0.02</span>, mean_N <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">format_mc_interval</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">estimate</span>, <span class="va">lower</span>, <span class="va">upper</span>, <span class="va">digits</span> <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">format_string</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span></span>
+<span>    <span class="st">"%."</span>, <span class="va">digits</span>, <span class="st">"f [%."</span>, <span class="va">digits</span>, <span class="st">"f-%."</span>, <span class="va">digits</span>, <span class="st">"f]"</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="va">format_string</span>, <span class="va">estimate</span>, <span class="va">lower</span>, <span class="va">upper</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">oc_calibrated_display</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  scenario <span class="op">=</span> <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">scenario</span>,</span>
+<span>  simulations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>    <span class="st">"%d/%d (%d)"</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">n_used</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">n_requested</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">n_failed</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  power <span class="op">=</span> <span class="fu">format_mc_interval</span><span class="op">(</span></span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">power</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">power_mc_lower</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">power_mc_upper</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  expected_success <span class="op">=</span> <span class="fu">format_mc_interval</span><span class="op">(</span></span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">stop_success</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">stop_success_mc_lower</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">stop_success_mc_upper</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  futility <span class="op">=</span> <span class="fu">format_mc_interval</span><span class="op">(</span></span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">stop_futility</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">stop_futility_mc_lower</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">stop_futility_mc_upper</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  maximum_N <span class="op">=</span> <span class="fu">format_mc_interval</span><span class="op">(</span></span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">stop_max_N</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">stop_max_N_mc_lower</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">stop_max_N_mc_upper</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  mean_N <span class="op">=</span> <span class="fu">format_mc_interval</span><span class="op">(</span></span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">mean_N</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">mean_N_mc_lower</span>,</span>
+<span>    <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">mean_N_mc_upper</span>,</span>
+<span>    digits <span class="op">=</span> <span class="fl">1</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
-<span>  <span class="va">oc_calibrated</span>,</span>
-<span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  <span class="va">oc_calibrated_display</span>,</span>
+<span>  col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Scenario"</span>,</span>
+<span>    <span class="st">"Used/requested (failed)"</span>,</span>
+<span>    <span class="st">"Power [95% MC CI]"</span>,</span>
+<span>    <span class="st">"Expected success [95% MC CI]"</span>,</span>
+<span>    <span class="st">"Futility [95% MC CI]"</span>,</span>
+<span>    <span class="st">"Maximum N [95% MC CI]"</span>,</span>
+<span>    <span class="st">"Mean N [95% MC CI]"</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  caption <span class="op">=</span> <span class="st">"Operating characteristics with the more stringent P &lt; 0.04 threshold (`prob_ha = 0.96`)."</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>Operating characteristics with the more stringent P &lt; 0.04
 threshold (<code>prob_ha = 0.96</code>).</caption>
 <colgroup>
-<col width="17%">
-<col width="5%">
-<col width="3%">
-<col width="8%">
-<col width="7%">
-<col width="6%">
-<col width="4%">
-<col width="9%">
-<col width="9%">
-<col width="7%">
-<col width="4%">
-<col width="4%">
-<col width="9%">
+<col width="15%">
+<col width="14%">
+<col width="12%">
+<col width="18%">
+<col width="13%">
+<col width="13%">
+<col width="12%">
 </colgroup>
 <thead><tr class="header">
-<th align="left">scenario</th>
-<th align="left">backend</th>
-<th align="right">seed</th>
-<th align="right">n_requested</th>
-<th align="right">n_analyzed</th>
-<th align="right">n_failed</th>
-<th align="right">power</th>
-<th align="right">stop_success</th>
-<th align="right">stop_futility</th>
-<th align="right">stop_max_N</th>
-<th align="right">mean_N</th>
-<th align="right">sd_N</th>
-<th align="right">stop_and_fail</th>
+<th align="left">Scenario</th>
+<th align="left">Used/requested (failed)</th>
+<th align="left">Power [95% MC CI]</th>
+<th align="left">Expected success [95% MC CI]</th>
+<th align="left">Futility [95% MC CI]</th>
+<th align="left">Maximum N [95% MC CI]</th>
+<th align="left">Mean N [95% MC CI]</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">null: treatment OS 30%</td>
-<td align="left">fork</td>
-<td align="right">125</td>
-<td align="right">500</td>
-<td align="right">500</td>
-<td align="right">0</td>
-<td align="right">0.058</td>
-<td align="right">0.046</td>
-<td align="right">0.814</td>
-<td align="right">0.952</td>
-<td align="right">227.05</td>
-<td align="right">43.942</td>
-<td align="right">0.002</td>
+<td align="left">500/500 (0)</td>
+<td align="left">0.058 [0.041-0.082]</td>
+<td align="left">0.046 [0.031-0.068]</td>
+<td align="left">0.814 [0.778-0.846]</td>
+<td align="left">0.140 [0.112-0.173]</td>
+<td align="left">227.1 [223.2-230.9]</td>
 </tr>
 <tr class="even">
 <td align="left">target: treatment OS 50%</td>
-<td align="left">fork</td>
-<td align="right">123</td>
-<td align="right">500</td>
-<td align="right">500</td>
-<td align="right">0</td>
-<td align="right">0.918</td>
-<td align="right">0.844</td>
-<td align="right">0.048</td>
-<td align="right">0.156</td>
-<td align="right">184.55</td>
-<td align="right">61.808</td>
-<td align="right">0.006</td>
+<td align="left">500/500 (0)</td>
+<td align="left">0.918 [0.891-0.939]</td>
+<td align="left">0.844 [0.810-0.873]</td>
+<td align="left">0.048 [0.032-0.070]</td>
+<td align="left">0.108 [0.084-0.138]</td>
+<td align="left">184.6 [179.1-190.0]</td>
 </tr>
 </tbody>
 </table>
+<p>Here, “95% MC CI” means a Monte Carlo confidence interval: it
+describes how precisely this finite batch estimates the operating
+characteristic under the fixed simulation assumptions. It is <strong>not
+a clinical confidence interval for the treatment effect</strong> and
+does not represent uncertainty in the assumed event, accrual, or
+loss-to-follow-up models. Probability intervals use the Wilson method,
+while mean sample size uses a t interval based on its Monte Carlo
+standard error. The optional <code>max_mcse</code> argument warns when a
+named precision target is not met; it does not change the simulations or
+estimates.</p>
 <p>In the cached 500-trial simulation, assuming the treatment arm has an
 OS rate of 50% at 12 months, 84.4% of trials stopped early for expected
 success, 4.8% stopped early for futility, and the mean sample size was
 184.6. Overall power was 91.8%. When the treatment-arm OS rate equalled
-the control-arm rate, 81.4% of trials stopped early for futility. These
-Monte Carlo estimates have simulation error; larger calibration runs are
-appropriate for final design decisions.</p>
+the control-arm rate, 81.4% of trials stopped early for futility. Larger
+calibration runs are appropriate for final design decisions when the
+displayed Monte Carlo precision is insufficient.</p>
 <p>The same simulation can be summarized on the calendar-time scale
 without adding any design arguments. Time zero is first patient
 enrolled, and the time unit is months in this example. “Analysis ready”
