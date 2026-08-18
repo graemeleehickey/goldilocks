@@ -310,6 +310,29 @@ including:
 - `stop_expected_success`: Logical indicator of whether the trial
   stopped early for expected success.
 
+- `stopping_reason`: One of `"expected_success"`, `"futility"`, or
+  `"maximum_sample_size"`.
+
+- `accrual_stop_time`: Calendar time of the last enrollment in the
+  trial.
+
+- `analysis_ready_time`: Calendar time at which the last enrolled
+  subject's observed event or censoring becomes available. This excludes
+  external data-cleaning and database-lock delays.
+
+- `planned_completion_time`: Calendar time at which the last enrolled
+  subject would complete the full planned follow-up.
+
+- `followup_person_time`: Sum of observed follow-up times across
+  enrolled subjects.
+
+- `peak_active_followup`: Largest number of enrolled subjects
+  concurrently under follow-up.
+
+Calendar time is measured from the first patient's enrollment at time
+zero. Times use the same units as `lambda_time`, `cutpoints`, and
+`end_of_study`.
+
 The returned object has a `decision_design` attribute containing
 `interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
 this metadata are normalized to one value per interim look (and have
@@ -317,7 +340,8 @@ length zero when no interim looks are planned).
 
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
-per interim look. The trace records enrollment and observed events by
+per interim look. The trace records calendar time, the number of
+subjects actively under follow-up, enrollment and observed events by
 arm, predictive probabilities, Monte Carlo standard errors and exact
 bounds, draw counts, thresholds, the decision and reason, empty-interval
 fallback diagnostics, and warnings raised during that look. It
@@ -530,4 +554,8 @@ survival_adapt(
 #> 1          0.975      0        less         300       300        600   600
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
 #> 1            1 -0.1382612           0             0                     0
+#>       stopping_reason accrual_stop_time analysis_ready_time
+#> 1 maximum_sample_size          27.54104            63.54104
+#>   planned_completion_time followup_person_time peak_active_followup
+#> 1                63.54104             16408.12                  479
 ```

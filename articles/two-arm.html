@@ -340,32 +340,32 @@ is the null (treatment OS 30%).</caption>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="left">NA</td>
+<td align="left">fork</td>
 <td align="right">123</td>
 <td align="right">500</td>
 <td align="right">500</td>
 <td align="right">0</td>
-<td align="right">0.928</td>
-<td align="right">0.880</td>
-<td align="right">0.038</td>
-<td align="right">0.12</td>
-<td align="right">173.55</td>
-<td align="right">56.750</td>
-<td align="right">0.014</td>
+<td align="right">0.934</td>
+<td align="right">0.864</td>
+<td align="right">0.030</td>
+<td align="right">0.136</td>
+<td align="right">180.6</td>
+<td align="right">61.898</td>
+<td align="right">0.008</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="left">NA</td>
+<td align="left">fork</td>
 <td align="right">124</td>
 <td align="right">500</td>
 <td align="right">500</td>
 <td align="right">0</td>
-<td align="right">0.064</td>
-<td align="right">0.058</td>
-<td align="right">0.828</td>
-<td align="right">0.94</td>
-<td align="right">211.45</td>
-<td align="right">48.398</td>
+<td align="right">0.062</td>
+<td align="right">0.044</td>
+<td align="right">0.754</td>
+<td align="right">0.954</td>
+<td align="right">236.6</td>
+<td align="right">43.924</td>
 <td align="right">0.006</td>
 </tr>
 </tbody>
@@ -437,50 +437,278 @@ threshold (<code>prob_ha = 0.96</code>).</caption>
 <tbody>
 <tr class="odd">
 <td align="left">null: treatment OS 30%</td>
-<td align="left">NA</td>
+<td align="left">fork</td>
 <td align="right">125</td>
 <td align="right">500</td>
 <td align="right">500</td>
 <td align="right">0</td>
-<td align="right">0.036</td>
-<td align="right">0.038</td>
-<td align="right">0.888</td>
-<td align="right">0.960</td>
-<td align="right">205.05</td>
-<td align="right">46.826</td>
-<td align="right">0.014</td>
+<td align="right">0.058</td>
+<td align="right">0.046</td>
+<td align="right">0.814</td>
+<td align="right">0.952</td>
+<td align="right">227.05</td>
+<td align="right">43.942</td>
+<td align="right">0.002</td>
 </tr>
 <tr class="even">
 <td align="left">target: treatment OS 50%</td>
-<td align="left">NA</td>
+<td align="left">fork</td>
 <td align="right">123</td>
 <td align="right">500</td>
 <td align="right">500</td>
 <td align="right">0</td>
-<td align="right">0.914</td>
-<td align="right">0.866</td>
-<td align="right">0.046</td>
-<td align="right">0.134</td>
-<td align="right">175.70</td>
-<td align="right">57.825</td>
-<td align="right">0.016</td>
+<td align="right">0.918</td>
+<td align="right">0.844</td>
+<td align="right">0.048</td>
+<td align="right">0.156</td>
+<td align="right">184.55</td>
+<td align="right">61.808</td>
+<td align="right">0.006</td>
 </tr>
 </tbody>
 </table>
 <p>In the cached 500-trial simulation, assuming the treatment arm has an
-OS rate of 50% at 12 months, 86.6% of trials stopped early for expected
-success, 4.6% stopped early for futility, and the mean sample size was
-175.7. Overall power was 91.4%. When the treatment-arm OS rate equalled
-the control-arm rate, 88.8% of trials stopped early for futility. These
+OS rate of 50% at 12 months, 84.4% of trials stopped early for expected
+success, 4.8% stopped early for futility, and the mean sample size was
+184.6. Overall power was 91.8%. When the treatment-arm OS rate equalled
+the control-arm rate, 81.4% of trials stopped early for futility. These
 Monte Carlo estimates have simulation error; larger calibration runs are
 appropriate for final design decisions.</p>
+<p>The same simulation can be summarized on the calendar-time scale
+without adding any design arguments. Time zero is first patient
+enrolled, and the time unit is months in this example. “Analysis ready”
+is when the last observed event or censoring required for the final
+analysis becomes available; it does not include an external allowance
+for data cleaning or database lock. The percentage in the trials column
+uses all requested simulations as its denominator, so failed and
+excluded simulations cannot silently disappear.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">calendar_oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_calendar_time.html">summarise_calendar_time</a></span><span class="op">(</span><span class="va">out_power2</span><span class="op">)</span></span>
+<span><span class="va">calendar_duration</span> <span class="op">&lt;-</span> <span class="va">calendar_oc</span><span class="op">$</span><span class="va">trial_duration</span></span>
+<span><span class="va">calendar_duration</span><span class="op">$</span><span class="va">trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>  <span class="st">"%d (%.1f%%)"</span>,</span>
+<span>  <span class="va">calendar_duration</span><span class="op">$</span><span class="va">n_trials</span>,</span>
+<span>  <span class="va">calendar_duration</span><span class="op">$</span><span class="va">percent_trials</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">calendar_duration</span><span class="op">$</span><span class="va">accrual</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>  <span class="st">"%.1f [%.1f-%.1f]"</span>,</span>
+<span>  <span class="va">calendar_duration</span><span class="op">$</span><span class="va">accrual_stop_median</span>,</span>
+<span>  <span class="va">calendar_duration</span><span class="op">$</span><span class="va">accrual_stop_p10</span>,</span>
+<span>  <span class="va">calendar_duration</span><span class="op">$</span><span class="va">accrual_stop_p90</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">calendar_duration</span><span class="op">$</span><span class="va">analysis_ready</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>  <span class="st">"%.1f [%.1f-%.1f]"</span>,</span>
+<span>  <span class="va">calendar_duration</span><span class="op">$</span><span class="va">analysis_ready_median</span>,</span>
+<span>  <span class="va">calendar_duration</span><span class="op">$</span><span class="va">analysis_ready_p10</span>,</span>
+<span>  <span class="va">calendar_duration</span><span class="op">$</span><span class="va">analysis_ready_p90</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="va">calendar_duration</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"stopping_reason"</span>,</span>
+<span>    <span class="st">"trials"</span>,</span>
+<span>    <span class="st">"mean_N"</span>,</span>
+<span>    <span class="st">"accrual"</span>,</span>
+<span>    <span class="st">"analysis_ready"</span>,</span>
+<span>    <span class="st">"followup_person_time_mean"</span>,</span>
+<span>    <span class="st">"peak_active_followup_mean"</span></span>
+<span>  <span class="op">)</span><span class="op">]</span>,</span>
+<span>  digits <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Stopping reason"</span>,</span>
+<span>    <span class="st">"Trials, n (%)"</span>,</span>
+<span>    <span class="st">"Mean enrolled"</span>,</span>
+<span>    <span class="st">"Accrual stopped, median [P10-P90]"</span>,</span>
+<span>    <span class="st">"Analysis ready, median [P10-P90]"</span>,</span>
+<span>    <span class="st">"Mean person-months"</span>,</span>
+<span>    <span class="st">"Mean peak under follow-up"</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  caption <span class="op">=</span> <span class="st">"Calendar-time duration and follow-up burden under the treatment-effect scenario."</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Calendar-time duration and follow-up burden under the
+treatment-effect scenario.</caption>
+<colgroup>
+<col width="12%">
+<col width="8%">
+<col width="8%">
+<col width="21%">
+<col width="20%">
+<col width="11%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Stopping reason</th>
+<th align="left">Trials, n (%)</th>
+<th align="right">Mean enrolled</th>
+<th align="left">Accrual stopped, median [P10-P90]</th>
+<th align="left">Analysis ready, median [P10-P90]</th>
+<th align="right">Mean person-months</th>
+<th align="right">Mean peak under follow-up</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">expected_success</td>
+<td align="left">422 (84.4%)</td>
+<td align="right">168.4</td>
+<td align="left">30.2 [23.3-49.7]</td>
+<td align="left">41.9 [34.7-61.2]</td>
+<td align="right">1314.5</td>
+<td align="right">48.9</td>
+</tr>
+<tr class="even">
+<td align="left">futility</td>
+<td align="left">24 (4.8%)</td>
+<td align="right">209.4</td>
+<td align="left">39.9 [31.6-51.9]</td>
+<td align="left">51.8 [43.6-63.3]</td>
+<td align="right">1631.2</td>
+<td align="right">51.1</td>
+</tr>
+<tr class="odd">
+<td align="left">maximum_sample_size</td>
+<td align="left">54 (10.8%)</td>
+<td align="right">300.0</td>
+<td align="left">60.6 [55.5-64.2]</td>
+<td align="left">71.9 [67.4-76.1]</td>
+<td align="right">2338.2</td>
+<td align="right">51.8</td>
+</tr>
+<tr class="even">
+<td align="left">overall</td>
+<td align="left">500 (100.0%)</td>
+<td align="right">184.6</td>
+<td align="left">32.2 [23.5-57.6]</td>
+<td align="left">44.0 [35.2-69.0]</td>
+<td align="right">1440.3</td>
+<td align="right">49.3</td>
+</tr>
+</tbody>
+</table>
+<p>Because <code>out_power2</code> was simulated with
+<code>return_trace = TRUE</code>, a second wide table describes when
+each interim look was reached and how many subjects were actively under
+follow-up at that time. A trial that stops before a later look remains
+in the requested denominator but does not contribute a timing value at
+that look.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">calendar_interim</span> <span class="op">&lt;-</span> <span class="va">calendar_oc</span><span class="op">$</span><span class="va">interim_timing</span></span>
+<span><span class="va">calendar_interim</span><span class="op">$</span><span class="va">reached</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>  <span class="st">"%d (%.1f%%)"</span>,</span>
+<span>  <span class="va">calendar_interim</span><span class="op">$</span><span class="va">n_reached</span>,</span>
+<span>  <span class="va">calendar_interim</span><span class="op">$</span><span class="va">percent_reached</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">calendar_interim</span><span class="op">$</span><span class="va">calendar_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>  <span class="st">"%.1f [%.1f-%.1f]"</span>,</span>
+<span>  <span class="va">calendar_interim</span><span class="op">$</span><span class="va">calendar_time_median</span>,</span>
+<span>  <span class="va">calendar_interim</span><span class="op">$</span><span class="va">calendar_time_p10</span>,</span>
+<span>  <span class="va">calendar_interim</span><span class="op">$</span><span class="va">calendar_time_p90</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">calendar_interim</span><span class="op">$</span><span class="va">active_followup</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>  <span class="st">"%.0f [%.0f-%.0f]"</span>,</span>
+<span>  <span class="va">calendar_interim</span><span class="op">$</span><span class="va">active_followup_median</span>,</span>
+<span>  <span class="va">calendar_interim</span><span class="op">$</span><span class="va">active_followup_p10</span>,</span>
+<span>  <span class="va">calendar_interim</span><span class="op">$</span><span class="va">active_followup_p90</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="va">calendar_interim</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"look"</span>,</span>
+<span>    <span class="st">"planned_N"</span>,</span>
+<span>    <span class="st">"reached"</span>,</span>
+<span>    <span class="st">"calendar_time"</span>,</span>
+<span>    <span class="st">"active_followup"</span></span>
+<span>  <span class="op">)</span><span class="op">]</span>,</span>
+<span>  col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Look"</span>,</span>
+<span>    <span class="st">"Planned N"</span>,</span>
+<span>    <span class="st">"Reached, n (%)"</span>,</span>
+<span>    <span class="st">"Calendar month, median [P10-P90]"</span>,</span>
+<span>    <span class="st">"Active follow-up, median [P10-P90]"</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  caption <span class="op">=</span> <span class="st">"Calendar timing and concurrent follow-up at each interim look."</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Calendar timing and concurrent follow-up at each interim
+look.</caption>
+<colgroup>
+<col width="5%">
+<col width="10%">
+<col width="15%">
+<col width="33%">
+<col width="35%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">Look</th>
+<th align="right">Planned N</th>
+<th align="left">Reached, n (%)</th>
+<th align="left">Calendar month, median [P10-P90]</th>
+<th align="left">Active follow-up, median [P10-P90]</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">100</td>
+<td align="left">500 (100.0%)</td>
+<td align="left">19.5 [17.4-22.2]</td>
+<td align="left">40 [32-48]</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">125</td>
+<td align="left">500 (100.0%)</td>
+<td align="left">24.7 [22.0-27.7]</td>
+<td align="left">40 [32-49]</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">150</td>
+<td align="left">325 (65.0%)</td>
+<td align="left">29.8 [26.7-32.5]</td>
+<td align="left">40 [32-48]</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">175</td>
+<td align="left">253 (50.6%)</td>
+<td align="left">34.8 [31.1-37.8]</td>
+<td align="left">40 [33-48]</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">200</td>
+<td align="left">201 (40.2%)</td>
+<td align="left">40.0 [36.0-43.2]</td>
+<td align="left">40 [33-47]</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">225</td>
+<td align="left">153 (30.6%)</td>
+<td align="left">45.1 [41.2-47.8]</td>
+<td align="left">40 [32-48]</td>
+</tr>
+<tr class="odd">
+<td align="right">7</td>
+<td align="right">250</td>
+<td align="left">115 (23.0%)</td>
+<td align="left">50.2 [46.0-53.5]</td>
+<td align="left">40 [33-48]</td>
+</tr>
+<tr class="even">
+<td align="right">8</td>
+<td align="right">275</td>
+<td align="left">90 (18.0%)</td>
+<td align="left">55.2 [51.0-59.1]</td>
+<td align="left">40 [33-48]</td>
+</tr>
+</tbody>
+</table>
 <p>The same results can be viewed graphically.
 <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code> compares final success, stopping behavior,
 and expected sample size across the treatment-effect scenarios. Because
 the meaning and direction of an effect depends on the chosen analysis,
 the effect scale is supplied explicitly; here it is the true 12-month
 treatment survival probability.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">oc_calibrated</span><span class="op">$</span><span class="va">true_treatment_survival</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.50</span>, <span class="fl">0.30</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_ocs.html">plot_sim_ocs</a></span><span class="op">(</span></span>
 <span>  <span class="va">oc_calibrated</span>,</span>
@@ -500,22 +728,22 @@ enrollment, and early success at successive looks. Because
 views include reached looks even when no trial stopped at that look.
 Percentage labels use a compact size so values at adjacent looks remain
 visually distinct.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">out_power2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="two-arm_files/figure-html/plot-stopping-1.png" class="r-plt" alt="" width="100%"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">out_power2</span>, type <span class="op">=</span> <span class="st">"conditional"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="two-arm_files/figure-html/plot-stopping-conditional-1.png" class="r-plt" alt="" width="100%"></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">out_power2</span>, type <span class="op">=</span> <span class="st">"cumulative"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="two-arm_files/figure-html/plot-stopping-cumulative-1.png" class="r-plt" alt="" width="100%"></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">out_power2</span>, type <span class="op">=</span> <span class="st">"flowchart"</span><span class="op">)</span></span></code></pre></div>
 <div class="grViz html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:100%;height:1152px;"></div>
-<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"digraph stopping_flow {\ngraph [rankdir=TB, bgcolor=\"transparent\", ranksep=0.65, nodesep=0.35, pad=0.2]\nnode [shape=box, style=\"rounded,filled\", fontname=\"Helvetica\", fontsize=11, fontcolor=\"#222222\", margin=\"0.15,0.10\"]\nedge [color=\"#777777\", penwidth=1.2, arrowsize=0.7, fontname=\"Helvetica\"]\ntotal [label=\"All simulated trials\\nn = 500\", fillcolor=\"#F2F2F2\", color=\"#666666\", penwidth=1.4]\nfutility_1 [label=\"Look 1 (N = 100)\\nStop for futility\\nn = 0\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_1 [label=\"Look 1 (N = 100)\\nContinue enrolling\\nn = 500\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_1 [label=\"Look 1 (N = 100)\\nStop for early success\\nn = 0\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_2 [label=\"Look 2 (N = 125)\\nStop for futility\\nn = 4\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_2 [label=\"Look 2 (N = 125)\\nContinue enrolling\\nn = 302\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_2 [label=\"Look 2 (N = 125)\\nStop for early success\\nn = 194\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_3 [label=\"Look 3 (N = 150)\\nStop for futility\\nn = 5\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_3 [label=\"Look 3 (N = 150)\\nContinue enrolling\\nn = 233\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_3 [label=\"Look 3 (N = 150)\\nStop for early success\\nn = 64\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_4 [label=\"Look 4 (N = 175)\\nStop for futility\\nn = 8\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_4 [label=\"Look 4 (N = 175)\\nContinue enrolling\\nn = 163\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_4 [label=\"Look 4 (N = 175)\\nStop for early success\\nn = 62\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_5 [label=\"Look 5 (N = 200)\\nStop for futility\\nn = 4\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_5 [label=\"Look 5 (N = 200)\\nContinue enrolling\\nn = 119\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_5 [label=\"Look 5 (N = 200)\\nStop for early success\\nn = 40\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_6 [label=\"Look 6 (N = 225)\\nStop for futility\\nn = 0\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_6 [label=\"Look 6 (N = 225)\\nContinue enrolling\\nn = 89\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_6 [label=\"Look 6 (N = 225)\\nStop for early success\\nn = 30\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_7 [label=\"Look 7 (N = 250)\\nStop for futility\\nn = 2\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_7 [label=\"Look 7 (N = 250)\\nContinue enrolling\\nn = 64\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_7 [label=\"Look 7 (N = 250)\\nStop for early success\\nn = 23\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_8 [label=\"Look 8 (N = 275)\\nStop for futility\\nn = 0\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_8 [label=\"Look 8 (N = 275)\\nContinue enrolling\\nn = 44\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_8 [label=\"Look 8 (N = 275)\\nStop for early success\\nn = 20\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nmaximum [label=\"Maximum sample size (N = 300)\\nReach maximum sample size\\nn = 44\", fillcolor=\"#E6E6E6\", color=\"#777777\", penwidth=1.4]\ntotal -> {futility_1 continue_1 success_1}\nfutility_1 -> continue_1 [style=invis]\ncontinue_1 -> success_1 [style=invis]\ncontinue_1 -> {futility_2 continue_2 success_2}\nfutility_2 -> continue_2 [style=invis]\ncontinue_2 -> success_2 [style=invis]\ncontinue_2 -> {futility_3 continue_3 success_3}\nfutility_3 -> continue_3 [style=invis]\ncontinue_3 -> success_3 [style=invis]\ncontinue_3 -> {futility_4 continue_4 success_4}\nfutility_4 -> continue_4 [style=invis]\ncontinue_4 -> success_4 [style=invis]\ncontinue_4 -> {futility_5 continue_5 success_5}\nfutility_5 -> continue_5 [style=invis]\ncontinue_5 -> success_5 [style=invis]\ncontinue_5 -> {futility_6 continue_6 success_6}\nfutility_6 -> continue_6 [style=invis]\ncontinue_6 -> success_6 [style=invis]\ncontinue_6 -> {futility_7 continue_7 success_7}\nfutility_7 -> continue_7 [style=invis]\ncontinue_7 -> success_7 [style=invis]\ncontinue_7 -> {futility_8 continue_8 success_8}\nfutility_8 -> continue_8 [style=invis]\ncontinue_8 -> success_8 [style=invis]\ncontinue_8 -> maximum\n{rank=same; futility_1; continue_1; success_1}\n{rank=same; futility_2; continue_2; success_2}\n{rank=same; futility_3; continue_3; success_3}\n{rank=same; futility_4; continue_4; success_4}\n{rank=same; futility_5; continue_5; success_5}\n{rank=same; futility_6; continue_6; success_6}\n{rank=same; futility_7; continue_7; success_7}\n{rank=same; futility_8; continue_8; success_8}\n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>The predictive-probability decision map requires traces from every
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"digraph stopping_flow {\ngraph [rankdir=TB, bgcolor=\"transparent\", ranksep=0.65, nodesep=0.35, pad=0.2]\nnode [shape=box, style=\"rounded,filled\", fontname=\"Helvetica\", fontsize=11, fontcolor=\"#222222\", margin=\"0.15,0.10\"]\nedge [color=\"#777777\", penwidth=1.2, arrowsize=0.7, fontname=\"Helvetica\"]\ntotal [label=\"All simulated trials\\nn = 500\", fillcolor=\"#F2F2F2\", color=\"#666666\", penwidth=1.4]\nfutility_1 [label=\"Look 1 (N = 100)\\nStop for futility\\nn = 0\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_1 [label=\"Look 1 (N = 100)\\nContinue enrolling\\nn = 500\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_1 [label=\"Look 1 (N = 100)\\nStop for early success\\nn = 0\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_2 [label=\"Look 2 (N = 125)\\nStop for futility\\nn = 0\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_2 [label=\"Look 2 (N = 125)\\nContinue enrolling\\nn = 325\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_2 [label=\"Look 2 (N = 125)\\nStop for early success\\nn = 175\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_3 [label=\"Look 3 (N = 150)\\nStop for futility\\nn = 2\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_3 [label=\"Look 3 (N = 150)\\nContinue enrolling\\nn = 253\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_3 [label=\"Look 3 (N = 150)\\nStop for early success\\nn = 70\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_4 [label=\"Look 4 (N = 175)\\nStop for futility\\nn = 7\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_4 [label=\"Look 4 (N = 175)\\nContinue enrolling\\nn = 201\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_4 [label=\"Look 4 (N = 175)\\nStop for early success\\nn = 45\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_5 [label=\"Look 5 (N = 200)\\nStop for futility\\nn = 5\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_5 [label=\"Look 5 (N = 200)\\nContinue enrolling\\nn = 153\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_5 [label=\"Look 5 (N = 200)\\nStop for early success\\nn = 43\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_6 [label=\"Look 6 (N = 225)\\nStop for futility\\nn = 3\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_6 [label=\"Look 6 (N = 225)\\nContinue enrolling\\nn = 115\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_6 [label=\"Look 6 (N = 225)\\nStop for early success\\nn = 35\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_7 [label=\"Look 7 (N = 250)\\nStop for futility\\nn = 4\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_7 [label=\"Look 7 (N = 250)\\nContinue enrolling\\nn = 90\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_7 [label=\"Look 7 (N = 250)\\nStop for early success\\nn = 21\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nfutility_8 [label=\"Look 8 (N = 275)\\nStop for futility\\nn = 3\", fillcolor=\"#F6DED4\", color=\"#D55E00\"]\ncontinue_8 [label=\"Look 8 (N = 275)\\nContinue enrolling\\nn = 54\", fillcolor=\"#D8EEF8\", color=\"#56B4E9\"]\nsuccess_8 [label=\"Look 8 (N = 275)\\nStop for early success\\nn = 33\", fillcolor=\"#D5F1E7\", color=\"#009E73\"]\nmaximum [label=\"Maximum sample size (N = 300)\\nReach maximum sample size\\nn = 54\", fillcolor=\"#E6E6E6\", color=\"#777777\", penwidth=1.4]\ntotal -> {futility_1 continue_1 success_1}\nfutility_1 -> continue_1 [style=invis]\ncontinue_1 -> success_1 [style=invis]\ncontinue_1 -> {futility_2 continue_2 success_2}\nfutility_2 -> continue_2 [style=invis]\ncontinue_2 -> success_2 [style=invis]\ncontinue_2 -> {futility_3 continue_3 success_3}\nfutility_3 -> continue_3 [style=invis]\ncontinue_3 -> success_3 [style=invis]\ncontinue_3 -> {futility_4 continue_4 success_4}\nfutility_4 -> continue_4 [style=invis]\ncontinue_4 -> success_4 [style=invis]\ncontinue_4 -> {futility_5 continue_5 success_5}\nfutility_5 -> continue_5 [style=invis]\ncontinue_5 -> success_5 [style=invis]\ncontinue_5 -> {futility_6 continue_6 success_6}\nfutility_6 -> continue_6 [style=invis]\ncontinue_6 -> success_6 [style=invis]\ncontinue_6 -> {futility_7 continue_7 success_7}\nfutility_7 -> continue_7 [style=invis]\ncontinue_7 -> success_7 [style=invis]\ncontinue_7 -> {futility_8 continue_8 success_8}\nfutility_8 -> continue_8 [style=invis]\ncontinue_8 -> success_8 [style=invis]\ncontinue_8 -> maximum\n{rank=same; futility_1; continue_1; success_1}\n{rank=same; futility_2; continue_2; success_2}\n{rank=same; futility_3; continue_3; success_3}\n{rank=same; futility_4; continue_4; success_4}\n{rank=same; futility_5; continue_5; success_5}\n{rank=same; futility_6; continue_6; success_6}\n{rank=same; futility_7; continue_7; success_7}\n{rank=same; futility_8; continue_8; success_8}\n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>The predictive-probability decision map requires traces from every
 simulated trial. These are opt-in because they increase the size of the
 simulation result:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">out_power2</span><span class="op">)</span></span></code></pre></div>
 <p>Each decision-map panel represents an interim look. The horizontal
 coordinate is the predictive probability of success after continuing to

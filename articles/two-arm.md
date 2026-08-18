@@ -227,8 +227,8 @@ knitr::kable(
 
 | scenario | backend | seed | n_requested | n_analyzed | n_failed | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | NA | 123 | 500 | 500 | 0 | 0.928 | 0.880 | 0.038 | 0.12 | 173.55 | 56.750 | 0.014 |
-| 2 | NA | 124 | 500 | 500 | 0 | 0.064 | 0.058 | 0.828 | 0.94 | 211.45 | 48.398 | 0.006 |
+| 1 | fork | 123 | 500 | 500 | 0 | 0.934 | 0.864 | 0.030 | 0.136 | 180.6 | 61.898 | 0.008 |
+| 2 | fork | 124 | 500 | 500 | 0 | 0.062 | 0.044 | 0.754 | 0.954 | 236.6 | 43.924 | 0.006 |
 
 Operating characteristics with a two-sided log-rank test at the 0.05
 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is
@@ -274,19 +274,141 @@ knitr::kable(
 
 | scenario | backend | seed | n_requested | n_analyzed | n_failed | power | stop_success | stop_futility | stop_max_N | mean_N | sd_N | stop_and_fail |
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| null: treatment OS 30% | NA | 125 | 500 | 500 | 0 | 0.036 | 0.038 | 0.888 | 0.960 | 205.05 | 46.826 | 0.014 |
-| target: treatment OS 50% | NA | 123 | 500 | 500 | 0 | 0.914 | 0.866 | 0.046 | 0.134 | 175.70 | 57.825 | 0.016 |
+| null: treatment OS 30% | fork | 125 | 500 | 500 | 0 | 0.058 | 0.046 | 0.814 | 0.952 | 227.05 | 43.942 | 0.002 |
+| target: treatment OS 50% | fork | 123 | 500 | 500 | 0 | 0.918 | 0.844 | 0.048 | 0.156 | 184.55 | 61.808 | 0.006 |
 
 Operating characteristics with the more stringent P \< 0.04 threshold
 (`prob_ha = 0.96`). {.table}
 
 In the cached 500-trial simulation, assuming the treatment arm has an OS
-rate of 50% at 12 months, 86.6% of trials stopped early for expected
-success, 4.6% stopped early for futility, and the mean sample size was
-175.7. Overall power was 91.4%. When the treatment-arm OS rate equalled
-the control-arm rate, 88.8% of trials stopped early for futility. These
+rate of 50% at 12 months, 84.4% of trials stopped early for expected
+success, 4.8% stopped early for futility, and the mean sample size was
+184.6. Overall power was 91.8%. When the treatment-arm OS rate equalled
+the control-arm rate, 81.4% of trials stopped early for futility. These
 Monte Carlo estimates have simulation error; larger calibration runs are
 appropriate for final design decisions.
+
+The same simulation can be summarized on the calendar-time scale without
+adding any design arguments. Time zero is first patient enrolled, and
+the time unit is months in this example. “Analysis ready” is when the
+last observed event or censoring required for the final analysis becomes
+available; it does not include an external allowance for data cleaning
+or database lock. The percentage in the trials column uses all requested
+simulations as its denominator, so failed and excluded simulations
+cannot silently disappear.
+
+``` r
+
+calendar_oc <- summarise_calendar_time(out_power2)
+calendar_duration <- calendar_oc$trial_duration
+calendar_duration$trials <- sprintf(
+  "%d (%.1f%%)",
+  calendar_duration$n_trials,
+  calendar_duration$percent_trials
+)
+calendar_duration$accrual <- sprintf(
+  "%.1f [%.1f-%.1f]",
+  calendar_duration$accrual_stop_median,
+  calendar_duration$accrual_stop_p10,
+  calendar_duration$accrual_stop_p90
+)
+calendar_duration$analysis_ready <- sprintf(
+  "%.1f [%.1f-%.1f]",
+  calendar_duration$analysis_ready_median,
+  calendar_duration$analysis_ready_p10,
+  calendar_duration$analysis_ready_p90
+)
+knitr::kable(
+  calendar_duration[c(
+    "stopping_reason",
+    "trials",
+    "mean_N",
+    "accrual",
+    "analysis_ready",
+    "followup_person_time_mean",
+    "peak_active_followup_mean"
+  )],
+  digits = 1,
+  col.names = c(
+    "Stopping reason",
+    "Trials, n (%)",
+    "Mean enrolled",
+    "Accrual stopped, median [P10-P90]",
+    "Analysis ready, median [P10-P90]",
+    "Mean person-months",
+    "Mean peak under follow-up"
+  ),
+  caption = "Calendar-time duration and follow-up burden under the treatment-effect scenario."
+)
+```
+
+| Stopping reason | Trials, n (%) | Mean enrolled | Accrual stopped, median \[P10-P90\] | Analysis ready, median \[P10-P90\] | Mean person-months | Mean peak under follow-up |
+|:---|:---|---:|:---|:---|---:|---:|
+| expected_success | 422 (84.4%) | 168.4 | 30.2 \[23.3-49.7\] | 41.9 \[34.7-61.2\] | 1314.5 | 48.9 |
+| futility | 24 (4.8%) | 209.4 | 39.9 \[31.6-51.9\] | 51.8 \[43.6-63.3\] | 1631.2 | 51.1 |
+| maximum_sample_size | 54 (10.8%) | 300.0 | 60.6 \[55.5-64.2\] | 71.9 \[67.4-76.1\] | 2338.2 | 51.8 |
+| overall | 500 (100.0%) | 184.6 | 32.2 \[23.5-57.6\] | 44.0 \[35.2-69.0\] | 1440.3 | 49.3 |
+
+Calendar-time duration and follow-up burden under the treatment-effect
+scenario. {.table}
+
+Because `out_power2` was simulated with `return_trace = TRUE`, a second
+wide table describes when each interim look was reached and how many
+subjects were actively under follow-up at that time. A trial that stops
+before a later look remains in the requested denominator but does not
+contribute a timing value at that look.
+
+``` r
+
+calendar_interim <- calendar_oc$interim_timing
+calendar_interim$reached <- sprintf(
+  "%d (%.1f%%)",
+  calendar_interim$n_reached,
+  calendar_interim$percent_reached
+)
+calendar_interim$calendar_time <- sprintf(
+  "%.1f [%.1f-%.1f]",
+  calendar_interim$calendar_time_median,
+  calendar_interim$calendar_time_p10,
+  calendar_interim$calendar_time_p90
+)
+calendar_interim$active_followup <- sprintf(
+  "%.0f [%.0f-%.0f]",
+  calendar_interim$active_followup_median,
+  calendar_interim$active_followup_p10,
+  calendar_interim$active_followup_p90
+)
+knitr::kable(
+  calendar_interim[c(
+    "look",
+    "planned_N",
+    "reached",
+    "calendar_time",
+    "active_followup"
+  )],
+  col.names = c(
+    "Look",
+    "Planned N",
+    "Reached, n (%)",
+    "Calendar month, median [P10-P90]",
+    "Active follow-up, median [P10-P90]"
+  ),
+  caption = "Calendar timing and concurrent follow-up at each interim look."
+)
+```
+
+| Look | Planned N | Reached, n (%) | Calendar month, median \[P10-P90\] | Active follow-up, median \[P10-P90\] |
+|---:|---:|:---|:---|:---|
+| 1 | 100 | 500 (100.0%) | 19.5 \[17.4-22.2\] | 40 \[32-48\] |
+| 2 | 125 | 500 (100.0%) | 24.7 \[22.0-27.7\] | 40 \[32-49\] |
+| 3 | 150 | 325 (65.0%) | 29.8 \[26.7-32.5\] | 40 \[32-48\] |
+| 4 | 175 | 253 (50.6%) | 34.8 \[31.1-37.8\] | 40 \[33-48\] |
+| 5 | 200 | 201 (40.2%) | 40.0 \[36.0-43.2\] | 40 \[33-47\] |
+| 6 | 225 | 153 (30.6%) | 45.1 \[41.2-47.8\] | 40 \[32-48\] |
+| 7 | 250 | 115 (23.0%) | 50.2 \[46.0-53.5\] | 40 \[33-48\] |
+| 8 | 275 | 90 (18.0%) | 55.2 \[51.0-59.1\] | 40 \[33-48\] |
+
+Calendar timing and concurrent follow-up at each interim look. {.table}
 
 The same results can be viewed graphically.
 [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)

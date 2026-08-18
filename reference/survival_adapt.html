@@ -332,17 +332,33 @@ risk-difference analyses. For non-imputed frequentist analyses it is
 futility.</p></li>
 <li><p><code>stop_expected_success</code>: Logical indicator of whether the trial stopped
 early for expected success.</p></li>
-</ul><p>The returned object has a <code>decision_design</code> attribute containing
+<li><p><code>stopping_reason</code>: One of <code>"expected_success"</code>, <code>"futility"</code>, or
+<code>"maximum_sample_size"</code>.</p></li>
+<li><p><code>accrual_stop_time</code>: Calendar time of the last enrollment in the trial.</p></li>
+<li><p><code>analysis_ready_time</code>: Calendar time at which the last enrolled
+subject's observed event or censoring becomes available. This excludes
+external data-cleaning and database-lock delays.</p></li>
+<li><p><code>planned_completion_time</code>: Calendar time at which the last enrolled
+subject would complete the full planned follow-up.</p></li>
+<li><p><code>followup_person_time</code>: Sum of observed follow-up times across enrolled
+subjects.</p></li>
+<li><p><code>peak_active_followup</code>: Largest number of enrolled subjects concurrently
+under follow-up.</p></li>
+</ul><p>Calendar time is measured from the first patient's enrollment at time
+zero. Times use the same units as <code>lambda_time</code>, <code>cutpoints</code>, and
+<code>end_of_study</code>.</p>
+<p>The returned object has a <code>decision_design</code> attribute containing
 <code>interim_look</code>, <code>Fn</code>, <code>Sn</code>, and the Monte Carlo settings. Thresholds in
 this metadata are normalized to one value per interim look (and have
 length zero when no interim looks are planned).</p>
 <p>With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
-per interim look. The trace records enrollment and observed events by arm,
+per interim look. The trace records calendar time, the number of subjects
+actively under follow-up, enrollment and observed events by arm,
 predictive probabilities, Monte Carlo standard errors and exact bounds,
 draw counts, thresholds, the decision and reason, empty-interval fallback
-diagnostics, and warnings raised during that look. It deliberately excludes imputed data
-sets and posterior draws to keep the output compact.</p>
+diagnostics, and warnings raised during that look. It deliberately
+excludes imputed data sets and posterior draws to keep the output compact.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -534,6 +550,10 @@ approach to sample size selection. <em>Journal of Biopharmaceutical Statistics</
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.975      0        less         300       300        600   600</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1            1 -0.1382612           0             0                     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       stopping_reason accrual_stop_time analysis_ready_time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 maximum_sample_size          27.54104            63.54104</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   planned_completion_time followup_person_time peak_active_followup</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                63.54104             16408.12                  479</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

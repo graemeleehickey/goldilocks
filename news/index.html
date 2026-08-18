@@ -41,6 +41,10 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.0.9000" id="goldilocks-0609000">goldilocks 0.6.0.9000<a class="anchor" aria-label="anchor" href="#goldilocks-0609000"></a></h2>
 <div class="section level3">
+<h3 id="improvements-0-6-0-9000">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-6-0-9000"></a></h3>
+<ul><li>New <code><a href="../reference/summarise_calendar_time.html">summarise_calendar_time()</a></code> reports wide operating-characteristic tables for trial duration, accrual, analysis readiness, person-time, peak concurrent follow-up, and interim-look timing. Calendar time starts at first enrollment; requested, analyzed, and failed denominators remain explicit, and no new simulation arguments are required. Per-trial results and retained traces now carry the compact timing values needed for these summaries (<a href="https://github.com/graemeleehickey/goldilocks/issues/87" class="external-link">#87</a>).</li>
+</ul></div>
+<div class="section level3">
 <h3 id="bug-fixes-0-6-0-9000">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-6-0-9000"></a></h3>
 <ul><li>
 <code><a href="../reference/sim_trials.html">sim_trials()</a></code> now caps package-owned workers at useful trial tasks and uses a documented automatic crossover of at least two trials per worker, avoiding parallel startup for workloads smaller than four trials. Package-owned PSOCK clusters are cleaned up on errors, returned parallel metadata records the deterministic execution plan, and benchmarks report setup separately from estimated compute and dispatch time (<a href="https://github.com/graemeleehickey/goldilocks/issues/93" class="external-link">#93</a>).</li>

@@ -104,6 +104,10 @@ out
 #> 1           0.95    0.3        less          80         0         80    80
 #>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
 #> 1        0.992 0.1825442        0.08             0                     0
+#>       stopping_reason accrual_stop_time analysis_ready_time
+#> 1 maximum_sample_size          15.05894            39.05894
+#>   planned_completion_time followup_person_time peak_active_followup
+#> 1                39.05894             1672.471                   73
 ```
 
 There is no need to supply `block` or `rand_ratio`: they are redundant

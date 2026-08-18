@@ -154,7 +154,11 @@ p_{\text{control}}</span></p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95      0        less          60        60        120   120</span></span>
 <span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9178978 -0.1129032        0.85             0                     0</span></span></code></pre></div>
+<span><span class="co">#&gt; 1    0.9178978 -0.1129032        0.85             0                     0</span></span>
+<span><span class="co">#&gt;       stopping_reason accrual_stop_time analysis_ready_time</span></span>
+<span><span class="co">#&gt; 1 maximum_sample_size            10.911              22.911</span></span>
+<span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
+<span><span class="co">#&gt; 1                  22.911             1193.166                  106</span></span></code></pre></div>
 <p>The output has the same structure as other
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> analyses. For
 <code>method = "bayes-bin"</code>, <code>est_final</code> is the
@@ -258,7 +262,11 @@ exceeds <code>prob_ha</code>.</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95    0.3        less          80         0         80    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9998388 0.1341463           1             0                     0</span></span></code></pre></div>
+<span><span class="co">#&gt; 1    0.9998388 0.1341463           1             0                     0</span></span>
+<span><span class="co">#&gt;       stopping_reason accrual_stop_time analysis_ready_time</span></span>
+<span><span class="co">#&gt; 1 maximum_sample_size          10.38072            22.38072</span></span>
+<span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
+<span><span class="co">#&gt; 1                22.38072             886.6491                   74</span></span></code></pre></div>
 <p>In this setting <code>est_final</code> is the posterior mean event
 probability in the single arm, and <code>post_prob_ha</code> is the
 posterior probability that this event probability is below the

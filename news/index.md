@@ -2,6 +2,18 @@
 
 ## goldilocks 0.6.0.9000
 
+### Improvements
+
+- New
+  [`summarise_calendar_time()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.md)
+  reports wide operating-characteristic tables for trial duration,
+  accrual, analysis readiness, person-time, peak concurrent follow-up,
+  and interim-look timing. Calendar time starts at first enrollment;
+  requested, analyzed, and failed denominators remain explicit, and no
+  new simulation arguments are required. Per-trial results and retained
+  traces now carry the compact timing values needed for these summaries
+  ([\#87](https://github.com/graemeleehickey/goldilocks/issues/87)).
+
 ### Bug fixes
 
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)

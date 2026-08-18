@@ -92,6 +92,10 @@ out_two_arm
 #> 1           0.95      0        less          60        60        120   120
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
 #> 1    0.9178978 -0.1129032        0.85             0                     0
+#>       stopping_reason accrual_stop_time analysis_ready_time
+#> 1 maximum_sample_size            10.911              22.911
+#>   planned_completion_time followup_person_time peak_active_followup
+#> 1                  22.911             1193.166                  106
 ```
 
 The output has the same structure as other
@@ -197,6 +201,10 @@ out_single_arm
 #> 1           0.95    0.3        less          80         0         80    80
 #>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
 #> 1    0.9998388 0.1341463           1             0                     0
+#>       stopping_reason accrual_stop_time analysis_ready_time
+#> 1 maximum_sample_size          10.38072            22.38072
+#>   planned_completion_time followup_person_time peak_active_followup
+#> 1                22.38072             886.6491                   74
 ```
 
 In this setting `est_final` is the posterior mean event probability in

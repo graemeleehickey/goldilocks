@@ -502,6 +502,10 @@ advent_effectiveness
 #> 1          0.956   0.15        less         225       225        450   750
 #>   post_prob_ha    est_final ppp_success stop_futility stop_expected_success
 #> 1    0.9995408 -0.001415929           1             0                     1
+#>    stopping_reason accrual_stop_time analysis_ready_time
+#> 1 expected_success          556.0652            916.0652
+#>   planned_completion_time followup_person_time peak_active_followup
+#> 1                916.0652             124748.2                  284
 ```
 
 The most important columns are:
@@ -567,6 +571,10 @@ advent_safety
 #> 1          0.966   0.08        less         325       325        650   750
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
 #> 1    0.9988901 0.01815951           1             0                     1
+#>    stopping_reason accrual_stop_time analysis_ready_time
+#> 1 expected_success          697.5696             1057.57
+#>   planned_completion_time followup_person_time peak_active_followup
+#> 1                 1057.57             214854.1                  380
 ```
 
 In the published ADVENT design, a predicted-success stopping

@@ -320,9 +320,13 @@ A list containing `sims`, a data frame with one row per successfully
 simulated trial; `failures`, a data frame with columns `trial`,
 `error_class`, and `message`; and `call`. When `return_trace = TRUE`,
 the list also contains `traces`, a data frame with one row per completed
-interim look and a `trial` identifier. See
+interim look and a `trial` identifier. Per-trial calendar-time metrics
+are always retained in `sims`; traces additionally retain calendar time
+and active follow-up at each look. See
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-for details of the summary and trace columns. The returned object also
+for details of the summary and trace columns, and
+[`summarise_calendar_time()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.md)
+for wide operating-characteristic tables. The returned object also
 retains the normalized `decision_design` attribute from
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
 An `rng_metadata` attribute records the caller RNG kind, effective

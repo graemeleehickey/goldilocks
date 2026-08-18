@@ -118,6 +118,10 @@ by 24 months.</p>
 <span><span class="co">#&gt; 1           0.95      0        less          40        40         80    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha   est_final ppp_success stop_futility stop_expected_success</span></span>
 <span><span class="co">#&gt; 1          0.7 -0.06199122           0             0                     0</span></span>
+<span><span class="co">#&gt;       stopping_reason accrual_stop_time analysis_ready_time</span></span>
+<span><span class="co">#&gt; 1 maximum_sample_size          9.095155            33.09515</span></span>
+<span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
+<span><span class="co">#&gt; 1                33.09515             1661.969                   76</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Interim looks completed: 2</span></span></code></pre></div>
 <p>The summary element is the familiar final analysis output. The trace
@@ -128,10 +132,14 @@ element is an audit trail of the interim path.</p>
 <span><span class="co">#&gt; 1           0.95      0        less          40        40         80    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha   est_final ppp_success stop_futility stop_expected_success</span></span>
 <span><span class="co">#&gt; 1          0.7 -0.06199122           0             0                     0</span></span>
+<span><span class="co">#&gt;       stopping_reason accrual_stop_time analysis_ready_time</span></span>
+<span><span class="co">#&gt; 1 maximum_sample_size          9.095155            33.09515</span></span>
+<span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
+<span><span class="co">#&gt; 1                33.09515             1661.969                   76</span></span>
 <span><span class="va">trial</span><span class="op">$</span><span class="va">trace</span></span>
-<span><span class="co">#&gt;   look planned_N calendar_time N_enrolled N_treatment N_control</span></span>
-<span><span class="co">#&gt; 1    1        40      4.238838         40          20        20</span></span>
-<span><span class="co">#&gt; 2    2        60      6.628455         60          30        30</span></span>
+<span><span class="co">#&gt;   look planned_N calendar_time active_followup N_enrolled N_treatment N_control</span></span>
+<span><span class="co">#&gt; 1    1        40      4.238838              38         40          20        20</span></span>
+<span><span class="co">#&gt; 2    2        60      6.628455              57         60          30        30</span></span>
 <span><span class="co">#&gt;   events_treatment events_control N_pending N_not_enrolled ppp_stop_now</span></span>
 <span><span class="co">#&gt; 1                0              1        39             40            0</span></span>
 <span><span class="co">#&gt; 2                1              1        58             20            0</span></span>

@@ -248,6 +248,10 @@ out
 #> 1          0.975      0        less          50        50        100   100
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
 #> 1        0.969 -0.1761562        0.08             0                     0
+#>       stopping_reason accrual_stop_time analysis_ready_time
+#> 1 maximum_sample_size           20.2688            43.91658
+#>   planned_completion_time followup_person_time peak_active_followup
+#> 1                 44.2688              1637.81                   74
 ```
 
 The output reports the posterior probability of the alternative at the

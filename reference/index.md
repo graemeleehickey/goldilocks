@@ -17,6 +17,8 @@ designs.
   parameters and treatment effect
 - [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
   : Summarize simulations to get operating characteristics
+- [`summarise_calendar_time()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.md)
+  : Summarize operating characteristics on the calendar-time scale
 - [`plot_enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/plot_enrollment.md)
   : Plot an enrollment projection
 - [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)
@@ -31,6 +33,8 @@ designs.
   : Plot stopping outcomes from trial simulations
 - [`print(`*`<goldilocks_trial>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_trial.md)
   : Print an adaptive trial trace result
+- [`print(`*`<goldilocks_calendar_summary>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_calendar_summary.md)
+  : Print a calendar-time operating-characteristic summary
 
 ## Trial data generation
 

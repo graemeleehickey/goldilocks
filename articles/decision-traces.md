@@ -55,6 +55,10 @@ trial
 #> 1           0.95      0        less          40        40         80    80
 #>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
 #> 1          0.7 -0.06199122           0             0                     0
+#>       stopping_reason accrual_stop_time analysis_ready_time
+#> 1 maximum_sample_size          9.095155            33.09515
+#>   planned_completion_time followup_person_time peak_active_followup
+#> 1                33.09515             1661.969                   76
 #> 
 #> Interim looks completed: 2
 ```
@@ -69,10 +73,14 @@ trial$summary
 #> 1           0.95      0        less          40        40         80    80
 #>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
 #> 1          0.7 -0.06199122           0             0                     0
+#>       stopping_reason accrual_stop_time analysis_ready_time
+#> 1 maximum_sample_size          9.095155            33.09515
+#>   planned_completion_time followup_person_time peak_active_followup
+#> 1                33.09515             1661.969                   76
 trial$trace
-#>   look planned_N calendar_time N_enrolled N_treatment N_control
-#> 1    1        40      4.238838         40          20        20
-#> 2    2        60      6.628455         60          30        30
+#>   look planned_N calendar_time active_followup N_enrolled N_treatment N_control
+#> 1    1        40      4.238838              38         40          20        20
+#> 2    2        60      6.628455              57         60          30        30
 #>   events_treatment events_control N_pending N_not_enrolled ppp_stop_now
 #> 1                0              1        39             40            0
 #> 2                1              1        58             20            0

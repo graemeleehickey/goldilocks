@@ -353,8 +353,11 @@ and defaults to <code>prior_surv</code>, preserving the historical behavior.</p>
 simulated trial; <code>failures</code>, a data frame with columns <code>trial</code>,
 <code>error_class</code>, and <code>message</code>; and <code>call</code>. When <code>return_trace = TRUE</code>, the
 list also contains <code>traces</code>, a data frame with one row per completed
-interim look and a <code>trial</code> identifier. See <code><a href="survival_adapt.html">survival_adapt()</a></code> for details
-of the summary and trace columns. The returned object also retains the
+interim look and a <code>trial</code> identifier. Per-trial calendar-time metrics are
+always retained in <code>sims</code>; traces additionally retain calendar time and
+active follow-up at each look. See <code><a href="survival_adapt.html">survival_adapt()</a></code> for details of the
+summary and trace columns, and <code><a href="summarise_calendar_time.html">summarise_calendar_time()</a></code> for wide
+operating-characteristic tables. The returned object also retains the
 normalized <code>decision_design</code> attribute from <code><a href="survival_adapt.html">survival_adapt()</a></code>. An
 <code>rng_metadata</code> attribute records the caller RNG kind, effective backend,
 seed policy, and stream seed when applicable. A deterministic
