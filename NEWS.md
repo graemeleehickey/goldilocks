@@ -2,6 +2,13 @@
 
 ## Improvements
 
+* `summarise_sims()` now reports explicit requested, analyzed, failed, and used
+  simulation counts together with 95% Monte Carlo intervals for every
+  probability and mean sample size. Wilson intervals remain informative for
+  zero or one observed outcome, and an optional named `max_mcse` target warns
+  when a scenario has insufficient Monte Carlo precision. Documentation and
+  column names distinguish finite-simulation uncertainty from clinical or
+  model uncertainty (#68).
 * New `summarise_calendar_time()` reports wide operating-characteristic tables
   for trial duration, accrual, analysis readiness, person-time, peak concurrent
   follow-up, and interim-look timing. Calendar time starts at first enrollment;
@@ -11,6 +18,10 @@
 
 ## Bug fixes
 
+* `summarise_sims()` now calculates the probability of reaching the maximum
+  sample size from trial-level stopping indicators. Previously, the newly
+  summarized futility probability shadowed the input indicator inside
+  `dplyr::summarise()`, producing incorrect `stop_max_N` values (#68).
 * `sim_trials()` now caps package-owned workers at useful trial tasks and uses
   a documented automatic crossover of at least two trials per worker, avoiding
   parallel startup for workloads smaller than four trials. Package-owned PSOCK
@@ -21,8 +32,8 @@
   execution. Successful trials are retained, failures are excluded into a
   compact `failures` table, and one warning reports the affected count; an
   all-failed batch still stops with the failure table attached to its error.
-  Complete-result summaries retain the requested denominator and report the
-  analyzed and failed counts without adding a new public argument (#72).
+  Complete-result summaries retain the requested count and report the analyzed
+  and failed counts without adding a new simulation argument (#72).
 * Cox analyses now isolate the low-overhead `survival::coxph.fit()` path behind
   a cached version/signature compatibility check and validate its returned
   coefficient and variance structure. Incompatible installations fall back

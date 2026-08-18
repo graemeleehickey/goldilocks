@@ -4,13 +4,19 @@
 \alias{summarise_sims}
 \title{Summarize simulations to get operating characteristics}
 \usage{
-summarise_sims(data)
+summarise_sims(data, max_mcse = NULL)
 }
 \arguments{
 \item{data}{A complete result returned by \code{\link[=sim_trials]{sim_trials()}}, a simulation
 \code{data.frame}, or a list of either form. Named list elements identify
 scenarios. Existing \code{scenario} columns and grouping variables are
 preserved.}
+
+\item{max_mcse}{Optional named numeric vector giving the largest acceptable
+Monte Carlo standard error for selected estimands. Supported names are
+\code{power}, \code{stop_success}, \code{stop_futility}, \code{stop_max_N}, \code{mean_N},
+\code{stop_and_fail}, and \code{failure_rate}. A warning identifies every scenario
+and estimand whose Monte Carlo standard error exceeds its target.}
 }
 \value{
 Data frame reporting the operating characteristics, including the
@@ -19,10 +25,23 @@ proportion of trials that stopped for early expected success, futility, or
 went to the maximum sample size. The average stopping sample size (and
 standard deviation) are also recorded. The proportion of trials that
 stopped early for expected success, yet went to ultimately fail are also
-reported. When complete \code{\link[=sim_trials]{sim_trials()}} results are supplied, the output
-also reports the requested, analyzed, and failed trial counts plus the
-effective backend and seed. Full call, RNG, parallel, timing, failure, and
-design metadata are retained in the \code{simulation_metadata} attribute.
+reported. Each probability and mean is accompanied by its Monte Carlo
+standard error and 95\% Monte Carlo confidence limits, with columns ending
+in \verb{_mcse}, \verb{_mc_lower}, and \verb{_mc_upper}. Probability intervals use the
+Wilson method; the mean sample-size interval uses a t distribution.
+
+These intervals describe uncertainty from using a finite number of
+simulated trials under fixed design and data-generating assumptions. They
+are \strong{not clinical confidence intervals}, treatment-effect intervals, or
+measures of model uncertainty.
+
+The output always reports \code{n_used}, the number of successfully analyzed
+simulations used by the operating-characteristic estimands. When complete
+\code{\link[=sim_trials]{sim_trials()}} results are supplied, it also reports requested, analyzed,
+and failed counts, the failure rate, effective backend, and seed. For a raw
+simulation data frame, requested and failed counts are unknown and are
+reported as \code{NA}. Full call, RNG, parallel, timing, failure, and design
+metadata are retained in the \code{simulation_metadata} attribute.
 }
 \description{
 Summarize simulations to get operating characteristics

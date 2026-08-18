@@ -556,8 +556,24 @@ out <- sim_trials(
   method           = method,
   seed             = 12345)
 
-summarise_sims(out)
+summarise_sims(
+  out,
+  max_mcse = c(power = 0.005, stop_futility = 0.01, mean_N = 1)
+)
 ```
+
+`summarise_sims()` reports a Monte Carlo standard error and 95% Monte Carlo
+confidence interval for each probability and for mean sample size. Wilson
+intervals are used for probabilities so that zero or one observed outcome does
+not produce a misleading zero-width interval; mean sample size uses a t
+interval. These quantify repeated-simulation error under fixed design and
+data-generating assumptions. They are not clinical confidence intervals for a
+treatment effect and do not include uncertainty about the assumed outcome,
+accrual, or missing-data models. Requested, analyzed, failed, and used counts
+make the denominator explicit. Failed simulations are reported separately and
+are not treated as unsuccessful clinical trials. The optional named `max_mcse`
+targets produce a warning when the achieved Monte Carlo precision is too weak
+for the intended comparison.
 
 ### 8.1 Visual diagnostics
 
