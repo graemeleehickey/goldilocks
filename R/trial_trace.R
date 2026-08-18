@@ -19,6 +19,7 @@ new_trial_trace <- function(rows) {
     look = integer(),
     planned_N = integer(),
     calendar_time = numeric(),
+    active_followup = integer(),
     N_enrolled = integer(),
     N_treatment = integer(),
     N_control = integer(),

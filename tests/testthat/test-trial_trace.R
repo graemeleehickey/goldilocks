@@ -48,6 +48,7 @@ test_that("survival_adapt returns an auditable interim trace on request", {
     "look",
     "planned_N",
     "calendar_time",
+    "active_followup",
     "N_enrolled",
     "N_treatment",
     "N_control",
@@ -95,6 +96,37 @@ test_that("survival_adapt returns an auditable interim trace on request", {
     out$trace$N_treatment + out$trace$N_control,
     out$trace$N_enrolled
   )
+  expect_true(all(out$trace$active_followup >= 0))
+  expect_true(all(out$trace$active_followup <= out$trace$N_enrolled))
+  expect_named(
+    out$summary,
+    c(
+      "prob_threshold",
+      "margin",
+      "alternative",
+      "N_treatment",
+      "N_control",
+      "N_enrolled",
+      "N_max",
+      "post_prob_ha",
+      "est_final",
+      "ppp_success",
+      "stop_futility",
+      "stop_expected_success",
+      "stopping_reason",
+      "accrual_stop_time",
+      "analysis_ready_time",
+      "planned_completion_time",
+      "followup_person_time",
+      "peak_active_followup"
+    )
+  )
+  expect_gte(out$summary$analysis_ready_time, out$summary$accrual_stop_time)
+  expect_lte(
+    out$summary$analysis_ready_time,
+    out$summary$planned_completion_time
+  )
+  expect_lte(out$summary$peak_active_followup, out$summary$N_enrolled)
   expect_equal(
     out$trace$ppp_stop_now_draws,
     rep(trace_args()$N_impute, nrow(out$trace))

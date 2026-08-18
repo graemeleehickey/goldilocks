@@ -30,6 +30,7 @@ reference:
       - survival_adapt
       - sim_trials
       - summarise_sims
+      - summarise_calendar_time
       - plot_enrollment
       - plot_sim_ocs
       - plot_sim_decisions

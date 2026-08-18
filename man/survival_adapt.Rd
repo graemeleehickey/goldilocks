@@ -234,7 +234,23 @@ risk-difference analyses. For non-imputed frequentist analyses it is
 futility.
 \item \code{stop_expected_success}: Logical indicator of whether the trial stopped
 early for expected success.
+\item \code{stopping_reason}: One of \code{"expected_success"}, \code{"futility"}, or
+\code{"maximum_sample_size"}.
+\item \code{accrual_stop_time}: Calendar time of the last enrollment in the trial.
+\item \code{analysis_ready_time}: Calendar time at which the last enrolled
+subject's observed event or censoring becomes available. This excludes
+external data-cleaning and database-lock delays.
+\item \code{planned_completion_time}: Calendar time at which the last enrolled
+subject would complete the full planned follow-up.
+\item \code{followup_person_time}: Sum of observed follow-up times across enrolled
+subjects.
+\item \code{peak_active_followup}: Largest number of enrolled subjects concurrently
+under follow-up.
 }
+
+Calendar time is measured from the first patient's enrollment at time
+zero. Times use the same units as \code{lambda_time}, \code{cutpoints}, and
+\code{end_of_study}.
 
 The returned object has a \code{decision_design} attribute containing
 \code{interim_look}, \code{Fn}, \code{Sn}, and the Monte Carlo settings. Thresholds in
@@ -243,11 +259,12 @@ length zero when no interim looks are planned).
 
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
-per interim look. The trace records enrollment and observed events by arm,
+per interim look. The trace records calendar time, the number of subjects
+actively under follow-up, enrollment and observed events by arm,
 predictive probabilities, Monte Carlo standard errors and exact bounds,
 draw counts, thresholds, the decision and reason, empty-interval fallback
-diagnostics, and warnings raised during that look. It deliberately excludes imputed data
-sets and posterior draws to keep the output compact.
+diagnostics, and warnings raised during that look. It deliberately
+excludes imputed data sets and posterior draws to keep the output compact.
 }
 \description{
 Simulate and analyze one Goldilocks adaptive trial

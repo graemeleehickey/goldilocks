@@ -315,6 +315,22 @@
 #'     futility.
 #'   - `stop_expected_success`: Logical indicator of whether the trial stopped
 #'     early for expected success.
+#'   - `stopping_reason`: One of `"expected_success"`, `"futility"`, or
+#'     `"maximum_sample_size"`.
+#'   - `accrual_stop_time`: Calendar time of the last enrollment in the trial.
+#'   - `analysis_ready_time`: Calendar time at which the last enrolled
+#'     subject's observed event or censoring becomes available. This excludes
+#'     external data-cleaning and database-lock delays.
+#'   - `planned_completion_time`: Calendar time at which the last enrolled
+#'     subject would complete the full planned follow-up.
+#'   - `followup_person_time`: Sum of observed follow-up times across enrolled
+#'     subjects.
+#'   - `peak_active_followup`: Largest number of enrolled subjects concurrently
+#'     under follow-up.
+#'
+#'   Calendar time is measured from the first patient's enrollment at time
+#'   zero. Times use the same units as `lambda_time`, `cutpoints`, and
+#'   `end_of_study`.
 #'
 #'   The returned object has a `decision_design` attribute containing
 #'   `interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
@@ -323,11 +339,12 @@
 #'
 #'   With return_trace = TRUE, a goldilocks_trial object is returned. Its
 #'   summary element is the same data frame and its trace element has one row
-#'   per interim look. The trace records enrollment and observed events by arm,
+#'   per interim look. The trace records calendar time, the number of subjects
+#'   actively under follow-up, enrollment and observed events by arm,
 #'   predictive probabilities, Monte Carlo standard errors and exact bounds,
 #'   draw counts, thresholds, the decision and reason, empty-interval fallback
-#'   diagnostics, and warnings raised during that look. It deliberately excludes imputed data
-#'   sets and posterior draws to keep the output compact.
+#'   diagnostics, and warnings raised during that look. It deliberately
+#'   excludes imputed data sets and posterior draws to keep the output compact.
 #'
 #' @references
 #' Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks
@@ -729,10 +746,12 @@ survival_adapt <- function(
       }
 
       if (return_trace) {
+        look_time <- data_total$enrollment[analysis_at_enrollnumber[i]]
         trace_rows[[i]] <- data.frame(
           look = i,
           planned_N = analysis_at_enrollnumber[i],
-          calendar_time = data_total$enrollment[analysis_at_enrollnumber[i]],
+          calendar_time = look_time,
+          active_followup = active_followup_at(data_total, look_time),
           N_enrolled = nrow(data),
           N_treatment = sum(data$treatment == 1),
           N_control = sum(data$treatment == 0),
@@ -862,6 +881,11 @@ survival_adapt <- function(
 
   N_treatment <- sum(data_final$treatment == 1) # Total analyzed: treatment
   N_control <- sum(data_final$treatment == 0) # Total analyzed: control
+  calendar_metrics <- trial_calendar_metrics(data_final, end_of_study)
+  stopping_reason <- calendar_stopping_reason(
+    stop_futility,
+    stop_expected_success
+  )
 
   ##############################################################################
   ### Output
@@ -879,7 +903,13 @@ survival_adapt <- function(
     est_final = est_final,
     ppp_success = ppp_success,
     stop_futility = stop_futility,
-    stop_expected_success = stop_expected_success
+    stop_expected_success = stop_expected_success,
+    stopping_reason = stopping_reason,
+    accrual_stop_time = calendar_metrics$accrual_stop_time,
+    analysis_ready_time = calendar_metrics$analysis_ready_time,
+    planned_completion_time = calendar_metrics$planned_completion_time,
+    followup_person_time = calendar_metrics$followup_person_time,
+    peak_active_followup = calendar_metrics$peak_active_followup
   )
   enrollment_design <- new_enrollment_design(
     lambda = lambda,

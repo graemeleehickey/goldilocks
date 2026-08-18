@@ -243,8 +243,11 @@ A list containing \code{sims}, a data frame with one row per successfully
 simulated trial; \code{failures}, a data frame with columns \code{trial},
 \code{error_class}, and \code{message}; and \code{call}. When \code{return_trace = TRUE}, the
 list also contains \code{traces}, a data frame with one row per completed
-interim look and a \code{trial} identifier. See \code{\link[=survival_adapt]{survival_adapt()}} for details
-of the summary and trace columns. The returned object also retains the
+interim look and a \code{trial} identifier. Per-trial calendar-time metrics are
+always retained in \code{sims}; traces additionally retain calendar time and
+active follow-up at each look. See \code{\link[=survival_adapt]{survival_adapt()}} for details of the
+summary and trace columns, and \code{\link[=summarise_calendar_time]{summarise_calendar_time()}} for wide
+operating-characteristic tables. The returned object also retains the
 normalized \code{decision_design} attribute from \code{\link[=survival_adapt]{survival_adapt()}}. An
 \code{rng_metadata} attribute records the caller RNG kind, effective backend,
 seed policy, and stream seed when applicable. A deterministic

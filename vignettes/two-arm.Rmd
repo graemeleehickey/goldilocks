@@ -177,7 +177,103 @@ knitr::kable(
 )
 ```
 
-In the cached 500-trial simulation, assuming the treatment arm has an OS rate of 50% at 12 months, 86.6% of trials stopped early for expected success, 4.6% stopped early for futility, and the mean sample size was 175.7. Overall power was 91.4%. When the treatment-arm OS rate equalled the control-arm rate, 88.8% of trials stopped early for futility. These Monte Carlo estimates have simulation error; larger calibration runs are appropriate for final design decisions.
+In the cached 500-trial simulation, assuming the treatment arm has an OS rate of 50% at 12 months, 84.4% of trials stopped early for expected success, 4.8% stopped early for futility, and the mean sample size was 184.6. Overall power was 91.8%. When the treatment-arm OS rate equalled the control-arm rate, 81.4% of trials stopped early for futility. These Monte Carlo estimates have simulation error; larger calibration runs are appropriate for final design decisions.
+
+The same simulation can be summarized on the calendar-time scale without
+adding any design arguments. Time zero is first patient enrolled, and the time
+unit is months in this example. "Analysis ready" is when the last observed
+event or censoring required for the final analysis becomes available; it does
+not include an external allowance for data cleaning or database lock. The
+percentage in the trials column uses all requested simulations as its
+denominator, so failed and excluded simulations cannot silently disappear.
+
+```{r calendar-duration}
+calendar_oc <- summarise_calendar_time(out_power2)
+calendar_duration <- calendar_oc$trial_duration
+calendar_duration$trials <- sprintf(
+  "%d (%.1f%%)",
+  calendar_duration$n_trials,
+  calendar_duration$percent_trials
+)
+calendar_duration$accrual <- sprintf(
+  "%.1f [%.1f-%.1f]",
+  calendar_duration$accrual_stop_median,
+  calendar_duration$accrual_stop_p10,
+  calendar_duration$accrual_stop_p90
+)
+calendar_duration$analysis_ready <- sprintf(
+  "%.1f [%.1f-%.1f]",
+  calendar_duration$analysis_ready_median,
+  calendar_duration$analysis_ready_p10,
+  calendar_duration$analysis_ready_p90
+)
+knitr::kable(
+  calendar_duration[c(
+    "stopping_reason",
+    "trials",
+    "mean_N",
+    "accrual",
+    "analysis_ready",
+    "followup_person_time_mean",
+    "peak_active_followup_mean"
+  )],
+  digits = 1,
+  col.names = c(
+    "Stopping reason",
+    "Trials, n (%)",
+    "Mean enrolled",
+    "Accrual stopped, median [P10-P90]",
+    "Analysis ready, median [P10-P90]",
+    "Mean person-months",
+    "Mean peak under follow-up"
+  ),
+  caption = "Calendar-time duration and follow-up burden under the treatment-effect scenario."
+)
+```
+
+Because `out_power2` was simulated with `return_trace = TRUE`, a second wide
+table describes when each interim look was reached and how many subjects were
+actively under follow-up at that time. A trial that stops before a later look
+remains in the requested denominator but does not contribute a timing value at
+that look.
+
+```{r calendar-interims}
+calendar_interim <- calendar_oc$interim_timing
+calendar_interim$reached <- sprintf(
+  "%d (%.1f%%)",
+  calendar_interim$n_reached,
+  calendar_interim$percent_reached
+)
+calendar_interim$calendar_time <- sprintf(
+  "%.1f [%.1f-%.1f]",
+  calendar_interim$calendar_time_median,
+  calendar_interim$calendar_time_p10,
+  calendar_interim$calendar_time_p90
+)
+calendar_interim$active_followup <- sprintf(
+  "%.0f [%.0f-%.0f]",
+  calendar_interim$active_followup_median,
+  calendar_interim$active_followup_p10,
+  calendar_interim$active_followup_p90
+)
+knitr::kable(
+  calendar_interim[c(
+    "look",
+    "planned_N",
+    "reached",
+    "calendar_time",
+    "active_followup"
+  )],
+  col.names = c(
+    "Look",
+    "Planned N",
+    "Reached, n (%)",
+    "Calendar month, median [P10-P90]",
+    "Active follow-up, median [P10-P90]"
+  ),
+  caption = "Calendar timing and concurrent follow-up at each interim look."
+)
+```
 
 The same results can be viewed graphically. `plot_sim_ocs()` compares final
 success, stopping behavior, and expected sample size across the treatment-effect
