@@ -38,6 +38,7 @@ reference:
       - plot_trial_trace
       - plot_sim_stopping
       - print.goldilocks_trial
+      - print.goldilocks_calendar_summary
 
   - title: Trial data generation
     desc: >
