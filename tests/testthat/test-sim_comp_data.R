@@ -43,10 +43,12 @@ test_that("sim_comp_data returns correct columns for single-arm", {
     N_total = 30,
     lambda = 5,
     lambda_time = NULL,
-    end_of_study = 36
+    end_of_study = 36,
+    prop_loss = 0.20
   )
   expect_equal(nrow(out), 30)
   expect_true(all(out$treatment == 1))
+  expect_equal(sum(out$loss_to_fu), ceiling(0.20 * 30))
 })
 
 test_that("sim_comp_data applies loss to follow-up", {
@@ -65,6 +67,131 @@ test_that("sim_comp_data applies loss to follow-up", {
   expect_equal(n_lost, ceiling(0.30 * 200))
   # Subjects lost to follow-up should be censored
   expect_true(all(out$event[out$loss_to_fu] == 0))
+})
+
+test_that("scalar and equal arm-specific loss proportions are identical", {
+  common_args <- list(
+    hazard_treatment = 0.01,
+    hazard_control = 0.02,
+    cutpoints = NULL,
+    N_total = 99,
+    lambda = 20,
+    lambda_time = NULL,
+    end_of_study = 36,
+    block = 3,
+    rand_ratio = c(1, 2)
+  )
+
+  set.seed(2061)
+  scalar <- do.call(
+    sim_comp_data,
+    c(common_args, list(prop_loss = 0.20))
+  )
+  set.seed(2061)
+  arm_specific <- do.call(
+    sim_comp_data,
+    c(
+      common_args,
+      list(prop_loss = c(treatment = 0.20, control = 0.20))
+    )
+  )
+
+  expect_identical(arm_specific, scalar)
+})
+
+test_that("sim_comp_data applies differential loss within randomized arms", {
+  common_args <- list(
+    hazard_treatment = 0.01,
+    hazard_control = 0.02,
+    cutpoints = NULL,
+    N_total = 99,
+    lambda = 20,
+    lambda_time = NULL,
+    end_of_study = 36,
+    block = 3,
+    rand_ratio = c(1, 2)
+  )
+
+  set.seed(6901)
+  canonical <- do.call(
+    sim_comp_data,
+    c(
+      common_args,
+      list(prop_loss = c(control = 0.10, treatment = 0.25))
+    )
+  )
+  set.seed(6901)
+  reversed <- do.call(
+    sim_comp_data,
+    c(
+      common_args,
+      list(prop_loss = c(treatment = 0.25, control = 0.10))
+    )
+  )
+
+  expect_identical(reversed, canonical)
+  expect_equal(
+    sum(canonical$loss_to_fu[canonical$treatment == 0L]),
+    ceiling(0.10 * sum(canonical$treatment == 0L))
+  )
+  expect_equal(
+    sum(canonical$loss_to_fu[canonical$treatment == 1L]),
+    ceiling(0.25 * sum(canonical$treatment == 1L))
+  )
+  expect_true(all(canonical$event[canonical$loss_to_fu] == 0L))
+})
+
+test_that("sim_comp_data validates arm-specific loss proportions", {
+  common_args <- list(
+    hazard_treatment = 0.01,
+    hazard_control = 0.02,
+    cutpoints = NULL,
+    N_total = 30,
+    lambda = 5,
+    lambda_time = NULL,
+    end_of_study = 36
+  )
+
+  expect_error(
+    do.call(
+      sim_comp_data,
+      c(common_args, list(prop_loss = c(0.10, 0.20)))
+    ),
+    "named 'control' and 'treatment'"
+  )
+  expect_error(
+    do.call(
+      sim_comp_data,
+      c(
+        common_args,
+        list(prop_loss = c(control = 0.10, experimental = 0.20))
+      )
+    ),
+    "named 'control' and 'treatment'"
+  )
+  expect_error(
+    do.call(
+      sim_comp_data,
+      c(
+        common_args,
+        list(prop_loss = c(control = 0.10, treatment = 1.20))
+      )
+    ),
+    "finite probabilities"
+  )
+  expect_error(
+    do.call(
+      sim_comp_data,
+      modifyList(
+        common_args,
+        list(
+          hazard_control = NULL,
+          prop_loss = c(control = 0.10, treatment = 0.20)
+        )
+      )
+    ),
+    "single probability"
+  )
 })
 
 test_that("sim_comp_data has no loss to follow-up by default", {

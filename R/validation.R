@@ -45,6 +45,56 @@ validate_probability_vector <- function(x, name, upper_open = FALSE) {
   invisible(TRUE)
 }
 
+#' Normalize arm-specific loss-to-follow-up proportions
+#'
+#' @description Converts a shared scalar or a named arm-specific vector into
+#'   the canonical treatment-group order used by the simulation. Requiring
+#'   names for two-arm vectors prevents positional confusion between APIs that
+#'   list treatment and control in different orders.
+#'
+#' @param prop_loss One shared probability or a named arm-specific vector.
+#' @param single_arm Whether the simulation has only a treatment arm.
+#'
+#' @return A named probability vector containing `treatment` for a single-arm
+#'   design or `control` followed by `treatment` for a two-arm design.
+#'
+#' @keywords internal
+#' @noRd
+normalize_prop_loss <- function(prop_loss, single_arm) {
+  validate_probability_vector(prop_loss, "prop_loss")
+
+  if (single_arm) {
+    if (length(prop_loss) != 1L) {
+      stop("'prop_loss' must be a single probability for a single-arm design")
+    }
+    return(c(treatment = unname(prop_loss)))
+  }
+
+  arm_names <- c("control", "treatment")
+  if (length(prop_loss) == 1L) {
+    normalized <- rep(unname(prop_loss), 2L)
+    names(normalized) <- arm_names
+    return(normalized)
+  }
+
+  supplied_names <- names(prop_loss)
+  valid_arm_vector <- length(prop_loss) == 2L &&
+    !is.null(supplied_names) &&
+    !anyNA(supplied_names) &&
+    !anyDuplicated(supplied_names) &&
+    setequal(supplied_names, arm_names)
+  if (!valid_arm_vector) {
+    stop(
+      "'prop_loss' must be a single probability or a length-two vector ",
+      "named 'control' and 'treatment' for a two-arm design"
+    )
+  }
+
+  normalized <- unname(prop_loss[arm_names])
+  names(normalized) <- arm_names
+  normalized
+}
+
 #' @title Validate one positive integer
 #'
 #' @description Checks that an input is a single finite, strictly positive

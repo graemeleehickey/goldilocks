@@ -2,6 +2,11 @@
 
 ## Improvements
 
+* `prop_loss` now accepts a named `control`/`treatment` vector for arm-specific
+  attrition in two-arm trials, while a scalar applies the same proportion to
+  every arm. Loss is selected separately within each randomized arm, retained
+  argument metadata stores the normalized named proportions, and single-arm
+  designs continue to require one value (#69).
 * Piecewise event and enrollment times now use one explicit survival
   counting-process convention when assigned to intervals: `(start, stop]`, so
   a realized time exactly at a cutpoint belongs to the interval ending there.

@@ -26,13 +26,16 @@
 #' @param rand_ratio vector. Randomization allocation for the ratio of control
 #'   to treatment. Integer values mapping the size of the block. See
 #'   [randomization()] for more details.
-#' @param prop_loss scalar. Overall proportion of subjects lost to follow-up.
-#'   Subjects are selected at random for LTFU regardless of treatment assignment or
-#'   event status. Each LTFU subject's observed time is drawn from a
-#'   `Uniform(0, t)` distribution, where `t` is their potential
-#'   event or censoring time. Since the LTFU time is always less than
-#'   `t`, the event has not yet occurred at dropout and the subject is
-#'   right-censored. Defaults to zero.
+#' @param prop_loss one or two probabilities. A scalar applies the same LTFU
+#'   proportion to every arm. For a two-arm design, differential attrition can
+#'   be specified with a length-two vector named `control` and `treatment`; the
+#'   supplied order does not matter. Within each arm,
+#'   `ceiling(prop_loss * arm size)` subjects are selected at random regardless
+#'   of event status. Each selected subject's observed time is drawn from a
+#'   `Uniform(0, t)` distribution, where `t` is their potential event or
+#'   censoring time. Since the LTFU time is always less than `t`, the event has
+#'   not yet occurred at dropout and the subject is right-censored. Single-arm
+#'   designs require one probability. Defaults to zero.
 #'
 #' @details Enrollment is simulated directly in continuous time by
 #'   [enrollment()]. The first patient is placed at time zero and all subsequent
@@ -87,13 +90,14 @@ sim_comp_data <- function(
   ### Run checks on arguments
   ##############################################################################
 
+  # Assign: indicator of whether single-arm study
+  single_arm <- is.null(hazard_control)
+
   validate_positive_integer_scalar(N_total, "N_total")
-  validate_single_probability(prop_loss, "prop_loss")
+  prop_loss <- normalize_prop_loss(prop_loss, single_arm)
   validate_cutpoints(cutpoints)
   validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
 
-  # Assign: indicator of whether single-arm study
-  single_arm <- is.null(hazard_control)
   validate_piecewise_hazard(hazard_treatment, cutpoints, "hazard_treatment")
   if (!single_arm) {
     validate_piecewise_hazard(hazard_control, cutpoints, "hazard_control")
@@ -155,10 +159,15 @@ sim_comp_data <- function(
 
   # Simulate loss to follow-up
   loss_to_fu <- rep(FALSE, N_total)
-  if (prop_loss > 0) {
-    n_loss_to_fu <- ceiling(prop_loss * N_total)
-    loss_to_fu[sample(1:N_total, n_loss_to_fu)] <- TRUE
+  treatment_values <- c(control = 0L, treatment = 1L)
+  for (arm in names(prop_loss)) {
+    arm_index <- which(treatment == treatment_values[[arm]])
+    n_arm_loss <- ceiling(prop_loss[[arm]] * length(arm_index))
+    if (n_arm_loss > 0L) {
+      loss_to_fu[sample(arm_index, n_arm_loss)] <- TRUE
+    }
   }
+  n_loss_to_fu <- sum(loss_to_fu)
 
   # Creating a new data.frame for all the variables
   data_total <- data.frame(
@@ -171,7 +180,7 @@ sim_comp_data <- function(
   )
 
   # Subjects lost are uniformly distributed
-  if (prop_loss > 0) {
+  if (n_loss_to_fu > 0L) {
     data_total$time[data_total$loss_to_fu] <- runif(
       n_loss_to_fu,
       0,

@@ -95,13 +95,16 @@ integration). The default is \code{"mc"}.}
 to treatment. Integer values mapping the size of the block. See
 \code{\link[=randomization]{randomization()}} for more details.}
 
-\item{prop_loss}{scalar. Overall proportion of subjects lost to follow-up.
-Subjects are selected at random for LTFU regardless of treatment assignment or
-event status. Each LTFU subject's observed time is drawn from a
-\code{Uniform(0, t)} distribution, where \code{t} is their potential
-event or censoring time. Since the LTFU time is always less than
-\code{t}, the event has not yet occurred at dropout and the subject is
-right-censored. Defaults to zero.}
+\item{prop_loss}{one or two probabilities. A scalar applies the same LTFU
+proportion to every arm. For a two-arm design, differential attrition can
+be specified with a length-two vector named \code{control} and \code{treatment}; the
+supplied order does not matter. Within each arm,
+\verb{ceiling(prop_loss * arm size)} subjects are selected at random regardless
+of event status. Each selected subject's observed time is drawn from a
+\code{Uniform(0, t)} distribution, where \code{t} is their potential event or
+censoring time. Since the LTFU time is always less than \code{t}, the event has
+not yet occurred at dropout and the subject is right-censored. Single-arm
+designs require one probability. Defaults to zero.}
 
 \item{alternative}{character. The string specifying the alternative
 hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
@@ -264,7 +267,8 @@ length zero when no interim looks are planned).
 Both return forms have an \code{arguments} attribute containing a named list of
 the evaluated argument values, including defaults. It can be saved with
 \code{\link[=saveRDS]{saveRDS()}} and supplied to a later call with
-\code{do.call(survival_adapt, attr(result, "arguments"))}.
+\code{do.call(survival_adapt, attr(result, "arguments"))}. Its \code{prop_loss}
+element is normalized to a named value for every simulated arm.
 
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row

@@ -84,8 +84,9 @@
 #'   `parallel_metadata` attribute records the requested and effective backend
 #'   and worker counts, task count, and backend-selection reason. An `arguments`
 #'   attribute contains a named list of all evaluated argument values, including
-#'   defaults. It can be saved with [saveRDS()] and supplied to a later call
-#'   with `do.call(sim_trials, attr(result, "arguments"))`.
+#'   defaults. Its `prop_loss` element is normalized to a named value for every
+#'   simulated arm. The attribute can be saved with [saveRDS()] and supplied to
+#'   a later call with `do.call(sim_trials, attr(result, "arguments"))`.
 #'
 #' @importFrom pbmcapply pbmclapply
 #' @export
@@ -166,6 +167,11 @@ sim_trials <- function(
   caller_rng_kind <- RNGkind()
 
   validate_positive_integer_scalar(N_trials, "N_trials")
+  prop_loss <- normalize_prop_loss(
+    prop_loss,
+    single_arm = is.null(hazard_control)
+  )
+  Arguments$prop_loss <- prop_loss
   validate_logical_scalar(return_trace, "return_trace")
   validate_positive_integer_scalar(N_impute, "N_impute")
   validate_positive_integer_scalar(N_mcmc, "N_mcmc")

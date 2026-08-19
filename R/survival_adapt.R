@@ -340,7 +340,8 @@
 #'   Both return forms have an `arguments` attribute containing a named list of
 #'   the evaluated argument values, including defaults. It can be saved with
 #'   [saveRDS()] and supplied to a later call with
-#'   `do.call(survival_adapt, attr(result, "arguments"))`.
+#'   `do.call(survival_adapt, attr(result, "arguments"))`. Its `prop_loss`
+#'   element is normalized to a named value for every simulated arm.
 #'
 #'   With return_trace = TRUE, a goldilocks_trial object is returned. Its
 #'   summary element is the same data frame and its trace element has one row
@@ -434,7 +435,8 @@ survival_adapt <- function(
   ##############################################################################
 
   validate_positive_integer_scalar(N_total, "N_total")
-  validate_single_probability(prop_loss, "prop_loss")
+  prop_loss <- normalize_prop_loss(prop_loss, single_arm)
+  Arguments$prop_loss <- prop_loss
   validate_single_probability(prob_ha, "prob_ha")
   validate_positive_integer_scalar(N_impute, "N_impute")
   validate_positive_integer_scalar(N_mcmc, "N_mcmc")

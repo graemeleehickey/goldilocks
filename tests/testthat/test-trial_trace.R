@@ -58,6 +58,10 @@ test_that("survival_adapt retains complete evaluated arguments", {
   expect_identical(compact_arguments$binary_imputation, "event-time")
   expect_identical(compact_arguments$return_trace, FALSE)
   expect_identical(
+    compact_arguments$prop_loss,
+    c(control = 0.05, treatment = 0.05)
+  )
+  expect_identical(
     unserialize(serialize(compact_arguments, NULL)),
     compact_arguments
   )
