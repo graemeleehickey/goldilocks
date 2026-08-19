@@ -277,6 +277,7 @@ test_that("sim_trials isolates failed trials and warns once", {
       survival_adapt = fake_survival_adapt,
       make_psock_callable = function(...) fake_survival_adapt,
       make_sim_cluster = function(...) fake_cluster,
+      initialize_sim_cluster = function(...) invisible(NULL),
       run_sim_cluster = function(cluster, trial_index, fun) {
         lapply(trial_index, fun)
       },
@@ -554,6 +555,34 @@ test_that("sim_trials produces identical seeded PSOCK results", {
   )
 })
 
+test_that("PSOCK workers load the package namespace and compiled routines", {
+  namespace <- environment(sim_trials)
+  package_path <- getNamespaceInfo(namespace, "path")
+  skip_if_not(
+    file.exists(file.path(package_path, "Meta", "package.rds")),
+    "requires an installed package namespace"
+  )
+
+  cluster <- make_sim_cluster(1L)
+  on.exit(stop_sim_cluster(cluster), add = TRUE)
+  initialize_sim_cluster(cluster)
+
+  worker_state <- parallel::clusterCall(cluster, function() {
+    namespace <- asNamespace("goldilocks")
+    c(
+      namespace_loaded = "goldilocks" %in% loadedNamespaces(),
+      dll_loaded = "goldilocks" %in% names(getLoadedDLLs()),
+      native_symbol_loaded = exists(
+        "_goldilocks_logrank_instance",
+        envir = namespace,
+        inherits = FALSE
+      )
+    )
+  })[[1L]]
+
+  expect_true(all(worker_state))
+})
+
 test_that("unseeded PSOCK simulations derive streams from caller RNG state", {
   run_psock <- function(ncores) {
     sim_trials(
@@ -699,6 +728,7 @@ test_that("small automatic workloads do not start parallel workers", {
 
 test_that("package-owned PSOCK clusters are capped and stopped on errors", {
   made_workers <- NULL
+  initialized <- FALSE
   stopped <- FALSE
   fake_cluster <- structure(vector("list", 2L), class = "cluster")
 
@@ -706,6 +736,10 @@ test_that("package-owned PSOCK clusters are capped and stopped on errors", {
     make_sim_cluster = function(workers) {
       made_workers <<- workers
       fake_cluster
+    },
+    initialize_sim_cluster = function(cluster) {
+      initialized <<- identical(cluster, fake_cluster)
+      invisible(cluster)
     },
     run_sim_cluster = function(...) stop("simulated worker failure"),
     stop_sim_cluster = function(cluster) {
@@ -730,6 +764,7 @@ test_that("package-owned PSOCK clusters are capped and stopped on errors", {
     "simulated worker failure"
   )
   expect_identical(made_workers, 2L)
+  expect_true(initialized)
   expect_true(stopped)
 })
 

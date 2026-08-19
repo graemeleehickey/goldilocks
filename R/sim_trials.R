@@ -327,6 +327,7 @@ sim_trials <- function(
     psock = {
       active_cluster <- make_sim_cluster(workers)
       on.exit(stop_sim_cluster(active_cluster), add = TRUE)
+      initialize_sim_cluster(active_cluster)
       run_sim_cluster(
         active_cluster,
         trial_index,
@@ -485,6 +486,42 @@ make_sim_cluster <- function(workers) {
   parallel::makeCluster(workers)
 }
 
+initialize_sim_cluster <- function(cluster) {
+  source_namespace <- environment(sim_trials)
+  package_name <- getNamespaceName(source_namespace)
+  package_path <- getNamespaceInfo(source_namespace, "path")
+  package_metadata <- file.path(package_path, "Meta", "package.rds")
+
+  # A namespace created by pkgload::load_all() does not have an installed
+  # package library to propagate. Its serialized namespace is sufficient for
+  # local Unix-like PSOCK tests; installed-package execution takes this path.
+  if (length(package_path) != 1L || !file.exists(package_metadata)) {
+    return(invisible(cluster))
+  }
+
+  package_library <- dirname(package_path)
+  worker_library_paths <- unique(c(package_library, .libPaths()))
+  worker_initializer <- function(
+    package_name,
+    package_library,
+    library_paths
+  ) {
+    .libPaths(library_paths)
+    loadNamespace(package_name, lib.loc = package_library)
+    invisible(NULL)
+  }
+  environment(worker_initializer) <- baseenv()
+
+  parallel::clusterCall(
+    cluster,
+    worker_initializer,
+    package_name,
+    package_library,
+    worker_library_paths
+  )
+  invisible(cluster)
+}
+
 run_sim_cluster <- function(cluster, trial_index, fun) {
   parallel::parLapply(cluster, trial_index, fun)
 }
@@ -533,7 +570,11 @@ resolve_sim_backend <- function(backend, ncores) {
 #' @description Re-homes the package's R functions in a serializable
 #'   environment so PSOCK workers use the same source implementation as the
 #'   calling session. The package namespace remains the parent environment to
-#'   provide imported functions and compiled routines.
+#'   provide imported functions and compiled routines. This helper is used by
+#'   multi-core Windows execution, where `sim_trials()` selects PSOCK workers
+#'   because forked processes are unavailable. Before the callable is sent,
+#'   `initialize_sim_cluster()` gives each worker the parent package library
+#'   and loads the namespace so registered compiled routines are available.
 #'
 #' @param name Name of the package function to prepare.
 #'

@@ -32,6 +32,10 @@
 
 ## Bug fixes
 
+* Package-owned PSOCK workers now inherit the parent package library and load
+  the `goldilocks` namespace before trial functions are dispatched. This keeps
+  registered compiled routines available for multi-core log-rank simulations
+  on Windows, including during source-package vignette builds.
 * `summarise_sims()` now calculates the probability of reaching the maximum
   sample size from trial-level stopping indicators. Previously, the newly
   summarized futility probability shadowed the input indicator inside
