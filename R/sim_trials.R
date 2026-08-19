@@ -82,7 +82,10 @@
 #'   `rng_metadata` attribute records the caller RNG kind, effective backend,
 #'   seed policy, and stream seed when applicable. A deterministic
 #'   `parallel_metadata` attribute records the requested and effective backend
-#'   and worker counts, task count, and backend-selection reason.
+#'   and worker counts, task count, and backend-selection reason. An `arguments`
+#'   attribute contains a named list of all evaluated argument values, including
+#'   defaults. It can be saved with [saveRDS()] and supplied to a later call
+#'   with `do.call(sim_trials, attr(result, "arguments"))`.
 #'
 #' @importFrom pbmcapply pbmclapply
 #' @export
@@ -152,9 +155,13 @@ sim_trials <- function(
   prior_surv_final = prior_surv
 ) {
   Call <- match.call()
+  Arguments <- capture_arguments(sim_trials, environment())
   empty_interval <- match.arg(empty_interval)
   binary_imputation <- match.arg(binary_imputation)
   backend <- match.arg(backend)
+  Arguments$empty_interval <- empty_interval
+  Arguments$binary_imputation <- binary_imputation
+  Arguments$backend <- backend
   requested_backend <- backend
   caller_rng_kind <- RNGkind()
 
@@ -288,6 +295,10 @@ sim_trials <- function(
           return_trace = return_trace,
           prior_surv_final = prior_surv_final
         )
+        attr(result, "arguments") <- NULL
+        if (inherits(result, "goldilocks_trial")) {
+          attr(result$summary, "arguments") <- NULL
+        }
         list(
           trial = as.integer(x),
           result = result
@@ -373,6 +384,7 @@ sim_trials <- function(
     sims <- bind_rows(successful_results)
     out <- list(sims = sims, failures = failures, call = Call)
   }
+  attr(out$sims, "arguments") <- NULL
   attr(out, "enrollment_design") <- new_enrollment_design(
     lambda = lambda,
     N_total = N_total,
@@ -386,6 +398,7 @@ sim_trials <- function(
     exact = TRUE
   )
   attr(out, "rng_metadata") <- rng_metadata
+  attr(out, "arguments") <- Arguments
   attr(out, "parallel_metadata") <- list(
     requested_backend = requested_backend,
     backend = backend,

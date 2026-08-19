@@ -153,6 +153,36 @@ test_that("sim_trials defaults to serial execution", {
   )
 })
 
+test_that("sim_trials retains complete evaluated arguments", {
+  out <- sim_trials(
+    hazard_treatment = 0.02,
+    hazard_control = 0.03,
+    N_total = 20,
+    lambda = 10,
+    end_of_study = 12,
+    N_trials = 2,
+    method = "logrank",
+    backend = "sequential",
+    seed = 8601
+  )
+  arguments <- attr(out, "arguments", exact = TRUE)
+
+  expect_named(arguments, names(formals(sim_trials)))
+  expect_identical(arguments$hazard_treatment, 0.02)
+  expect_identical(arguments$empty_interval, "prior")
+  expect_identical(arguments$binary_imputation, "event-time")
+  expect_identical(arguments$backend, "sequential")
+  expect_identical(arguments$seed, 8601)
+  expect_identical(
+    unserialize(serialize(arguments, NULL)),
+    arguments
+  )
+
+  replayed <- do.call(sim_trials, arguments)
+  expect_identical(replayed$sims, out$sims)
+  expect_identical(replayed$failures, out$failures)
+})
+
 test_that("sim_trials optionally retains traces without changing summaries", {
   args <- list(
     hazard_treatment = -log(0.85) / 36,

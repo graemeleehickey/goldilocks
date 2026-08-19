@@ -337,6 +337,11 @@
 #'   this metadata are normalized to one value per interim look (and have
 #'   length zero when no interim looks are planned).
 #'
+#'   Both return forms have an `arguments` attribute containing a named list of
+#'   the evaluated argument values, including defaults. It can be saved with
+#'   [saveRDS()] and supplied to a later call with
+#'   `do.call(survival_adapt, attr(result, "arguments"))`.
+#'
 #'   With return_trace = TRUE, a goldilocks_trial object is returned. Its
 #'   summary element is the same data frame and its trace element has one row
 #'   per interim look. The trace records calendar time, the number of subjects
@@ -410,6 +415,7 @@ survival_adapt <- function(
   prior_surv_final = prior_surv
 ) {
   Call <- match.call()
+  Arguments <- capture_arguments(survival_adapt, environment())
   ##############################################################################
   ### Derive variables
   ##############################################################################
@@ -454,6 +460,8 @@ survival_adapt <- function(
   )
   empty_interval <- match.arg(empty_interval)
   binary_imputation <- match.arg(binary_imputation)
+  Arguments$empty_interval <- empty_interval
+  Arguments$binary_imputation <- binary_imputation
   validate_logical_scalar(return_trace, "return_trace")
   validate_analysis_configuration(
     method,
@@ -920,6 +928,7 @@ survival_adapt <- function(
   )
   attr(results, "enrollment_design") <- enrollment_design
   attr(results, "decision_design") <- decision_design
+  attr(results, "arguments") <- Arguments
 
   if (return_trace) {
     out <- list(
@@ -930,6 +939,7 @@ survival_adapt <- function(
     class(out) <- "goldilocks_trial"
     attr(out, "enrollment_design") <- enrollment_design
     attr(out, "decision_design") <- decision_design
+    attr(out, "arguments") <- Arguments
     return(out)
   }
 

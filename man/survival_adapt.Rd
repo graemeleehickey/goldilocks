@@ -257,6 +257,11 @@ The returned object has a \code{decision_design} attribute containing
 this metadata are normalized to one value per interim look (and have
 length zero when no interim looks are planned).
 
+Both return forms have an \code{arguments} attribute containing a named list of
+the evaluated argument values, including defaults. It can be saved with
+\code{\link[=saveRDS]{saveRDS()}} and supplied to a later call with
+\code{do.call(survival_adapt, attr(result, "arguments"))}.
+
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
 per interim look. The trace records calendar time, the number of subjects

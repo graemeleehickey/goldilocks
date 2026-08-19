@@ -42,6 +42,36 @@ test_that("survival_adapt keeps its default data-frame return value", {
   expect_false(inherits(out, "goldilocks_trial"))
 })
 
+test_that("survival_adapt retains complete evaluated arguments", {
+  supplied <- trace_args()
+
+  set.seed(5701)
+  compact <- do.call(survival_adapt, supplied)
+  compact_arguments <- attr(compact, "arguments", exact = TRUE)
+
+  expect_named(compact_arguments, names(formals(survival_adapt)))
+  expect_identical(
+    compact_arguments$hazard_treatment,
+    supplied$hazard_treatment
+  )
+  expect_identical(compact_arguments$empty_interval, "prior")
+  expect_identical(compact_arguments$binary_imputation, "event-time")
+  expect_identical(compact_arguments$return_trace, FALSE)
+  expect_identical(
+    unserialize(serialize(compact_arguments, NULL)),
+    compact_arguments
+  )
+
+  set.seed(5701)
+  replayed <- do.call(survival_adapt, compact_arguments)
+  expect_identical(replayed, compact)
+
+  traced <- run_traced_trial()
+  traced_arguments <- attr(traced, "arguments", exact = TRUE)
+  expect_named(traced_arguments, names(formals(survival_adapt)))
+  expect_identical(traced_arguments$return_trace, TRUE)
+})
+
 test_that("survival_adapt returns an auditable interim trace on request", {
   out <- run_traced_trial()
   expected_columns <- c(

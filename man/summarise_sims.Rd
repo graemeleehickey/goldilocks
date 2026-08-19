@@ -41,7 +41,8 @@ simulations used by the operating-characteristic estimands. When complete
 and failed counts, the failure rate, effective backend, and seed. For a raw
 simulation data frame, requested and failed counts are unknown and are
 reported as \code{NA}. Full call, RNG, parallel, timing, failure, and design
-metadata are retained in the \code{simulation_metadata} attribute.
+metadata, including the evaluated simulation arguments, are retained in
+the \code{simulation_metadata} attribute.
 }
 \description{
 Summarize simulations to get operating characteristics

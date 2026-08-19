@@ -32,7 +32,8 @@
 #'   and failed counts, the failure rate, effective backend, and seed. For a raw
 #'   simulation data frame, requested and failed counts are unknown and are
 #'   reported as `NA`. Full call, RNG, parallel, timing, failure, and design
-#'   metadata are retained in the `simulation_metadata` attribute.
+#'   metadata, including the evaluated simulation arguments, are retained in
+#'   the `simulation_metadata` attribute.
 #'
 #' @importFrom dplyr bind_rows group_by summarise
 #' @importFrom rlang .data
@@ -198,6 +199,7 @@ summarise_sims <- function(data, max_mcse = NULL) {
 
     if (!is.null(normalized$single_result)) {
       for (attribute_name in c(
+        "arguments",
         "enrollment_design",
         "decision_design",
         "rng_metadata",
@@ -598,6 +600,7 @@ simulation_result_metadata <- function(x, scenario) {
     n_analyzed = as.integer(nrow(x$sims)),
     n_failed = as.integer(n_requested - nrow(x$sims)),
     call = x$call,
+    arguments = attr(x, "arguments", exact = TRUE),
     enrollment_design = attr(x, "enrollment_design", exact = TRUE),
     decision_design = attr(x, "decision_design", exact = TRUE),
     rng_metadata = rng_metadata,

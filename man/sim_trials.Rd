@@ -252,7 +252,10 @@ normalized \code{decision_design} attribute from \code{\link[=survival_adapt]{su
 \code{rng_metadata} attribute records the caller RNG kind, effective backend,
 seed policy, and stream seed when applicable. A deterministic
 \code{parallel_metadata} attribute records the requested and effective backend
-and worker counts, task count, and backend-selection reason.
+and worker counts, task count, and backend-selection reason. An \code{arguments}
+attribute contains a named list of all evaluated argument values, including
+defaults. It can be saved with \code{\link[=saveRDS]{saveRDS()}} and supplied to a later call
+with \code{do.call(sim_trials, attr(result, "arguments"))}.
 }
 \description{
 Simulate multiple clinical trials with fixed input parameters,

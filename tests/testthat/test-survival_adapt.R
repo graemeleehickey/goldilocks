@@ -836,6 +836,8 @@ test_that("the final survival prior is independent of the interim prior", {
     c(common_args, list(prior_surv = c(100, 100)))
   )
 
+  attr(weak_interim, "arguments") <- NULL
+  attr(strong_interim, "arguments") <- NULL
   expect_identical(weak_interim, strong_interim)
 })
 

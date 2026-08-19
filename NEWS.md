@@ -2,6 +2,11 @@
 
 ## Improvements
 
+* `survival_adapt()` and `sim_trials()` results now retain an `arguments`
+  attribute containing all evaluated argument values, including defaults. The
+  plain named list can be serialized with `saveRDS()` and passed back to the
+  corresponding function with `do.call()` without relying on symbols retained
+  in the original call (#86).
 * `summarise_sims()` now reports explicit requested, analyzed, failed, and used
   simulation counts together with 95% Monte Carlo intervals for every
   probability and mean sample size. Wilson intervals remain informative for

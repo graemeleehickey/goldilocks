@@ -185,7 +185,15 @@ test_that("summarise_sims accepts a complete sim_trials result", {
     attr(direct, "decision_design", exact = TRUE),
     attr(simulations, "decision_design", exact = TRUE)
   )
+  expect_identical(
+    attr(direct, "arguments", exact = TRUE),
+    attr(simulations, "arguments", exact = TRUE)
+  )
   expect_named(attr(direct, "simulation_metadata", exact = TRUE), "1")
+  expect_identical(
+    attr(direct, "simulation_metadata", exact = TRUE)[[1]]$arguments,
+    attr(simulations, "arguments", exact = TRUE)
+  )
 })
 
 test_that("summarise_sims retains named full-result scenarios", {
