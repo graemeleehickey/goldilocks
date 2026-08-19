@@ -48,6 +48,12 @@
 #' for \eqn{j = 1, \ldots, K}, and \eqn{\lambda(t) = \lambda_{K+1}} after the
 #' final knot. The final rate therefore continues for as long as needed to
 #' reach `N_total`; there is no finite accrual horizon in this function.
+#' The value of the intensity at an isolated knot does not change the Poisson
+#' process. When assigning a realized enrollment time to an interval,
+#' `goldilocks` follows the survival counting-process convention: intervals are
+#' open on the left and closed on the right, so an arrival exactly at
+#' \eqn{\tau_j} belongs to the interval ending at \eqn{\tau_j}. The first
+#' patient at time zero is a fixed origin and is handled separately.
 #'
 #' Arrivals are generated exactly by the time-rescaling theorem. If
 #' \eqn{E_2, \ldots, E_N} are independent unit-rate exponential variables and
@@ -69,9 +75,10 @@
 #'
 #' For example, `lambda = c(0.3, 0.7, 0.9, 1.2)` with
 #' `lambda_time = c(5, 10, 15)` specifies average enrollment rates of 0.3 over
-#' \eqn{[0,5)}, 0.7 over \eqn{[5,10)}, 0.9 over \eqn{[10,15)}, and 1.2 from
-#' time 15 onward. Fractional knots such as `lambda_time = 2.5` are handled
-#' exactly; no unit-time binning or post-hoc jitter is used.
+#' positive times in \eqn{(0,5]}, 0.7 over \eqn{(5,10]}, 0.9 over
+#' \eqn{(10,15]}, and 1.2 after time 15. Fractional knots such as
+#' `lambda_time = 2.5` are handled exactly; no unit-time binning or post-hoc
+#' jitter is used.
 #'
 #' @return A non-decreasing numeric vector of `N_total` continuous enrollment
 #'   times, measured from first patient in and expressed in the same time unit
@@ -111,7 +118,10 @@ enrollment <- function(lambda = 1, N_total, lambda_time = NULL) {
   )
 
   arrival_intensity <- cumsum(rexp(N_total - 1L))
-  interval <- findInterval(arrival_intensity, cumulative_intensity)
+  interval <- pmax.int(
+    1L,
+    right_closed_interval_index(arrival_intensity, cumulative_intensity)
+  )
   arrival_time <- interval_starts[interval] +
     (arrival_intensity - cumulative_intensity[interval]) / lambda[interval]
 

@@ -452,7 +452,10 @@ cumulative_enrollment_intensity <- function(time, lambda, lambda_time) {
     0,
     cumsum(diff(interval_starts) * lambda[seq_along(lambda_time)])
   )
-  interval <- findInterval(time, interval_starts)
+  interval <- pmax.int(
+    1L,
+    right_closed_interval_index(time, interval_starts)
+  )
 
   cumulative_at_start[interval] +
     (time - interval_starts[interval]) * lambda[interval]
@@ -466,7 +469,10 @@ inverse_enrollment_intensity <- function(intensity, lambda, lambda_time) {
     0,
     cumsum(diff(interval_starts) * lambda[seq_along(lambda_time)])
   )
-  interval <- findInterval(intensity, cumulative_at_start)
+  interval <- pmax.int(
+    1L,
+    right_closed_interval_index(intensity, cumulative_at_start)
+  )
 
   interval_starts[interval] +
     (intensity - cumulative_at_start[interval]) / lambda[interval]

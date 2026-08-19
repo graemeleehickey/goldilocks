@@ -29,3 +29,11 @@ of rows of the \code{hazard} matrix parameter.
 Extends \code{\link[PWEALL:pwe]{PWEALL::pwe()}} to allow for vectorization over the
 hazard rates.
 }
+\details{
+The cumulative probability depends on interval durations, so the
+value assigned to an isolated cutpoint has no effect. PWEALL represents
+its generating hazard with pieces closed on the left and open on the
+right. When \code{goldilocks} assigns realized event times to analysis
+intervals, it instead uses the survival counting-process convention,
+open on the left and closed on the right.
+}

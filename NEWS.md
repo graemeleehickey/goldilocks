@@ -2,6 +2,15 @@
 
 ## Improvements
 
+* Piecewise event and enrollment times now use one explicit survival
+  counting-process convention when assigned to intervals: `(start, stop]`, so
+  a realized time exactly at a cutpoint belongs to the interval ending there.
+  Posterior sufficient statistics and enrollment intensity inversion share the
+  same boundary helper and regression tests cover times immediately before, at,
+  and after multiple cutpoints. PWEALL remains the continuous event-time
+  generator because its `[start, stop)` hazard representation differs only at
+  zero-probability singleton boundaries; documentation and vignettes now make
+  that distinction explicit (#70).
 * `survival_adapt()` and `sim_trials()` results now retain an `arguments`
   attribute containing all evaluated argument values, including defaults. The
   plain named list can be serialized with `saveRDS()` and passed back to the

@@ -44,6 +44,39 @@ test_that("fractional internal knots follow the integrated intensity", {
   expect_lt(abs(mean(arrivals <= 1) - expected_after_knot), 0.01)
 })
 
+test_that("enrollment knots use open-left closed-right intervals", {
+  epsilon <- 1e-6
+  time <- c(
+    0,
+    5 - epsilon,
+    5,
+    5 + epsilon,
+    12 - epsilon,
+    12,
+    12 + epsilon
+  )
+
+  expect_identical(
+    right_closed_interval_index(time, c(0, 5, 12)),
+    c(0L, 1L, 1L, 2L, 2L, 2L, 3L)
+  )
+
+  intensity <- cumulative_enrollment_intensity(
+    time,
+    lambda = c(1, 2, 4),
+    lambda_time = c(5, 12)
+  )
+  expect_equal(
+    inverse_enrollment_intensity(
+      intensity,
+      lambda = c(1, 2, 4),
+      lambda_time = c(5, 12)
+    ),
+    time,
+    tolerance = 1e-12
+  )
+})
+
 test_that("enrollment supports multiple internal knots", {
   set.seed(6739)
   out <- enrollment(

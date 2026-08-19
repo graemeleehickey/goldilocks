@@ -15,7 +15,15 @@
 #' @param maxtime scalar. Optional administrative censoring time. When
 #'   supplied, it must be later than every cutpoint.
 #'
-#' @details See [pwe_impute()] for details.
+#' @details PWEALL represents the generating hazard with pieces closed on the
+#'   left and open on the right. Because the event-time distribution is
+#'   continuous, the value of
+#'   the hazard at an isolated cutpoint does not alter the cumulative hazard,
+#'   distribution, or generated samples. When realized event times are later
+#'   assigned to analysis intervals, `goldilocks` follows the survival
+#'   counting-process convention, open on the left and closed on the right, so
+#'   an event exactly at a cutpoint belongs to the interval ending there. See
+#'   [pwe_impute()] for the conditional sampling details.
 #'
 #' @return A data frame with simulated follow-up times (`time`) and respective
 #'   event indicator (`event`, 1 = event occurred, 0 = censoring).
@@ -88,6 +96,13 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL) {
 #'
 #'   If \eqn{s = 0}, this is equivalent to a direct unconditional sample from
 #'   the PWE distribution.
+#'
+#'   PWEALL represents the generating hazard with pieces closed on the left and
+#'   open on the right. Its cumulative distribution is continuous at every
+#'   cutpoint, so this endpoint choice does not affect imputation. For assigning
+#'   realized event times to analysis intervals, `goldilocks` uses the survival
+#'   counting-process convention, open on the left and closed on the right; an
+#'   event exactly at a cutpoint belongs to the interval ending there.
 #'
 #' @return A data frame with simulated follow-up times (`time`) and respective
 #'   event indicator (`event`, 1 = event occurred, 0 = censoring).
@@ -214,6 +229,13 @@ pwe_conditional_event_probability <- function(
 #'   probability is evaluated. It must be greater than every cutpoint.
 #' @inheritParams pwe_sim
 #' @inheritParams survival_adapt
+#'
+#' @details The cumulative probability depends on interval durations, so the
+#'   value assigned to an isolated cutpoint has no effect. PWEALL represents
+#'   its generating hazard with pieces closed on the left and open on the
+#'   right. When `goldilocks` assigns realized event times to analysis
+#'   intervals, it instead uses the survival counting-process convention,
+#'   open on the left and closed on the right.
 #'
 #' @return A vector of `[0, 1]` probabilities from evaluation of the PWE
 #'   cumulative distribution function. Length of the vector matches the number

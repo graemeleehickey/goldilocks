@@ -31,7 +31,15 @@ Simulate time-to-event outcomes using the piecewise constant
 hazard exponential function.
 }
 \details{
-See \code{\link[=pwe_impute]{pwe_impute()}} for details.
+PWEALL represents the generating hazard with pieces closed on the
+left and open on the right. Because the event-time distribution is
+continuous, the value of
+the hazard at an isolated cutpoint does not alter the cumulative hazard,
+distribution, or generated samples. When realized event times are later
+assigned to analysis intervals, \code{goldilocks} follows the survival
+counting-process convention, open on the left and closed on the right, so
+an event exactly at a cutpoint belongs to the interval ending there. See
+\code{\link[=pwe_impute]{pwe_impute()}} for the conditional sampling details.
 }
 \examples{
 pwe_sim(10, hazard = c(0.005, 0.001), cutpoints = 3, maxtime = 36)

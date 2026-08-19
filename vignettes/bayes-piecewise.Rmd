@@ -33,7 +33,7 @@ Survival in many settings -- post-surgical mortality, transplant outcomes, oncol
 
 The package handles piecewise hazards through two related arguments:
 
--   `cutpoints`: the positive interior times at which the hazard changes. With $J - 1$ cutpoints there are $J$ intervals and therefore $J$ hazard rates for each treatment group. For example, `cutpoints = 6` produces two intervals, $[0, 6)$ and $[6, \infty)$. The default `cutpoints = NULL` supplies no change times and produces a single, constant hazard interval.
+-   `cutpoints`: the positive interior times at which the hazard changes. With $J - 1$ cutpoints there are $J$ intervals and therefore $J$ hazard rates for each treatment group. For example, PWEALL represents the continuous generating hazard for `cutpoints = 6` with pieces $[0, 6)$ and $[6, \infty)$. The default `cutpoints = NULL` supplies no change times and produces a single, constant hazard interval. When `goldilocks` assigns a realized event time to an analysis interval, it follows the survival counting-process convention $(0,6]$ and $(6,\infty)$ instead: an event recorded exactly at month 6 belongs to the first interval. These representations give the same continuous event-time distribution because an isolated cutpoint has probability zero.
 -   `hazard_treatment` and `hazard_control`: vectors of length $J$ giving the constant hazard for each interval.
 
 The helper `prop_to_haz()` maps cumulative event probabilities at given times into the corresponding piecewise hazards.
@@ -62,7 +62,7 @@ ht <- prop_to_haz(probs = c(0.18, 0.40), cutpoints = cutpoints, endtime = end_of
 round(rbind(control = hc, treatment = ht), 4)
 ```
 
-The first column is the hazard during $[0, 6)$ months and the second column is the hazard from 6 months onward. Both arms have a higher hazard in the early window. We can sanity-check that the implied survival probabilities at 24 months match what we specified by running the cumulative incidence computation back through `ppwe()`:
+The first column is the generating hazard during $[0, 6)$ months and the second column is the hazard from 6 months onward. In posterior sufficient statistics, the same columns receive observed events from $(0,6]$ and $(6,\infty)$ respectively. Both arms have a higher hazard in the early window. We can sanity-check that the implied survival probabilities at 24 months match what we specified by running the cumulative incidence computation back through `ppwe()`:
 
 ```{r check_cif}
 ppwe(hazard       = matrix(hc, nrow = 1),
@@ -133,7 +133,7 @@ The `time` and `enrollment` columns therefore use the same unit but different cl
 
 ## A single simulated trial
 
-We will run one trial under the alternative hypothesis to illustrate the mechanics. We choose `interim_look = 60` (the minimum required is `max(block) = 4`) and a constant accrual rate of 5 enrollments per month. With `lambda_time = NULL`, the first patient is placed at time zero and subsequent inter-arrival gaps are generated exactly from an exponential distribution with rate 5. Piecewise accrual is specified using positive internal knots only; for example, `lambda = c(2, 5)` and `lambda_time = 6` means 2 enrollments per month before month 6 and 5 thereafter. These calendar-time enrollment knots are distinct from the subject-follow-up hazard `cutpoints` used above.
+We will run one trial under the alternative hypothesis to illustrate the mechanics. We choose `interim_look = 60` (the minimum required is `max(block) = 4`) and a constant accrual rate of 5 enrollments per month. With `lambda_time = NULL`, the first patient is placed at time zero and subsequent inter-arrival gaps are generated exactly from an exponential distribution with rate 5. Piecewise accrual is specified using positive internal knots only; for example, `lambda = c(2, 5)` and `lambda_time = 6` assigns positive realized enrollment times in $(0,6]$ to the rate of 2 enrollments per month and later times to the rate of 5. The fixed first patient at zero is handled separately. These calendar-time enrollment knots are distinct from the subject-follow-up hazard `cutpoints` used above.
 
 ```{r run_one_trial, cache=TRUE}
 set.seed(7194)

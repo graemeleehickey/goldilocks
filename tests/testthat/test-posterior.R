@@ -35,6 +35,30 @@ test_that("posterior returns correct dimensions (two-arm, piecewise)", {
   expect_equal(dim(res), c(30, 3, 2))
 })
 
+test_that("events at cutpoints use open-left closed-right intervals", {
+  epsilon <- 1e-6
+  data <- data.frame(
+    time = c(
+      5 - epsilon,
+      5,
+      5 + epsilon,
+      12 - epsilon,
+      12,
+      12 + epsilon
+    ),
+    event = 1,
+    treatment = 1
+  )
+
+  stats <- posterior_sufficient_stats(
+    data,
+    cutpoints = c(5, 12),
+    single_arm = TRUE
+  )
+
+  expect_equal(stats$tot_events, c(2, 3, 1))
+})
+
 test_that("vector survival priors broadcast exactly across intervals", {
   data <- data.frame(
     time = c(3, 8, 15, 4, 10, 18),

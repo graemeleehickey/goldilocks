@@ -50,7 +50,11 @@ under the control arm.}
 \item{cutpoints}{finite, positive, strictly increasing interior times at
 which the baseline hazard changes. The number of hazards for each arm must
 be one greater than the number of cutpoints. Default is \code{NULL}, which
-corresponds to a simple (non-piecewise) exponential model.}
+corresponds to a simple (non-piecewise) exponential model. Realized event
+times are assigned to analysis intervals using the survival
+counting-process convention, open on the left and closed on the right; an
+event exactly at a cutpoint therefore belongs to the interval ending at
+that cutpoint.}
 
 \item{N_total}{integer. Maximum sample size allowable}
 

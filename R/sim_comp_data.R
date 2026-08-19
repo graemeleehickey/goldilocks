@@ -8,7 +8,11 @@
 #' @param cutpoints finite, positive, strictly increasing interior times at
 #'   which the baseline hazard changes. The number of hazards for each arm must
 #'   be one greater than the number of cutpoints. Default is `NULL`, which
-#'   corresponds to a simple (non-piecewise) exponential model.
+#'   corresponds to a simple (non-piecewise) exponential model. Realized event
+#'   times are assigned to analysis intervals using the survival
+#'   counting-process convention, open on the left and closed on the right; an
+#'   event exactly at a cutpoint therefore belongs to the interval ending at
+#'   that cutpoint.
 #' @param N_total integer. Maximum sample size allowable
 #' @param lambda finite positive enrollment rates per unit time. Supply one rate
 #'   for each interval defined by `lambda_time`. See [enrollment()] for the
@@ -42,6 +46,13 @@
 #'   that subject's enrollment. They need not have the same values or length.
 #'   All time quantities supplied to a simulation should nevertheless use one
 #'   common unit, such as days or months.
+#'
+#'   PWEALL represents the continuous generating hazard with pieces closed on
+#'   the left and open on the right. This differs from the package's
+#'   open-left, closed-right convention for assigning realized times only at
+#'   the cutpoints themselves, which have probability zero under the continuous
+#'   model. The cumulative hazard, event-time distribution, and generated
+#'   simulations are therefore unchanged.
 #'
 #' @return A data frame with 1 row per subject and columns:
 #'

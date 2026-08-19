@@ -259,7 +259,7 @@ test_that("pwe_impute errors on negative time", {
 test_that("conditional PWE event probabilities match the survival formula", {
   hazard <- c(0.02, 0.08, 0.01)
   cutpoints <- c(5, 12)
-  time <- c(0, 1, 7, 15, 24)
+  time <- c(0, 1, 5, 7, 12, 15, 24)
   end_of_study <- 24
   interval_starts <- c(0, cutpoints)
 

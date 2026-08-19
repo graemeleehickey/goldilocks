@@ -373,6 +373,12 @@ posterior_sufficient_stats <- function(
     if (nrow(treatment_data) == 0) {
       next
     }
+    # Match Surv(start, stop, event) and survSplit(): a realized event at a
+    # cutpoint belongs to the interval ending at that cutpoint.
+    event_interval <- right_closed_interval_index(
+      treatment_data$time,
+      interval_lower
+    )
 
     for (j in seq_len(n_intervals)) {
       lower <- interval_lower[j]
@@ -384,8 +390,7 @@ posterior_sufficient_stats <- function(
       data_summ$tot_time[row] <- sum(exposure)
       data_summ$tot_events[row] <- sum(
         treatment_data$event == 1 &
-          treatment_data$time > lower &
-          treatment_data$time <= upper
+          event_interval == j
       )
     }
   }

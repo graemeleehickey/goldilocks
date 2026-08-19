@@ -34,7 +34,13 @@ trial datasets with plausible event rates.
 Given \eqn{J-1} interior cutpoints, then there are J intervals
 defined as: \eqn{[s_0, s_1)}, \eqn{[s_1, s_2)}, \eqn{\dots}, \eqn{[s_{J-1},
   s_{J})}, with conditions that \eqn{s_0 = 0} and \eqn{s_J = \infty}. Each
-interval corresponds to constant hazard \eqn{\lambda_j}.
+interval corresponds to constant hazard \eqn{\lambda_j}. This is the
+PWEALL representation of the continuous generating hazard. Changing the
+value at an isolated cutpoint does not alter the cumulative probabilities
+calculated here. When observed event times are assigned to analysis
+intervals, \code{goldilocks} uses \verb{(s_\{j-1\}, s_j]}, matching the survival
+counting-process convention, so an event at \eqn{s_j} belongs to the
+interval ending there.
 }
 \examples{
 lambda <- prop_to_haz(0.15, endtime = 36) # 15\% probability at 36-months

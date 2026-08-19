@@ -283,7 +283,7 @@ hazard_table <- data.frame(
 knitr::kable(hazard_table, digits = c(9, 3))
 ```
 
-The less-than sign marks the exclusive upper boundary of each nonfinal interval; the final interval includes the administrative endpoint at day 360. This notation makes clear that adjacent windows do not overlap. Because event time is continuous, assigning an exact cut-point to the interval on its left or right would not change the model probability.
+The less-than sign marks the exclusive upper boundary of each nonfinal interval in the SAP's continuous generating-hazard notation; the final interval includes the administrative endpoint at day 360. This notation makes clear that adjacent windows do not overlap. Because event time is continuous, assigning an exact cut-point to the interval on its left or right would not change the model probability. When `goldilocks` summarizes realized event times, it follows the survival counting-process convention `(start, stop]`, so an event recorded exactly at a cut-point is assigned to the interval ending there.
 
 The following calculation verifies the two final binary event probabilities used by the vignette:
 
