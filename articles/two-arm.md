@@ -24,8 +24,8 @@ completed 12-months of follow-up.
 
 From this information, we have:
 
-- Equal randomization: `block = 2` and `rand_ratio = c(1, 1)` (default
-  parameters)
+- Equal randomization: `block = 2` and
+  `rand_ratio = c(control = 1, treatment = 1)` (default parameters)
 - Primary endpoint is at 12-months: `end_of_study = 12`
 - 12-month event rate for control arm:
   `hazard_control = prop_to_haz(1 - 0.30, endtime = 12)` (note that the
@@ -33,6 +33,13 @@ From this information, we have:
 - No change points in hazard: `cutpoints = NULL` (default parameter)
 - Maximum sample size: `N_total = 300`
 - No attrition: `prop_loss = 0`
+
+Arm names make unequal allocation unambiguous. Both
+`rand_ratio = c(control = 1, treatment = 2)` and the reversed named
+order are accepted and normalized internally. Legacy unnamed values are
+still read as `c(control, treatment)`, although unequal unnamed
+allocations warn because names may be required in a future major
+release.
 
 Sample size selection analyses are planned starting when 100 patients
 are enrolled and after every additional 25 patients are enrolled. Early
@@ -189,7 +196,7 @@ out_power <- sim_trials(
   end_of_study = 12,
   prior_surv = c(0.1, 0.1),
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0,
   alternative = "two.sided",
   Fn = rep(0.10, 8),

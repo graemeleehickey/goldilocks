@@ -58,7 +58,7 @@
 <span>  prior_bin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  bin_method <span class="op">=</span> <span class="st">"mc"</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">1</span>, treatment <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  prop_loss <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  alternative <span class="op">=</span> <span class="st">"greater"</span>,</span>
 <span>  h0 <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -161,8 +161,11 @@ integration). The default is <code>"mc"</code>.</p></dd>
 
 
 <dt id="arg-rand-ratio">rand_ratio<a class="anchor" aria-label="anchor" href="#arg-rand-ratio"></a></dt>
-<dd><p>vector. Randomization allocation for the ratio of control
-to treatment. Integer values mapping the size of the block. See
+<dd><p>length-two positive integer randomization allocation. Name
+the values <code>control</code> and <code>treatment</code>; either supplied order is accepted and
+normalized internally. A legacy unnamed vector remains accepted in
+<code>c(control, treatment)</code> order. Unequal unnamed values produce a warning
+because names may be required in a future major release. See
 <code><a href="randomization.html">randomization()</a></code> for more details.</p></dd>
 
 
@@ -359,7 +362,9 @@ length zero when no interim looks are planned).</p>
 the evaluated argument values, including defaults. It can be saved with
 <code><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS()</a></code> and supplied to a later call with
 <code>do.call(survival_adapt, attr(result, "arguments"))</code>. Its <code>prop_loss</code>
-element is normalized to a named value for every simulated arm.</p>
+element is normalized to a named value for every simulated arm.
+Its <code>rand_ratio</code> element is normalized to <code>control</code>, <code>treatment</code> order for
+two-arm designs.</p>
 <p>With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
 per interim look. The trace records calendar time, the number of subjects
@@ -543,7 +548,7 @@ approach to sample size selection. <em>Journal of Biopharmaceutical Statistics</
 <span class="r-in"><span> end_of_study <span class="op">=</span> <span class="fl">36</span>,</span></span>
 <span class="r-in"><span> prior_surv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> block <span class="op">=</span> <span class="fl">2</span>,</span></span>
-<span class="r-in"><span> rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span> rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">1</span>, treatment <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> prop_loss <span class="op">=</span> <span class="fl">0.30</span>,</span></span>
 <span class="r-in"><span> alternative <span class="op">=</span> <span class="st">"less"</span>,</span></span>
 <span class="r-in"><span> h0 <span class="op">=</span> <span class="fl">0</span>,</span></span>

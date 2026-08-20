@@ -51,7 +51,7 @@ sizes.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">randomization</span><span class="op">(</span><span class="va">N_total</span>, block <span class="op">=</span> <span class="fl">2</span>, allocation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">randomization</span><span class="op">(</span><span class="va">N_total</span>, block <span class="op">=</span> <span class="fl">2</span>, allocation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">1</span>, treatment <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -68,8 +68,11 @@ size must be a multiple of <code>sum(allocation)</code>.</p></dd>
 
 
 <dt id="arg-allocation">allocation<a class="anchor" aria-label="anchor" href="#arg-allocation"></a></dt>
-<dd><p>length-two positive integer vector. The two-arm
-randomization allocation in the order <code>c(control, treatment)</code>.</p></dd>
+<dd><p>length-two positive integer vector. Name the values
+<code>control</code> and <code>treatment</code>; either supplied order is accepted and normalized
+internally. A legacy unnamed vector remains accepted in
+<code>c(control, treatment)</code> order. Unequal unnamed values produce a warning
+because names may be required in a future major release.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -93,25 +96,41 @@ equal- and unequal-allocation examples below.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Implementing treatment allocation for control to treatment with 1:1.5</span></span></span>
 <span class="r-in"><span><span class="co"># randomization ratio</span></span></span>
-<span class="r-in"><span><span class="fu">randomization</span><span class="op">(</span>N_total <span class="op">=</span> <span class="fl">100</span>, block <span class="op">=</span> <span class="fl">5</span>, allocation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">randomization</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  N_total <span class="op">=</span> <span class="fl">100</span>,</span></span>
+<span class="r-in"><span>  block <span class="op">=</span> <span class="fl">5</span>,</span></span>
+<span class="r-in"><span>  allocation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">2</span>, treatment <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   [1] 0 1 1 1 0 1 1 1 0 0 0 1 1 0 1 1 0 0 1 1 1 0 0 1 1 0 1 1 0 1 0 1 1 1 0 0 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [38] 1 1 0 1 1 0 1 0 0 1 1 0 1 1 0 1 1 0 0 1 1 1 0 0 1 1 1 0 1 1 1 0 0 1 1 0 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [75] 1 0 1 0 1 1 0 0 1 1 1 1 1 1 0 0 1 0 1 1 0 0 1 1 1 0</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Treatment allocation with 2:1 for control to treatment</span></span></span>
-<span class="r-in"><span><span class="fu">randomization</span><span class="op">(</span>N_total <span class="op">=</span> <span class="fl">70</span>, block <span class="op">=</span> <span class="fl">9</span>, allocation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">randomization</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  N_total <span class="op">=</span> <span class="fl">70</span>,</span></span>
+<span class="r-in"><span>  block <span class="op">=</span> <span class="fl">9</span>,</span></span>
+<span class="r-in"><span>  allocation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>treatment <span class="op">=</span> <span class="fl">1</span>, control <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0 1 1 0 1 0 0 0 0 0 0 0 1 0 0 1 0 1 0 1 0 1 0 0 0 1 0 1 1 0 0 1 0 0 0 0 0 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [39] 0 1 1 0 0 0 1 1 0 0 1 0 0 0 1 0 0 0 1 0 1 0 0 1 0 1 0 0 1 0 0 0</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Treatment allocation for control to treatment with 1:2 for control</span></span></span>
 <span class="r-in"><span><span class="co"># to treatment with multiple block sizes c(3, 9, 6)</span></span></span>
-<span class="r-in"><span><span class="fu">randomization</span><span class="op">(</span>N_total <span class="op">=</span> <span class="fl">100</span>, block <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">9</span>, <span class="fl">6</span><span class="op">)</span>, allocation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">randomization</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  N_total <span class="op">=</span> <span class="fl">100</span>,</span></span>
+<span class="r-in"><span>  block <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">9</span>, <span class="fl">6</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  allocation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">1</span>, treatment <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   [1] 1 0 1 1 1 0 1 1 1 0 0 1 1 0 1 0 1 1 1 1 0 0 1 0 1 0 1 1 1 1 1 0 1 1 0 1 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [38] 1 1 0 1 1 1 0 1 1 1 0 0 0 1 1 1 1 1 0 1 0 1 1 1 1 0 0 1 1 0 0 1 1 1 1 1 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [75] 0 0 1 1 1 1 1 0 1 0 0 1 1 1 0 1 0 1 1 0 1 0 0 1 1 1</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># For complete randomization set the N_total to block size</span></span></span>
-<span class="r-in"><span><span class="fu">randomization</span><span class="op">(</span>N_total <span class="op">=</span> <span class="fl">100</span>, block <span class="op">=</span> <span class="fl">100</span>, allocation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">randomization</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  N_total <span class="op">=</span> <span class="fl">100</span>,</span></span>
+<span class="r-in"><span>  block <span class="op">=</span> <span class="fl">100</span>,</span></span>
+<span class="r-in"><span>  allocation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">1</span>, treatment <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   [1] 0 1 0 0 0 1 1 1 0 0 1 1 0 0 1 1 0 1 1 0 0 0 0 0 0 1 0 0 0 1 1 1 1 1 1 0 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [38] 1 1 0 1 1 0 0 1 1 0 0 1 0 0 1 0 1 0 0 0 0 0 1 1 0 1 1 1 0 0 1 0 1 1 0 1 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [75] 1 0 0 0 1 0 1 1 0 1 1 0 1 0 0 1 1 1 1 0 1 1 1 0 0 0</span>

@@ -18,7 +18,7 @@ survival_adapt(
   prior_bin = c(1, 1),
   bin_method = "mc",
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0,
   alternative = "greater",
   h0 = 0,
@@ -120,8 +120,11 @@ survival_adapt(
 
 - rand_ratio:
 
-  vector. Randomization allocation for the ratio of control to
-  treatment. Integer values mapping the size of the block. See
+  length-two positive integer randomization allocation. Name the values
+  `control` and `treatment`; either supplied order is accepted and
+  normalized internally. A legacy unnamed vector remains accepted in
+  `c(control, treatment)` order. Unequal unnamed values produce a
+  warning because names may be required in a future major release. See
   [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
   for more details.
 
@@ -348,7 +351,8 @@ of the evaluated argument values, including defaults. It can be saved
 with [`saveRDS()`](https://rdrr.io/r/base/readRDS.html) and supplied to
 a later call with `do.call(survival_adapt, attr(result, "arguments"))`.
 Its `prop_loss` element is normalized to a named value for every
-simulated arm.
+simulated arm. Its `rand_ratio` element is normalized to `control`,
+`treatment` order for two-arm designs.
 
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
@@ -552,7 +556,7 @@ survival_adapt(
  end_of_study = 36,
  prior_surv = c(0.1, 0.1),
  block = 2,
- rand_ratio = c(1, 1),
+ rand_ratio = c(control = 1, treatment = 1),
  prop_loss = 0.30,
  alternative = "less",
  h0 = 0,

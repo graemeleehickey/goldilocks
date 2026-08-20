@@ -382,8 +382,9 @@ reports randomly varying permuted block sizes, but the SAP does not
 provide the block sizes or the randomization-generation algorithm. The
 package can generate blocked 1:1 randomization, but it does not model
 site-level stratification or randomly varying block sizes. Here
-`block = 2` and `rand_ratio = c(1, 1)` retain simple 1:1 balance; they
-do not reproduce the trial’s full randomization scheme.
+`block = 2` and `rand_ratio = c(control = 1, treatment = 1)` retain
+simple 1:1 balance; they do not reproduce the trial’s full randomization
+scheme.
 
 The SAP explicitly designates 5% of subjects as lost to follow-up for
 safety and 7.5% for effectiveness: the same 5% plus another 2.5% who may
@@ -488,7 +489,7 @@ advent_effectiveness <- survival_adapt(
   prior_bin = prior_bin,
   bin_method = "quadrature",
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = effectiveness_prop_loss,
   alternative = "less",
   h0 = 0.15,
@@ -557,7 +558,7 @@ advent_safety <- survival_adapt(
   prior_bin = prior_bin,
   bin_method = "quadrature",
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = safety_prop_loss,
   alternative = "less",
   h0 = 0.08,
@@ -610,7 +611,7 @@ advent_common <- list(
   prior_bin = prior_bin,
   bin_method = "quadrature",
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   alternative = "less",
   Fn = Fn,
   Sn = Sn,
@@ -668,7 +669,8 @@ advent_effectiveness_args
 #> [1] 2
 #> 
 #> $rand_ratio
-#> [1] 1 1
+#>   control treatment 
+#>         1         1 
 #> 
 #> $alternative
 #> [1] "less"

@@ -15,7 +15,7 @@ sim_comp_data(
   lambda_time = NULL,
   end_of_study,
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0
 )
 ```
@@ -70,8 +70,11 @@ sim_comp_data(
 
 - rand_ratio:
 
-  vector. Randomization allocation for the ratio of control to
-  treatment. Integer values mapping the size of the block. See
+  length-two positive integer randomization allocation. Name the values
+  `control` and `treatment`; either supplied order is accepted and
+  normalized internally. A legacy unnamed vector remains accepted in
+  `c(control, treatment)` order. Unequal unnamed values produce a
+  warning because names may be required in a future major release. See
   [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
   for more details.
 

@@ -57,7 +57,7 @@ piecewise exponential distribution</p>
 <span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">end_of_study</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">1</span>, treatment <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  prop_loss <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -113,8 +113,11 @@ cutpoint.</p></dd>
 
 
 <dt id="arg-rand-ratio">rand_ratio<a class="anchor" aria-label="anchor" href="#arg-rand-ratio"></a></dt>
-<dd><p>vector. Randomization allocation for the ratio of control
-to treatment. Integer values mapping the size of the block. See
+<dd><p>length-two positive integer randomization allocation. Name
+the values <code>control</code> and <code>treatment</code>; either supplied order is accepted and
+normalized internally. A legacy unnamed vector remains accepted in
+<code>c(control, treatment)</code> order. Unequal unnamed values produce a warning
+because names may be required in a future major release. See
 <code><a href="randomization.html">randomization()</a></code> for more details.</p></dd>
 
 

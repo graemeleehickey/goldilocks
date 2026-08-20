@@ -177,7 +177,7 @@ example_trial_data <- sim_comp_data(
   lambda_time = NULL,
   end_of_study = end_of_study,
   block = 4,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0.05
 )
 
@@ -241,7 +241,7 @@ out <- survival_adapt(
   end_of_study     = end_of_study,
   prior_surv       = prior_surv,
   block            = 4,
-  rand_ratio       = c(1, 1),
+  rand_ratio       = c(control = 1, treatment = 1),
   prop_loss        = 0.05,
   alternative      = "less",
   h0               = 0,
@@ -332,7 +332,7 @@ out_flat <- survival_adapt(
   end_of_study     = end_of_study,
   prior_surv       = prior_surv,
   block            = 4,
-  rand_ratio       = c(1, 1),
+  rand_ratio       = c(control = 1, treatment = 1),
   prop_loss        = 0.05,
   alternative      = "less",
   h0               = 0,

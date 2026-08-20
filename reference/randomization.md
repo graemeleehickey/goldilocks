@@ -6,7 +6,7 @@ treatment arms with different randomization ratios and block sizes.
 ## Usage
 
 ``` r
-randomization(N_total, block = 2, allocation = c(1, 1))
+randomization(N_total, block = 2, allocation = c(control = 1, treatment = 1))
 ```
 
 ## Arguments
@@ -22,8 +22,11 @@ randomization(N_total, block = 2, allocation = c(1, 1))
 
 - allocation:
 
-  length-two positive integer vector. The two-arm randomization
-  allocation in the order `c(control, treatment)`.
+  length-two positive integer vector. Name the values `control` and
+  `treatment`; either supplied order is accepted and normalized
+  internally. A legacy unnamed vector remains accepted in
+  `c(control, treatment)` order. Unequal unnamed values produce a
+  warning because names may be required in a future major release.
 
 ## Value
 
@@ -46,25 +49,41 @@ the equal- and unequal-allocation examples below.
 ``` r
 # Implementing treatment allocation for control to treatment with 1:1.5
 # randomization ratio
-randomization(N_total = 100, block = 5, allocation = c(2, 3))
+randomization(
+  N_total = 100,
+  block = 5,
+  allocation = c(control = 2, treatment = 3)
+)
 #>   [1] 0 1 1 1 0 1 1 1 0 0 0 1 1 0 1 1 0 0 1 1 1 0 0 1 1 0 1 1 0 1 0 1 1 1 0 0 1
 #>  [38] 1 1 0 1 1 0 1 0 0 1 1 0 1 1 0 1 1 0 0 1 1 1 0 0 1 1 1 0 1 1 1 0 0 1 1 0 0
 #>  [75] 1 0 1 0 1 1 0 0 1 1 1 1 1 1 0 0 1 0 1 1 0 0 1 1 1 0
 
 # Treatment allocation with 2:1 for control to treatment
-randomization(N_total = 70, block = 9, allocation = c(2, 1))
+randomization(
+  N_total = 70,
+  block = 9,
+  allocation = c(treatment = 1, control = 2)
+)
 #>  [1] 0 1 1 0 1 0 0 0 0 0 0 0 1 0 0 1 0 1 0 1 0 1 0 0 0 1 0 1 1 0 0 1 0 0 0 0 0 0
 #> [39] 0 1 1 0 0 0 1 1 0 0 1 0 0 0 1 0 0 0 1 0 1 0 0 1 0 1 0 0 1 0 0 0
 
 # Treatment allocation for control to treatment with 1:2 for control
 # to treatment with multiple block sizes c(3, 9, 6)
-randomization(N_total = 100, block = c(3, 9, 6), allocation = c(1, 2))
+randomization(
+  N_total = 100,
+  block = c(3, 9, 6),
+  allocation = c(control = 1, treatment = 2)
+)
 #>   [1] 1 0 1 1 1 0 1 1 1 0 0 1 1 0 1 0 1 1 1 1 0 0 1 0 1 0 1 1 1 1 1 0 1 1 0 1 0
 #>  [38] 1 1 0 1 1 1 0 1 1 1 0 0 0 1 1 1 1 1 0 1 0 1 1 1 1 0 0 1 1 0 0 1 1 1 1 1 1
 #>  [75] 0 0 1 1 1 1 1 0 1 0 0 1 1 1 0 1 0 1 1 0 1 0 0 1 1 1
 
 # For complete randomization set the N_total to block size
-randomization(N_total = 100, block = 100, allocation = c(1, 1))
+randomization(
+  N_total = 100,
+  block = 100,
+  allocation = c(control = 1, treatment = 1)
+)
 #>   [1] 0 1 0 0 0 1 1 1 0 0 1 1 0 0 1 1 0 1 1 0 0 0 0 0 0 1 0 0 0 1 1 1 1 1 1 0 1
 #>  [38] 1 1 0 1 1 0 0 1 1 0 0 1 0 0 1 0 1 0 0 0 0 0 1 1 0 1 1 1 0 0 1 0 1 1 0 1 0
 #>  [75] 1 0 0 0 1 0 1 1 0 1 1 0 1 0 0 1 1 1 1 0 1 1 1 0 0 0

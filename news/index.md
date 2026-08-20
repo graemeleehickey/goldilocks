@@ -4,6 +4,13 @@
 
 ### Improvements
 
+- `rand_ratio` and `randomization(allocation =)` now accept vectors
+  named `control` and `treatment` in either order and normalize them
+  internally. Legacy unnamed vectors remain interpreted as
+  `c(control, treatment)`; unequal unnamed allocations warn that names
+  may be required in a future major release. Allocation and arm-specific
+  attrition now share one generic arm-vector normalizer, and retained
+  argument metadata stores allocation in canonical arm order.
 - `prop_loss` now accepts a named `control`/`treatment` vector for
   arm-specific attrition in two-arm trials, while a scalar applies the
   same proportion to every arm. Loss is selected separately within each

@@ -92,7 +92,8 @@ completed 12-months of follow-up.</p>
 <p>From this information, we have:</p>
 <ul>
 <li>Equal randomization: <code>block = 2</code> and
-<code>rand_ratio = c(1, 1)</code> (default parameters)</li>
+<code>rand_ratio = c(control = 1, treatment = 1)</code> (default
+parameters)</li>
 <li>Primary endpoint is at 12-months:
 <code>end_of_study = 12</code>
 </li>
@@ -107,6 +108,12 @@ parameter)</li>
 <li>No attrition: <code>prop_loss = 0</code>
 </li>
 </ul>
+<p>Arm names make unequal allocation unambiguous. Both
+<code>rand_ratio = c(control = 1, treatment = 2)</code> and the reversed
+named order are accepted and normalized internally. Legacy unnamed
+values are still read as <code>c(control, treatment)</code>, although
+unequal unnamed allocations warn because names may be required in a
+future major release.</p>
 <p>Sample size selection analyses are planned starting when 100 patients
 are enrolled and after every additional 25 patients are enrolled. Early
 stopping for futility is allowed starting with the 100 patient sample
@@ -277,7 +284,7 @@ treatment effect when the OS rate at 12-months for the treatment arm is
 <span>  end_of_study <span class="op">=</span> <span class="fl">12</span>,</span>
 <span>  prior_surv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">1</span>, treatment <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  prop_loss <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  alternative <span class="op">=</span> <span class="st">"two.sided"</span>,</span>
 <span>  Fn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">8</span><span class="op">)</span>,</span>

@@ -19,7 +19,7 @@ sim_trials(
   prior_bin = c(1, 1),
   bin_method = "mc",
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0,
   alternative = "greater",
   h0 = 0,
@@ -125,8 +125,11 @@ sim_trials(
 
 - rand_ratio:
 
-  vector. Randomization allocation for the ratio of control to
-  treatment. Integer values mapping the size of the block. See
+  length-two positive integer randomization allocation. Name the values
+  `control` and `treatment`; either supplied order is accepted and
+  normalized internally. A legacy unnamed vector remains accepted in
+  `c(control, treatment)` order. Unequal unnamed values produce a
+  warning because names may be required in a future major release. See
   [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
   for more details.
 
@@ -340,7 +343,9 @@ backend, seed policy, and stream seed when applicable. A deterministic
 backend and worker counts, task count, and backend-selection reason. An
 `arguments` attribute contains a named list of all evaluated argument
 values, including defaults. Its `prop_loss` element is normalized to a
-named value for every simulated arm. The attribute can be saved with
+named value for every simulated arm, and its `rand_ratio` element is
+normalized to `control`, `treatment` order for two-arm designs. The
+attribute can be saved with
 [`saveRDS()`](https://rdrr.io/r/base/readRDS.html) and supplied to a
 later call with `do.call(sim_trials, attr(result, "arguments"))`.
 
@@ -411,7 +416,7 @@ out <- sim_trials(
   end_of_study = 36,
   prior_surv = c(0.1, 0.1),
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0.30,
   alternative = "two.sided",
   h0 = 0,

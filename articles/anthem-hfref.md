@@ -88,7 +88,7 @@ The status labels have the following meanings:
 | `N_total` | 1000 | reported | ADR Sections 1.2 and 3 |
 | `interim_look` | 400, 500, 600, 700, 800, 900 | reported | ADR Section 3; maximum N is not an `interim_look` in `goldilocks` |
 | `end_of_study` | 16 months (69.33 weeks) | reported | ADR Sections 1.4.1 and 3.3 |
-| `rand_ratio` | 1 control : 2 treatment | reported | ADR Section 1.2; package order is control, treatment |
+| `rand_ratio` | 1 control : 2 treatment | reported | ADR Section 1.2; named package values identify control and treatment |
 | `block` | 3 | assumed | ADR reports varying blocks of 3, 6, or 9; fixed 3 is the closest API setting |
 | `lambda`, `lambda_time` | Six-step ramp to 26 patients/month | inferred | ADR Sections 5.2 and 7 report a six-month ramp to a peak of 26/month |
 | `cutpoints` | 6 and 12 months | reported | ADR Section 2.1 reports 0-6, 6-12, 12-18, and \>18 month intervals; the 16-month package horizon uses the first two cut-points |
@@ -239,7 +239,7 @@ anthem_common <- list(
   end_of_study = end_of_study_week,
   prior_surv = prior_surv_approx,
   block = 3,
-  rand_ratio = c(1, 2),
+  rand_ratio = c(control = 1, treatment = 2),
   prop_loss = 0.10,
   alternative = "less",
   h0 = 0,
