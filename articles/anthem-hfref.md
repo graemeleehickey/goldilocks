@@ -83,33 +83,28 @@ The status labels have the following meanings:
 - **unavailable**: needed for exact reproduction but not publicly
   supplied.
 
-| Input | Value | Status | Source_and_mapping |
+| Input | Value | Status | Source and mapping |
 |:---|:---|:---|:---|
-| N_total | 1000 | reported | ADR Sections 1.2 and 3 |
-| interim_look | 400, 500, 600, 700, 800, 900 | reported | ADR Section 3; maximum N is not an interim_look in goldilocks |
-| end_of_study | 16 months (69.33 weeks) | reported | ADR Sections 1.4.1 and 3.3 |
-| rand_ratio | 1 control : 2 treatment | reported | ADR Section 1.2; package order is control, treatment |
-| block | 3 | assumed | ADR reports varying blocks of 3, 6, or 9; fixed 3 is the closest API setting |
-| lambda, lambda_time | Six-step ramp to 26 patients/month | inferred | ADR Sections 5.2 and 7 report a six-month ramp to a peak of 26/month |
-| cutpoints | 6 and 12 months | reported | ADR Section 2.1 reports 0-6, 6-12, 12-18, and \>18 month intervals; the 16-month package horizon uses the first two cut-points |
-| hazard_control | 0.00828, 0.00828, 0.00240 events/week | reported | ADR Table 5, one-year control event probability 0.35; the 0-12 month rate is repeated across the 6-month analysis cut-point |
-| hazard_treatment | 0.70 x control hazard | inferred | ADR Sections 5.1 and 7 report the target hazard-ratio scenario |
-| prop_loss | 0.10 | reported | ADR Sections 5.3 and 7.2 |
-| prior_surv | Gamma shapes 1; rates 1/0.0069, 1/0.0069, 1/0.0035 | reported | ADR Table 1; goldilocks applies these independent priors to both arms |
-| alternative | less | reported | ADR Equation 1 defines lower treatment hazard as benefit |
-| h0 | 0 | reported | ADR Equation 1 uses equality of survival distributions |
-| Fn | 0.01 at every modeled look | reported | ADR Section 3.2 |
-| Sn | 1.00 at N=400; 0.95 at N=500,…,900 | inferred | ADR Section 3.3; 1.00 disables package success stopping at N=400 |
-| prob_ha | 0.981 | inferred | 1 minus the reported one-sided P-value threshold of 0.019 |
-| method | logrank | reported | ADR Section 1.4.1 |
-| imputed_final | FALSE | inferred | The reported final analysis uses observed right-censored data |
-| N_impute | 300 evaluated; 10000 in the fuller template | assumed | Runtime setting; 300 is the smallest draw count whose 95% one-sided upper bound at zero successes is below 0.01; ADR uses at least 10000 live and 1000 in simulations |
-| mc_conf_level | 0.95 | assumed | Package Monte Carlo decision guard; not part of the reported rule |
-| empty_interval | prior | assumed | Package policy; later empty intervals remain prior-driven |
-| return_trace | TRUE for the worked trial | assumed | Retains a compact example decision path |
-| N_trials | 20 per evaluated scenario | assumed | Runtime setting for a smoke-test operating-characteristic comparison |
-| ncores | 2 | assumed | Runtime setting |
-| Sponsor software modifications and random-number seeds | Not supplied | unavailable | ADR Section 5.5 identifies a modified FACTS 5.8.7 engine but does not publish its code or seeds |
+| `N_total` | 1000 | reported | ADR Sections 1.2 and 3 |
+| `interim_look` | 400, 500, 600, 700, 800, 900 | reported | ADR Section 3; maximum N is not an `interim_look` in `goldilocks` |
+| `end_of_study` | 16 months (69.33 weeks) | reported | ADR Sections 1.4.1 and 3.3 |
+| `rand_ratio` | 1 control : 2 treatment | reported | ADR Section 1.2; package order is control, treatment |
+| `block` | 3 | assumed | ADR reports varying blocks of 3, 6, or 9; fixed 3 is the closest API setting |
+| `lambda`, `lambda_time` | Six-step ramp to 26 patients/month | inferred | ADR Sections 5.2 and 7 report a six-month ramp to a peak of 26/month |
+| `cutpoints` | 6 and 12 months | reported | ADR Section 2.1 reports 0-6, 6-12, 12-18, and \>18 month intervals; the 16-month package horizon uses the first two cut-points |
+| `hazard_control` | 0.00828, 0.00828, 0.00240 events/week | reported | ADR Table 5, one-year control event probability 0.35; the 0-12 month rate is repeated across the 6-month analysis cut-point |
+| `hazard_treatment` | 0.70 x control hazard | inferred | ADR Sections 5.1 and 7 report the target hazard-ratio scenario |
+| `prop_loss` | 0.10 | reported | ADR Sections 5.3 and 7.2 |
+| `prior_surv` | Gamma shapes 1; rates 1/0.0069, 1/0.0069, 1/0.0035 | reported | ADR Table 1; `goldilocks` applies these independent priors to both arms |
+| `alternative` | less | reported | ADR Equation 1 defines lower treatment hazard as benefit |
+| `h0` | 0 | reported | ADR Equation 1 uses equality of survival distributions |
+| `Fn` | 0.01 at every modeled look | reported | ADR Section 3.2 |
+| `Sn` | 1.00 at N=400; 0.95 at N=500,…,900 | inferred | ADR Section 3.3; 1.00 disables package success stopping at N=400 |
+| `prob_ha` | 0.981 | inferred | 1 minus the reported one-sided P-value threshold of 0.019 |
+| `method` | logrank | reported | ADR Section 1.4.1 |
+| `imputed_final` | FALSE | inferred | The reported final analysis uses observed right-censored data |
+| `N_impute` | 300 evaluated | assumed | Runtime setting chosen to keep the example manageable; ADR Section 2.3.3 specifies at least 10,000 draws for actual interim analyses and 1,000 within design simulations |
+| `N_trials` | 20 per evaluated scenario | assumed | This vignette uses 20 per scenario so it renders in a reasonable time; ADR Section 5.5 used 1,000 trials per treatment-benefit scenario and 10,000 per null scenario |
 
 ## Event-time and accrual assumptions
 
@@ -202,12 +197,34 @@ knitr::kable(accrual_table, digits = 3)
 | Month 6 | 23.833 | 5.5 |
 | After month 6 | 26.000 | 6.0 |
 
+The same approximation can be inspected with the package’s enrollment
+plot. The expected curve, 20 illustrative Poisson trajectories, the
+maximum sample size, and the package’s per-participant follow-up setting
+are shown on the more interpretable month scale. Interim sample sizes
+are listed in the input table above.
+
+``` r
+
+plot_enrollment(
+  lambda = ramp_rate_per_month,
+  lambda_time = 1:6,
+  N_total = 1000,
+  end_of_study = 16,
+  n_sim = 20,
+  seed = 3425423,
+  time_unit = "months",
+  main = "Piecewise-constant accrual approximation"
+)
+```
+
+![](anthem-hfref_files/figure-html/accrual-projection-1.png)
+
 ## Runnable `survival_adapt()` approximation
 
 The expected-success threshold is set to 1 at the 400-patient look.
-Since the package stops only when its predictive-probability lower bound
-is greater than `Sn`, this disables expected-success stopping at that
-look while retaining the futility calculation.
+Since the package stops only when its predictive-probability point
+estimate is greater than `Sn`, this disables expected-success stopping
+at that look while retaining the futility calculation.
 `prob_ha = 1 - 0.019 = 0.981` maps the final one-sided log-rank
 criterion into the package convention of analyzing `1 - P`.
 
@@ -323,18 +340,20 @@ final result are random and are not estimates of power or type I error.
 
 ## Small null and alternative simulation
 
-The next two scenarios are intentionally small smoke tests: 20 trials
-under the null hazard ratio of 1 and 20 under the target hazard ratio of
-0.70. The summary reports a Monte Carlo standard error and 95% Monte
-Carlo interval for every probability, making the numerical imprecision
+The next two scenarios are intentionally small illustrative simulations:
+20 trials under the null hazard ratio of 1 and 20 under the target
+hazard ratio of 0.70. This keeps the vignette runtime reasonable. The
+summary reports a Monte Carlo standard error and 95% Monte Carlo
+interval for every probability, making the numerical imprecision
 visible.
 
-The evaluated design uses 300 predictive draws per look. This is not a
-precision recommendation: it is the smallest count for which zero
-successes has a 95% one-sided exact upper bound below 0.01, allowing the
-package’s guarded futility rule to fire. The sponsor used 1,000 draws
-per look in its operating-characteristic simulations and at least 10,000
-for live updates.
+The evaluated design uses 300 predictive draws per look to keep the
+vignette runtime manageable. This is not a precision recommendation: it
+gives the predictive-probability estimate a resolution of about 0.0033.
+The sponsor used 1,000 draws per look in its operating-characteristic
+simulations and at least 10,000 for actual interim analyses. The package
+reports exact bounds and Monte Carlo standard errors as diagnostics, but
+decisions use the point estimate.
 
 ``` r
 
@@ -383,8 +402,8 @@ knitr::kable(oc_display, digits = 3)
 
 | scenario | n_used | power | power_mcse | power_mc_lower | power_mc_upper | stop_success | stop_futility | mean_N | mean_N_mcse |
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Null: HR = 1.00 | 20 | 0.10 | 0.067 | 0.028 | 0.301 | 0.05 | 0.5 | 790 | 50.731 |
-| Target: HR = 0.70 | 20 | 0.75 | 0.097 | 0.531 | 0.888 | 0.45 | 0.0 | 850 | 45.015 |
+| Null: HR = 1.00 | 20 | 0.10 | 0.067 | 0.028 | 0.301 | 0.05 | 0.7 | 735 | 49.351 |
+| Target: HR = 0.70 | 20 | 0.75 | 0.097 | 0.531 | 0.888 | 0.50 | 0.0 | 830 | 45.940 |
 
 For the corresponding sponsor scenario - 35% control event probability
 at one year, hazard ratio 0.70, peak accrual 26/month, and 10% dropout -
@@ -393,7 +412,8 @@ with the same control profile it reported type I error 0.021 and mean
 sample size 748. Those results came from a modified FACTS
 implementation, 1,000 alternative trials, 10,000 null trials, and 1,000
 predictive iterations per simulated interim. They are reference targets,
-not values that a 20-trial package smoke test can meaningfully validate.
+not values that a 20-trial vignette simulation can meaningfully
+validate.
 
 The journal article summarized the same planning exercise more broadly
 as approximately 80% power for hazard ratio 0.70, a three-year control
@@ -434,75 +454,19 @@ Several distinctions are consequential:
     replaces a linear six-month ramp. The package also cannot reproduce
     geographic and clinical stratification or randomly varying block
     sizes 3, 6, and 9.
-7.  **Monte Carlo decisions.** The sponsor compared raw predictive
-    estimates with 0.95 and 0.01. The package additionally requires
-    one-sided exact Monte Carlo bounds to clear the thresholds,
-    protecting decisions when `N_impute` is finite but making small
-    demonstrations more conservative.
+7.  **Monte Carlo diagnostics.** The public ADR defines each predictive
+    probability as the proportion of imputed datasets in which the final
+    test succeeds, and compares that point estimate with 0.95 or 0.01.
+    `goldilocks` uses the same strict point-estimate comparisons. With
+    300 imputations, for example, expected-success stopping requires at
+    least 286 successes and a futility proportion below 0.01 permits
+    zero, one, or two successes. The package additionally reports Monte
+    Carlo standard errors and exact one-sided bounds in the decision
+    trace, but these are diagnostic only.
 
 These are API limitations rather than undocumented choices hidden in the
 code. They are why the vignette compares broad behavior and workflow
 without claiming exact calibration.
-
-## Sensitivity analyses to run in design work
-
-The public ADR itself varied one-year control event probabilities 0.25,
-0.30, 0.35, and 0.40; hazard ratios 0.65, 0.70, 0.75, and 1.00; peak
-accrual rates 17, 26, and 39 patients/month; dropout 0% and 10%; and
-binding versus disabled futility. Those dimensions should be retained in
-a fuller package assessment.
-
-Prior sensitivity also matters because the package predictive model
-differs from the sponsor’s. A useful analysis would reduce the Gamma
-shape while preserving each prior mean, compare a simple exponential
-model with the piecewise model, and vary early versus late hazards while
-keeping the same three-year cumulative incidence. Accrual sensitivity
-should include constant 26/month and slower/faster ramps. Follow-up
-sensitivity should acknowledge that changing a per-subject
-`end_of_study` is not equivalent to the sponsor’s common database-lock
-time.
-
-The template below is closer to a design-analysis run. It is not
-evaluated during package checks.
-
-``` r
-
-anthem_full <- modifyList(anthem_common, list(
-  N_impute = 10000,
-  ncores = 8
-))
-
-alt_full <- do.call(sim_trials, c(
-  anthem_full,
-  list(
-    hazard_treatment = hazard_treatment_target_week,
-    hazard_control = hazard_control_week,
-    N_trials = 1000,
-    seed = 3425440
-  )
-))
-
-null_full <- do.call(sim_trials, c(
-  anthem_full,
-  list(
-    hazard_treatment = hazard_treatment_null_week,
-    hazard_control = hazard_control_week,
-    N_trials = 10000,
-    seed = 3425441
-  )
-))
-
-summarise_sims(
-  list("Null: HR = 1.00" = null_full, "Target: HR = 0.70" = alt_full),
-  max_mcse = c(power = 0.005, mean_N = 5)
-)
-```
-
-The sponsor’s settings are computationally intensive: 10,000 predictive
-draws inside as many as six enrollment looks, repeated across thousands
-of trials. Production calibration should also vary the assumptions above
-and archive the software version, seeds, full arguments, and simulation
-failures.
 
 ## References
 

@@ -222,13 +222,10 @@ survival_adapt(
 - mc_conf_level:
 
   probability strictly between 0.5 and 1. Confidence level for one-sided
-  exact binomial bounds that guard finite Monte Carlo interim decisions.
-  A completed-data Bayesian analysis is counted as successful only when
-  its lower Monte Carlo bound exceeds `prob_ha`. Expected-success
-  stopping requires the lower bound for the outer predictive estimate to
-  exceed `Sn`; futility stopping requires its upper bound to be below
-  `Fn`. Equality or an unresolved bound continues enrollment. The
-  default is 0.95.
+  exact binomial bounds reported as diagnostics of finite Monte Carlo
+  uncertainty. The bounds do not alter completed-data success
+  classifications or interim decisions, which use strict point- estimate
+  comparisons with `prob_ha`, `Sn`, and `Fn`. The default is 0.95.
 
 - empty_interval:
 
@@ -357,11 +354,11 @@ With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
 per interim look. The trace records calendar time, the number of
 subjects actively under follow-up, enrollment and observed events by
-arm, predictive probabilities, Monte Carlo standard errors and exact
-bounds, draw counts, thresholds, the decision and reason, empty-interval
-fallback diagnostics, and warnings raised during that look. It
-deliberately excludes imputed data sets and posterior draws to keep the
-output compact.
+arm, predictive probabilities, diagnostic Monte Carlo standard errors
+and exact bounds, draw counts, thresholds, the decision and reason,
+empty-interval fallback diagnostics, and warnings raised during that
+look. It deliberately excludes imputed data sets and posterior draws to
+keep the output compact.
 
 ## Details
 
@@ -371,20 +368,20 @@ Implements the Goldilocks design method described in Broglio et al.
 1.  **The posterior predictive probability of eventual success.** This
     is calculated as the proportion of imputed datasets at the *current*
     sample size that would go on to be success at the specified
-    threshold. At each interim analysis its one-sided exact lower Monte
-    Carlo confidence bound is compared to the corresponding element of
-    `Sn`, and if the bound exceeds the threshold, accrual/enrollment is
-    suspended and the outstanding follow-up allowed to complete before
-    conducting the pre-specified final analysis.
+    threshold. At each interim analysis this proportion is compared to
+    the corresponding element of `Sn`, and if it exceeds the threshold,
+    accrual/enrollment is suspended and the outstanding follow-up
+    allowed to complete before conducting the pre-specified final
+    analysis.
 
 2.  **The posterior predictive probability of final success**. This is
     calculated as the proportion of imputed datasets at the *maximum*
     threshold that would go on to be successful. Similar to above, it is
-    compared to the corresponding element of `Fn`, and if its one-sided
-    exact upper Monte Carlo confidence bound is below the threshold,
-    accrual/enrollment is suspended and the trial terminated. Typically
-    this would be a binding decision. If it is not a binding decision,
-    then one should also explore the simulations with `Fn = 0`.
+    compared to the corresponding element of `Fn`, and if it is below
+    the threshold, accrual/enrollment is suspended and the trial
+    terminated. Typically this would be a binding decision. If it is not
+    a binding decision, then one should also explore the simulations
+    with `Fn = 0`.
 
 Hence, at each interim analysis look, 3 decisions are allowed:
 
@@ -568,7 +565,7 @@ survival_adapt(
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less         300       300        600   600
 #>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
-#> 1            1 -0.08353039           0             0                     0
+#> 1            1 -0.08353039         0.6             0                     0
 #>       stopping_reason accrual_stop_time analysis_ready_time
 #> 1 maximum_sample_size          27.54104            63.52808
 #>   planned_completion_time followup_person_time peak_active_followup

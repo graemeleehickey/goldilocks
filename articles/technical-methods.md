@@ -405,20 +405,24 @@ Repeating the four-step procedure above for Monte Carlo replicate m =
 in replicate } m\\.
 
 For Bayesian completed-data analyses that use `N_mcmc` posterior draws,
-a replicate is counted as successful only when the one-sided exact lower
-binomial confidence bound for its posterior success probability exceeds
-`prob_ha`. Deterministic quadrature, approximation, and frequentist
-analyses retain their strict point comparison. This inner rule separates
-posterior uncertainty from Monte Carlo uncertainty before the outer
-predictive probability is formed.
+a replicate is counted as successful when its estimated posterior
+success probability exceeds `prob_ha`. Deterministic quadrature,
+approximation, and frequentist analyses use the same strict
+point-estimate comparison. Exact one-sided binomial bounds for posterior
+Monte Carlo estimates are retained as diagnostics but do not change this
+classification.
 
-Let L\_{n\_\ell} be the one-sided exact lower binomial confidence bound
-for \widehat{P}\_{n\_\ell} at confidence level `mc_conf_level`. If
+If
 
-L\_{n\_\ell} \> S\_\ell,
+\widehat{P}\_{n\_\ell} \> S\_\ell,
 
 accrual is stopped for expected success. Enrolled subjects are still
 followed to the planned final analysis time.
+
+The decision trace also reports the Monte Carlo standard error and
+one-sided exact bounds for \widehat{P}\_{n\_\ell} at confidence level
+`mc_conf_level`. These quantify finite-imputation uncertainty and are
+diagnostic only.
 
 ### 6.2 Predictive probability at the maximum sample size
 
@@ -435,19 +439,23 @@ P\_{\max,\ell} = \operatorname{E}\\
 \widehat{P}\_{\max,\ell} = \frac{1}{M}\sum\_{m=1}^{M} I\\\textrm{success
 at } N\_{\max} \textrm{ in replicate } m\\.
 
-Let U\_{\max,\ell} be the corresponding one-sided exact upper bound. If
+If
 
-U\_{\max,\ell} \< F\_\ell,
+\widehat{P}\_{\max,\ell} \< F\_\ell,
 
 the trial stops for futility. Otherwise, accrual continues to the next
 interim look.
 
+The corresponding exact upper bound is reported in the trace as a
+diagnostic; it does not replace \widehat{P}\_{\max,\ell} in the stopping
+rule.
+
 Thus the interim action at look \ell can be represented as
 
 A\_\ell = \begin{cases} \textrm{stop accrual for expected success}, &
-L\_{n\_\ell} \> S\_\ell,\\ \textrm{stop for futility}, & U\_{\max,\ell}
-\< F\_\ell,\\ \textrm{continue accrual}, & \textrm{otherwise}.
-\end{cases}
+\widehat{P}\_{n\_\ell} \> S\_\ell,\\ \textrm{stop for futility}, &
+\widehat{P}\_{\max,\ell} \< F\_\ell,\\ \textrm{continue accrual}, &
+\textrm{otherwise}. \end{cases}
 
 The first look satisfying either stopping condition defines the adaptive
 stopping look,
@@ -850,13 +858,14 @@ The Monte Carlo sizes `N_impute`, `N_mcmc`, and `N_trials` should be
 chosen so that simulation error is small relative to the decision being
 made. `goldilocks` reports the outer estimate, Monte Carlo standard
 error, exact bounds, draw counts, and stopping reason in the decision
-trace. If a point estimate crosses a threshold but its relevant bound
-does not, equality or finite-draw uncertainty leads to continued
-enrollment. The default `N_impute = 500`, `N_mcmc = 1000`, and
-`mc_conf_level = 0.95` avoid the former undocumented 10/10 or 0/10 rules
-for common thresholds. Small values remain useful for examples and
-package tests, but operating characteristics must be calibrated with the
-exact Monte Carlo settings planned for the design.
+trace. Decisions use strict comparisons of the point estimates with
+their thresholds; the bounds quantify Monte Carlo uncertainty but do not
+alter those decisions. The defaults `N_impute = 500` and `N_mcmc = 1000`
+reduce the coarseness of the former undocumented 10-draw defaults, while
+`mc_conf_level = 0.95` sets the confidence level for the diagnostic
+bounds. Small values remain useful for examples and package tests, but
+operating characteristics must be calibrated with the exact Monte Carlo
+settings planned for the design.
 
 ## 9. Threshold selection
 

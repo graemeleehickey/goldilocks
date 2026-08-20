@@ -160,60 +160,63 @@ publicly supplied.</li>
 </ul>
 <table class="table">
 <colgroup>
-<col width="19%">
-<col width="17%">
-<col width="4%">
-<col width="58%">
+<col width="9%">
+<col width="20%">
+<col width="3%">
+<col width="66%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Input</th>
 <th align="left">Value</th>
 <th align="left">Status</th>
-<th align="left">Source_and_mapping</th>
+<th align="left">Source and mapping</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">N_total</td>
+<td align="left"><code>N_total</code></td>
 <td align="left">1000</td>
 <td align="left">reported</td>
 <td align="left">ADR Sections 1.2 and 3</td>
 </tr>
 <tr class="even">
-<td align="left">interim_look</td>
+<td align="left"><code>interim_look</code></td>
 <td align="left">400, 500, 600, 700, 800, 900</td>
 <td align="left">reported</td>
-<td align="left">ADR Section 3; maximum N is not an interim_look in
-goldilocks</td>
+<td align="left">ADR Section 3; maximum N is not an
+<code>interim_look</code> in <code>goldilocks</code>
+</td>
 </tr>
 <tr class="odd">
-<td align="left">end_of_study</td>
+<td align="left"><code>end_of_study</code></td>
 <td align="left">16 months (69.33 weeks)</td>
 <td align="left">reported</td>
 <td align="left">ADR Sections 1.4.1 and 3.3</td>
 </tr>
 <tr class="even">
-<td align="left">rand_ratio</td>
+<td align="left"><code>rand_ratio</code></td>
 <td align="left">1 control : 2 treatment</td>
 <td align="left">reported</td>
 <td align="left">ADR Section 1.2; package order is control,
 treatment</td>
 </tr>
 <tr class="odd">
-<td align="left">block</td>
+<td align="left"><code>block</code></td>
 <td align="left">3</td>
 <td align="left">assumed</td>
 <td align="left">ADR reports varying blocks of 3, 6, or 9; fixed 3 is
 the closest API setting</td>
 </tr>
 <tr class="even">
-<td align="left">lambda, lambda_time</td>
+<td align="left">
+<code>lambda</code>, <code>lambda_time</code>
+</td>
 <td align="left">Six-step ramp to 26 patients/month</td>
 <td align="left">inferred</td>
 <td align="left">ADR Sections 5.2 and 7 report a six-month ramp to a
 peak of 26/month</td>
 </tr>
 <tr class="odd">
-<td align="left">cutpoints</td>
+<td align="left"><code>cutpoints</code></td>
 <td align="left">6 and 12 months</td>
 <td align="left">reported</td>
 <td align="left">ADR Section 2.1 reports 0-6, 6-12, 12-18, and &gt;18
@@ -221,7 +224,7 @@ month intervals; the 16-month package horizon uses the first two
 cut-points</td>
 </tr>
 <tr class="even">
-<td align="left">hazard_control</td>
+<td align="left"><code>hazard_control</code></td>
 <td align="left">0.00828, 0.00828, 0.00240 events/week</td>
 <td align="left">reported</td>
 <td align="left">ADR Table 5, one-year control event probability 0.35;
@@ -229,120 +232,87 @@ the 0-12 month rate is repeated across the 6-month analysis
 cut-point</td>
 </tr>
 <tr class="odd">
-<td align="left">hazard_treatment</td>
+<td align="left"><code>hazard_treatment</code></td>
 <td align="left">0.70 x control hazard</td>
 <td align="left">inferred</td>
 <td align="left">ADR Sections 5.1 and 7 report the target hazard-ratio
 scenario</td>
 </tr>
 <tr class="even">
-<td align="left">prop_loss</td>
+<td align="left"><code>prop_loss</code></td>
 <td align="left">0.10</td>
 <td align="left">reported</td>
 <td align="left">ADR Sections 5.3 and 7.2</td>
 </tr>
 <tr class="odd">
-<td align="left">prior_surv</td>
+<td align="left"><code>prior_surv</code></td>
 <td align="left">Gamma shapes 1; rates 1/0.0069, 1/0.0069, 1/0.0035</td>
 <td align="left">reported</td>
-<td align="left">ADR Table 1; goldilocks applies these independent
-priors to both arms</td>
+<td align="left">ADR Table 1; <code>goldilocks</code> applies these
+independent priors to both arms</td>
 </tr>
 <tr class="even">
-<td align="left">alternative</td>
+<td align="left"><code>alternative</code></td>
 <td align="left">less</td>
 <td align="left">reported</td>
 <td align="left">ADR Equation 1 defines lower treatment hazard as
 benefit</td>
 </tr>
 <tr class="odd">
-<td align="left">h0</td>
+<td align="left"><code>h0</code></td>
 <td align="left">0</td>
 <td align="left">reported</td>
 <td align="left">ADR Equation 1 uses equality of survival
 distributions</td>
 </tr>
 <tr class="even">
-<td align="left">Fn</td>
+<td align="left"><code>Fn</code></td>
 <td align="left">0.01 at every modeled look</td>
 <td align="left">reported</td>
 <td align="left">ADR Section 3.2</td>
 </tr>
 <tr class="odd">
-<td align="left">Sn</td>
+<td align="left"><code>Sn</code></td>
 <td align="left">1.00 at N=400; 0.95 at N=500,…,900</td>
 <td align="left">inferred</td>
 <td align="left">ADR Section 3.3; 1.00 disables package success stopping
 at N=400</td>
 </tr>
 <tr class="even">
-<td align="left">prob_ha</td>
+<td align="left"><code>prob_ha</code></td>
 <td align="left">0.981</td>
 <td align="left">inferred</td>
 <td align="left">1 minus the reported one-sided P-value threshold of
 0.019</td>
 </tr>
 <tr class="odd">
-<td align="left">method</td>
+<td align="left"><code>method</code></td>
 <td align="left">logrank</td>
 <td align="left">reported</td>
 <td align="left">ADR Section 1.4.1</td>
 </tr>
 <tr class="even">
-<td align="left">imputed_final</td>
+<td align="left"><code>imputed_final</code></td>
 <td align="left">FALSE</td>
 <td align="left">inferred</td>
 <td align="left">The reported final analysis uses observed
 right-censored data</td>
 </tr>
 <tr class="odd">
-<td align="left">N_impute</td>
-<td align="left">300 evaluated; 10000 in the fuller template</td>
+<td align="left"><code>N_impute</code></td>
+<td align="left">300 evaluated</td>
 <td align="left">assumed</td>
-<td align="left">Runtime setting; 300 is the smallest draw count whose
-95% one-sided upper bound at zero successes is below 0.01; ADR uses at
-least 10000 live and 1000 in simulations</td>
+<td align="left">Runtime setting chosen to keep the example manageable;
+ADR Section 2.3.3 specifies at least 10,000 draws for actual interim
+analyses and 1,000 within design simulations</td>
 </tr>
 <tr class="even">
-<td align="left">mc_conf_level</td>
-<td align="left">0.95</td>
-<td align="left">assumed</td>
-<td align="left">Package Monte Carlo decision guard; not part of the
-reported rule</td>
-</tr>
-<tr class="odd">
-<td align="left">empty_interval</td>
-<td align="left">prior</td>
-<td align="left">assumed</td>
-<td align="left">Package policy; later empty intervals remain
-prior-driven</td>
-</tr>
-<tr class="even">
-<td align="left">return_trace</td>
-<td align="left">TRUE for the worked trial</td>
-<td align="left">assumed</td>
-<td align="left">Retains a compact example decision path</td>
-</tr>
-<tr class="odd">
-<td align="left">N_trials</td>
+<td align="left"><code>N_trials</code></td>
 <td align="left">20 per evaluated scenario</td>
 <td align="left">assumed</td>
-<td align="left">Runtime setting for a smoke-test
-operating-characteristic comparison</td>
-</tr>
-<tr class="even">
-<td align="left">ncores</td>
-<td align="left">2</td>
-<td align="left">assumed</td>
-<td align="left">Runtime setting</td>
-</tr>
-<tr class="odd">
-<td align="left">Sponsor software modifications and random-number
-seeds</td>
-<td align="left">Not supplied</td>
-<td align="left">unavailable</td>
-<td align="left">ADR Section 5.5 identifies a modified FACTS 5.8.7
-engine but does not publish its code or seeds</td>
+<td align="left">This vignette uses 20 per scenario so it renders in a
+reasonable time; ADR Section 5.5 used 1,000 trials per treatment-benefit
+scenario and 10,000 per null scenario</td>
 </tr>
 </tbody>
 </table>
@@ -466,18 +436,35 @@ enrollment during the six-month ramp.</p>
 </tr>
 </tbody>
 </table>
+<p>The same approximation can be inspected with the package’s enrollment
+plot. The expected curve, 20 illustrative Poisson trajectories, the
+maximum sample size, and the package’s per-participant follow-up setting
+are shown on the more interpretable month scale. Interim sample sizes
+are listed in the input table above.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_enrollment.html">plot_enrollment</a></span><span class="op">(</span></span>
+<span>  lambda <span class="op">=</span> <span class="va">ramp_rate_per_month</span>,</span>
+<span>  lambda_time <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">6</span>,</span>
+<span>  N_total <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  end_of_study <span class="op">=</span> <span class="fl">16</span>,</span>
+<span>  n_sim <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">3425423</span>,</span>
+<span>  time_unit <span class="op">=</span> <span class="st">"months"</span>,</span>
+<span>  main <span class="op">=</span> <span class="st">"Piecewise-constant accrual approximation"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="anthem-hfref_files/figure-html/accrual-projection-1.png" class="r-plt" alt="" width="672"></p>
 </div>
 <div class="section level2">
 <h2 id="runnable-survival_adapt-approximation">Runnable <code>survival_adapt()</code> approximation<a class="anchor" aria-label="anchor" href="#runnable-survival_adapt-approximation"></a>
 </h2>
 <p>The expected-success threshold is set to 1 at the 400-patient look.
-Since the package stops only when its predictive-probability lower bound
-is greater than <code>Sn</code>, this disables expected-success stopping
-at that look while retaining the futility calculation.
+Since the package stops only when its predictive-probability point
+estimate is greater than <code>Sn</code>, this disables expected-success
+stopping at that look while retaining the futility calculation.
 <code>prob_ha = 1 - 0.019 = 0.981</code> maps the final one-sided
 log-rank criterion into the package convention of analyzing
 <code>1 - P</code>.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">anthem_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  cutpoints <span class="op">=</span> <span class="va">analysis_cutpoints_week</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="fl">1000</span>,</span>
@@ -505,7 +492,7 @@ event times at each interim look. Each completed predictive data set is
 then judged by the frequentist one-sided log-rank test. Thus, Bayesian
 prediction determines whether the current sample size appears adequate
 or futile, while the final success criterion remains frequentist.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3425422</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">anthem_trial</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">survival_adapt</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -529,7 +516,7 @@ or futile, while the final success criterion remains frequentist.</p>
 <p>The trace shows the predictive quantities only at looks reached
 before a stop. The 400-patient success threshold of 1 is the package
 encoding of a futility-only look.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">trace_display</span> <span class="op">&lt;-</span> <span class="va">anthem_trial</span><span class="op">$</span><span class="va">trace</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="st">"planned_N"</span>,</span>
 <span>  <span class="st">"calendar_time"</span>,</span>
@@ -649,7 +636,7 @@ encoding of a futility-only look.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_trial_trace.html">plot_trial_trace</a></span><span class="op">(</span><span class="va">anthem_trial</span><span class="op">)</span></span></code></pre></div>
 <p><img src="anthem-hfref_files/figure-html/decision-trace-plot-1.png" class="r-plt" alt="" width="672"></p>
 <p>This single simulated path is illustrative. Its selected sample size
@@ -659,18 +646,20 @@ error.</p>
 <div class="section level2">
 <h2 id="small-null-and-alternative-simulation">Small null and alternative simulation<a class="anchor" aria-label="anchor" href="#small-null-and-alternative-simulation"></a>
 </h2>
-<p>The next two scenarios are intentionally small smoke tests: 20 trials
-under the null hazard ratio of 1 and 20 under the target hazard ratio of
-0.70. The summary reports a Monte Carlo standard error and 95% Monte
-Carlo interval for every probability, making the numerical imprecision
+<p>The next two scenarios are intentionally small illustrative
+simulations: 20 trials under the null hazard ratio of 1 and 20 under the
+target hazard ratio of 0.70. This keeps the vignette runtime reasonable.
+The summary reports a Monte Carlo standard error and 95% Monte Carlo
+interval for every probability, making the numerical imprecision
 visible.</p>
-<p>The evaluated design uses 300 predictive draws per look. This is not
-a precision recommendation: it is the smallest count for which zero
-successes has a 95% one-sided exact upper bound below 0.01, allowing the
-package’s guarded futility rule to fire. The sponsor used 1,000 draws
-per look in its operating-characteristic simulations and at least 10,000
-for live updates.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<p>The evaluated design uses 300 predictive draws per look to keep the
+vignette runtime manageable. This is not a precision recommendation: it
+gives the predictive-probability estimate a resolution of about 0.0033.
+The sponsor used 1,000 draws per look in its operating-characteristic
+simulations and at least 10,000 for actual interim analyses. The package
+reports exact bounds and Monte Carlo standard errors as diagnostics, but
+decisions use the point estimate.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">anthem_alt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trials</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="va">anthem_common</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -746,9 +735,9 @@ for live updates.</p>
 <td align="right">0.028</td>
 <td align="right">0.301</td>
 <td align="right">0.05</td>
-<td align="right">0.5</td>
-<td align="right">790</td>
-<td align="right">50.731</td>
+<td align="right">0.7</td>
+<td align="right">735</td>
+<td align="right">49.351</td>
 </tr>
 <tr class="even">
 <td align="left">Target: HR = 0.70</td>
@@ -757,10 +746,10 @@ for live updates.</p>
 <td align="right">0.097</td>
 <td align="right">0.531</td>
 <td align="right">0.888</td>
-<td align="right">0.45</td>
+<td align="right">0.50</td>
 <td align="right">0.0</td>
-<td align="right">850</td>
-<td align="right">45.015</td>
+<td align="right">830</td>
+<td align="right">45.940</td>
 </tr>
 </tbody>
 </table>
@@ -771,7 +760,7 @@ Under the null with the same control profile it reported type I error
 0.021 and mean sample size 748. Those results came from a modified FACTS
 implementation, 1,000 alternative trials, 10,000 null trials, and 1,000
 predictive iterations per simulated interim. They are reference targets,
-not values that a 20-trial package smoke test can meaningfully
+not values that a 20-trial vignette simulation can meaningfully
 validate.</p>
 <p>The journal article summarized the same planning exercise more
 broadly as approximately 80% power for hazard ratio 0.70, a three-year
@@ -819,70 +808,19 @@ approximation replaces a linear six-month ramp. The package also cannot
 reproduce geographic and clinical stratification or randomly varying
 block sizes 3, 6, and 9.</li>
 <li>
-<strong>Monte Carlo decisions.</strong> The sponsor compared raw
-predictive estimates with 0.95 and 0.01. The package additionally
-requires one-sided exact Monte Carlo bounds to clear the thresholds,
-protecting decisions when <code>N_impute</code> is finite but making
-small demonstrations more conservative.</li>
+<strong>Monte Carlo diagnostics.</strong> The public ADR defines
+each predictive probability as the proportion of imputed datasets in
+which the final test succeeds, and compares that point estimate with
+0.95 or 0.01. <code>goldilocks</code> uses the same strict
+point-estimate comparisons. With 300 imputations, for example,
+expected-success stopping requires at least 286 successes and a futility
+proportion below 0.01 permits zero, one, or two successes. The package
+additionally reports Monte Carlo standard errors and exact one-sided
+bounds in the decision trace, but these are diagnostic only.</li>
 </ol>
 <p>These are API limitations rather than undocumented choices hidden in
 the code. They are why the vignette compares broad behavior and workflow
 without claiming exact calibration.</p>
-</div>
-<div class="section level2">
-<h2 id="sensitivity-analyses-to-run-in-design-work">Sensitivity analyses to run in design work<a class="anchor" aria-label="anchor" href="#sensitivity-analyses-to-run-in-design-work"></a>
-</h2>
-<p>The public ADR itself varied one-year control event probabilities
-0.25, 0.30, 0.35, and 0.40; hazard ratios 0.65, 0.70, 0.75, and 1.00;
-peak accrual rates 17, 26, and 39 patients/month; dropout 0% and 10%;
-and binding versus disabled futility. Those dimensions should be
-retained in a fuller package assessment.</p>
-<p>Prior sensitivity also matters because the package predictive model
-differs from the sponsor’s. A useful analysis would reduce the Gamma
-shape while preserving each prior mean, compare a simple exponential
-model with the piecewise model, and vary early versus late hazards while
-keeping the same three-year cumulative incidence. Accrual sensitivity
-should include constant 26/month and slower/faster ramps. Follow-up
-sensitivity should acknowledge that changing a per-subject
-<code>end_of_study</code> is not equivalent to the sponsor’s common
-database-lock time.</p>
-<p>The template below is closer to a design-analysis run. It is not
-evaluated during package checks.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">anthem_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">anthem_common</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  N_impute <span class="op">=</span> <span class="fl">10000</span>,</span>
-<span>  ncores <span class="op">=</span> <span class="fl">8</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">alt_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trials</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="va">anthem_full</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    hazard_treatment <span class="op">=</span> <span class="va">hazard_treatment_target_week</span>,</span>
-<span>    hazard_control <span class="op">=</span> <span class="va">hazard_control_week</span>,</span>
-<span>    N_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>    seed <span class="op">=</span> <span class="fl">3425440</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">null_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trials</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="va">anthem_full</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    hazard_treatment <span class="op">=</span> <span class="va">hazard_treatment_null_week</span>,</span>
-<span>    hazard_control <span class="op">=</span> <span class="va">hazard_control_week</span>,</span>
-<span>    N_trials <span class="op">=</span> <span class="fl">10000</span>,</span>
-<span>    seed <span class="op">=</span> <span class="fl">3425441</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"Null: HR = 1.00"</span> <span class="op">=</span> <span class="va">null_full</span>, <span class="st">"Target: HR = 0.70"</span> <span class="op">=</span> <span class="va">alt_full</span><span class="op">)</span>,</span>
-<span>  max_mcse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>power <span class="op">=</span> <span class="fl">0.005</span>, mean_N <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>The sponsor’s settings are computationally intensive: 10,000
-predictive draws inside as many as six enrollment looks, repeated across
-thousands of trials. Production calibration should also vary the
-assumptions above and archive the software version, seeds, full
-arguments, and simulation failures.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

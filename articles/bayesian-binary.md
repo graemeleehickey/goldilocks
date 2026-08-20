@@ -146,9 +146,9 @@ rbind(
   `conditional event time` = compare_binary_imputation("event-time"),
   `direct Bernoulli status` = compare_binary_imputation("bernoulli")
 )
-#>                         ppp_success post_prob_ha   est_final
-#> conditional event time            0    0.6580338 -0.03225806
-#> direct Bernoulli status           0    0.6580338 -0.03225806
+#>                         ppp_success post_prob_ha  est_final
+#> conditional event time            0    0.4042967 0.02380952
+#> direct Bernoulli status           0    0.4042967 0.02380952
 ```
 
 The direct Bernoulli calculation is also more stable in extreme tails
@@ -198,13 +198,13 @@ out_single_arm <- survival_adapt(
 
 out_single_arm
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
-#> 1           0.95    0.3        less          80         0         80    80
+#> 1           0.95    0.3        less          50         0         50    80
 #>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9998388 0.1341463           1             0                     0
-#>       stopping_reason accrual_stop_time analysis_ready_time
-#> 1 maximum_sample_size          10.38072            22.38072
+#> 1    0.9980375 0.1346154           1             0                     1
+#>    stopping_reason accrual_stop_time analysis_ready_time
+#> 1 expected_success           5.96506            17.96506
 #>   planned_completion_time followup_person_time peak_active_followup
-#> 1                22.38072             886.6491                   74
+#> 1                17.96506             564.1026                   49
 ```
 
 In this setting `est_final` is the posterior mean event probability in

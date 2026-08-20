@@ -742,8 +742,8 @@ knitr::kable(oc_small, digits = 3)
 
 | scenario | backend | seed | n_requested | n_analyzed | n_failed | n_used | failure_rate | failure_rate_mcse | failure_rate_mc_lower | failure_rate_mc_upper | power | power_mcse | power_mc_lower | power_mc_upper | stop_success | stop_success_mcse | stop_success_mc_lower | stop_success_mc_upper | stop_futility | stop_futility_mcse | stop_futility_mc_lower | stop_futility_mc_upper | stop_max_N | stop_max_N_mcse | stop_max_N_mc_lower | stop_max_N_mc_upper | mean_N | mean_N_mcse | mean_N_mc_lower | mean_N_mc_upper | sd_N | stop_and_fail | stop_and_fail_mcse | stop_and_fail_mc_lower | stop_and_fail_mc_upper |
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.066 | 0.011 | 0.047 | 0.091 | 0.036 | 0.008 | 0.023 | 0.056 | 0.466 | 0.022 | 0.423 | 0.510 | 0.498 | 0.022 | 0.454 | 0.542 | 645.8 | 5.342 | 635.304 | 656.296 | 119.461 | 0.010 | 0.004 | 0.004 | 0.023 |
-| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.986 | 0.005 | 0.971 | 0.993 | 0.900 | 0.013 | 0.871 | 0.923 | 0.000 | 0.000 | 0.000 | 0.008 | 0.100 | 0.013 | 0.077 | 0.129 | 539.0 | 4.427 | 530.302 | 547.698 | 98.988 | 0.008 | 0.004 | 0.003 | 0.020 |
+| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.064 | 0.011 | 0.046 | 0.089 | 0.078 | 0.012 | 0.058 | 0.105 | 0.65 | 0.021 | 0.607 | 0.691 | 0.272 | 0.020 | 0.235 | 0.313 | 555.8 | 6.698 | 542.640 | 568.960 | 149.771 | 0.038 | 0.009 | 0.024 | 0.059 |
+| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.984 | 0.006 | 0.969 | 0.992 | 0.958 | 0.009 | 0.937 | 0.972 | 0.00 | 0.000 | 0.000 | 0.008 | 0.042 | 0.009 | 0.028 | 0.063 | 469.0 | 4.957 | 459.262 | 478.738 | 110.831 | 0.012 | 0.005 | 0.006 | 0.026 |
 
 Each scenario uses 500 simulated trials and two cores. This remains a
 workflow demonstration rather than a definitive estimate of power or

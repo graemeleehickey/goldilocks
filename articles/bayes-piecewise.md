@@ -256,7 +256,7 @@ out
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less          50        50        100   100
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1        0.978 -0.1855716        0.18             0                     0
+#> 1        0.978 -0.1855716         0.2             0                     0
 #>       stopping_reason accrual_stop_time analysis_ready_time
 #> 1 maximum_sample_size           20.2688            43.91658
 #>   planned_completion_time followup_person_time peak_active_followup

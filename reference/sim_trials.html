@@ -261,13 +261,10 @@ at least two.</p></dd>
 
 <dt id="arg-mc-conf-level">mc_conf_level<a class="anchor" aria-label="anchor" href="#arg-mc-conf-level"></a></dt>
 <dd><p>probability strictly between 0.5 and 1. Confidence
-level for one-sided exact binomial bounds that guard finite Monte Carlo
-interim decisions. A completed-data Bayesian analysis is counted as
-successful only when its lower Monte Carlo bound exceeds <code>prob_ha</code>.
-Expected-success stopping requires the lower bound for the outer
-predictive estimate to exceed <code>Sn</code>; futility stopping requires its upper
-bound to be below <code>Fn</code>. Equality or an unresolved bound continues
-enrollment. The default is 0.95.</p></dd>
+level for one-sided exact binomial bounds reported as diagnostics of
+finite Monte Carlo uncertainty. The bounds do not alter completed-data
+success classifications or interim decisions, which use strict point-
+estimate comparisons with <code>prob_ha</code>, <code>Sn</code>, and <code>Fn</code>. The default is 0.95.</p></dd>
 
 
 <dt id="arg-n-trials">N_trials<a class="anchor" aria-label="anchor" href="#arg-n-trials"></a></dt>

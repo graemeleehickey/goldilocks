@@ -227,13 +227,10 @@ sim_trials(
 - mc_conf_level:
 
   probability strictly between 0.5 and 1. Confidence level for one-sided
-  exact binomial bounds that guard finite Monte Carlo interim decisions.
-  A completed-data Bayesian analysis is counted as successful only when
-  its lower Monte Carlo bound exceeds `prob_ha`. Expected-success
-  stopping requires the lower bound for the outer predictive estimate to
-  exceed `Sn`; futility stopping requires its upper bound to be below
-  `Fn`. Equality or an unresolved bound continues enrollment. The
-  default is 0.95.
+  exact binomial bounds reported as diagnostics of finite Monte Carlo
+  uncertainty. The bounds do not alter completed-data success
+  classifications or interim decisions, which use strict point- estimate
+  comparisons with `prob_ha`, `Sn`, and `Fn`. The default is 0.95.
 
 - N_trials:
 
