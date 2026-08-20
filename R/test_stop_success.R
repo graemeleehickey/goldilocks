@@ -8,8 +8,8 @@
 #' @param check_futility Logical. Does the adaptive design include a test for
 #'   assessment of futility?
 #' @param prob_ha Final completed-data success threshold.
-#' @param mc_conf_level Confidence level for finite posterior Monte Carlo
-#'   classification.
+#' @param mc_conf_level Confidence level for diagnostic finite posterior Monte
+#'   Carlo bounds.
 #'
 #' @return See analyse_data
 #' @noRd

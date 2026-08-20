@@ -1,4 +1,4 @@
-test_that("finite Monte Carlo bounds control expected-success decision error", {
+test_that("expected-success decisions use the point estimate", {
   draws <- 200L
   threshold <- 0.9
   summaries <- lapply(0:draws, function(successes) {
@@ -10,17 +10,22 @@ test_that("finite Monte Carlo bounds control expected-success decision error", {
       confidence = 0.95
     )
   })
-  crossing_counts <- which(vapply(
+  point_crossing <- vapply(
     summaries,
     function(x) x$crossed,
     logical(1)
-  )) - 1L
-  decision_error <- sum(dbinom(crossing_counts, draws, threshold))
+  )
+  bound_crossing <- vapply(
+    summaries,
+    function(x) x$bound_crossed,
+    logical(1)
+  )
 
-  expect_lte(decision_error, 0.05)
+  expect_identical(point_crossing, (0:draws) / draws > threshold)
+  expect_true(all(!bound_crossing | point_crossing))
 })
 
-test_that("finite Monte Carlo bounds control futility decision error", {
+test_that("futility decisions use the point estimate", {
   draws <- 200L
   threshold <- 0.05
   summaries <- lapply(0:draws, function(successes) {
@@ -32,17 +37,22 @@ test_that("finite Monte Carlo bounds control futility decision error", {
       confidence = 0.95
     )
   })
-  crossing_counts <- which(vapply(
+  point_crossing <- vapply(
     summaries,
     function(x) x$crossed,
     logical(1)
-  )) - 1L
-  decision_error <- sum(dbinom(crossing_counts, draws, threshold))
+  )
+  bound_crossing <- vapply(
+    summaries,
+    function(x) x$bound_crossed,
+    logical(1)
+  )
 
-  expect_lte(decision_error, 0.05)
+  expect_identical(point_crossing, (0:draws) / draws < threshold)
+  expect_true(all(!bound_crossing | point_crossing))
 })
 
-test_that("coarse and equality-bound Monte Carlo results continue", {
+test_that("bounds remain diagnostic when point estimates cross", {
   coarse <- monte_carlo_probability_summary(
     successes = 10,
     draws = 10,
@@ -57,13 +67,15 @@ test_that("coarse and equality-bound Monte Carlo results continue", {
   )
 
   expect_true(coarse$point_crossed)
-  expect_false(coarse$crossed)
-  expect_identical(coarse$reason, "monte_carlo_uncertain")
+  expect_true(coarse$crossed)
+  expect_false(coarse$bound_crossed)
+  expect_identical(coarse$reason, "estimate_greater_threshold")
   expect_false(equality$point_crossed)
   expect_false(equality$crossed)
+  expect_false(equality$bound_crossed)
 })
 
-test_that("inner posterior Monte Carlo uncertainty is not called success", {
+test_that("inner posterior classification uses its point estimate", {
   analysis <- set_analysis_mc_counts(
     list(success = 1, effect = 0.2),
     successes = 10,
@@ -75,7 +87,7 @@ test_that("inner posterior Monte Carlo uncertainty is not called success", {
     mc_conf_level = 0.95
   )
 
-  expect_false(classification$crossed)
+  expect_true(classification$crossed)
   expect_true(classification$uncertain)
 })
 

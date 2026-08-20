@@ -174,15 +174,23 @@ test_that("survival_adapt returns an auditable interim trace on request", {
   success_rows <- out$trace$decision == "stop_expected_success"
   if (any(success_rows)) {
     expect_true(all(
-      out$trace$ppp_stop_now_lower[success_rows] >
+      out$trace$ppp_stop_now[success_rows] >
         out$trace$success_threshold[success_rows]
+    ))
+    expect_true(all(
+      out$trace$decision_reason[success_rows] ==
+        "expected_success_estimate_above_threshold"
     ))
   }
   futility_rows <- out$trace$decision == "stop_futility"
   if (any(futility_rows)) {
     expect_true(all(
-      out$trace$ppp_success_at_max_upper[futility_rows] <
+      out$trace$ppp_success_at_max[futility_rows] <
         out$trace$futility_threshold[futility_rows]
+    ))
+    expect_true(all(
+      out$trace$decision_reason[futility_rows] ==
+        "futility_estimate_below_threshold"
     ))
   }
 

@@ -70,13 +70,12 @@
   RNG, parallel, call, and design metadata and expose requested, analyzed, and
   failed trial counts so failed runs cannot silently leave the denominator
   unchanged (#78).
-* Interim Monte Carlo decisions now require one-sided exact binomial bounds to
-  cross their thresholds, at both the completed-data posterior layer and the
-  outer predictive-imputation layer. Equality and estimates whose bounds do not
-  separate from a threshold continue enrollment. The defaults are now
-  `N_impute = 500` and `N_mcmc = 1000`, and decision traces report estimates,
-  Monte Carlo standard errors, bounds, draw counts, uncertainty counts, and the
-  decision reason (#60).
+* Interim Monte Carlo decisions use strict point-estimate comparisons at both
+  the completed-data posterior layer and the outer predictive-imputation layer,
+  preserving the Goldilocks stopping rule. The defaults are now `N_impute =
+  500` and `N_mcmc = 1000`, and decision traces report estimates, diagnostic
+  Monte Carlo standard errors and exact bounds, draw counts, uncertainty
+  counts, and the decision reason (#60).
 * Empty piecewise-exponential intervals are now prior-driven by default. The
   former `empty_interval = "propagate"` behavior remains available only as an
   explicit legacy heuristic. To reproduce earlier results, set it explicitly;

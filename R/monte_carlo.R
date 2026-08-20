@@ -2,8 +2,8 @@
 #'
 #' @description Computes the point estimate, Monte Carlo standard error, and
 #'   exact one-sided Clopper-Pearson bounds for a binary Monte Carlo estimand.
-#'   A threshold is crossed only when the relevant confidence bound is strictly
-#'   beyond it. Equality and unresolved finite-draw results do not cross.
+#'   Threshold crossing uses the point estimate; the bounds are diagnostic and
+#'   do not alter the decision.
 #'
 #' @noRd
 monte_carlo_probability_summary <- function(
@@ -44,15 +44,13 @@ monte_carlo_probability_summary <- function(
   } else {
     estimate < threshold
   }
-  crossed <- if (direction == "greater") {
+  bound_crossed <- if (direction == "greater") {
     lower > threshold
   } else {
     upper < threshold
   }
-  reason <- if (crossed) {
-    paste0("confidence_bound_", direction, "_threshold")
-  } else if (point_crossed) {
-    "monte_carlo_uncertain"
+  reason <- if (point_crossed) {
+    paste0("estimate_", direction, "_threshold")
   } else {
     paste0("estimate_not_", direction, "_threshold")
   }
@@ -68,7 +66,8 @@ monte_carlo_probability_summary <- function(
     direction = direction,
     confidence = confidence,
     point_crossed = point_crossed,
-    crossed = crossed,
+    bound_crossed = bound_crossed,
+    crossed = point_crossed,
     reason = reason
   )
 }
@@ -86,9 +85,9 @@ set_analysis_mc_counts <- function(result, successes, draws) {
 
 #' @title Classify one completed-data analysis
 #'
-#' @description Deterministic analyses use their point result. Analyses based
-#'   on posterior Monte Carlo draws must have a lower confidence bound above
-#'   `prob_ha` before the completed dataset is classified as successful.
+#' @description All analyses use their point result. For analyses based on
+#'   posterior Monte Carlo draws, exact bounds are retained as diagnostics but
+#'   do not alter the completed-dataset classification.
 #'
 #' @noRd
 classify_completed_analysis <- function(
@@ -117,8 +116,8 @@ classify_completed_analysis <- function(
     confidence = mc_conf_level
   )
   list(
-    crossed = summary$crossed,
-    uncertain = summary$point_crossed && !summary$crossed,
+    crossed = summary$point_crossed,
+    uncertain = summary$point_crossed && !summary$bound_crossed,
     estimate = summary$estimate,
     lower = summary$lower,
     upper = summary$upper,

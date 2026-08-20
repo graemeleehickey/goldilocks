@@ -85,13 +85,10 @@
 #'   `method = "bayes-surv"` and by `method = "bayes-bin"` when
 #'   `bin_method = "mc"`. The default is 1000.
 #' @param mc_conf_level probability strictly between 0.5 and 1. Confidence
-#'   level for one-sided exact binomial bounds that guard finite Monte Carlo
-#'   interim decisions. A completed-data Bayesian analysis is counted as
-#'   successful only when its lower Monte Carlo bound exceeds `prob_ha`.
-#'   Expected-success stopping requires the lower bound for the outer
-#'   predictive estimate to exceed `Sn`; futility stopping requires its upper
-#'   bound to be below `Fn`. Equality or an unresolved bound continues
-#'   enrollment. The default is 0.95.
+#'   level for one-sided exact binomial bounds reported as diagnostics of
+#'   finite Monte Carlo uncertainty. The bounds do not alter completed-data
+#'   success classifications or interim decisions, which use strict point-
+#'   estimate comparisons with `prob_ha`, `Sn`, and `Fn`. The default is 0.95.
 #' @param empty_interval character. Policy for empty piecewise-exponential
 #'   intervals in `method = "bayes-surv"` posterior calculations. An empty
 #'   interval is an interval with no exposed subjects in a treatment arm at the
@@ -129,18 +126,16 @@
 #'   1. **The posterior predictive probability of eventual success.** This is
 #'      calculated as the proportion of imputed datasets at the *current* sample
 #'      size that would go on to be success at the specified threshold. At each
-#'      interim analysis its one-sided exact lower Monte Carlo confidence bound
-#'      is compared to the corresponding element of `Sn`, and if the bound
-#'      exceeds the threshold,
+#'      interim analysis this proportion is compared to the corresponding
+#'      element of `Sn`, and if it exceeds the threshold,
 #'      accrual/enrollment is suspended and the outstanding follow-up allowed to
 #'      complete before conducting the pre-specified final analysis.
 #'
 #'   2. **The posterior predictive probability of final success**. This is
 #'      calculated as the proportion of imputed datasets at the *maximum*
 #'      threshold that would go on to be successful. Similar to above, it is
-#'      compared to the corresponding element of `Fn`, and if its one-sided
-#'      exact upper Monte Carlo confidence bound is below the threshold,
-#'      accrual/enrollment is suspended and the
+#'      compared to the corresponding element of `Fn`, and if it is below the
+#'      threshold, accrual/enrollment is suspended and the
 #'      trial terminated. Typically this would be a binding decision. If it is
 #'      not a binding decision, then one should also explore the simulations
 #'      with `Fn = 0`.
@@ -347,9 +342,9 @@
 #'   summary element is the same data frame and its trace element has one row
 #'   per interim look. The trace records calendar time, the number of subjects
 #'   actively under follow-up, enrollment and observed events by arm,
-#'   predictive probabilities, Monte Carlo standard errors and exact bounds,
-#'   draw counts, thresholds, the decision and reason, empty-interval fallback
-#'   diagnostics, and warnings raised during that look. It deliberately
+#'   predictive probabilities, diagnostic Monte Carlo standard errors and exact
+#'   bounds, draw counts, thresholds, the decision and reason, empty-interval
+#'   fallback diagnostics, and warnings raised during that look. It deliberately
 #'   excludes imputed data sets and posterior draws to keep the output compact.
 #'
 #' @references
@@ -682,9 +677,8 @@ survival_adapt <- function(
           goldilocks_empty_interval = capture_empty_interval
         )
 
-        # Bayesian completed-data analyses use an inner exact Monte Carlo
-        # bound; deterministic frequentist and quadrature analyses retain their
-        # strict point comparison with prob_ha.
+        # Every completed-data analysis uses its strict point comparison with
+        # prob_ha. Bayesian Monte Carlo bounds are retained only as diagnostics.
         analysis_now <- stop_check$classification_now
         if (analysis_now$crossed) {
           expected_success_test <- expected_success_test + 1
@@ -703,8 +697,8 @@ survival_adapt <- function(
       }
 
       # The outer Monte Carlo estimands are probabilities that a completed
-      # dataset meets its final success rule. Exact one-sided bounds prevent a
-      # coarse point estimate from triggering an unsupported trial decision.
+      # dataset meets its final success rule. Exact one-sided bounds describe
+      # finite-draw uncertainty but do not alter the point-estimate decision.
       ppp_now_mc <- monte_carlo_probability_summary(
         successes = expected_success_test,
         draws = N_impute,
@@ -730,27 +724,17 @@ survival_adapt <- function(
         NA_real_
       }
 
-      decision <- if (ppp_now_mc$crossed) {
+      decision <- if (ppp_now_mc$point_crossed) {
         "stop_expected_success"
-      } else if (check_futility && ppp_max_mc$crossed) {
+      } else if (check_futility && ppp_max_mc$point_crossed) {
         "stop_futility"
       } else {
         "continue"
       }
       decision_reason <- if (decision == "stop_expected_success") {
-        "expected_success_lower_bound_above_threshold"
+        "expected_success_estimate_above_threshold"
       } else if (decision == "stop_futility") {
-        "futility_upper_bound_below_threshold"
-      } else if (
-        inner_mc_uncertain_now > 0L || inner_mc_uncertain_max > 0L
-      ) {
-        "continue_inner_monte_carlo_uncertain"
-      } else if (ppp_now_mc$reason == "monte_carlo_uncertain") {
-        "continue_expected_success_monte_carlo_uncertain"
-      } else if (
-        check_futility && ppp_max_mc$reason == "monte_carlo_uncertain"
-      ) {
-        "continue_futility_monte_carlo_uncertain"
+        "futility_estimate_below_threshold"
       } else {
         "continue_thresholds_not_crossed"
       }
