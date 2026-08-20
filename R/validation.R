@@ -45,54 +45,149 @@ validate_probability_vector <- function(x, name, upper_open = FALSE) {
   invisible(TRUE)
 }
 
-#' Normalize arm-specific loss-to-follow-up proportions
+#' Normalize a scalar or two-arm vector
 #'
-#' @description Converts a shared scalar or a named arm-specific vector into
-#'   the canonical treatment-group order used by the simulation. Requiring
-#'   names for two-arm vectors prevents positional confusion between APIs that
-#'   list treatment and control in different orders.
+#' @description Converts supported arm-vector inputs into the canonical order
+#'   `control`, `treatment`. Callers select whether a shared scalar or an
+#'   unnamed legacy vector is allowed.
+#'
+#' @param x Input vector.
+#' @param name Argument name used in messages.
+#' @param single_arm Whether the simulation has only a treatment arm.
+#' @param allow_scalar Whether a scalar should be replicated across two arms.
+#' @param allow_unnamed Whether an unnamed length-two vector should be accepted
+#'   in legacy `c(control, treatment)` order.
+#' @param warn_unnamed_unequal Whether an unequal unnamed vector should emit a
+#'   future-compatibility warning.
+#'
+#' @return A named vector containing `treatment` for a single-arm design or
+#'   `control` followed by `treatment` for a two-arm design.
+#'
+#' @keywords internal
+#' @noRd
+normalize_arm_vector <- function(
+  x,
+  name,
+  single_arm = FALSE,
+  allow_scalar = FALSE,
+  allow_unnamed = FALSE,
+  warn_unnamed_unequal = FALSE
+) {
+  if (single_arm) {
+    if (length(x) != 1L) {
+      stop("'", name, "' must be a single value for a single-arm design")
+    }
+    return(c(treatment = unname(x)))
+  }
+
+  arm_names <- c("control", "treatment")
+  if (length(x) == 1L && allow_scalar) {
+    normalized <- rep(unname(x), 2L)
+    names(normalized) <- arm_names
+    return(normalized)
+  }
+
+  supplied_names <- names(x)
+  valid_named_vector <- length(x) == 2L &&
+    !is.null(supplied_names) &&
+    !anyNA(supplied_names) &&
+    all(nzchar(supplied_names)) &&
+    !anyDuplicated(supplied_names) &&
+    setequal(supplied_names, arm_names)
+  if (valid_named_vector) {
+    normalized <- unname(x[arm_names])
+    names(normalized) <- arm_names
+    return(normalized)
+  }
+
+  fully_unnamed <- is.null(supplied_names) ||
+    (!anyNA(supplied_names) && all(!nzchar(supplied_names)))
+  if (length(x) == 2L && allow_unnamed && fully_unnamed) {
+    if (warn_unnamed_unequal && length(unique(unname(x))) > 1L) {
+      warning(
+        "Using unequal unnamed '",
+        name,
+        "' assumes c(control, treatment) order; name the values explicitly ",
+        "because unequal unnamed arm allocations may require names in a ",
+        "future major release",
+        call. = FALSE
+      )
+    }
+    normalized <- unname(x)
+    names(normalized) <- arm_names
+    return(normalized)
+  }
+
+  scalar_text <- if (allow_scalar) "a single value or " else ""
+  unnamed_text <- if (allow_unnamed) {
+    "an unnamed length-two vector in c(control, treatment) order or "
+  } else {
+    ""
+  }
+  stop(
+    "'",
+    name,
+    "' must be ",
+    scalar_text,
+    unnamed_text,
+    "a length-two vector named 'control' and 'treatment' for a two-arm design"
+  )
+}
+
+#' Normalize arm-specific loss-to-follow-up proportions
 #'
 #' @param prop_loss One shared probability or a named arm-specific vector.
 #' @param single_arm Whether the simulation has only a treatment arm.
 #'
-#' @return A named probability vector containing `treatment` for a single-arm
-#'   design or `control` followed by `treatment` for a two-arm design.
+#' @return A canonical named arm vector.
 #'
 #' @keywords internal
 #' @noRd
 normalize_prop_loss <- function(prop_loss, single_arm) {
   validate_probability_vector(prop_loss, "prop_loss")
+  if (single_arm && length(prop_loss) != 1L) {
+    stop("'prop_loss' must be a single probability for a single-arm design")
+  }
+  normalize_arm_vector(
+    prop_loss,
+    name = "prop_loss",
+    single_arm = single_arm,
+    allow_scalar = TRUE
+  )
+}
 
-  if (single_arm) {
-    if (length(prop_loss) != 1L) {
-      stop("'prop_loss' must be a single probability for a single-arm design")
-    }
-    return(c(treatment = unname(prop_loss)))
+#' Normalize a two-arm randomization allocation
+#'
+#' @param allocation Allocation weights.
+#' @param name Argument name used in messages.
+#'
+#' @return A positive integer vector in canonical arm order.
+#'
+#' @keywords internal
+#' @noRd
+normalize_allocation <- function(allocation, name = "allocation") {
+  if (length(allocation) != 2L) {
+    stop("'", name, "' must contain two positive integer values")
+  }
+  if (
+    !is.numeric(allocation) ||
+      !is.null(dim(allocation)) ||
+      any(is.na(allocation)) ||
+      any(!is.finite(allocation)) ||
+      any(allocation %% 1 != 0)
+  ) {
+    stop("All values of '", name, "' must be integer values")
+  }
+  if (any(allocation <= 0)) {
+    stop("'", name, "' must contain two positive integer values")
   }
 
-  arm_names <- c("control", "treatment")
-  if (length(prop_loss) == 1L) {
-    normalized <- rep(unname(prop_loss), 2L)
-    names(normalized) <- arm_names
-    return(normalized)
-  }
-
-  supplied_names <- names(prop_loss)
-  valid_arm_vector <- length(prop_loss) == 2L &&
-    !is.null(supplied_names) &&
-    !anyNA(supplied_names) &&
-    !anyDuplicated(supplied_names) &&
-    setequal(supplied_names, arm_names)
-  if (!valid_arm_vector) {
-    stop(
-      "'prop_loss' must be a single probability or a length-two vector ",
-      "named 'control' and 'treatment' for a two-arm design"
-    )
-  }
-
-  normalized <- unname(prop_loss[arm_names])
-  names(normalized) <- arm_names
-  normalized
+  normalize_arm_vector(
+    allocation,
+    name = name,
+    allow_unnamed = TRUE,
+    warn_unnamed_unequal = TRUE
+  )
 }
 
 #' @title Validate one positive integer
@@ -462,7 +557,12 @@ validate_enrollment_schedule <- function(lambda, lambda_time, N_total) {
 #'   block sizes and allocation weights compatible with the target sample size.
 #'
 #' @noRd
-validate_randomization_args <- function(N_total, block, allocation) {
+validate_randomization_args <- function(
+  N_total,
+  block,
+  allocation,
+  allocation_name = "allocation"
+) {
   validate_positive_integer_scalar(N_total, "N_total")
 
   if (
@@ -477,27 +577,13 @@ validate_randomization_args <- function(N_total, block, allocation) {
     stop("'block' must contain positive integer values")
   }
 
-  if (length(allocation) != 2) {
-    stop("'allocation' must contain two positive integer values")
-  }
-
-  if (
-    !is.numeric(allocation) ||
-      !is.null(dim(allocation)) ||
-      any(is.na(allocation)) ||
-      any(!is.finite(allocation)) ||
-      any(allocation %% 1 != 0)
-  ) {
-    stop("All values of 'allocation' must be integer values")
-  }
-
-  if (any(allocation <= 0)) {
-    stop("'allocation' must contain two positive integer values")
-  }
+  allocation <- normalize_allocation(allocation, allocation_name)
 
   if (any(block %% sum(allocation) != 0)) {
     stop(
-      "Each 'block' value must be a multiple of sum('allocation') (",
+      "Each 'block' value must be a multiple of sum('",
+      allocation_name,
+      "') (",
       sum(allocation),
       "); observed 'block' value(s): ",
       paste(block, collapse = ", ")
@@ -513,7 +599,7 @@ validate_randomization_args <- function(N_total, block, allocation) {
     )
   }
 
-  invisible(TRUE)
+  invisible(allocation)
 }
 
 #' @title Validate a null hypothesis value

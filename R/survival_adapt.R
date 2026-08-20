@@ -337,6 +337,8 @@
 #'   [saveRDS()] and supplied to a later call with
 #'   `do.call(survival_adapt, attr(result, "arguments"))`. Its `prop_loss`
 #'   element is normalized to a named value for every simulated arm.
+#'   Its `rand_ratio` element is normalized to `control`, `treatment` order for
+#'   two-arm designs.
 #'
 #'   With return_trace = TRUE, a goldilocks_trial object is returned. Its
 #'   summary element is the same data frame and its trace element has one row
@@ -370,7 +372,7 @@
 #'  end_of_study = 36,
 #'  prior_surv = c(0.1, 0.1),
 #'  block = 2,
-#'  rand_ratio = c(1, 1),
+#'  rand_ratio = c(control = 1, treatment = 1),
 #'  prop_loss = 0.30,
 #'  alternative = "less",
 #'  h0 = 0,
@@ -393,7 +395,7 @@ survival_adapt <- function(
   prior_bin = c(1, 1),
   bin_method = "mc",
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0,
   alternative = "greater",
   h0 = 0,
@@ -430,6 +432,15 @@ survival_adapt <- function(
   ##############################################################################
 
   validate_positive_integer_scalar(N_total, "N_total")
+  if (!single_arm) {
+    rand_ratio <- validate_randomization_args(
+      N_total,
+      block,
+      rand_ratio,
+      allocation_name = "rand_ratio"
+    )
+    Arguments$rand_ratio <- rand_ratio
+  }
   prop_loss <- normalize_prop_loss(prop_loss, single_arm)
   Arguments$prop_loss <- prop_loss
   validate_single_probability(prob_ha, "prob_ha")
@@ -471,10 +482,6 @@ survival_adapt <- function(
       "Frequentist final-analysis imputation requires at least two imputations ",
       "to apply Rubin's rules"
     )
-  }
-
-  if (!single_arm) {
-    validate_randomization_args(N_total, block, rand_ratio)
   }
 
   if (!is.null(interim_look)) {

@@ -85,8 +85,10 @@
 #'   and worker counts, task count, and backend-selection reason. An `arguments`
 #'   attribute contains a named list of all evaluated argument values, including
 #'   defaults. Its `prop_loss` element is normalized to a named value for every
-#'   simulated arm. The attribute can be saved with [saveRDS()] and supplied to
-#'   a later call with `do.call(sim_trials, attr(result, "arguments"))`.
+#'   simulated arm, and its `rand_ratio` element is normalized to `control`,
+#'   `treatment` order for two-arm designs. The attribute can be saved with
+#'   [saveRDS()] and supplied to a later call with
+#'   `do.call(sim_trials, attr(result, "arguments"))`.
 #'
 #' @importFrom pbmcapply pbmclapply
 #' @export
@@ -106,7 +108,7 @@
 #'   end_of_study = 36,
 #'   prior_surv = c(0.1, 0.1),
 #'   block = 2,
-#'   rand_ratio = c(1, 1),
+#'   rand_ratio = c(control = 1, treatment = 1),
 #'   prop_loss = 0.30,
 #'   alternative = "two.sided",
 #'   h0 = 0,
@@ -134,7 +136,7 @@ sim_trials <- function(
   prior_bin = c(1, 1),
   bin_method = "mc",
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0,
   alternative = "greater",
   h0 = 0,
@@ -167,9 +169,19 @@ sim_trials <- function(
   caller_rng_kind <- RNGkind()
 
   validate_positive_integer_scalar(N_trials, "N_trials")
+  single_arm <- is.null(hazard_control)
+  if (!single_arm) {
+    rand_ratio <- validate_randomization_args(
+      N_total,
+      block,
+      rand_ratio,
+      allocation_name = "rand_ratio"
+    )
+    Arguments$rand_ratio <- rand_ratio
+  }
   prop_loss <- normalize_prop_loss(
     prop_loss,
-    single_arm = is.null(hazard_control)
+    single_arm = single_arm
   )
   Arguments$prop_loss <- prop_loss
   validate_logical_scalar(return_trace, "return_trace")

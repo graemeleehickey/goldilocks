@@ -18,15 +18,56 @@ test_that("1:1 randomization gives balanced allocation within blocks", {
 
 test_that("randomization respects unequal allocation ratio", {
   set.seed(9214)
-  out <- randomization(N_total = 90, block = 3, allocation = c(1, 2))
+  out <- randomization(
+    N_total = 90,
+    block = 3,
+    allocation = c(control = 1, treatment = 2)
+  )
   # 30 complete blocks: 30 control, 60 treatment
   expect_equal(sum(out == 0), 30)
   expect_equal(sum(out == 1), 60)
 })
 
+test_that("named allocations are normalized independently of order", {
+  set.seed(1847)
+  canonical <- randomization(
+    N_total = 90,
+    block = 3,
+    allocation = c(control = 1, treatment = 2)
+  )
+  set.seed(1847)
+  reversed <- randomization(
+    N_total = 90,
+    block = 3,
+    allocation = c(treatment = 2, control = 1)
+  )
+
+  expect_identical(reversed, canonical)
+})
+
+test_that("legacy unequal unnamed allocations warn and retain their order", {
+  set.seed(2981)
+  expect_warning(
+    legacy <- randomization(N_total = 90, block = 3, allocation = c(1, 2)),
+    "assumes c\\(control, treatment\\) order"
+  )
+  set.seed(2981)
+  named <- randomization(
+    N_total = 90,
+    block = 3,
+    allocation = c(control = 1, treatment = 2)
+  )
+
+  expect_identical(legacy, named)
+})
+
 test_that("randomization works with multiple block sizes", {
   set.seed(1053)
-  out <- randomization(N_total = 100, block = c(3, 9, 6), allocation = c(1, 2))
+  out <- randomization(
+    N_total = 100,
+    block = c(3, 9, 6),
+    allocation = c(control = 1, treatment = 2)
+  )
   expect_length(out, 100)
   expect_true(all(out %in% c(0, 1)))
 })
@@ -47,7 +88,11 @@ test_that("randomization errors when block not divisible by allocation sum", {
     )
   )
   expect_error(
-    randomization(N_total = 100, block = c(6, 8), allocation = c(1, 2)),
+    randomization(
+      N_total = 100,
+      block = c(6, 8),
+      allocation = c(control = 1, treatment = 2)
+    ),
     "sum\\('allocation'\\) \\(3\\); observed 'block' value\\(s\\): 6, 8"
   )
 })
@@ -63,14 +108,22 @@ test_that("randomization works with multiple block sizes needing remainder fill"
   set.seed(7238)
   # sum(block) = 18, N_total = 25 forces the loop to exhaust all block elements
   # and then fill a remainder using next_block
-  out <- randomization(N_total = 25, block = c(6, 6, 6), allocation = c(1, 2))
+  out <- randomization(
+    N_total = 25,
+    block = c(6, 6, 6),
+    allocation = c(control = 1, treatment = 2)
+  )
   expect_length(out, 25)
   expect_true(all(out %in% c(0, 1)))
 })
 
 test_that("randomization preserves allocation in final partial block setup", {
   set.seed(2894)
-  out <- randomization(N_total = 25, block = c(6, 9, 3), allocation = c(1, 2))
+  out <- randomization(
+    N_total = 25,
+    block = c(6, 9, 3),
+    allocation = c(control = 1, treatment = 2)
+  )
   complete_blocks <- split(out[1:24], rep(seq_len(4), c(6, 9, 3, 6)))
 
   expect_equal(
@@ -107,5 +160,14 @@ test_that("randomization validates allocation length and positivity", {
   expect_error(
     randomization(N_total = 100, block = 2, allocation = c(1, Inf)),
     "integer"
+  )
+
+  expect_error(
+    randomization(
+      N_total = 100,
+      block = 2,
+      allocation = c(control = 1, experimental = 1)
+    ),
+    "named 'control' and 'treatment'"
   )
 })

@@ -4,7 +4,7 @@
 \alias{randomization}
 \title{Randomization allocation}
 \usage{
-randomization(N_total, block = 2, allocation = c(1, 1))
+randomization(N_total, block = 2, allocation = c(control = 1, treatment = 1))
 }
 \arguments{
 \item{N_total}{integer. Total sample size for randomization allocation.}
@@ -12,8 +12,11 @@ randomization(N_total, block = 2, allocation = c(1, 1))
 \item{block}{vector. One or more positive integer block sizes. Every block
 size must be a multiple of \code{sum(allocation)}.}
 
-\item{allocation}{length-two positive integer vector. The two-arm
-randomization allocation in the order \code{c(control, treatment)}.}
+\item{allocation}{length-two positive integer vector. Name the values
+\code{control} and \code{treatment}; either supplied order is accepted and normalized
+internally. A legacy unnamed vector remains accepted in
+\code{c(control, treatment)} order. Unequal unnamed values produce a warning
+because names may be required in a future major release.}
 }
 \value{
 An integer treatment assignment vector, coded \code{0} for control and
@@ -37,17 +40,33 @@ equal- and unequal-allocation examples below.
 \examples{
 # Implementing treatment allocation for control to treatment with 1:1.5
 # randomization ratio
-randomization(N_total = 100, block = 5, allocation = c(2, 3))
+randomization(
+  N_total = 100,
+  block = 5,
+  allocation = c(control = 2, treatment = 3)
+)
 
 # Treatment allocation with 2:1 for control to treatment
-randomization(N_total = 70, block = 9, allocation = c(2, 1))
+randomization(
+  N_total = 70,
+  block = 9,
+  allocation = c(treatment = 1, control = 2)
+)
 
 # Treatment allocation for control to treatment with 1:2 for control
 # to treatment with multiple block sizes c(3, 9, 6)
-randomization(N_total = 100, block = c(3, 9, 6), allocation = c(1, 2))
+randomization(
+  N_total = 100,
+  block = c(3, 9, 6),
+  allocation = c(control = 1, treatment = 2)
+)
 
 # For complete randomization set the N_total to block size
-randomization(N_total = 100, block = 100, allocation = c(1, 1))
+randomization(
+  N_total = 100,
+  block = 100,
+  allocation = c(control = 1, treatment = 1)
+)
 
 # randomization() is a two-arm helper; a multi-arm allocation is rejected.
 try(randomization(

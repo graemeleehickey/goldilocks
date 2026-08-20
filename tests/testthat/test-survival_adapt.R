@@ -305,7 +305,7 @@ test_that("survival_adapt-complex", {
     end_of_study = 24,
     prior_surv = c(0.1, 0.1),
     block = 3,
-    rand_ratio = c(2, 1),
+    rand_ratio = c(control = 2, treatment = 1),
     prop_loss = 0,
     alternative = "less",
     h0 = 0,

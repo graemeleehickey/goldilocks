@@ -23,8 +23,11 @@
 #' @param end_of_study finite study endpoint, strictly greater than the last
 #'   cutpoint.
 #' @param block scalar. Block size for generating the randomization schedule.
-#' @param rand_ratio vector. Randomization allocation for the ratio of control
-#'   to treatment. Integer values mapping the size of the block. See
+#' @param rand_ratio length-two positive integer randomization allocation. Name
+#'   the values `control` and `treatment`; either supplied order is accepted and
+#'   normalized internally. A legacy unnamed vector remains accepted in
+#'   `c(control, treatment)` order. Unequal unnamed values produce a warning
+#'   because names may be required in a future major release. See
 #'   [randomization()] for more details.
 #' @param prop_loss one or two probabilities. A scalar applies the same LTFU
 #'   proportion to every arm. For a two-arm design, differential attrition can
@@ -83,7 +86,7 @@ sim_comp_data <- function(
   lambda_time = NULL,
   end_of_study,
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0
 ) {
   ##############################################################################
@@ -101,7 +104,12 @@ sim_comp_data <- function(
   validate_piecewise_hazard(hazard_treatment, cutpoints, "hazard_treatment")
   if (!single_arm) {
     validate_piecewise_hazard(hazard_control, cutpoints, "hazard_control")
-    validate_randomization_args(N_total, block, rand_ratio)
+    rand_ratio <- validate_randomization_args(
+      N_total,
+      block,
+      rand_ratio,
+      allocation_name = "rand_ratio"
+    )
   }
 
   ##############################################################################

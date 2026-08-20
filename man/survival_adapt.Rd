@@ -17,7 +17,7 @@ survival_adapt(
   prior_bin = c(1, 1),
   bin_method = "mc",
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0,
   alternative = "greater",
   h0 = 0,
@@ -91,8 +91,11 @@ integration). The default is \code{"mc"}.}
 
 \item{block}{scalar. Block size for generating the randomization schedule.}
 
-\item{rand_ratio}{vector. Randomization allocation for the ratio of control
-to treatment. Integer values mapping the size of the block. See
+\item{rand_ratio}{length-two positive integer randomization allocation. Name
+the values \code{control} and \code{treatment}; either supplied order is accepted and
+normalized internally. A legacy unnamed vector remains accepted in
+\code{c(control, treatment)} order. Unequal unnamed values produce a warning
+because names may be required in a future major release. See
 \code{\link[=randomization]{randomization()}} for more details.}
 
 \item{prop_loss}{one or two probabilities. A scalar applies the same LTFU
@@ -266,6 +269,8 @@ the evaluated argument values, including defaults. It can be saved with
 \code{\link[=saveRDS]{saveRDS()}} and supplied to a later call with
 \code{do.call(survival_adapt, attr(result, "arguments"))}. Its \code{prop_loss}
 element is normalized to a named value for every simulated arm.
+Its \code{rand_ratio} element is normalized to \code{control}, \code{treatment} order for
+two-arm designs.
 
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
@@ -461,7 +466,7 @@ survival_adapt(
  end_of_study = 36,
  prior_surv = c(0.1, 0.1),
  block = 2,
- rand_ratio = c(1, 1),
+ rand_ratio = c(control = 1, treatment = 1),
  prop_loss = 0.30,
  alternative = "less",
  h0 = 0,

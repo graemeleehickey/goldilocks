@@ -79,7 +79,7 @@ test_that("scalar and equal arm-specific loss proportions are identical", {
     lambda_time = NULL,
     end_of_study = 36,
     block = 3,
-    rand_ratio = c(1, 2)
+    rand_ratio = c(control = 1, treatment = 2)
   )
 
   set.seed(2061)
@@ -99,6 +99,57 @@ test_that("scalar and equal arm-specific loss proportions are identical", {
   expect_identical(arm_specific, scalar)
 })
 
+test_that("sim_comp_data normalizes named randomization ratios", {
+  common_args <- list(
+    hazard_treatment = 0.01,
+    hazard_control = 0.02,
+    cutpoints = NULL,
+    N_total = 99,
+    lambda = 20,
+    lambda_time = NULL,
+    end_of_study = 36,
+    block = 3,
+    prop_loss = 0
+  )
+
+  set.seed(5248)
+  canonical <- do.call(
+    sim_comp_data,
+    c(
+      common_args,
+      list(rand_ratio = c(control = 1, treatment = 2))
+    )
+  )
+  set.seed(5248)
+  reversed <- do.call(
+    sim_comp_data,
+    c(
+      common_args,
+      list(rand_ratio = c(treatment = 2, control = 1))
+    )
+  )
+
+  expect_identical(reversed, canonical)
+})
+
+test_that("sim_comp_data warns for unequal unnamed randomization ratios", {
+  expect_warning(
+    sim_comp_data(
+      hazard_treatment = 0.01,
+      hazard_control = 0.02,
+      cutpoints = NULL,
+      N_total = 30,
+      lambda = 20,
+      lambda_time = NULL,
+      end_of_study = 36,
+      block = 3,
+      rand_ratio = c(1, 2),
+      prop_loss = 0
+    ),
+    "unnamed 'rand_ratio' assumes c\\(control, treatment\\) order"
+  )
+})
+
 test_that("sim_comp_data applies differential loss within randomized arms", {
   common_args <- list(
     hazard_treatment = 0.01,
@@ -109,7 +160,7 @@ test_that("sim_comp_data applies differential loss within randomized arms", {
     lambda_time = NULL,
     end_of_study = 36,
     block = 3,
-    rand_ratio = c(1, 2)
+    rand_ratio = c(control = 1, treatment = 2)
   )
 
   set.seed(6901)

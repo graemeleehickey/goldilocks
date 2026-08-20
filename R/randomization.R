@@ -7,8 +7,11 @@
 #' @param N_total integer. Total sample size for randomization allocation.
 #' @param block vector. One or more positive integer block sizes. Every block
 #'   size must be a multiple of `sum(allocation)`.
-#' @param allocation length-two positive integer vector. The two-arm
-#'   randomization allocation in the order `c(control, treatment)`.
+#' @param allocation length-two positive integer vector. Name the values
+#'   `control` and `treatment`; either supplied order is accepted and normalized
+#'   internally. A legacy unnamed vector remains accepted in
+#'   `c(control, treatment)` order. Unequal unnamed values produce a warning
+#'   because names may be required in a future major release.
 #'
 #' @details Complete randomization may not always be ideal due to the chance of
 #'   drawing a large block assigned to one treatment group, potentially
@@ -27,17 +30,33 @@
 #' @examples
 #' # Implementing treatment allocation for control to treatment with 1:1.5
 #' # randomization ratio
-#' randomization(N_total = 100, block = 5, allocation = c(2, 3))
+#' randomization(
+#'   N_total = 100,
+#'   block = 5,
+#'   allocation = c(control = 2, treatment = 3)
+#' )
 #'
 #' # Treatment allocation with 2:1 for control to treatment
-#' randomization(N_total = 70, block = 9, allocation = c(2, 1))
+#' randomization(
+#'   N_total = 70,
+#'   block = 9,
+#'   allocation = c(treatment = 1, control = 2)
+#' )
 #'
 #' # Treatment allocation for control to treatment with 1:2 for control
 #' # to treatment with multiple block sizes c(3, 9, 6)
-#' randomization(N_total = 100, block = c(3, 9, 6), allocation = c(1, 2))
+#' randomization(
+#'   N_total = 100,
+#'   block = c(3, 9, 6),
+#'   allocation = c(control = 1, treatment = 2)
+#' )
 #'
 #' # For complete randomization set the N_total to block size
-#' randomization(N_total = 100, block = 100, allocation = c(1, 1))
+#' randomization(
+#'   N_total = 100,
+#'   block = 100,
+#'   allocation = c(control = 1, treatment = 1)
+#' )
 #'
 #' # randomization() is a two-arm helper; a multi-arm allocation is rejected.
 #' try(randomization(
@@ -45,8 +64,12 @@
 #'   block = 6,
 #'   allocation = c(1, 1, 1)
 #' ), silent = TRUE)
-randomization <- function(N_total, block = 2, allocation = c(1, 1)) {
-  validate_randomization_args(N_total, block, allocation)
+randomization <- function(
+  N_total,
+  block = 2,
+  allocation = c(control = 1, treatment = 1)
+) {
+  allocation <- validate_randomization_args(N_total, block, allocation)
 
   next_block <- NULL
 

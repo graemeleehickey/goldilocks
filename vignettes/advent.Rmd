@@ -371,7 +371,7 @@ $$
 
 This matches the reported 15 percentage point absolute noninferiority margin for treatment success, after translating success into failure. A lower failure probability is better, so we use `alternative = "less"`.
 
-ADVENT used 1:1 randomization stratified by site. The design paper reports randomly varying permuted block sizes, but the SAP does not provide the block sizes or the randomization-generation algorithm. The package can generate blocked 1:1 randomization, but it does not model site-level stratification or randomly varying block sizes. Here `block = 2` and `rand_ratio = c(1, 1)` retain simple 1:1 balance; they do not reproduce the trial's full randomization scheme.
+ADVENT used 1:1 randomization stratified by site. The design paper reports randomly varying permuted block sizes, but the SAP does not provide the block sizes or the randomization-generation algorithm. The package can generate blocked 1:1 randomization, but it does not model site-level stratification or randomly varying block sizes. Here `block = 2` and `rand_ratio = c(control = 1, treatment = 1)` retain simple 1:1 balance; they do not reproduce the trial's full randomization scheme.
 
 The SAP explicitly designates 5% of subjects as lost to follow-up for safety and 7.5% for effectiveness: the same 5% plus another 2.5% who may be unassessable for effectiveness while remaining assessable for safety. SAP dropout times are uniform over days 0--360, and an event remains observed when it precedes dropout. The package's `prop_loss` mechanism is similar but not identical: every selected subject is censored at a uniformly generated time before their potential event or administrative censoring time. Separate endpoint runs also cannot preserve the SAP's shared subject-level 5% plus nested 2.5% relationship. We therefore use 0.075 and 0.05 to map the SAP's **designated fractions**, not to claim exact reproduction of its censoring process. The subsequently observed proportion not completing follow-up was approximately 0.04, which is close to 0.05, but that post-trial quantity is not the design input and need not equal endpoint-specific missingness.
 
@@ -431,7 +431,7 @@ advent_effectiveness <- survival_adapt(
   prior_bin = prior_bin,
   bin_method = "quadrature",
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = effectiveness_prop_loss,
   alternative = "less",
   h0 = 0.15,
@@ -484,7 +484,7 @@ advent_safety <- survival_adapt(
   prior_bin = prior_bin,
   bin_method = "quadrature",
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = safety_prop_loss,
   alternative = "less",
   h0 = 0.08,
@@ -518,7 +518,7 @@ advent_common <- list(
   prior_bin = prior_bin,
   bin_method = "quadrature",
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   alternative = "less",
   Fn = Fn,
   Sn = Sn,

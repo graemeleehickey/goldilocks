@@ -160,6 +160,7 @@ test_that("sim_trials retains complete evaluated arguments", {
     N_total = 20,
     lambda = 10,
     end_of_study = 12,
+    rand_ratio = c(treatment = 1, control = 1),
     prop_loss = c(treatment = 0.20, control = 0.10),
     N_trials = 2,
     method = "logrank",
@@ -174,6 +175,10 @@ test_that("sim_trials retains complete evaluated arguments", {
   expect_identical(arguments$binary_imputation, "event-time")
   expect_identical(arguments$backend, "sequential")
   expect_identical(arguments$seed, 8601)
+  expect_identical(
+    arguments$rand_ratio,
+    c(control = 1, treatment = 1)
+  )
   expect_identical(
     arguments$prop_loss,
     c(control = 0.10, treatment = 0.20)

@@ -14,7 +14,7 @@ sim_comp_data(
   lambda_time = NULL,
   end_of_study,
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0
 )
 }
@@ -49,8 +49,11 @@ cutpoint.}
 
 \item{block}{scalar. Block size for generating the randomization schedule.}
 
-\item{rand_ratio}{vector. Randomization allocation for the ratio of control
-to treatment. Integer values mapping the size of the block. See
+\item{rand_ratio}{length-two positive integer randomization allocation. Name
+the values \code{control} and \code{treatment}; either supplied order is accepted and
+normalized internally. A legacy unnamed vector remains accepted in
+\code{c(control, treatment)} order. Unequal unnamed values produce a warning
+because names may be required in a future major release. See
 \code{\link[=randomization]{randomization()}} for more details.}
 
 \item{prop_loss}{one or two probabilities. A scalar applies the same LTFU
