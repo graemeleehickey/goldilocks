@@ -105,10 +105,17 @@ arguments:</p>
 hazard changes. With <span class="math inline">J - 1</span> cutpoints
 there are <span class="math inline">J</span> intervals and therefore
 <span class="math inline">J</span> hazard rates for each treatment
-group. For example, <code>cutpoints = 6</code> produces two intervals,
-<span class="math inline">[0, 6)</span> and <span class="math inline">[6, \infty)</span>. The default
+group. For example, PWEALL represents the continuous generating hazard
+for <code>cutpoints = 6</code> with pieces <span class="math inline">[0,
+6)</span> and <span class="math inline">[6, \infty)</span>. The default
 <code>cutpoints = NULL</code> supplies no change times and produces a
-single, constant hazard interval.</li>
+single, constant hazard interval. When <code>goldilocks</code> assigns a
+realized event time to an analysis interval, it follows the survival
+counting-process convention <span class="math inline">(0,6]</span> and
+<span class="math inline">(6,\infty)</span> instead: an event recorded
+exactly at month 6 belongs to the first interval. These representations
+give the same continuous event-time distribution because an isolated
+cutpoint has probability zero.</li>
 <li>
 <code>hazard_treatment</code> and <code>hazard_control</code>:
 vectors of length <span class="math inline">J</span> giving the constant
@@ -146,12 +153,13 @@ piecewise hazards:</p>
 <span><span class="co">#&gt;             [,1]   [,2]</span></span>
 <span><span class="co">#&gt; control   0.0594 0.0187</span></span>
 <span><span class="co">#&gt; treatment 0.0331 0.0174</span></span></code></pre></div>
-<p>The first column is the hazard during <span class="math inline">[0,
-6)</span> months and the second column is the hazard from 6 months
-onward. Both arms have a higher hazard in the early window. We can
-sanity-check that the implied survival probabilities at 24 months match
-what we specified by running the cumulative incidence computation back
-through <code><a href="../reference/ppwe.html">ppwe()</a></code>:</p>
+<p>The first column is the generating hazard during <span class="math inline">[0, 6)</span> months and the second column is the
+hazard from 6 months onward. In posterior sufficient statistics, the
+same columns receive observed events from <span class="math inline">(0,6]</span> and <span class="math inline">(6,\infty)</span> respectively. Both arms have a
+higher hazard in the early window. We can sanity-check that the implied
+survival probabilities at 24 months match what we specified by running
+the cumulative incidence computation back through
+<code><a href="../reference/ppwe.html">ppwe()</a></code>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ppwe.html">ppwe</a></span><span class="op">(</span>hazard       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">hc</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>     cutpoints    <span class="op">=</span> <span class="va">cutpoints</span>,</span>
@@ -265,12 +273,12 @@ time unit as the design below:</p>
 <td align="left">FALSE</td>
 </tr>
 <tr class="even">
-<td align="right">4.58</td>
+<td align="right">5.34</td>
 <td align="right">1</td>
-<td align="right">0</td>
+<td align="right">1</td>
 <td align="right">0.63</td>
 <td align="right">4</td>
-<td align="left">TRUE</td>
+<td align="left">FALSE</td>
 </tr>
 <tr class="odd">
 <td align="right">19.77</td>
@@ -281,12 +289,12 @@ time unit as the design below:</p>
 <td align="left">FALSE</td>
 </tr>
 <tr class="even">
-<td align="right">3.10</td>
+<td align="right">1.04</td>
 <td align="right">0</td>
-<td align="right">1</td>
+<td align="right">0</td>
 <td align="right">0.80</td>
 <td align="right">6</td>
-<td align="left">FALSE</td>
+<td align="left">TRUE</td>
 </tr>
 </tbody>
 </table>
@@ -326,9 +334,10 @@ patient is placed at time zero and subsequent inter-arrival gaps are
 generated exactly from an exponential distribution with rate 5.
 Piecewise accrual is specified using positive internal knots only; for
 example, <code>lambda = c(2, 5)</code> and <code>lambda_time = 6</code>
-means 2 enrollments per month before month 6 and 5 thereafter. These
-calendar-time enrollment knots are distinct from the subject-follow-up
-hazard <code>cutpoints</code> used above.</p>
+assigns positive realized enrollment times in <span class="math inline">(0,6]</span> to the rate of 2 enrollments per month
+and later times to the rate of 5. The fixed first patient at zero is
+handled separately. These calendar-time enrollment knots are distinct
+from the subject-follow-up hazard <code>cutpoints</code> used above.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7194</span><span class="op">)</span></span>
 <span></span>
@@ -358,11 +367,11 @@ hazard <code>cutpoints</code> used above.</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1          0.975      0        less          50        50        100   100</span></span>
 <span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1        0.969 -0.1761562        0.08             0                     0</span></span>
+<span><span class="co">#&gt; 1        0.978 -0.1855716        0.18             0                     0</span></span>
 <span><span class="co">#&gt;       stopping_reason accrual_stop_time analysis_ready_time</span></span>
 <span><span class="co">#&gt; 1 maximum_sample_size           20.2688            43.91658</span></span>
 <span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1                 44.2688              1637.81                   74</span></span></code></pre></div>
+<span><span class="co">#&gt; 1                 44.2688             1612.338                   71</span></span></code></pre></div>
 <p>The output reports the posterior probability of the alternative at
 the final (or stopped) analysis (<code>post_prob_ha</code>), the
 posterior mean treatment effect on the cumulative-failure scale

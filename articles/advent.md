@@ -269,10 +269,14 @@ knitr::kable(hazard_table, digits = c(9, 3))
 | Safety event | 7–360 | 0.000015354 | 0.920 |
 
 The less-than sign marks the exclusive upper boundary of each nonfinal
-interval; the final interval includes the administrative endpoint at day
-360. This notation makes clear that adjacent windows do not overlap.
-Because event time is continuous, assigning an exact cut-point to the
-interval on its left or right would not change the model probability.
+interval in the SAP’s continuous generating-hazard notation; the final
+interval includes the administrative endpoint at day 360. This notation
+makes clear that adjacent windows do not overlap. Because event time is
+continuous, assigning an exact cut-point to the interval on its left or
+right would not change the model probability. When `goldilocks`
+summarizes realized event times, it follows the survival
+counting-process convention `(start, stop]`, so an event recorded
+exactly at a cut-point is assigned to the interval ending there.
 
 The following calculation verifies the two final binary event
 probabilities used by the vignette:
@@ -500,12 +504,12 @@ advent_effectiveness <- survival_adapt(
 advent_effectiveness
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.956   0.15        less         225       225        450   750
-#>   post_prob_ha    est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9995408 -0.001415929           1             0                     1
+#>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
+#> 1    0.9973365 0.02061947           1             0                     1
 #>    stopping_reason accrual_stop_time analysis_ready_time
 #> 1 expected_success          556.0652            916.0652
 #>   planned_completion_time followup_person_time peak_active_followup
-#> 1                916.0652             124748.2                  284
+#> 1                916.0652             123841.1                  285
 ```
 
 The most important columns are:
@@ -568,13 +572,13 @@ advent_safety <- survival_adapt(
 
 advent_safety
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
-#> 1          0.966   0.08        less         325       325        650   750
-#>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9988901 0.01815951           1             0                     1
+#> 1          0.966   0.08        less         275       275        550   750
+#>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
+#> 1    0.9964775 0.0184058        0.94             0                     1
 #>    stopping_reason accrual_stop_time analysis_ready_time
-#> 1 expected_success          697.5696             1057.57
+#> 1 expected_success          612.6321            972.6321
 #>   planned_completion_time followup_person_time peak_active_followup
-#> 1                 1057.57             214854.1                  380
+#> 1                972.6321             180972.2                  371
 ```
 
 In the published ADVENT design, a predicted-success stopping
@@ -738,8 +742,8 @@ knitr::kable(oc_small, digits = 3)
 
 | scenario | backend | seed | n_requested | n_analyzed | n_failed | n_used | failure_rate | failure_rate_mcse | failure_rate_mc_lower | failure_rate_mc_upper | power | power_mcse | power_mc_lower | power_mc_upper | stop_success | stop_success_mcse | stop_success_mc_lower | stop_success_mc_upper | stop_futility | stop_futility_mcse | stop_futility_mc_lower | stop_futility_mc_upper | stop_max_N | stop_max_N_mcse | stop_max_N_mc_lower | stop_max_N_mc_upper | mean_N | mean_N_mcse | mean_N_mc_lower | mean_N_mc_upper | sd_N | stop_and_fail | stop_and_fail_mcse | stop_and_fail_mc_lower | stop_and_fail_mc_upper |
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.066 | 0.011 | 0.047 | 0.091 | 0.03 | 0.008 | 0.018 | 0.049 | 0.434 | 0.022 | 0.391 | 0.478 | 0.536 | 0.022 | 0.492 | 0.579 | 653.6 | 5.294 | 643.198 | 664.002 | 118.385 | 0.014 | 0.005 | 0.007 | 0.029 |
-| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.996 | 0.003 | 0.986 | 0.999 | 0.89 | 0.014 | 0.860 | 0.915 | 0.000 | 0.000 | 0.000 | 0.008 | 0.110 | 0.014 | 0.085 | 0.140 | 541.6 | 4.550 | 532.661 | 550.539 | 101.736 | 0.002 | 0.002 | 0.000 | 0.011 |
+| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.066 | 0.011 | 0.047 | 0.091 | 0.036 | 0.008 | 0.023 | 0.056 | 0.466 | 0.022 | 0.423 | 0.510 | 0.498 | 0.022 | 0.454 | 0.542 | 645.8 | 5.342 | 635.304 | 656.296 | 119.461 | 0.010 | 0.004 | 0.004 | 0.023 |
+| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.986 | 0.005 | 0.971 | 0.993 | 0.900 | 0.013 | 0.871 | 0.923 | 0.000 | 0.000 | 0.000 | 0.008 | 0.100 | 0.013 | 0.077 | 0.129 | 539.0 | 4.427 | 530.302 | 547.698 | 98.988 | 0.008 | 0.004 | 0.003 | 0.020 |
 
 Each scenario uses 500 simulated trials and two cores. This remains a
 workflow demonstration rather than a definitive estimate of power or

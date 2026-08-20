@@ -79,6 +79,15 @@ one greater than the number of cutpoints. Use <code>NULL</code> for a constant h
 cumulative distribution function. Length of the vector matches the number
 of rows of the <code>hazard</code> matrix parameter.</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>The cumulative probability depends on interval durations, so the
+value assigned to an isolated cutpoint has no effect. PWEALL represents
+its generating hazard with pieces closed on the left and open on the
+right. When <code>goldilocks</code> assigns realized event times to analysis
+intervals, it instead uses the survival counting-process convention,
+open on the left and closed on the right.</p>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

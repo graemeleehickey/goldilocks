@@ -54,4 +54,5 @@ results are supplied, it also reports requested, analyzed, and failed
 counts, the failure rate, effective backend, and seed. For a raw
 simulation data frame, requested and failed counts are unknown and are
 reported as `NA`. Full call, RNG, parallel, timing, failure, and design
-metadata are retained in the `simulation_metadata` attribute.
+metadata, including the evaluated simulation arguments, are retained in
+the `simulation_metadata` attribute.

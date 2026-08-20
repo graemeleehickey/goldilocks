@@ -54,11 +54,11 @@ trial
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          40        40         80    80
 #>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
-#> 1          0.7 -0.06199122           0             0                     0
+#> 1          0.8 -0.06813876           0             0                     0
 #>       stopping_reason accrual_stop_time analysis_ready_time
 #> 1 maximum_sample_size          9.095155            33.09515
 #>   planned_completion_time followup_person_time peak_active_followup
-#> 1                33.09515             1661.969                   76
+#> 1                33.09515             1643.469                   76
 #> 
 #> Interim looks completed: 2
 ```
@@ -72,18 +72,18 @@ trial$summary
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          40        40         80    80
 #>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
-#> 1          0.7 -0.06199122           0             0                     0
+#> 1          0.8 -0.06813876           0             0                     0
 #>       stopping_reason accrual_stop_time analysis_ready_time
 #> 1 maximum_sample_size          9.095155            33.09515
 #>   planned_completion_time followup_person_time peak_active_followup
-#> 1                33.09515             1661.969                   76
+#> 1                33.09515             1643.469                   76
 trial$trace
 #>   look planned_N calendar_time active_followup N_enrolled N_treatment N_control
 #> 1    1        40      4.238838              38         40          20        20
 #> 2    2        60      6.628455              57         60          30        30
 #>   events_treatment events_control N_pending N_not_enrolled ppp_stop_now
-#> 1                0              1        39             40            0
-#> 2                1              1        58             20            0
+#> 1                0              2        38             40            0
+#> 2                1              2        57             20            0
 #>   ppp_stop_now_mcse ppp_stop_now_lower ppp_stop_now_upper ppp_stop_now_draws
 #> 1                 0                  0          0.1391083                 20
 #> 2                 0                  0          0.1391083                 20
@@ -94,11 +94,11 @@ trial$trace
 #> 1                        0                0.1391083                       20
 #> 2                        0                0.1391083                       20
 #>   futility_threshold inner_mc_uncertain_stop_now
-#> 1               0.05                           7
-#> 2               0.05                           8
+#> 1               0.05                          12
+#> 2               0.05                           6
 #>   inner_mc_uncertain_success_at_max decision
-#> 1                                 8 continue
-#> 2                                10 continue
+#> 1                                11 continue
+#> 2                                 7 continue
 #>                        decision_reason empty_interval_fallback_count
 #> 1 continue_inner_monte_carlo_uncertain                             2
 #> 2 continue_inner_monte_carlo_uncertain                             2
@@ -110,7 +110,7 @@ trial$trace
 #> 2
 summarise_trial_trace(trial)
 #>   interim_looks_completed last_look last_decision final_N final_post_prob_ha
-#> 1                       2         2      continue      80                0.7
+#> 1                       2         2      continue      80                0.8
 #>   ppp_stop_now ppp_success_at_max warning_count
 #> 1            0                  0             0
 ```

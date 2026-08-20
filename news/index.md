@@ -4,6 +4,33 @@
 
 ### Improvements
 
+- `prop_loss` now accepts a named `control`/`treatment` vector for
+  arm-specific attrition in two-arm trials, while a scalar applies the
+  same proportion to every arm. Loss is selected separately within each
+  randomized arm, retained argument metadata stores the normalized named
+  proportions, and single-arm designs continue to require one value
+  ([\#69](https://github.com/graemeleehickey/goldilocks/issues/69)).
+- Piecewise event and enrollment times now use one explicit survival
+  counting-process convention when assigned to intervals:
+  `(start, stop]`, so a realized time exactly at a cutpoint belongs to
+  the interval ending there. Posterior sufficient statistics and
+  enrollment intensity inversion share the same boundary helper and
+  regression tests cover times immediately before, at, and after
+  multiple cutpoints. PWEALL remains the continuous event-time generator
+  because its `[start, stop)` hazard representation differs only at
+  zero-probability singleton boundaries; documentation and vignettes now
+  make that distinction explicit
+  ([\#70](https://github.com/graemeleehickey/goldilocks/issues/70)).
+- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  and
+  [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  results now retain an `arguments` attribute containing all evaluated
+  argument values, including defaults. The plain named list can be
+  serialized with [`saveRDS()`](https://rdrr.io/r/base/readRDS.html) and
+  passed back to the corresponding function with
+  [`do.call()`](https://rdrr.io/r/base/do.call.html) without relying on
+  symbols retained in the original call
+  ([\#86](https://github.com/graemeleehickey/goldilocks/issues/86)).
 - [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
   now reports explicit requested, analyzed, failed, and used simulation
   counts together with 95% Monte Carlo intervals for every probability
@@ -25,6 +52,11 @@
 
 ### Bug fixes
 
+- Package-owned PSOCK workers now inherit the parent package library and
+  load the `goldilocks` namespace before trial functions are dispatched.
+  This keeps registered compiled routines available for multi-core
+  log-rank simulations on Windows, including during source-package
+  vignette builds.
 - [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
   now calculates the probability of reaching the maximum sample size
   from trial-level stopping indicators. Previously, the newly summarized

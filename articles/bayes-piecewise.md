@@ -37,10 +37,15 @@ The package handles piecewise hazards through two related arguments:
 
 - `cutpoints`: the positive interior times at which the hazard changes.
   With J - 1 cutpoints there are J intervals and therefore J hazard
-  rates for each treatment group. For example, `cutpoints = 6` produces
-  two intervals, \[0, 6) and \[6, \infty). The default
-  `cutpoints = NULL` supplies no change times and produces a single,
-  constant hazard interval.
+  rates for each treatment group. For example, PWEALL represents the
+  continuous generating hazard for `cutpoints = 6` with pieces \[0, 6)
+  and \[6, \infty). The default `cutpoints = NULL` supplies no change
+  times and produces a single, constant hazard interval. When
+  `goldilocks` assigns a realized event time to an analysis interval, it
+  follows the survival counting-process convention (0,6\] and (6,\infty)
+  instead: an event recorded exactly at month 6 belongs to the first
+  interval. These representations give the same continuous event-time
+  distribution because an isolated cutpoint has probability zero.
 - `hazard_treatment` and `hazard_control`: vectors of length J giving
   the constant hazard for each interval.
 
@@ -80,11 +85,13 @@ round(rbind(control = hc, treatment = ht), 4)
 #> treatment 0.0331 0.0174
 ```
 
-The first column is the hazard during \[0, 6) months and the second
-column is the hazard from 6 months onward. Both arms have a higher
-hazard in the early window. We can sanity-check that the implied
-survival probabilities at 24 months match what we specified by running
-the cumulative incidence computation back through
+The first column is the generating hazard during \[0, 6) months and the
+second column is the hazard from 6 months onward. In posterior
+sufficient statistics, the same columns receive observed events from
+(0,6\] and (6,\infty) respectively. Both arms have a higher hazard in
+the early window. We can sanity-check that the implied survival
+probabilities at 24 months match what we specified by running the
+cumulative incidence computation back through
 [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md):
 
 ``` r
@@ -182,9 +189,9 @@ knitr::kable(head(example_trial_data), digits = 2)
 | 24.00 |         1 |     0 |       0.00 |   1 | FALSE      |
 |  3.61 |         0 |     1 |       0.34 |   2 | FALSE      |
 |  1.90 |         0 |     1 |       0.35 |   3 | FALSE      |
-|  4.58 |         1 |     0 |       0.63 |   4 | TRUE       |
+|  5.34 |         1 |     1 |       0.63 |   4 | FALSE      |
 | 19.77 |         0 |     1 |       0.72 |   5 | FALSE      |
-|  3.10 |         0 |     1 |       0.80 |   6 | FALSE      |
+|  1.04 |         0 |     0 |       0.80 |   6 | TRUE       |
 
 Each row represents one simulated subject:
 
@@ -213,9 +220,11 @@ month. With `lambda_time = NULL`, the first patient is placed at time
 zero and subsequent inter-arrival gaps are generated exactly from an
 exponential distribution with rate 5. Piecewise accrual is specified
 using positive internal knots only; for example, `lambda = c(2, 5)` and
-`lambda_time = 6` means 2 enrollments per month before month 6 and 5
-thereafter. These calendar-time enrollment knots are distinct from the
-subject-follow-up hazard `cutpoints` used above.
+`lambda_time = 6` assigns positive realized enrollment times in (0,6\]
+to the rate of 2 enrollments per month and later times to the rate of 5.
+The fixed first patient at zero is handled separately. These
+calendar-time enrollment knots are distinct from the subject-follow-up
+hazard `cutpoints` used above.
 
 ``` r
 
@@ -247,11 +256,11 @@ out
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less          50        50        100   100
 #>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1        0.969 -0.1761562        0.08             0                     0
+#> 1        0.978 -0.1855716        0.18             0                     0
 #>       stopping_reason accrual_stop_time analysis_ready_time
 #> 1 maximum_sample_size           20.2688            43.91658
 #>   planned_completion_time followup_person_time peak_active_followup
-#> 1                 44.2688              1637.81                   74
+#> 1                 44.2688             1612.338                   71
 ```
 
 The output reports the posterior probability of the alternative at the

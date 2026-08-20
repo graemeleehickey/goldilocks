@@ -53,11 +53,12 @@ that there are no internal enrollment-rate changes; zero is implicit and
 must not be supplied.
 
 For comparison, a ramp-up specification such as `lambda = c(2, 5)` and
-`lambda_time = 6` means 2 expected enrollments per month over \[0,6) and
-5 per month from month 6 onward. Fractional changes such as
-`lambda_time = 6.5` are also simulated exactly. Enrollment-rate knots
-use the trial calendar measured from first patient in, whereas hazard
-`cutpoints` use each subject’s follow-up time measured from that
+`lambda_time = 6` assigns positive realized enrollment times in (0,6\]
+to 2 expected enrollments per month and later times to 5 per month. The
+first patient at zero is the fixed calendar origin. Fractional changes
+such as `lambda_time = 6.5` are also simulated exactly. Enrollment-rate
+knots use the trial calendar measured from first patient in, whereas
+hazard `cutpoints` use each subject’s follow-up time measured from that
 subject’s enrollment. The two schedules are independent and need not
 share their knots.
 

@@ -35,3 +35,12 @@ ppwe(hazard, end_of_study, cutpoints = NULL)
 A vector of `[0, 1]` probabilities from evaluation of the PWE cumulative
 distribution function. Length of the vector matches the number of rows
 of the `hazard` matrix parameter.
+
+## Details
+
+The cumulative probability depends on interval durations, so the value
+assigned to an isolated cutpoint has no effect. PWEALL represents its
+generating hazard with pieces closed on the left and open on the right.
+When `goldilocks` assigns realized event times to analysis intervals, it
+instead uses the survival counting-process convention, open on the left
+and closed on the right.

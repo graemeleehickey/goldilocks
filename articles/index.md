@@ -4,6 +4,8 @@
 
 - [Two-arm randomized
   trials](https://graemeleehickey.github.io/goldilocks/articles/two-arm.md):
+- [ANTHEM-HFrEF: a published adaptive survival
+  design](https://graemeleehickey.github.io/goldilocks/articles/anthem-hfref.md):
 - [ADVENT: a published Goldilocks
   design](https://graemeleehickey.github.io/goldilocks/articles/advent.md):
 - [Bayesian piecewise-exponential

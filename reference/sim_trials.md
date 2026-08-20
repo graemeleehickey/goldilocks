@@ -59,7 +59,11 @@ sim_trials(
   finite, positive, strictly increasing interior times at which the
   baseline hazard changes. The number of hazards for each arm must be
   one greater than the number of cutpoints. Default is `NULL`, which
-  corresponds to a simple (non-piecewise) exponential model.
+  corresponds to a simple (non-piecewise) exponential model. Realized
+  event times are assigned to analysis intervals using the survival
+  counting-process convention, open on the left and closed on the right;
+  an event exactly at a cutpoint therefore belongs to the interval
+  ending at that cutpoint.
 
 - N_total:
 
@@ -128,13 +132,17 @@ sim_trials(
 
 - prop_loss:
 
-  scalar. Overall proportion of subjects lost to follow-up. Subjects are
-  selected at random for LTFU regardless of treatment assignment or
-  event status. Each LTFU subject's observed time is drawn from a
-  `Uniform(0, t)` distribution, where `t` is their potential event or
-  censoring time. Since the LTFU time is always less than `t`, the event
-  has not yet occurred at dropout and the subject is right-censored.
-  Defaults to zero.
+  one or two probabilities. A scalar applies the same LTFU proportion to
+  every arm. For a two-arm design, differential attrition can be
+  specified with a length-two vector named `control` and `treatment`;
+  the supplied order does not matter. Within each arm,
+  `ceiling(prop_loss * arm size)` subjects are selected at random
+  regardless of event status. Each selected subject's observed time is
+  drawn from a `Uniform(0, t)` distribution, where `t` is their
+  potential event or censoring time. Since the LTFU time is always less
+  than `t`, the event has not yet occurred at dropout and the subject is
+  right-censored. Single-arm designs require one probability. Defaults
+  to zero.
 
 - alternative:
 
@@ -332,7 +340,12 @@ retains the normalized `decision_design` attribute from
 An `rng_metadata` attribute records the caller RNG kind, effective
 backend, seed policy, and stream seed when applicable. A deterministic
 `parallel_metadata` attribute records the requested and effective
-backend and worker counts, task count, and backend-selection reason.
+backend and worker counts, task count, and backend-selection reason. An
+`arguments` attribute contains a named list of all evaluated argument
+values, including defaults. Its `prop_loss` element is normalized to a
+named value for every simulated arm. The attribute can be saved with
+[`saveRDS()`](https://rdrr.io/r/base/readRDS.html) and supplied to a
+later call with `do.call(sim_trials, attr(result, "arguments"))`.
 
 ## Details
 

@@ -54,7 +54,11 @@ survival_adapt(
   finite, positive, strictly increasing interior times at which the
   baseline hazard changes. The number of hazards for each arm must be
   one greater than the number of cutpoints. Default is `NULL`, which
-  corresponds to a simple (non-piecewise) exponential model.
+  corresponds to a simple (non-piecewise) exponential model. Realized
+  event times are assigned to analysis intervals using the survival
+  counting-process convention, open on the left and closed on the right;
+  an event exactly at a cutpoint therefore belongs to the interval
+  ending at that cutpoint.
 
 - N_total:
 
@@ -123,13 +127,17 @@ survival_adapt(
 
 - prop_loss:
 
-  scalar. Overall proportion of subjects lost to follow-up. Subjects are
-  selected at random for LTFU regardless of treatment assignment or
-  event status. Each LTFU subject's observed time is drawn from a
-  `Uniform(0, t)` distribution, where `t` is their potential event or
-  censoring time. Since the LTFU time is always less than `t`, the event
-  has not yet occurred at dropout and the subject is right-censored.
-  Defaults to zero.
+  one or two probabilities. A scalar applies the same LTFU proportion to
+  every arm. For a two-arm design, differential attrition can be
+  specified with a length-two vector named `control` and `treatment`;
+  the supplied order does not matter. Within each arm,
+  `ceiling(prop_loss * arm size)` subjects are selected at random
+  regardless of event status. Each selected subject's observed time is
+  drawn from a `Uniform(0, t)` distribution, where `t` is their
+  potential event or censoring time. Since the LTFU time is always less
+  than `t`, the event has not yet occurred at dropout and the subject is
+  right-censored. Single-arm designs require one probability. Defaults
+  to zero.
 
 - alternative:
 
@@ -337,6 +345,13 @@ The returned object has a `decision_design` attribute containing
 `interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
 this metadata are normalized to one value per interim look (and have
 length zero when no interim looks are planned).
+
+Both return forms have an `arguments` attribute containing a named list
+of the evaluated argument values, including defaults. It can be saved
+with [`saveRDS()`](https://rdrr.io/r/base/readRDS.html) and supplied to
+a later call with `do.call(survival_adapt, attr(result, "arguments"))`.
+Its `prop_loss` element is normalized to a named value for every
+simulated arm.
 
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
@@ -552,10 +567,10 @@ survival_adapt(
  method = "bayes-surv")
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less         300       300        600   600
-#>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1            1 -0.1382612           0             0                     0
+#>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
+#> 1            1 -0.08353039           0             0                     0
 #>       stopping_reason accrual_stop_time analysis_ready_time
-#> 1 maximum_sample_size          27.54104            63.54104
+#> 1 maximum_sample_size          27.54104            63.52808
 #>   planned_completion_time followup_person_time peak_active_followup
-#> 1                63.54104             16408.12                  479
+#> 1                63.54104             16439.45                  480
 ```

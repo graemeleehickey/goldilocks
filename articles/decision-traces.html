@@ -117,11 +117,11 @@ by 24 months.</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95      0        less          40        40         80    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha   est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1          0.7 -0.06199122           0             0                     0</span></span>
+<span><span class="co">#&gt; 1          0.8 -0.06813876           0             0                     0</span></span>
 <span><span class="co">#&gt;       stopping_reason accrual_stop_time analysis_ready_time</span></span>
 <span><span class="co">#&gt; 1 maximum_sample_size          9.095155            33.09515</span></span>
 <span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1                33.09515             1661.969                   76</span></span>
+<span><span class="co">#&gt; 1                33.09515             1643.469                   76</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Interim looks completed: 2</span></span></code></pre></div>
 <p>The summary element is the familiar final analysis output. The trace
@@ -131,18 +131,18 @@ element is an audit trail of the interim path.</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95      0        less          40        40         80    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha   est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1          0.7 -0.06199122           0             0                     0</span></span>
+<span><span class="co">#&gt; 1          0.8 -0.06813876           0             0                     0</span></span>
 <span><span class="co">#&gt;       stopping_reason accrual_stop_time analysis_ready_time</span></span>
 <span><span class="co">#&gt; 1 maximum_sample_size          9.095155            33.09515</span></span>
 <span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1                33.09515             1661.969                   76</span></span>
+<span><span class="co">#&gt; 1                33.09515             1643.469                   76</span></span>
 <span><span class="va">trial</span><span class="op">$</span><span class="va">trace</span></span>
 <span><span class="co">#&gt;   look planned_N calendar_time active_followup N_enrolled N_treatment N_control</span></span>
 <span><span class="co">#&gt; 1    1        40      4.238838              38         40          20        20</span></span>
 <span><span class="co">#&gt; 2    2        60      6.628455              57         60          30        30</span></span>
 <span><span class="co">#&gt;   events_treatment events_control N_pending N_not_enrolled ppp_stop_now</span></span>
-<span><span class="co">#&gt; 1                0              1        39             40            0</span></span>
-<span><span class="co">#&gt; 2                1              1        58             20            0</span></span>
+<span><span class="co">#&gt; 1                0              2        38             40            0</span></span>
+<span><span class="co">#&gt; 2                1              2        57             20            0</span></span>
 <span><span class="co">#&gt;   ppp_stop_now_mcse ppp_stop_now_lower ppp_stop_now_upper ppp_stop_now_draws</span></span>
 <span><span class="co">#&gt; 1                 0                  0          0.1391083                 20</span></span>
 <span><span class="co">#&gt; 2                 0                  0          0.1391083                 20</span></span>
@@ -153,11 +153,11 @@ element is an audit trail of the interim path.</p>
 <span><span class="co">#&gt; 1                        0                0.1391083                       20</span></span>
 <span><span class="co">#&gt; 2                        0                0.1391083                       20</span></span>
 <span><span class="co">#&gt;   futility_threshold inner_mc_uncertain_stop_now</span></span>
-<span><span class="co">#&gt; 1               0.05                           7</span></span>
-<span><span class="co">#&gt; 2               0.05                           8</span></span>
+<span><span class="co">#&gt; 1               0.05                          12</span></span>
+<span><span class="co">#&gt; 2               0.05                           6</span></span>
 <span><span class="co">#&gt;   inner_mc_uncertain_success_at_max decision</span></span>
-<span><span class="co">#&gt; 1                                 8 continue</span></span>
-<span><span class="co">#&gt; 2                                10 continue</span></span>
+<span><span class="co">#&gt; 1                                11 continue</span></span>
+<span><span class="co">#&gt; 2                                 7 continue</span></span>
 <span><span class="co">#&gt;                        decision_reason empty_interval_fallback_count</span></span>
 <span><span class="co">#&gt; 1 continue_inner_monte_carlo_uncertain                             2</span></span>
 <span><span class="co">#&gt; 2 continue_inner_monte_carlo_uncertain                             2</span></span>
@@ -169,7 +169,7 @@ element is an audit trail of the interim path.</p>
 <span><span class="co">#&gt; 2</span></span>
 <span><span class="fu"><a href="../reference/summarise_trial_trace.html">summarise_trial_trace</a></span><span class="op">(</span><span class="va">trial</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   interim_looks_completed last_look last_decision final_N final_post_prob_ha</span></span>
-<span><span class="co">#&gt; 1                       2         2      continue      80                0.7</span></span>
+<span><span class="co">#&gt; 1                       2         2      continue      80                0.8</span></span>
 <span><span class="co">#&gt;   ppp_stop_now ppp_success_at_max warning_count</span></span>
 <span><span class="co">#&gt; 1            0                  0             0</span></span></code></pre></div>
 <p>For each completed look, <code>ppp_stop_now</code> is the predictive

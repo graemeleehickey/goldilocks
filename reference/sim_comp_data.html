@@ -80,7 +80,11 @@ under the control arm.</p></dd>
 <dd><p>finite, positive, strictly increasing interior times at
 which the baseline hazard changes. The number of hazards for each arm must
 be one greater than the number of cutpoints. Default is <code>NULL</code>, which
-corresponds to a simple (non-piecewise) exponential model.</p></dd>
+corresponds to a simple (non-piecewise) exponential model. Realized event
+times are assigned to analysis intervals using the survival
+counting-process convention, open on the left and closed on the right; an
+event exactly at a cutpoint therefore belongs to the interval ending at
+that cutpoint.</p></dd>
 
 
 <dt id="arg-n-total">N_total<a class="anchor" aria-label="anchor" href="#arg-n-total"></a></dt>
@@ -115,13 +119,16 @@ to treatment. Integer values mapping the size of the block. See
 
 
 <dt id="arg-prop-loss">prop_loss<a class="anchor" aria-label="anchor" href="#arg-prop-loss"></a></dt>
-<dd><p>scalar. Overall proportion of subjects lost to follow-up.
-Subjects are selected at random for LTFU regardless of treatment assignment or
-event status. Each LTFU subject's observed time is drawn from a
-<code>Uniform(0, t)</code> distribution, where <code>t</code> is their potential
-event or censoring time. Since the LTFU time is always less than
-<code>t</code>, the event has not yet occurred at dropout and the subject is
-right-censored. Defaults to zero.</p></dd>
+<dd><p>one or two probabilities. A scalar applies the same LTFU
+proportion to every arm. For a two-arm design, differential attrition can
+be specified with a length-two vector named <code>control</code> and <code>treatment</code>; the
+supplied order does not matter. Within each arm,
+<code>ceiling(prop_loss * arm size)</code> subjects are selected at random regardless
+of event status. Each selected subject's observed time is drawn from a
+<code>Uniform(0, t)</code> distribution, where <code>t</code> is their potential event or
+censoring time. Since the LTFU time is always less than <code>t</code>, the event has
+not yet occurred at dropout and the subject is right-censored. Single-arm
+designs require one probability. Defaults to zero.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -152,6 +159,12 @@ describes changes in an individual subject's event hazard measured from
 that subject's enrollment. They need not have the same values or length.
 All time quantities supplied to a simulation should nevertheless use one
 common unit, such as days or months.</p>
+<p>PWEALL represents the continuous generating hazard with pieces closed on
+the left and open on the right. This differs from the package's
+open-left, closed-right convention for assigning realized times only at
+the cutpoints themselves, which have probability zero under the continuous
+model. The cumulative hazard, event-time distribution, and generated
+simulations are therefore unchanged.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -37,7 +37,11 @@ sim_comp_data(
   finite, positive, strictly increasing interior times at which the
   baseline hazard changes. The number of hazards for each arm must be
   one greater than the number of cutpoints. Default is `NULL`, which
-  corresponds to a simple (non-piecewise) exponential model.
+  corresponds to a simple (non-piecewise) exponential model. Realized
+  event times are assigned to analysis intervals using the survival
+  counting-process convention, open on the left and closed on the right;
+  an event exactly at a cutpoint therefore belongs to the interval
+  ending at that cutpoint.
 
 - N_total:
 
@@ -73,13 +77,17 @@ sim_comp_data(
 
 - prop_loss:
 
-  scalar. Overall proportion of subjects lost to follow-up. Subjects are
-  selected at random for LTFU regardless of treatment assignment or
-  event status. Each LTFU subject's observed time is drawn from a
-  `Uniform(0, t)` distribution, where `t` is their potential event or
-  censoring time. Since the LTFU time is always less than `t`, the event
-  has not yet occurred at dropout and the subject is right-censored.
-  Defaults to zero.
+  one or two probabilities. A scalar applies the same LTFU proportion to
+  every arm. For a two-arm design, differential attrition can be
+  specified with a length-two vector named `control` and `treatment`;
+  the supplied order does not matter. Within each arm,
+  `ceiling(prop_loss * arm size)` subjects are selected at random
+  regardless of event status. Each selected subject's observed time is
+  drawn from a `Uniform(0, t)` distribution, where `t` is their
+  potential event or censoring time. Since the LTFU time is always less
+  than `t`, the event has not yet occurred at dropout and the subject is
+  right-censored. Single-arm designs require one probability. Defaults
+  to zero.
 
 ## Value
 
@@ -118,3 +126,10 @@ trial's calendar-time enrollment rate measured from first patient in.
 measured from that subject's enrollment. They need not have the same
 values or length. All time quantities supplied to a simulation should
 nevertheless use one common unit, such as days or months.
+
+PWEALL represents the continuous generating hazard with pieces closed on
+the left and open on the right. This differs from the package's
+open-left, closed-right convention for assigning realized times only at
+the cutpoints themselves, which have probability zero under the
+continuous model. The cumulative hazard, event-time distribution, and
+generated simulations are therefore unchanged.

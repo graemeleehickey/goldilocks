@@ -61,6 +61,14 @@ until \\s\\) as
 If \\s = 0\\, this is equivalent to a direct unconditional sample from
 the PWE distribution.
 
+PWEALL represents the generating hazard with pieces closed on the left
+and open on the right. Its cumulative distribution is continuous at
+every cutpoint, so this endpoint choice does not affect imputation. For
+assigning realized event times to analysis intervals, `goldilocks` uses
+the survival counting-process convention, open on the left and closed on
+the right; an event exactly at a cutpoint belongs to the interval ending
+there.
+
 ## Examples
 
 ``` r

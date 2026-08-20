@@ -437,11 +437,15 @@ as 360 days.</p>
 </tbody>
 </table>
 <p>The less-than sign marks the exclusive upper boundary of each
-nonfinal interval; the final interval includes the administrative
-endpoint at day 360. This notation makes clear that adjacent windows do
-not overlap. Because event time is continuous, assigning an exact
-cut-point to the interval on its left or right would not change the
-model probability.</p>
+nonfinal interval in the SAP’s continuous generating-hazard notation;
+the final interval includes the administrative endpoint at day 360. This
+notation makes clear that adjacent windows do not overlap. Because event
+time is continuous, assigning an exact cut-point to the interval on its
+left or right would not change the model probability. When
+<code>goldilocks</code> summarizes realized event times, it follows the
+survival counting-process convention <code>(start, stop]</code>, so an
+event recorded exactly at a cut-point is assigned to the interval ending
+there.</p>
 <p>The following calculation verifies the two final binary event
 probabilities used by the vignette:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -727,12 +731,12 @@ multiple trials.</p>
 <span><span class="va">advent_effectiveness</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1          0.956   0.15        less         225       225        450   750</span></span>
-<span><span class="co">#&gt;   post_prob_ha    est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9995408 -0.001415929           1             0                     1</span></span>
+<span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_expected_success</span></span>
+<span><span class="co">#&gt; 1    0.9973365 0.02061947           1             0                     1</span></span>
 <span><span class="co">#&gt;    stopping_reason accrual_stop_time analysis_ready_time</span></span>
 <span><span class="co">#&gt; 1 expected_success          556.0652            916.0652</span></span>
 <span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1                916.0652             124748.2                  284</span></span></code></pre></div>
+<span><span class="co">#&gt; 1                916.0652             123841.1                  285</span></span></code></pre></div>
 <p>The most important columns are:</p>
 <ul>
 <li>
@@ -798,13 +802,13 @@ threshold. Success in the code means:</p>
 <span></span>
 <span><span class="va">advent_safety</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
-<span><span class="co">#&gt; 1          0.966   0.08        less         325       325        650   750</span></span>
-<span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9988901 0.01815951           1             0                     1</span></span>
+<span><span class="co">#&gt; 1          0.966   0.08        less         275       275        550   750</span></span>
+<span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_expected_success</span></span>
+<span><span class="co">#&gt; 1    0.9964775 0.0184058        0.94             0                     1</span></span>
 <span><span class="co">#&gt;    stopping_reason accrual_stop_time analysis_ready_time</span></span>
-<span><span class="co">#&gt; 1 expected_success          697.5696             1057.57</span></span>
+<span><span class="co">#&gt; 1 expected_success          612.6321            972.6321</span></span>
 <span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1                 1057.57             214854.1                  380</span></span></code></pre></div>
+<span><span class="co">#&gt; 1                972.6321             180972.2                  371</span></span></code></pre></div>
 <p>In the published ADVENT design, a predicted-success stopping
 recommendation required high predictive probability for both endpoints.
 A futility recommendation could be triggered by low predictive
@@ -1051,27 +1055,27 @@ accidentally for safety, or vice versa.</p>
 <td align="right">0.011</td>
 <td align="right">0.047</td>
 <td align="right">0.091</td>
-<td align="right">0.03</td>
+<td align="right">0.036</td>
 <td align="right">0.008</td>
-<td align="right">0.018</td>
-<td align="right">0.049</td>
-<td align="right">0.434</td>
+<td align="right">0.023</td>
+<td align="right">0.056</td>
+<td align="right">0.466</td>
 <td align="right">0.022</td>
-<td align="right">0.391</td>
-<td align="right">0.478</td>
-<td align="right">0.536</td>
+<td align="right">0.423</td>
+<td align="right">0.510</td>
+<td align="right">0.498</td>
 <td align="right">0.022</td>
-<td align="right">0.492</td>
-<td align="right">0.579</td>
-<td align="right">653.6</td>
-<td align="right">5.294</td>
-<td align="right">643.198</td>
-<td align="right">664.002</td>
-<td align="right">118.385</td>
-<td align="right">0.014</td>
-<td align="right">0.005</td>
-<td align="right">0.007</td>
-<td align="right">0.029</td>
+<td align="right">0.454</td>
+<td align="right">0.542</td>
+<td align="right">645.8</td>
+<td align="right">5.342</td>
+<td align="right">635.304</td>
+<td align="right">656.296</td>
+<td align="right">119.461</td>
+<td align="right">0.010</td>
+<td align="right">0.004</td>
+<td align="right">0.004</td>
+<td align="right">0.023</td>
 </tr>
 <tr class="even">
 <td align="left">target: equal 35% failure</td>
@@ -1085,31 +1089,31 @@ accidentally for safety, or vice versa.</p>
 <td align="right">0</td>
 <td align="right">0</td>
 <td align="right">0.008</td>
-<td align="right">0.996</td>
-<td align="right">0.003</td>
 <td align="right">0.986</td>
-<td align="right">0.999</td>
-<td align="right">0.89</td>
-<td align="right">0.014</td>
-<td align="right">0.860</td>
-<td align="right">0.915</td>
+<td align="right">0.005</td>
+<td align="right">0.971</td>
+<td align="right">0.993</td>
+<td align="right">0.900</td>
+<td align="right">0.013</td>
+<td align="right">0.871</td>
+<td align="right">0.923</td>
 <td align="right">0.000</td>
 <td align="right">0.000</td>
 <td align="right">0.000</td>
 <td align="right">0.008</td>
-<td align="right">0.110</td>
-<td align="right">0.014</td>
-<td align="right">0.085</td>
-<td align="right">0.140</td>
-<td align="right">541.6</td>
-<td align="right">4.550</td>
-<td align="right">532.661</td>
-<td align="right">550.539</td>
-<td align="right">101.736</td>
-<td align="right">0.002</td>
-<td align="right">0.002</td>
-<td align="right">0.000</td>
-<td align="right">0.011</td>
+<td align="right">0.100</td>
+<td align="right">0.013</td>
+<td align="right">0.077</td>
+<td align="right">0.129</td>
+<td align="right">539.0</td>
+<td align="right">4.427</td>
+<td align="right">530.302</td>
+<td align="right">547.698</td>
+<td align="right">98.988</td>
+<td align="right">0.008</td>
+<td align="right">0.004</td>
+<td align="right">0.003</td>
+<td align="right">0.020</td>
 </tr>
 </tbody>
 </table>

@@ -42,9 +42,16 @@ event indicator (`event`, 1 = event occurred, 0 = censoring).
 
 ## Details
 
-See
+PWEALL represents the generating hazard with pieces closed on the left
+and open on the right. Because the event-time distribution is
+continuous, the value of the hazard at an isolated cutpoint does not
+alter the cumulative hazard, distribution, or generated samples. When
+realized event times are later assigned to analysis intervals,
+`goldilocks` follows the survival counting-process convention, open on
+the left and closed on the right, so an event exactly at a cutpoint
+belongs to the interval ending there. See
 [`pwe_impute()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.md)
-for details.
+for the conditional sampling details.
 
 ## Examples
 

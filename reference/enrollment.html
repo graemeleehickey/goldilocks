@@ -108,7 +108,13 @@ enrollment intensity is</p>
 $$</p>
 <p>for \(j = 1, \ldots, K\), and \(\lambda(t) = \lambda_{K+1}\) after the
 final knot. The final rate therefore continues for as long as needed to
-reach <code>N_total</code>; there is no finite accrual horizon in this function.</p>
+reach <code>N_total</code>; there is no finite accrual horizon in this function.
+The value of the intensity at an isolated knot does not change the Poisson
+process. When assigning a realized enrollment time to an interval,
+<code>goldilocks</code> follows the survival counting-process convention: intervals are
+open on the left and closed on the right, so an arrival exactly at
+\(\tau_j\) belongs to the interval ending at \(\tau_j\). The first
+patient at time zero is a fixed origin and is handled separately.</p>
 <p>Arrivals are generated exactly by the time-rescaling theorem. If
 \(E_2, \ldots, E_N\) are independent unit-rate exponential variables and
 \(S_i = \sum_{k=2}^i E_k\), then the enrollment times after first patient
@@ -125,9 +131,10 @@ first patient in are important, they must be modelled separately before
 using the returned relative times.</p>
 <p>For example, <code>lambda = c(0.3, 0.7, 0.9, 1.2)</code> with
 <code>lambda_time = c(5, 10, 15)</code> specifies average enrollment rates of 0.3 over
-\([0,5)\), 0.7 over \([5,10)\), 0.9 over \([10,15)\), and 1.2 from
-time 15 onward. Fractional knots such as <code>lambda_time = 2.5</code> are handled
-exactly; no unit-time binning or post-hoc jitter is used.</p>
+positive times in \((0,5]\), 0.7 over \((5,10]\), 0.9 over
+\((10,15]\), and 1.2 after time 15. Fractional knots such as
+<code>lambda_time = 2.5</code> are handled exactly; no unit-time binning or post-hoc
+jitter is used.</p>
     </div>
 
     <div class="section level2">
