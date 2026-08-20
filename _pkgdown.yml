@@ -63,6 +63,7 @@ articles:
   - title: Getting started
     contents:
       - two-arm
+      - anthem-hfref
       - advent
       - bayes-piecewise
       - bayesian-binary
