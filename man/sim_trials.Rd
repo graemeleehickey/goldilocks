@@ -275,8 +275,10 @@ defaults. Its \code{prop_loss} element is normalized to a named value for every
 simulated arm, and its \code{rand_ratio} element is normalized to \code{control},
 \code{treatment} order for two-arm designs. Its \code{cutpoints} and
 \code{generation_cutpoints} elements retain the analysis and data-generation
-partitions, respectively. The attribute can be saved with \code{\link[=saveRDS]{saveRDS()}} and
-supplied to a later call with
+partitions, respectively. For \code{method = "bayes-bin"}, it also retains the
+imputation priors (\code{prior_surv} and \code{prior_surv_final}), completed-data
+analysis prior (\code{prior_bin}), and imputation horizon (\code{end_of_study}). The
+attribute can be saved with \code{\link[=saveRDS]{saveRDS()}} and supplied to a later call with
 \code{do.call(sim_trials, attr(result, "arguments"))}.
 }
 \description{

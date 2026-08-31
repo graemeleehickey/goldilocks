@@ -186,7 +186,9 @@ by arm and interval;
 \item \code{trace}: a one-row decision trace compatible with
 \code{\link[=plot_trial_trace]{plot_trial_trace()}} and \code{\link[=summarise_trial_trace]{summarise_trial_trace()}};
 \item \code{metadata}: the evaluated design, resolved prior design, package version,
-time-origin, data-cut, and random-number policy.
+time-origin, data-cut, and random-number policy. For \code{method = "bayes-bin"}, \code{metadata$design} retains the normalized imputation prior
+(\code{prior_surv}), completed-data analysis prior (\code{prior_bin}), and
+imputation horizon (\code{end_of_study}).
 }
 }
 \description{

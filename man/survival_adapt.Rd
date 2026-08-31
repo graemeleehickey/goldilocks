@@ -284,6 +284,11 @@ element is normalized to a named value for every simulated arm.
 Its \code{rand_ratio} element is normalized to \code{control}, \code{treatment} order for
 two-arm designs. Its \code{cutpoints} and \code{generation_cutpoints} elements retain
 the analysis and data-generation partitions, respectively.
+For \code{method = "bayes-bin"}, this metadata explicitly retains the
+imputation priors (\code{prior_surv} and \code{prior_surv_final}), completed-data
+analysis prior (\code{prior_bin}), and imputation horizon (\code{end_of_study}). The
+separate \code{prior_design} attribute gives the resolved Gamma parameters by
+stage, arm, and interval.
 
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 \code{summary} element is the same data frame and its \code{trace} element has one row
@@ -441,23 +446,29 @@ variances are pooled with Rubin's rules. It cannot be used with
 \code{method = "logrank"}.
 }
 
-When \code{method = "bayes-surv"} or \code{method = "bayes-bin"} and imputation is
-involved (either at interim
-analyses or via \code{imputed_final = TRUE}), a two-stage posterior
-procedure is used. First, the posterior distribution of the piecewise
-hazard rates is estimated from the \emph{observed} data and used to draw
-imputed event times for censored subjects. Second, a \emph{new} posterior is
-estimated from the combined observed and imputed data: the
-piecewise-exponential posterior for \code{method = "bayes-surv"} or the beta
-posterior for \code{method = "bayes-bin"}. This posterior is used for
-inference. This is consistent with the predictive probability framework
-described in Broglio et al. (2014), but users should be aware that the
-imputation model's posterior influences the analysis posterior. For
-frequentist methods (\code{"logrank"}, \code{"cox"}, \code{"riskdiff"}), each completed
-dataset uses a standard test rather than a posterior, so this feedback loop
-does not arise. Imputed Cox final analyses then pool the completed-data
-estimates and variances using Rubin's rules. Imputed risk-difference final
-analyses use the same scalar combining rule.
+When imputation is involved, either at interim analyses or through
+\code{imputed_final = TRUE}, the package uses a modular impute-then-analyze
+procedure. First, the piecewise-exponential model is fitted to the
+\emph{observed} time-to-event data and used to complete pending outcomes.
+Second, each completed dataset is analyzed using the model selected by
+\code{method}.
+
+For \code{method = "bayes-bin"}, these are deliberately separate models. The
+imputation model has piecewise hazards with Gamma prior \code{prior_surv} (or
+\code{prior_surv_final} during final imputation), whereas the completed-data
+analysis has an event probability at \code{end_of_study} with Beta prior
+\code{prior_bin}. The Beta prior is not derived from the Gamma prior, and the two
+stages are not one joint Bayesian model. Both prior specifications can
+therefore affect predictive decisions when outcomes require imputation.
+The \code{"event-time"} and \code{"bernoulli"} binary-imputation options use the same
+piecewise-exponential prediction model and do not change this separation.
+
+For \code{method = "bayes-surv"}, the second analysis instead forms a fresh
+piecewise-exponential posterior from the completed data and the original
+survival prior. For frequentist methods (\code{"logrank"}, \code{"cox"},
+\code{"riskdiff"}), each completed dataset uses a standard test rather than a
+posterior. Imputed Cox and risk-difference final analyses pool estimates
+and variances using Rubin's rules.
 
 At each interim look, follow-up times are masked (censored) to reflect
 the calendar time of the analysis. The package treats enrollment and

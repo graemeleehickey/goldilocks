@@ -75,7 +75,10 @@
 #'   - `trace`: a one-row decision trace compatible with
 #'     [plot_trial_trace()] and [summarise_trial_trace()];
 #'   - `metadata`: the evaluated design, resolved prior design, package version,
-#'     time-origin, data-cut, and random-number policy.
+#'     time-origin, data-cut, and random-number policy. For `method =
+#'     "bayes-bin"`, `metadata$design` retains the normalized imputation prior
+#'     (`prior_surv`), completed-data analysis prior (`prior_bin`), and
+#'     imputation horizon (`end_of_study`).
 #'
 #' @examples
 #' interim_data <- data.frame(
