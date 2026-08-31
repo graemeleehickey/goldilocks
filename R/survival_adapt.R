@@ -20,18 +20,22 @@
 #'   ensuring both treatment groups are present at every interim analysis; a
 #'   smaller look could enroll subjects from one treatment group only, leaving
 #'   the interim posterior undefined for the missing group.
-#' @param prior_surv numeric vector or matrix. Gamma prior for the
+#' @param prior_surv numeric vector, matrix, or named list. Gamma prior for the
 #'   piecewise-exponential hazards used during interim prediction. A length-two
-#'   vector supplies shape and rate and is broadcast across all intervals. A
-#'   `2` by `length(cutpoints) + 1` matrix supplies interval-specific values,
-#'   with shapes in row 1, rates in row 2, and columns ordered from the earliest
-#'   to the latest interval. The same interval prior is applied to both
-#'   treatment groups. Rates must use the same time unit as event times,
-#'   exposure, and cutpoints. The default is `c(0.1, 0.1)`.
-#' @param prior_surv_final numeric vector or matrix. Gamma prior used for
-#'   final-stage piecewise-exponential imputation and, for `method =
-#'   "bayes-surv"`, final analysis. It accepts the same forms as `prior_surv`
-#'   and defaults to `prior_surv`, preserving the historical behavior.
+#'   vector supplies shape and rate and is broadcast across all arms and
+#'   intervals. A `2` by `length(cutpoints) + 1` matrix supplies
+#'   interval-specific values shared by all arms, with shapes in row 1 and rates
+#'   in row 2. For independent arm-specific priors, supply a list named
+#'   `control` and `treatment` in a two-arm design, or `treatment` in a
+#'   single-arm design. Each list element may be a length-two vector or an
+#'   interval-specific matrix. Both arms must be supplied; no values are
+#'   borrowed or filled from the other arm. Rates must use the same time unit as
+#'   event times, exposure, and cutpoints. The default is `c(0.1, 0.1)`.
+#' @param prior_surv_final numeric vector, matrix, or named list. Gamma prior
+#'   used for final-stage piecewise-exponential imputation and, for `method =
+#'   "bayes-surv"`, final analysis. It accepts the same shared or arm-specific
+#'   forms as `prior_surv` and defaults to `prior_surv`, preserving the
+#'   historical behavior.
 #' @param prior_bin vector. Prior distribution for the event probability when
 #'   `method = "bayes-bin"`. The two values are the shape parameters of the
 #'   `Beta(a, b)` prior. The same prior is applied to both treatment arms.
@@ -131,7 +135,8 @@
 #' @param return_trace logical. Should the interim decision path be returned in
 #'   addition to the usual final summary? The default, FALSE, returns the
 #'   historical one-row data frame. When TRUE, the result is a
-#'   goldilocks_trial object with summary, trace, and call elements.
+#'   goldilocks_trial object with summary, trace, prior and posterior
+#'   diagnostics, and call elements.
 #'
 #' @details Implements the Goldilocks design method described in Broglio et al.
 #'   (2014). At each interim analysis, two probabilities are computed:
@@ -344,6 +349,8 @@
 #'   `interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
 #'   this metadata are normalized to one value per interim look (and have
 #'   length zero when no interim looks are planned).
+#'   A `prior_design` attribute contains the fully broadcast Gamma shape, rate,
+#'   mean hazard, and standard deviation for every stage, arm, and interval.
 #'
 #'   Both return forms have an `arguments` attribute containing a named list of
 #'   the evaluated argument values, including defaults. It can be saved with
@@ -355,8 +362,11 @@
 #'   the analysis and data-generation partitions, respectively.
 #'
 #'   With return_trace = TRUE, a goldilocks_trial object is returned. Its
-#'   summary element is the same data frame and its trace element has one row
-#'   per interim look. The trace records calendar time, the number of subjects
+#'   `summary` element is the same data frame and its `trace` element has one row
+#'   per interim look. `prior_diagnostics` contains the resolved interim and
+#'   final priors. `posterior_diagnostics` reports observed and effective
+#'   sufficient statistics and conjugate posterior parameters by completed
+#'   look, arm, and interval. The trace records calendar time, the number of subjects
 #'   actively under follow-up, enrollment and observed events by arm,
 #'   predictive probabilities, diagnostic Monte Carlo standard errors and exact
 #'   bounds, draw counts, thresholds, the decision and reason, empty-interval
@@ -475,13 +485,32 @@ survival_adapt <- function(
   prior_surv <- normalize_gamma_prior(
     prior_surv,
     n_intervals = n_intervals,
+    single_arm = single_arm,
     name = "prior_surv"
   )
   prior_surv_final <- normalize_gamma_prior(
     prior_surv_final,
     n_intervals = n_intervals,
+    single_arm = single_arm,
     name = "prior_surv_final"
   )
+  prior_design <- rbind(
+    gamma_prior_diagnostics(
+      prior_surv = prior_surv,
+      cutpoints = cutpoints,
+      end_of_study = end_of_study,
+      single_arm = single_arm,
+      stage = "interim"
+    ),
+    gamma_prior_diagnostics(
+      prior_surv = prior_surv_final,
+      cutpoints = cutpoints,
+      end_of_study = end_of_study,
+      single_arm = single_arm,
+      stage = "final"
+    )
+  )
+  rownames(prior_design) <- NULL
   empty_interval <- match.arg(empty_interval)
   binary_imputation <- match.arg(binary_imputation)
   Arguments$empty_interval <- empty_interval
@@ -570,6 +599,11 @@ survival_adapt <- function(
   } else {
     NULL
   }
+  posterior_diagnostic_rows <- if (return_trace) {
+    vector("list", max(N_looks - 1L, 0L))
+  } else {
+    NULL
+  }
 
   if (N_looks > 1) {
     for (i in 1:(N_looks - 1)) {
@@ -643,6 +677,21 @@ survival_adapt <- function(
 
       if (return_trace) {
         trace_rows[[i]] <- interim_result$trace
+        posterior_diagnostics <- interim_result$diagnostics$posterior
+        posterior_diagnostics$look <- as.integer(i)
+        posterior_diagnostics$planned_N <- as.integer(
+          analysis_at_enrollnumber[i]
+        )
+        posterior_diagnostics$calendar_time <- look_time
+        posterior_diagnostic_rows[[i]] <- posterior_diagnostics[c(
+          "look",
+          "planned_N",
+          "calendar_time",
+          setdiff(
+            names(posterior_diagnostics),
+            c("look", "planned_N", "calendar_time")
+          )
+        )]
       }
 
       if (decision == "stop_expected_success") {
@@ -754,17 +803,23 @@ survival_adapt <- function(
   )
   attr(results, "enrollment_design") <- enrollment_design
   attr(results, "decision_design") <- decision_design
+  attr(results, "prior_design") <- prior_design
   attr(results, "arguments") <- Arguments
 
   if (return_trace) {
     out <- list(
       summary = results,
       trace = new_trial_trace(trace_rows),
+      prior_diagnostics = prior_design,
+      posterior_diagnostics = new_interim_posterior_diagnostics(
+        posterior_diagnostic_rows
+      ),
       call = Call
     )
     class(out) <- "goldilocks_trial"
     attr(out, "enrollment_design") <- enrollment_design
     attr(out, "decision_design") <- decision_design
+    attr(out, "prior_design") <- prior_design
     attr(out, "arguments") <- Arguments
     return(out)
   }

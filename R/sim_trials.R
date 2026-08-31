@@ -78,7 +78,8 @@
 #'   active follow-up at each look. See [survival_adapt()] for details of the
 #'   summary and trace columns, and [summarise_calendar_time()] for wide
 #'   operating-characteristic tables. The returned object also retains the
-#'   normalized `decision_design` attribute from [survival_adapt()]. An
+#'   normalized `decision_design` and resolved `prior_design` attributes from
+#'   [survival_adapt()]. An
 #'   `rng_metadata` attribute records the caller RNG kind, effective backend,
 #'   seed policy, and stream seed when applicable. A deterministic
 #'   `parallel_metadata` attribute records the requested and effective backend
@@ -418,6 +419,11 @@ sim_trials <- function(
   attr(out, "decision_design") <- attr(
     successful_results[[1]],
     "decision_design",
+    exact = TRUE
+  )
+  attr(out, "prior_design") <- attr(
+    successful_results[[1]],
+    "prior_design",
     exact = TRUE
   )
   attr(out, "rng_metadata") <- rng_metadata

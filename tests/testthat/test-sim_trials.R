@@ -572,7 +572,10 @@ test_that("sim_trials produces identical seeded PSOCK results", {
       lambda_time = NULL,
       interim_look = 50,
       end_of_study = 36,
-      prior_surv = c(0.1, 0.1),
+      prior_surv = list(
+        control = c(0.1, 0.2),
+        treatment = c(0.3, 0.4)
+      ),
       block = 2,
       rand_ratio = c(1, 1),
       prop_loss = 0.30,

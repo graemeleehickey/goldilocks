@@ -69,12 +69,13 @@
 #'   - `decision`: a one-row decision summary;
 #'   - `probabilities`: current- and maximum-sample predictive probabilities;
 #'   - `monte_carlo`: estimates, standard errors, and diagnostic bounds;
-#'   - `diagnostics`: observed status counts, potential accruals, warnings, and
-#'     imputation diagnostics;
+#'   - `diagnostics`: observed status counts, potential accruals, warnings,
+#'     imputation diagnostics, and resolved Gamma prior and posterior parameters
+#'     by arm and interval;
 #'   - `trace`: a one-row decision trace compatible with
 #'     [plot_trial_trace()] and [summarise_trial_trace()];
-#'   - `metadata`: the evaluated design, package version, time-origin, data-cut,
-#'     and random-number policy.
+#'   - `metadata`: the evaluated design, resolved prior design, package version,
+#'     time-origin, data-cut, and random-number policy.
 #'
 #' @examples
 #' interim_data <- data.frame(
@@ -169,6 +170,7 @@ evaluate_interim <- function(
   prior_surv <- normalize_gamma_prior(
     prior_surv,
     n_intervals = n_intervals,
+    single_arm = single_arm,
     name = "prior_surv"
   )
   requested_N_mcmc <- N_mcmc
@@ -307,6 +309,7 @@ evaluate_interim <- function(
       package_version = as.character(utils::packageVersion("goldilocks")),
       call = Call,
       design = design,
+      prior_design = core$diagnostics$prior,
       data_cut = data_cut,
       time_origin = "first participant randomization (time 0)",
       rng = list(

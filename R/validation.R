@@ -331,43 +331,125 @@ validate_binary_vector <- function(x, name, allow_empty = FALSE) {
 
 #' @title Validate and normalize a Gamma survival prior
 #'
-#' @description Checks that a Gamma prior supplies finite, strictly positive
-#'   shape and rate parameters, then broadcasts a length-two vector over all
-#'   piecewise intervals.
+#' @description Checks that Gamma priors supply finite, strictly positive shape
+#'   and rate parameters, then broadcasts shared or arm-specific inputs to a
+#'   named parameter-by-interval-by-arm array.
 #'
 #' @noRd
 normalize_gamma_prior <- function(
   prior_surv,
   n_intervals,
+  single_arm,
   name = "prior_surv"
 ) {
-  valid_values <- is.numeric(prior_surv) &&
-    !anyNA(prior_surv) &&
-    all(is.finite(prior_surv)) &&
-    all(prior_surv > 0)
-  is_vector <- is.null(dim(prior_surv)) && length(prior_surv) == 2L
-  is_interval_matrix <- is.matrix(prior_surv) &&
-    identical(dim(prior_surv), c(2L, as.integer(n_intervals)))
+  validate_positive_integer_scalar(n_intervals, "n_intervals")
+  validate_logical_scalar(single_arm, "single_arm")
+  arm_names <- if (single_arm) "treatment" else c("control", "treatment")
+  interval_names <- as.character(seq_len(n_intervals))
 
-  if (!valid_values || (!is_vector && !is_interval_matrix)) {
-    stop(
-      "'",
-      name,
-      "' must be a length-two positive finite numeric vector or a 2 x ",
-      n_intervals,
-      " matrix with shape in row 1 and rate in row 2"
-    )
+  normalize_one_arm <- function(x, component_name) {
+    valid_values <- is.numeric(x) &&
+      !anyNA(x) &&
+      all(is.finite(x)) &&
+      all(x > 0)
+    is_vector <- is.null(dim(x)) && length(x) == 2L
+    is_interval_matrix <- is.matrix(x) &&
+      identical(dim(x), c(2L, as.integer(n_intervals)))
+
+    if (!valid_values || (!is_vector && !is_interval_matrix)) {
+      stop(
+        "'",
+        component_name,
+        "' must be a length-two positive finite numeric vector or a 2 x ",
+        n_intervals,
+        " matrix with shape in row 1 and rate in row 2"
+      )
+    }
+
+    if (is_vector) {
+      x <- matrix(rep(x, n_intervals), nrow = 2L)
+    }
+    dimnames(x) <- list(c("shape", "rate"), interval_names)
+    x
   }
 
-  if (is_vector) {
-    prior_surv <- matrix(
-      rep(prior_surv, n_intervals),
-      nrow = 2L,
-      dimnames = list(c("shape", "rate"), NULL)
+  # Accept the canonical representation so normalization is idempotent when a
+  # validated prior passes through more than one calculation layer.
+  is_prior_array <- is.array(prior_surv) &&
+    length(dim(prior_surv)) == 3L
+  if (is_prior_array) {
+    valid_values <- is.numeric(prior_surv) &&
+      !anyNA(prior_surv) &&
+      all(is.finite(prior_surv)) &&
+      all(prior_surv > 0)
+    supplied_arms <- dimnames(prior_surv)[[3L]]
+    valid_dimensions <- identical(
+      dim(prior_surv),
+      c(2L, as.integer(n_intervals), length(arm_names))
     )
+    valid_arms <- !is.null(supplied_arms) &&
+      !anyNA(supplied_arms) &&
+      !anyDuplicated(supplied_arms) &&
+      setequal(supplied_arms, arm_names)
+    if (!valid_values || !valid_dimensions || !valid_arms) {
+      stop(
+        "'",
+        name,
+        "' array must have dimensions 2 x ",
+        n_intervals,
+        " x ",
+        length(arm_names),
+        " with finite positive values and arm names: ",
+        paste(arm_names, collapse = ", ")
+      )
+    }
+    prior_surv <- prior_surv[,, arm_names, drop = FALSE]
+    dimnames(prior_surv) <- list(
+      parameter = c("shape", "rate"),
+      interval = interval_names,
+      arm = arm_names
+    )
+    return(prior_surv)
   }
 
-  prior_surv
+  if (is.list(prior_surv) && !is.data.frame(prior_surv)) {
+    supplied_arms <- names(prior_surv)
+    valid_arms <- !is.null(supplied_arms) &&
+      !anyNA(supplied_arms) &&
+      all(nzchar(supplied_arms)) &&
+      !anyDuplicated(supplied_arms) &&
+      setequal(supplied_arms, arm_names)
+    if (!valid_arms) {
+      stop(
+        "'",
+        name,
+        "' arm-specific list must contain exactly: ",
+        paste(arm_names, collapse = ", ")
+      )
+    }
+    arm_priors <- lapply(arm_names, function(arm) {
+      normalize_one_arm(prior_surv[[arm]], paste0(name, "$", arm))
+    })
+    names(arm_priors) <- arm_names
+  } else {
+    shared_prior <- normalize_one_arm(prior_surv, name)
+    arm_priors <- rep(list(shared_prior), length(arm_names))
+    names(arm_priors) <- arm_names
+  }
+
+  normalized <- array(
+    NA_real_,
+    dim = c(2L, n_intervals, length(arm_names)),
+    dimnames = list(
+      parameter = c("shape", "rate"),
+      interval = interval_names,
+      arm = arm_names
+    )
+  )
+  for (arm in arm_names) {
+    normalized[,, arm] <- arm_priors[[arm]]
+  }
+  normalized
 }
 
 #' @title Validate piecewise cutpoints

@@ -91,10 +91,14 @@ evaluate_interim_core <- function(
     ))
   }
 
+  data_summ <- posterior_sufficient_stats(
+    data = data,
+    cutpoints = cutpoints,
+    single_arm = single_arm
+  )
   post_lambda <- withCallingHandlers(
-    posterior(
-      data = data,
-      cutpoints = cutpoints,
+    posterior_from_sufficient_stats(
+      data_summ = data_summ,
       prior_surv = prior_surv,
       N_mcmc = N_impute,
       single_arm = single_arm,
@@ -102,6 +106,14 @@ evaluate_interim_core <- function(
     ),
     warning = capture_warning,
     goldilocks_empty_interval = capture_empty_interval
+  )
+  posterior_diagnostics <- gamma_posterior_diagnostics(
+    data_summ = data_summ,
+    prior_surv = prior_surv,
+    cutpoints = cutpoints,
+    end_of_study = end_of_study,
+    single_arm = single_arm,
+    empty_interval = empty_interval
   )
 
   maximum_successes <- 0L
@@ -320,8 +332,57 @@ evaluate_interim_core <- function(
         NA_integer_
       },
       empty_interval_fallbacks = warning_state$empty_interval_fallbacks,
-      warnings = warning_state$messages
+      warnings = warning_state$messages,
+      prior = gamma_prior_diagnostics(
+        prior_surv = prior_surv,
+        cutpoints = cutpoints,
+        end_of_study = end_of_study,
+        single_arm = single_arm,
+        stage = "interim"
+      ),
+      posterior = posterior_diagnostics
     ),
     trace = trace
+  )
+}
+
+#' Bind interim posterior diagnostic rows
+#'
+#' @param rows List containing one posterior diagnostic data frame per look.
+#'
+#' @return A stable data frame with one row per look, arm, and interval.
+#'
+#' @keywords internal
+#' @noRd
+new_interim_posterior_diagnostics <- function(rows) {
+  rows <- Filter(Negate(is.null), rows)
+  if (length(rows) > 0L) {
+    out <- do.call(rbind, rows)
+    rownames(out) <- NULL
+    return(out)
+  }
+
+  data.frame(
+    look = integer(),
+    planned_N = integer(),
+    calendar_time = numeric(),
+    arm = character(),
+    interval = integer(),
+    interval_start = numeric(),
+    interval_end = numeric(),
+    exposed_subjects = integer(),
+    observed_exposure = numeric(),
+    observed_events = integer(),
+    empty_interval = logical(),
+    empty_interval_policy = character(),
+    effective_exposure = numeric(),
+    effective_events = numeric(),
+    prior_shape = numeric(),
+    prior_rate = numeric(),
+    posterior_shape = numeric(),
+    posterior_rate = numeric(),
+    posterior_mean_hazard = numeric(),
+    posterior_sd_hazard = numeric(),
+    stringsAsFactors = FALSE
   )
 }

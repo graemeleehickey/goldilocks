@@ -134,6 +134,34 @@ test_that("evaluate_interim derives future accrual from rand_ratio", {
   expect_equal(out$trace$N_not_enrolled, 6)
 })
 
+test_that("evaluate_interim resolves arm-specific hazard priors", {
+  args <- interim_args()
+  args$cutpoints <- 4
+  args$prior_surv <- list(
+    treatment = rbind(shape = c(5, 6), rate = c(10, 12)),
+    control = c(2, 4)
+  )
+
+  out <- do.call(evaluate_interim, args)
+
+  expect_identical(
+    out$diagnostics$prior$arm,
+    rep(c("control", "treatment"), each = 2)
+  )
+  expect_equal(out$diagnostics$prior$shape, c(2, 2, 5, 6))
+  expect_identical(out$metadata$prior_design, out$diagnostics$prior)
+  expect_equal(
+    out$diagnostics$posterior$posterior_shape,
+    out$diagnostics$posterior$prior_shape +
+      out$diagnostics$posterior$effective_events
+  )
+  expect_equal(
+    out$diagnostics$posterior$posterior_rate,
+    out$diagnostics$posterior$prior_rate +
+      out$diagnostics$posterior$effective_exposure
+  )
+})
+
 test_that("evaluate_interim supports single-arm Bayesian analyses", {
   data <- interim_fixture()[1:4, ]
   data$treatment <- 1

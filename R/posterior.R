@@ -130,6 +130,7 @@ posterior_from_sufficient_stats <- function(
   prior_surv <- normalize_gamma_prior(
     prior_surv,
     n_intervals = n_intervals,
+    single_arm = single_arm,
     name = "prior_surv"
   )
   expected_combinations <- expand.grid(
@@ -244,8 +245,8 @@ posterior_from_sufficient_stats <- function(
   for (j in 1:n_intervals) {
     post[, j, 1] <- rgamma(
       N_mcmc,
-      prior_surv[1, j] + treatment_summ$tot_events[j],
-      prior_surv[2, j] + treatment_summ$tot_time[j]
+      prior_surv["shape", j, "treatment"] + treatment_summ$tot_events[j],
+      prior_surv["rate", j, "treatment"] + treatment_summ$tot_time[j]
     )
   }
 
@@ -259,13 +260,158 @@ posterior_from_sufficient_stats <- function(
     for (j in 1:n_intervals) {
       post[, j, 2] <- rgamma(
         N_mcmc,
-        prior_surv[1, j] + control_summ$tot_events[j],
-        prior_surv[2, j] + control_summ$tot_time[j]
+        prior_surv["shape", j, "control"] + control_summ$tot_events[j],
+        prior_surv["rate", j, "control"] + control_summ$tot_time[j]
       )
     }
   }
 
   post
+}
+
+#' Summarize resolved Gamma priors by arm and interval
+#'
+#' @param prior_surv A supported survival-prior specification.
+#' @param cutpoints Piecewise-exponential cutpoints.
+#' @param end_of_study End of subject-level follow-up.
+#' @param single_arm Whether the design is single-arm.
+#' @param stage Optional stage label.
+#'
+#' @return A tidy data frame containing resolved Gamma parameters and moments.
+#'
+#' @keywords internal
+#' @noRd
+gamma_prior_diagnostics <- function(
+  prior_surv,
+  cutpoints,
+  end_of_study,
+  single_arm,
+  stage = NULL
+) {
+  n_intervals <- length(cutpoints) + 1L
+  prior_surv <- normalize_gamma_prior(
+    prior_surv,
+    n_intervals = n_intervals,
+    single_arm = single_arm,
+    name = "prior_surv"
+  )
+  arm_names <- dimnames(prior_surv)$arm
+  interval_start <- c(0, cutpoints)
+  interval_end <- c(cutpoints, end_of_study)
+  rows <- lapply(arm_names, function(arm) {
+    shape <- prior_surv["shape", , arm]
+    rate <- prior_surv["rate", , arm]
+    data.frame(
+      arm = arm,
+      interval = seq_len(n_intervals),
+      interval_start = interval_start,
+      interval_end = interval_end,
+      shape = unname(shape),
+      rate = unname(rate),
+      mean_hazard = unname(shape / rate),
+      sd_hazard = unname(sqrt(shape) / rate),
+      stringsAsFactors = FALSE
+    )
+  })
+  out <- do.call(rbind, rows)
+  rownames(out) <- NULL
+  if (!is.null(stage)) {
+    out$stage <- stage
+    out <- out[c("stage", setdiff(names(out), "stage"))]
+  }
+  out
+}
+
+#' Summarize conjugate Gamma posterior parameters
+#'
+#' @description Combines a resolved arm-specific prior with observed sufficient
+#'   statistics. Under the legacy propagation policy, both the observed and
+#'   effective statistics are retained so the resulting posterior remains
+#'   auditable.
+#'
+#' @inheritParams gamma_prior_diagnostics
+#' @param data_summ Observed PWE sufficient statistics.
+#' @param empty_interval Empty-interval policy used by the posterior update.
+#'
+#' @return A tidy data frame containing prior parameters, observed and effective
+#'   sufficient statistics, and posterior parameters and moments.
+#'
+#' @keywords internal
+#' @noRd
+gamma_posterior_diagnostics <- function(
+  data_summ,
+  prior_surv,
+  cutpoints,
+  end_of_study,
+  single_arm,
+  empty_interval
+) {
+  empty_interval <- match.arg(
+    empty_interval,
+    c("prior", "propagate", "error")
+  )
+  prior <- gamma_prior_diagnostics(
+    prior_surv = prior_surv,
+    cutpoints = cutpoints,
+    end_of_study = end_of_study,
+    single_arm = single_arm
+  )
+  effective_summ <- data_summ
+  if (empty_interval == "propagate" && any(effective_summ$n == 0L)) {
+    # The posterior update has already emitted the user-facing fallback
+    # warning. Reproduce its effective statistics without warning twice.
+    effective_summ <- suppressWarnings(
+      propagate_empty_intervals(effective_summ)
+    )
+  }
+
+  treatment_value <- ifelse(prior$arm == "treatment", 1, 0)
+  observed_key <- paste(
+    data_summ$treatment,
+    as.character(data_summ$interval),
+    sep = "\r"
+  )
+  diagnostic_key <- paste(treatment_value, prior$interval, sep = "\r")
+  observed_rows <- match(diagnostic_key, observed_key)
+  effective_key <- paste(
+    effective_summ$treatment,
+    as.character(effective_summ$interval),
+    sep = "\r"
+  )
+  effective_rows <- match(diagnostic_key, effective_key)
+
+  observed_n <- data_summ$n[observed_rows]
+  observed_exposure <- data_summ$tot_time[observed_rows]
+  observed_events <- data_summ$tot_events[observed_rows]
+  effective_exposure <- effective_summ$tot_time[effective_rows]
+  effective_events <- effective_summ$tot_events[effective_rows]
+  posterior_shape <- prior$shape + effective_events
+  posterior_rate <- prior$rate + effective_exposure
+
+  data.frame(
+    arm = prior$arm,
+    interval = prior$interval,
+    interval_start = prior$interval_start,
+    interval_end = prior$interval_end,
+    exposed_subjects = observed_n,
+    observed_exposure = observed_exposure,
+    observed_events = observed_events,
+    empty_interval = observed_n == 0L,
+    empty_interval_policy = ifelse(
+      observed_n == 0L,
+      empty_interval,
+      "observed"
+    ),
+    effective_exposure = effective_exposure,
+    effective_events = effective_events,
+    prior_shape = prior$shape,
+    prior_rate = prior$rate,
+    posterior_shape = posterior_shape,
+    posterior_rate = posterior_rate,
+    posterior_mean_hazard = posterior_shape / posterior_rate,
+    posterior_sd_hazard = sqrt(posterior_shape) / posterior_rate,
+    stringsAsFactors = FALSE
+  )
 }
 
 #' @title Propagate statistics for empty intervals

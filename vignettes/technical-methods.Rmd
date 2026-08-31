@@ -234,14 +234,14 @@ where $\boldsymbol{\lambda}_z = (\lambda_{z1},\ldots,\lambda_{zJ})^\top$. This s
 
 For each treatment value $z$ and interval $j$, `goldilocks` assumes an independent Gamma prior
 
-$$\lambda_{zj} \sim \operatorname{Gamma}(\alpha_0, \beta_0),$$
+$$\lambda_{zj} \sim \operatorname{Gamma}(\alpha_{0zj}, \beta_{0zj}),$$
 
-where $\alpha_{0j}$ is the shape and $\beta_{0j}$ is the rate for interval $j$. This follows the `stats::rgamma()` parameterization. The argument `prior_surv = c(alpha0, beta0)` broadcasts one shape-rate pair over all intervals. Alternatively, a two-row matrix supplies interval-specific shapes in row 1 and rates in row 2, with columns in chronological interval order. The same interval prior is applied to every treatment group. `prior_surv_final` accepts the same forms and defaults to `prior_surv`; it can therefore specify a different prior for final imputation and final piecewise-exponential analysis.
+where $\alpha_{0zj}$ is the shape and $\beta_{0zj}$ is the rate for arm $z$ and interval $j$. This follows the `stats::rgamma()` parameterization. The argument `prior_surv = c(alpha0, beta0)` broadcasts one shape-rate pair over all arms and intervals. Alternatively, a two-row matrix supplies interval-specific shapes in row 1 and rates in row 2, with columns in chronological interval order, and broadcasts that matrix across arms. Independent arm-specific priors are supplied as a list named `control` and `treatment`; each element may be a length-two vector or a two-row interval-specific matrix. Both arms must be specified, and no borrowing occurs between them. `prior_surv_final` accepts the same forms and defaults to `prior_surv`; it can therefore specify different priors by stage, arm, and interval.
 
 At an analysis, let $d_{zj}$ be the number of observed events for treatment value $z$, interval $j$, and let $y_{zj}$ be the total observed exposure time for that treatment value and interval. Gamma-exponential conjugacy gives
 
 $$\lambda_{zj} \mid \mathcal{D}
-  \sim \operatorname{Gamma}(\alpha_{0j} + d_{zj}, \beta_{0j} + y_{zj}).$$
+  \sim \operatorname{Gamma}(\alpha_{0zj} + d_{zj}, \beta_{0zj} + y_{zj}).$$
 
 The package obtains $(d_{zj}, y_{zj})$ by splitting each subject's observed follow-up over the cut-point intervals. Posterior draws are generated independently for each treatment group and interval. In early interim analyses, later piecewise intervals may have no exposure. The `empty_interval` argument controls the policy for these intervals:
 

@@ -202,6 +202,7 @@ summarise_sims <- function(data, max_mcse = NULL) {
         "arguments",
         "enrollment_design",
         "decision_design",
+        "prior_design",
         "rng_metadata",
         "parallel_metadata",
         "timing",
@@ -603,6 +604,7 @@ simulation_result_metadata <- function(x, scenario) {
     arguments = attr(x, "arguments", exact = TRUE),
     enrollment_design = attr(x, "enrollment_design", exact = TRUE),
     decision_design = attr(x, "decision_design", exact = TRUE),
+    prior_design = attr(x, "prior_design", exact = TRUE),
     rng_metadata = rng_metadata,
     parallel_metadata = parallel_metadata,
     timing = if (!is.null(x$timing)) {

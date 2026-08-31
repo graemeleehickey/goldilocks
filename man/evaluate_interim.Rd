@@ -53,14 +53,17 @@ estimation, predictive imputation, and final analysis. The number of
 interval-specific prior columns must be one greater than the number of
 cutpoints. Default is \code{NULL}, which uses a constant-hazard analysis model.}
 
-\item{prior_surv}{numeric vector or matrix. Gamma prior for the
+\item{prior_surv}{numeric vector, matrix, or named list. Gamma prior for the
 piecewise-exponential hazards used during interim prediction. A length-two
-vector supplies shape and rate and is broadcast across all intervals. A
-\code{2} by \code{length(cutpoints) + 1} matrix supplies interval-specific values,
-with shapes in row 1, rates in row 2, and columns ordered from the earliest
-to the latest interval. The same interval prior is applied to both
-treatment groups. Rates must use the same time unit as event times,
-exposure, and cutpoints. The default is \code{c(0.1, 0.1)}.}
+vector supplies shape and rate and is broadcast across all arms and
+intervals. A \code{2} by \code{length(cutpoints) + 1} matrix supplies
+interval-specific values shared by all arms, with shapes in row 1 and rates
+in row 2. For independent arm-specific priors, supply a list named
+\code{control} and \code{treatment} in a two-arm design, or \code{treatment} in a
+single-arm design. Each list element may be a length-two vector or an
+interval-specific matrix. Both arms must be supplied; no values are
+borrowed or filled from the other arm. Rates must use the same time unit as
+event times, exposure, and cutpoints. The default is \code{c(0.1, 0.1)}.}
 
 \item{prior_bin}{vector. Prior distribution for the event probability when
 \code{method = "bayes-bin"}. The two values are the shape parameters of the
@@ -177,12 +180,13 @@ An object of class \code{goldilocks_interim}, containing:
 \item \code{decision}: a one-row decision summary;
 \item \code{probabilities}: current- and maximum-sample predictive probabilities;
 \item \code{monte_carlo}: estimates, standard errors, and diagnostic bounds;
-\item \code{diagnostics}: observed status counts, potential accruals, warnings, and
-imputation diagnostics;
+\item \code{diagnostics}: observed status counts, potential accruals, warnings,
+imputation diagnostics, and resolved Gamma prior and posterior parameters
+by arm and interval;
 \item \code{trace}: a one-row decision trace compatible with
 \code{\link[=plot_trial_trace]{plot_trial_trace()}} and \code{\link[=summarise_trial_trace]{summarise_trial_trace()}};
-\item \code{metadata}: the evaluated design, package version, time-origin, data-cut,
-and random-number policy.
+\item \code{metadata}: the evaluated design, resolved prior design, package version,
+time-origin, data-cut, and random-number policy.
 }
 }
 \description{

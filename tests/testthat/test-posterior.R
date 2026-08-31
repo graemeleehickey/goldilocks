@@ -576,3 +576,262 @@ test_that("posterior returns positive draws", {
   )
   expect_true(all(res > 0))
 })
+
+test_that("posterior applies independent arm-specific priors", {
+  data <- data.frame(
+    time = c(3, 8, 15, 4, 10, 18),
+    event = c(1, 0, 1, 0, 1, 1),
+    treatment = c(0, 0, 0, 1, 1, 1)
+  )
+  cutpoints <- c(5, 12)
+  data_summ <- posterior_sufficient_stats(
+    data,
+    cutpoints = cutpoints,
+    single_arm = FALSE
+  )
+  prior_surv <- list(
+    treatment = rbind(
+      shape = c(5, 6, 7),
+      rate = c(8, 9, 10)
+    ),
+    control = rbind(
+      shape = c(0.5, 1, 2),
+      rate = c(0.25, 0.5, 1)
+    )
+  )
+
+  set.seed(8891)
+  actual <- posterior_from_sufficient_stats(
+    data_summ = data_summ,
+    prior_surv = prior_surv,
+    N_mcmc = 20,
+    single_arm = FALSE
+  )
+
+  expected <- array(NA_real_, dim = c(20, 3, 2))
+  set.seed(8891)
+  for (arm_slice in seq_len(2)) {
+    arm <- if (arm_slice == 1L) "treatment" else "control"
+    treatment_value <- if (arm == "treatment") 1 else 0
+    arm_summ <- data_summ[data_summ$treatment == treatment_value, ]
+    for (j in seq_len(3)) {
+      expected[, j, arm_slice] <- rgamma(
+        20,
+        shape = prior_surv[[arm]]["shape", j] + arm_summ$tot_events[j],
+        rate = prior_surv[[arm]]["rate", j] + arm_summ$tot_time[j]
+      )
+    }
+  }
+
+  expect_identical(actual, expected)
+})
+
+test_that("equal arm-specific priors preserve legacy seeded draws", {
+  data <- data.frame(
+    time = c(3, 8, 15, 4, 10, 18),
+    event = c(1, 0, 1, 0, 1, 1),
+    treatment = c(0, 0, 0, 1, 1, 1)
+  )
+  shared <- rbind(
+    shape = c(0.5, 2, 5),
+    rate = c(0.25, 1, 4)
+  )
+
+  set.seed(8892)
+  legacy <- posterior(
+    data,
+    cutpoints = c(5, 12),
+    prior_surv = shared,
+    N_mcmc = 50,
+    single_arm = FALSE
+  )
+  set.seed(8892)
+  arm_specific <- posterior(
+    data,
+    cutpoints = c(5, 12),
+    prior_surv = list(treatment = shared, control = shared),
+    N_mcmc = 50,
+    single_arm = FALSE
+  )
+
+  expect_identical(arm_specific, legacy)
+})
+
+test_that("changing one arm's prior does not alter the other arm's draws", {
+  data <- data.frame(
+    time = c(3, 8, 15, 4, 10, 18),
+    event = c(1, 0, 1, 0, 1, 1),
+    treatment = c(0, 0, 0, 1, 1, 1)
+  )
+  shared_treatment <- c(2, 4)
+
+  set.seed(8894)
+  weak_control <- posterior(
+    data,
+    cutpoints = c(5, 12),
+    prior_surv = list(
+      control = c(0.1, 0.1),
+      treatment = shared_treatment
+    ),
+    N_mcmc = 50,
+    single_arm = FALSE
+  )
+  set.seed(8894)
+  strong_control <- posterior(
+    data,
+    cutpoints = c(5, 12),
+    prior_surv = list(
+      control = c(100, 100),
+      treatment = shared_treatment
+    ),
+    N_mcmc = 50,
+    single_arm = FALSE
+  )
+
+  expect_identical(strong_control[,, 1], weak_control[,, 1])
+  expect_false(identical(strong_control[,, 2], weak_control[,, 2]))
+})
+
+test_that("arm-specific prior names determine arms rather than list order", {
+  control <- rbind(shape = c(1, 2), rate = c(3, 4))
+  treatment <- rbind(shape = c(5, 6), rate = c(7, 8))
+
+  normalized <- goldilocks:::normalize_gamma_prior(
+    list(treatment = treatment, control = control),
+    n_intervals = 2,
+    single_arm = FALSE
+  )
+
+  expect_identical(dim(normalized), c(2L, 2L, 2L))
+  expect_identical(dimnames(normalized)$arm, c("control", "treatment"))
+  expect_equal(unname(normalized[,, "control"]), unname(control))
+  expect_equal(unname(normalized[,, "treatment"]), unname(treatment))
+})
+
+test_that("arm-specific survival priors require exact complete arm names", {
+  expect_error(
+    goldilocks:::normalize_gamma_prior(
+      list(c(1, 1), c(2, 2)),
+      n_intervals = 1,
+      single_arm = FALSE
+    ),
+    "exactly: control, treatment"
+  )
+  expect_error(
+    goldilocks:::normalize_gamma_prior(
+      list(control = c(1, 1)),
+      n_intervals = 1,
+      single_arm = FALSE
+    ),
+    "exactly: control, treatment"
+  )
+  expect_error(
+    goldilocks:::normalize_gamma_prior(
+      list(control = c(1, 1), treatment = c(2, 0)),
+      n_intervals = 1,
+      single_arm = FALSE
+    ),
+    "prior_surv\\$treatment.*positive finite"
+  )
+  expect_error(
+    goldilocks:::normalize_gamma_prior(
+      list(control = c(1, 1), treatment = c(2, 2)),
+      n_intervals = 1,
+      single_arm = TRUE
+    ),
+    "exactly: treatment"
+  )
+
+  single_arm <- goldilocks:::normalize_gamma_prior(
+    list(treatment = c(2, 4)),
+    n_intervals = 2,
+    single_arm = TRUE
+  )
+  expect_identical(dimnames(single_arm)$arm, "treatment")
+  expect_equal(unname(single_arm["shape", , "treatment"]), c(2, 2))
+  expect_equal(unname(single_arm["rate", , "treatment"]), c(4, 4))
+})
+
+test_that("Gamma diagnostics expose resolved conjugate updates", {
+  data <- data.frame(
+    time = c(3, 8, 15, 4, 10, 18),
+    event = c(1, 0, 1, 0, 1, 1),
+    treatment = c(0, 0, 0, 1, 1, 1)
+  )
+  cutpoints <- c(5, 12)
+  data_summ <- posterior_sufficient_stats(
+    data,
+    cutpoints = cutpoints,
+    single_arm = FALSE
+  )
+  prior_surv <- list(
+    control = c(2, 4),
+    treatment = c(5, 10)
+  )
+
+  diagnostics <- goldilocks:::gamma_posterior_diagnostics(
+    data_summ = data_summ,
+    prior_surv = prior_surv,
+    cutpoints = cutpoints,
+    end_of_study = 20,
+    single_arm = FALSE,
+    empty_interval = "prior"
+  )
+
+  expect_identical(diagnostics$arm, rep(c("control", "treatment"), each = 3))
+  expect_equal(diagnostics$interval_start, rep(c(0, 5, 12), 2))
+  expect_equal(diagnostics$interval_end, rep(c(5, 12, 20), 2))
+  expect_equal(
+    diagnostics$posterior_shape,
+    diagnostics$prior_shape + diagnostics$observed_events
+  )
+  expect_equal(
+    diagnostics$posterior_rate,
+    diagnostics$prior_rate + diagnostics$observed_exposure
+  )
+  expect_equal(
+    diagnostics$posterior_mean_hazard,
+    diagnostics$posterior_shape / diagnostics$posterior_rate
+  )
+  expect_false(any(c("draw", "draws") %in% names(diagnostics)))
+})
+
+test_that("posterior diagnostics distinguish observed and propagated data", {
+  data <- data.frame(
+    time = c(2, 25, 3, 4),
+    event = c(1, 1, 1, 0),
+    treatment = c(0, 0, 1, 1)
+  )
+  data_summ <- posterior_sufficient_stats(
+    data,
+    cutpoints = c(10, 20),
+    single_arm = FALSE
+  )
+
+  diagnostics <- expect_no_warning(
+    goldilocks:::gamma_posterior_diagnostics(
+      data_summ = data_summ,
+      prior_surv = c(0.1, 0.1),
+      cutpoints = c(10, 20),
+      end_of_study = 30,
+      single_arm = FALSE,
+      empty_interval = "propagate"
+    )
+  )
+  treatment <- diagnostics[diagnostics$arm == "treatment", ]
+
+  expect_identical(treatment$empty_interval, c(FALSE, TRUE, TRUE))
+  expect_identical(
+    treatment$empty_interval_policy,
+    c("observed", "propagate", "propagate")
+  )
+  expect_equal(treatment$observed_exposure[2:3], c(0, 0))
+  expect_equal(
+    treatment$effective_exposure[2:3],
+    rep(treatment$effective_exposure[1], 2)
+  )
+  expect_equal(
+    treatment$effective_events[2:3],
+    rep(treatment$effective_events[1], 2)
+  )
+})

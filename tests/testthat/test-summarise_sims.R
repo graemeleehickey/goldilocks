@@ -186,6 +186,10 @@ test_that("summarise_sims accepts a complete sim_trials result", {
     attr(simulations, "decision_design", exact = TRUE)
   )
   expect_identical(
+    attr(direct, "prior_design", exact = TRUE),
+    attr(simulations, "prior_design", exact = TRUE)
+  )
+  expect_identical(
     attr(direct, "arguments", exact = TRUE),
     attr(simulations, "arguments", exact = TRUE)
   )
@@ -193,6 +197,10 @@ test_that("summarise_sims accepts a complete sim_trials result", {
   expect_identical(
     attr(direct, "simulation_metadata", exact = TRUE)[[1]]$arguments,
     attr(simulations, "arguments", exact = TRUE)
+  )
+  expect_identical(
+    attr(direct, "simulation_metadata", exact = TRUE)[[1]]$prior_design,
+    attr(simulations, "prior_design", exact = TRUE)
   )
 })
 

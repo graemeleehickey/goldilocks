@@ -75,14 +75,17 @@ the interim posterior undefined for the missing group.}
 value in both \code{cutpoints} and \code{generation_cutpoints} when either is
 supplied.}
 
-\item{prior_surv}{numeric vector or matrix. Gamma prior for the
+\item{prior_surv}{numeric vector, matrix, or named list. Gamma prior for the
 piecewise-exponential hazards used during interim prediction. A length-two
-vector supplies shape and rate and is broadcast across all intervals. A
-\code{2} by \code{length(cutpoints) + 1} matrix supplies interval-specific values,
-with shapes in row 1, rates in row 2, and columns ordered from the earliest
-to the latest interval. The same interval prior is applied to both
-treatment groups. Rates must use the same time unit as event times,
-exposure, and cutpoints. The default is \code{c(0.1, 0.1)}.}
+vector supplies shape and rate and is broadcast across all arms and
+intervals. A \code{2} by \code{length(cutpoints) + 1} matrix supplies
+interval-specific values shared by all arms, with shapes in row 1 and rates
+in row 2. For independent arm-specific priors, supply a list named
+\code{control} and \code{treatment} in a two-arm design, or \code{treatment} in a
+single-arm design. Each list element may be a length-two vector or an
+interval-specific matrix. Both arms must be supplied; no values are
+borrowed or filled from the other arm. Rates must use the same time unit as
+event times, exposure, and cutpoints. The default is \code{c(0.1, 0.1)}.}
 
 \item{prior_bin}{vector. Prior distribution for the event probability when
 \code{method = "bayes-bin"}. The two values are the shape parameters of the
@@ -240,9 +243,10 @@ event status at \code{end_of_study}. \code{"bernoulli"} draws the endpoint statu
 directly from its conditional event probability. This argument is ignored
 for time-to-event analysis methods.}
 
-\item{prior_surv_final}{numeric vector or matrix. Gamma prior used for
-final-stage piecewise-exponential imputation and, for \code{method = "bayes-surv"}, final analysis. It accepts the same forms as \code{prior_surv}
-and defaults to \code{prior_surv}, preserving the historical behavior.}
+\item{prior_surv_final}{numeric vector, matrix, or named list. Gamma prior
+used for final-stage piecewise-exponential imputation and, for \code{method = "bayes-surv"}, final analysis. It accepts the same shared or arm-specific
+forms as \code{prior_surv} and defaults to \code{prior_surv}, preserving the
+historical behavior.}
 
 \item{generation_cutpoints}{finite, positive, strictly increasing interior
 follow-up times defining the piecewise-exponential model used to generate
@@ -260,7 +264,8 @@ always retained in \code{sims}; traces additionally retain calendar time and
 active follow-up at each look. See \code{\link[=survival_adapt]{survival_adapt()}} for details of the
 summary and trace columns, and \code{\link[=summarise_calendar_time]{summarise_calendar_time()}} for wide
 operating-characteristic tables. The returned object also retains the
-normalized \code{decision_design} attribute from \code{\link[=survival_adapt]{survival_adapt()}}. An
+normalized \code{decision_design} and resolved \code{prior_design} attributes from
+\code{\link[=survival_adapt]{survival_adapt()}}. An
 \code{rng_metadata} attribute records the caller RNG kind, effective backend,
 seed policy, and stream seed when applicable. A deterministic
 \code{parallel_metadata} attribute records the requested and effective backend

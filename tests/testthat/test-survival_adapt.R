@@ -960,6 +960,61 @@ test_that("prior_surv_final defaults exactly to prior_surv", {
   expect_identical(from_default, from_explicit)
 })
 
+test_that("survival_adapt reports arm-specific prior and posterior diagnostics", {
+  set.seed(8893)
+  out <- survival_adapt(
+    hazard_treatment = c(0.02, 0.01),
+    hazard_control = c(0.03, 0.015),
+    cutpoints = 6,
+    N_total = 20,
+    lambda = 10,
+    interim_look = 10,
+    end_of_study = 12,
+    prior_surv = list(
+      treatment = rbind(shape = c(5, 6), rate = c(10, 12)),
+      control = c(2, 4)
+    ),
+    prior_surv_final = list(
+      control = c(3, 6),
+      treatment = c(7, 14)
+    ),
+    alternative = "less",
+    Fn = 0,
+    Sn = 1,
+    N_impute = 2,
+    N_mcmc = 2,
+    method = "bayes-surv",
+    return_trace = TRUE
+  )
+
+  expect_s3_class(out, "goldilocks_trial")
+  expect_identical(out$prior_diagnostics, attr(out, "prior_design"))
+  expect_identical(
+    out$prior_diagnostics$stage,
+    rep(c("interim", "final"), each = 4)
+  )
+  expect_identical(
+    out$prior_diagnostics$arm,
+    rep(rep(c("control", "treatment"), each = 2), 2)
+  )
+  expect_equal(
+    out$prior_diagnostics$shape[out$prior_diagnostics$stage == "interim"],
+    c(2, 2, 5, 6)
+  )
+  expect_gt(nrow(out$posterior_diagnostics), 0)
+  expect_setequal(out$posterior_diagnostics$arm, c("control", "treatment"))
+  expect_equal(
+    out$posterior_diagnostics$posterior_shape,
+    out$posterior_diagnostics$prior_shape +
+      out$posterior_diagnostics$effective_events
+  )
+  expect_equal(
+    out$posterior_diagnostics$posterior_rate,
+    out$posterior_diagnostics$prior_rate +
+      out$posterior_diagnostics$effective_exposure
+  )
+})
+
 test_that("the final survival prior is independent of the interim prior", {
   common_args <- list(
     hazard_treatment = c(0.02, 0.01),
@@ -990,6 +1045,10 @@ test_that("the final survival prior is independent of the interim prior", {
 
   attr(weak_interim, "arguments") <- NULL
   attr(strong_interim, "arguments") <- NULL
+  # The resolved interim prior is intentionally retained as metadata. Compare
+  # the analysis result after removing metadata that should differ here.
+  attr(weak_interim, "prior_design") <- NULL
+  attr(strong_interim, "prior_design") <- NULL
   expect_identical(weak_interim, strong_interim)
 })
 
