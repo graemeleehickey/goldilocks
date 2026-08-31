@@ -12,6 +12,8 @@ designs.
 
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
   : Simulate and analyze one Goldilocks adaptive trial
+- [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
+  : Evaluate an externally observed interim data cut
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   : Simulate one or more clinical trials subject to known design
   parameters and treatment effect
@@ -31,6 +33,8 @@ designs.
   : Plot predictive probabilities and enrollment at interim looks
 - [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
   : Plot stopping outcomes from trial simulations
+- [`print(`*`<goldilocks_interim>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_interim.md)
+  : Print an externally evaluated interim analysis
 - [`print(`*`<goldilocks_trial>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_trial.md)
   : Print an adaptive trial trace result
 - [`print(`*`<goldilocks_calendar_summary>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_calendar_summary.md)

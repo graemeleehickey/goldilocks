@@ -8,6 +8,7 @@
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/bayesian-binary.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/decision-traces.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/index.html</loc></url>
+<url><loc>https://graemeleehickey.github.io/goldilocks/articles/interim-data.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/single-arm.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/technical-methods.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/two-arm.html</loc></url>
@@ -15,6 +16,7 @@
 <url><loc>https://graemeleehickey.github.io/goldilocks/index.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/news/index.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/enrollment.html</loc></url>
+<url><loc>https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/goldilocks-package.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/goldilocks.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/index.html</loc></url>
@@ -25,6 +27,7 @@
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/plot_trial_trace.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/ppwe.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_calendar_summary.html</loc></url>
+<url><loc>https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_interim.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_trial.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.html</loc></url>

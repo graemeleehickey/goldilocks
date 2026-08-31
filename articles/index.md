@@ -16,6 +16,8 @@
   goal](https://graemeleehickey.github.io/goldilocks/articles/single-arm.md):
 - [Inspecting adaptive decision
   paths](https://graemeleehickey.github.io/goldilocks/articles/decision-traces.md):
+- [Applying predictive decisions to an observed interim data
+  cut](https://graemeleehickey.github.io/goldilocks/articles/interim-data.md):
 
 ### Developer
 

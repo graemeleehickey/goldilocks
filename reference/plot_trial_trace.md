@@ -16,7 +16,8 @@ plot_trial_trace(x)
 
 - x:
 
-  A goldilocks_trial object or an interim trace data frame.
+  A `goldilocks_trial` object, a `goldilocks_interim` object, or an
+  interim trace data frame.
 
 ## Value
 

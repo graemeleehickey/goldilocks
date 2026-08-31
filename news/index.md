@@ -4,6 +4,20 @@
 
 ### Improvements
 
+- New
+  [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
+  applies the same posterior-predictive decision calculation used by
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  to an externally observed interim data cut. Explicit follow-up
+  statuses distinguish events, completed follow-up, pending outcomes,
+  and early censoring. Potential future accrual is derived from
+  `N_total`, observed arm counts, and `rand_ratio`, without requiring
+  randomization blocks or concealed future assignments. The returned
+  `goldilocks_interim` object includes predictive probabilities,
+  diagnostic Monte Carlo uncertainty, imputation and allocation
+  diagnostics, a compatible one-look decision trace, and auditable
+  design, data-cut, package-version, and RNG metadata
+  ([\#81](https://github.com/graemeleehickey/goldilocks/issues/81)).
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
   and
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
