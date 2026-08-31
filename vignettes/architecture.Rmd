@@ -107,8 +107,8 @@ The functions fall into three layers:
 
 ### Simulation layer
 
--   **`sim_comp_data()`**: Generates a complete trial dataset by calling `enrollment()`, `randomization()`, and `pwe_sim()`.
--   **`survival_adapt()`**: Simulates a single adaptive trial. Generates data via `sim_comp_data()`, conducts interim analyses using `posterior()` and `test_stop_success()`, and performs the final analysis via `test_final()`. With `return_trace = TRUE`, it also retains a compact audit trail for each completed interim look.
+-   **`sim_comp_data()`**: Generates a complete trial dataset by calling `enrollment()`, `randomization()`, and `pwe_sim()`. Its `generation_cutpoints` argument defines the data-generating hazard partition.
+-   **`survival_adapt()`**: Simulates a single adaptive trial. It passes `generation_cutpoints` to `sim_comp_data()`, uses `cutpoints` for posterior estimation and predictive imputation, and performs the final analysis via `test_final()`. With `return_trace = TRUE`, it also retains a compact audit trail for each completed interim look.
 -   **`sim_trials()`**: Top-level entry point. Runs `survival_adapt()` across multiple trials (optionally in parallel) and collates results.
 
 ### Post-processing functions

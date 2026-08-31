@@ -8,7 +8,7 @@ piecewise exponential distribution}
 sim_comp_data(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoints = NULL,
+  generation_cutpoints = NULL,
   N_total,
   lambda = 0.3,
   lambda_time = NULL,
@@ -25,14 +25,11 @@ under the treatment arm.}
 \item{hazard_control}{vector. Finite non-negative constant hazard rates
 under the control arm.}
 
-\item{cutpoints}{finite, positive, strictly increasing interior times at
-which the baseline hazard changes. The number of hazards for each arm must
-be one greater than the number of cutpoints. Default is \code{NULL}, which
-corresponds to a simple (non-piecewise) exponential model. Realized event
-times are assigned to analysis intervals using the survival
-counting-process convention, open on the left and closed on the right; an
-event exactly at a cutpoint therefore belongs to the interval ending at
-that cutpoint.}
+\item{generation_cutpoints}{finite, positive, strictly increasing interior
+follow-up times at which the data-generating hazard changes. The number of
+hazards for each arm must be one greater than the number of generation
+cutpoints. Default is \code{NULL}, which corresponds to a simple
+(non-piecewise) exponential data-generating model.}
 
 \item{N_total}{integer. Maximum sample size allowable}
 
@@ -45,7 +42,7 @@ times at which the enrollment rate changes. The initial boundary at zero
 is implicit, so \code{length(lambda)} must equal \code{length(lambda_time) + 1}.}
 
 \item{end_of_study}{finite study endpoint, strictly greater than the last
-cutpoint.}
+generation cutpoint.}
 
 \item{block}{scalar. Block size for generating the randomization schedule.}
 
@@ -94,13 +91,13 @@ Enrollment is simulated directly in continuous time by
 enrollment times are measured from first patient in. No uniform jitter is
 added in \code{sim_comp_data()}.
 
-\code{lambda_time} and \code{cutpoints} both contain internal change times, but they
-describe different clocks. \code{lambda_time} describes changes in the trial's
-calendar-time enrollment rate measured from first patient in. \code{cutpoints}
-describes changes in an individual subject's event hazard measured from
-that subject's enrollment. They need not have the same values or length.
-All time quantities supplied to a simulation should nevertheless use one
-common unit, such as days or months.
+\code{lambda_time} and \code{generation_cutpoints} both contain internal change
+times, but they describe different clocks. \code{lambda_time} describes changes
+in the trial's calendar-time enrollment rate measured from first patient
+in. \code{generation_cutpoints} describes changes in an individual subject's
+event hazard measured from that subject's enrollment. They need not have
+the same values or length. All time quantities supplied to a simulation
+should nevertheless use one common unit, such as days or months.
 
 PWEALL represents the continuous generating hazard with pieces closed on
 the left and open on the right. This differs from the package's

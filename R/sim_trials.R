@@ -86,8 +86,10 @@
 #'   attribute contains a named list of all evaluated argument values, including
 #'   defaults. Its `prop_loss` element is normalized to a named value for every
 #'   simulated arm, and its `rand_ratio` element is normalized to `control`,
-#'   `treatment` order for two-arm designs. The attribute can be saved with
-#'   [saveRDS()] and supplied to a later call with
+#'   `treatment` order for two-arm designs. Its `cutpoints` and
+#'   `generation_cutpoints` elements retain the analysis and data-generation
+#'   partitions, respectively. The attribute can be saved with [saveRDS()] and
+#'   supplied to a later call with
 #'   `do.call(sim_trials, attr(result, "arguments"))`.
 #'
 #' @importFrom pbmcapply pbmclapply
@@ -155,7 +157,8 @@ sim_trials <- function(
   backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL,
   binary_imputation = c("event-time", "bernoulli"),
-  prior_surv_final = prior_surv
+  prior_surv_final = prior_surv,
+  generation_cutpoints = cutpoints
 ) {
   Call <- match.call()
   Arguments <- capture_arguments(sim_trials, environment())
@@ -311,7 +314,8 @@ sim_trials <- function(
           imputed_final = imputed_final,
           empty_interval = empty_interval,
           return_trace = return_trace,
-          prior_surv_final = prior_surv_final
+          prior_surv_final = prior_surv_final,
+          generation_cutpoints = generation_cutpoints
         )
         attr(result, "arguments") <- NULL
         if (inherits(result, "goldilocks_trial")) {

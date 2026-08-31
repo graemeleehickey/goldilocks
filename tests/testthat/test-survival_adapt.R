@@ -321,6 +321,158 @@ test_that("survival_adapt-complex", {
   expect_s3_class(out, "data.frame")
 })
 
+test_that("generation_cutpoints defaults exactly to analysis cutpoints", {
+  common_args <- list(
+    hazard_treatment = c(0.02, 0.01),
+    hazard_control = c(0.03, 0.015),
+    cutpoints = 12,
+    N_total = 30,
+    lambda = 10,
+    interim_look = NULL,
+    end_of_study = 24,
+    alternative = "two.sided",
+    method = "logrank"
+  )
+
+  set.seed(1945)
+  from_default <- do.call(survival_adapt, common_args)
+  set.seed(1945)
+  from_explicit <- do.call(
+    survival_adapt,
+    c(common_args, list(generation_cutpoints = common_args$cutpoints))
+  )
+
+  expect_identical(from_default, from_explicit)
+  expect_identical(
+    attr(from_default, "arguments", exact = TRUE)$generation_cutpoints,
+    common_args$cutpoints
+  )
+})
+
+test_that("generation and analysis can use different cutpoint partitions", {
+  analysis_cutpoints <- c(6, 12, 18)
+  generation_cutpoints <- c(8, 16)
+  prior <- rbind(
+    shape = rep(0.1, 4),
+    rate = rep(0.1, 4)
+  )
+
+  set.seed(1946)
+  out <- survival_adapt(
+    hazard_treatment = c(0.02, 0.015, 0.01),
+    hazard_control = c(0.03, 0.02, 0.012),
+    cutpoints = analysis_cutpoints,
+    generation_cutpoints = generation_cutpoints,
+    N_total = 40,
+    lambda = 10,
+    interim_look = 20,
+    end_of_study = 24,
+    prior_surv = prior,
+    prior_surv_final = prior,
+    alternative = "two.sided",
+    Fn = 0,
+    Sn = 1,
+    N_impute = 2,
+    N_mcmc = 2,
+    method = "logrank"
+  )
+
+  arguments <- attr(out, "arguments", exact = TRUE)
+  expect_identical(arguments$cutpoints, analysis_cutpoints)
+  expect_identical(arguments$generation_cutpoints, generation_cutpoints)
+})
+
+test_that("constant and piecewise generation-analysis models are independent", {
+  cases <- list(
+    list(
+      hazard_treatment = 0.02,
+      hazard_control = 0.03,
+      cutpoints = c(6, 12),
+      generation_cutpoints = NULL
+    ),
+    list(
+      hazard_treatment = c(0.02, 0.015, 0.01),
+      hazard_control = c(0.03, 0.02, 0.012),
+      cutpoints = NULL,
+      generation_cutpoints = c(6, 12)
+    )
+  )
+
+  for (i in seq_along(cases)) {
+    set.seed(2000 + i)
+    expect_no_error(
+      do.call(
+        survival_adapt,
+        c(
+          cases[[i]],
+          list(
+            N_total = 20,
+            lambda = 10,
+            interim_look = NULL,
+            end_of_study = 24,
+            alternative = "less",
+            N_mcmc = 5,
+            method = "bayes-surv"
+          )
+        )
+      )
+    )
+  }
+})
+
+test_that("generation and analysis partitions validate independently", {
+  common_args <- list(
+    hazard_treatment = c(0.02, 0.015, 0.01),
+    hazard_control = c(0.03, 0.02, 0.012),
+    cutpoints = c(6, 12, 18),
+    generation_cutpoints = c(8, 16),
+    N_total = 20,
+    lambda = 10,
+    interim_look = NULL,
+    end_of_study = 24,
+    alternative = "two.sided",
+    method = "logrank"
+  )
+
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(common_args, list(hazard_treatment = c(0.02, 0.01)))
+    ),
+    "length of 'generation_cutpoints'"
+  )
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(
+        common_args,
+        list(prior_surv = matrix(0.1, nrow = 2, ncol = 3))
+      )
+    ),
+    "2 x 4"
+  )
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(common_args, list(end_of_study = 18))
+    ),
+    "greater than the last cutpoint"
+  )
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(
+        common_args,
+        list(
+          cutpoints = c(6, 12),
+          generation_cutpoints = c(8, 24)
+        )
+      )
+    ),
+    "last value in 'generation_cutpoints'"
+  )
+})
+
 test_that("error-interim-looks", {
   expect_error(
     out <- survival_adapt(

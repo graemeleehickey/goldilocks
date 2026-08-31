@@ -3,7 +3,7 @@ test_that("sim_comp_data returns data frame with correct columns (two-arm)", {
   out <- sim_comp_data(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
-    cutpoints = NULL,
+    generation_cutpoints = NULL,
     N_total = 50,
     lambda = 5,
     lambda_time = NULL,
@@ -18,6 +18,39 @@ test_that("sim_comp_data returns data frame with correct columns (two-arm)", {
   expect_equal(out$enrollment[1], 0)
   expect_true(all(diff(out$enrollment) > 0))
   expect_true(any(out$enrollment[-1] != floor(out$enrollment[-1])))
+})
+
+test_that("sim_comp_data names its event-generation partition explicitly", {
+  expect_identical(
+    names(formals(sim_comp_data))[3],
+    "generation_cutpoints"
+  )
+  expect_false("cutpoints" %in% names(formals(sim_comp_data)))
+
+  common_args <- list(
+    hazard_treatment = c(0.01, 0.02),
+    hazard_control = c(0.02, 0.03),
+    N_total = 20,
+    lambda = 5,
+    end_of_study = 24
+  )
+
+  set.seed(1142)
+  named <- do.call(
+    sim_comp_data,
+    c(common_args, list(generation_cutpoints = 12))
+  )
+  set.seed(1142)
+  positional <- sim_comp_data(
+    c(0.01, 0.02),
+    c(0.02, 0.03),
+    12,
+    N_total = 20,
+    lambda = 5,
+    end_of_study = 24
+  )
+
+  expect_identical(positional, named)
 })
 
 test_that("sim_comp_data accepts internal enrollment-rate knots", {
@@ -39,7 +72,7 @@ test_that("sim_comp_data returns correct columns for single-arm", {
   out <- sim_comp_data(
     hazard_treatment = 0.01,
     hazard_control = NULL,
-    cutpoints = NULL,
+    generation_cutpoints = NULL,
     N_total = 30,
     lambda = 5,
     lambda_time = NULL,
@@ -56,7 +89,7 @@ test_that("sim_comp_data applies loss to follow-up", {
   out <- sim_comp_data(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
-    cutpoints = NULL,
+    generation_cutpoints = NULL,
     N_total = 200,
     lambda = 20,
     lambda_time = NULL,
@@ -73,7 +106,7 @@ test_that("scalar and equal arm-specific loss proportions are identical", {
   common_args <- list(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
-    cutpoints = NULL,
+    generation_cutpoints = NULL,
     N_total = 99,
     lambda = 20,
     lambda_time = NULL,
@@ -103,7 +136,7 @@ test_that("sim_comp_data normalizes named randomization ratios", {
   common_args <- list(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
-    cutpoints = NULL,
+    generation_cutpoints = NULL,
     N_total = 99,
     lambda = 20,
     lambda_time = NULL,
@@ -137,7 +170,7 @@ test_that("sim_comp_data warns for unequal unnamed randomization ratios", {
     sim_comp_data(
       hazard_treatment = 0.01,
       hazard_control = 0.02,
-      cutpoints = NULL,
+      generation_cutpoints = NULL,
       N_total = 30,
       lambda = 20,
       lambda_time = NULL,
@@ -154,7 +187,7 @@ test_that("sim_comp_data applies differential loss within randomized arms", {
   common_args <- list(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
-    cutpoints = NULL,
+    generation_cutpoints = NULL,
     N_total = 99,
     lambda = 20,
     lambda_time = NULL,
@@ -196,7 +229,7 @@ test_that("sim_comp_data validates arm-specific loss proportions", {
   common_args <- list(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
-    cutpoints = NULL,
+    generation_cutpoints = NULL,
     N_total = 30,
     lambda = 5,
     lambda_time = NULL,
@@ -250,7 +283,7 @@ test_that("sim_comp_data has no loss to follow-up by default", {
   out <- sim_comp_data(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
-    cutpoints = NULL,
+    generation_cutpoints = NULL,
     N_total = 50,
     lambda = 5,
     lambda_time = NULL,
@@ -264,7 +297,7 @@ test_that("sim_comp_data works with piecewise hazard", {
   out <- sim_comp_data(
     hazard_treatment = c(0.005, 0.01),
     hazard_control = c(0.01, 0.02),
-    cutpoints = 12,
+    generation_cutpoints = 12,
     N_total = 80,
     lambda = 10,
     lambda_time = NULL,
@@ -279,7 +312,7 @@ test_that("sim_comp_data validates counts and loss-to-follow-up probability", {
     sim_comp_data(
       hazard_treatment = 0.01,
       hazard_control = 0.02,
-      cutpoints = NULL,
+      generation_cutpoints = NULL,
       N_total = 50.5,
       lambda = 5,
       lambda_time = NULL,
@@ -292,7 +325,7 @@ test_that("sim_comp_data validates counts and loss-to-follow-up probability", {
     sim_comp_data(
       hazard_treatment = 0.01,
       hazard_control = 0.02,
-      cutpoints = NULL,
+      generation_cutpoints = NULL,
       N_total = 50,
       lambda = 5,
       lambda_time = NULL,
@@ -307,7 +340,7 @@ test_that("sim_comp_data validates treatment-arm hazards", {
   common_args <- list(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
-    cutpoints = NULL,
+    generation_cutpoints = NULL,
     N_total = 50,
     lambda = 5,
     lambda_time = NULL,
@@ -334,7 +367,7 @@ test_that("sim_comp_data validates the complete piecewise model", {
   common_args <- list(
     hazard_treatment = c(0.01, 0.02),
     hazard_control = c(0.02, 0.03),
-    cutpoints = 12,
+    generation_cutpoints = 12,
     N_total = 50,
     lambda = 5,
     lambda_time = NULL,
@@ -342,14 +375,25 @@ test_that("sim_comp_data validates the complete piecewise model", {
   )
 
   expect_error(
-    do.call(sim_comp_data, modifyList(common_args, list(cutpoints = 100))),
-    "end_of_study"
+    do.call(
+      sim_comp_data,
+      modifyList(common_args, list(generation_cutpoints = 100))
+    ),
+    "generation_cutpoints"
   )
   expect_error(
     do.call(
       sim_comp_data,
-      modifyList(common_args, list(cutpoints = c(12, 12)))
+      modifyList(common_args, list(generation_cutpoints = c(12, 12)))
     ),
-    "strictly increasing"
+    "'generation_cutpoints' must be strictly increasing"
+  )
+
+  expect_error(
+    do.call(
+      sim_comp_data,
+      modifyList(common_args, list(hazard_treatment = 0.01))
+    ),
+    "length of 'generation_cutpoints'"
   )
 })

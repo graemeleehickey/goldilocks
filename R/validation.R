@@ -376,7 +376,7 @@ normalize_gamma_prior <- function(
 #'   increasing interior cutpoints, or no cutpoints for a constant hazard.
 #'
 #' @noRd
-validate_cutpoints <- function(cutpoints) {
+validate_cutpoints <- function(cutpoints, name = "cutpoints") {
   if (is.null(cutpoints)) {
     return(invisible(TRUE))
   }
@@ -389,13 +389,13 @@ validate_cutpoints <- function(cutpoints) {
       any(!is.finite(cutpoints)) ||
       any(cutpoints <= 0)
   ) {
-    stop("'cutpoints' must be NULL or contain finite positive numeric values")
+    stop("'", name, "' must be NULL or contain finite positive numeric values")
   }
 
   # A non-increasing knot vector creates zero-width or backward intervals,
   # which makes piecewise exposure and event allocation undefined.
   if (any(diff(cutpoints) <= 0)) {
-    stop("'cutpoints' must be strictly increasing")
+    stop("'", name, "' must be strictly increasing")
   }
 
   invisible(TRUE)
@@ -407,7 +407,12 @@ validate_cutpoints <- function(cutpoints) {
 #'   lies after the final piecewise cutpoint.
 #'
 #' @noRd
-validate_endpoint_time <- function(endpoint, cutpoints, name) {
+validate_endpoint_time <- function(
+  endpoint,
+  cutpoints,
+  name,
+  cutpoints_name = "cutpoints"
+) {
   if (
     length(endpoint) != 1 ||
       !is.numeric(endpoint) ||
@@ -419,7 +424,16 @@ validate_endpoint_time <- function(endpoint, cutpoints, name) {
   }
 
   if (length(cutpoints) > 0 && endpoint <= max(cutpoints)) {
-    stop("'", name, "' must be a finite value greater than the last cutpoint")
+    if (identical(cutpoints_name, "cutpoints")) {
+      stop("'", name, "' must be a finite value greater than the last cutpoint")
+    }
+    stop(
+      "'",
+      name,
+      "' must be a finite value greater than the last value in '",
+      cutpoints_name,
+      "'"
+    )
   }
 
   invisible(TRUE)
@@ -445,7 +459,12 @@ validate_maxtime <- function(maxtime, cutpoints) {
 #'   for every piecewise interval.
 #'
 #' @noRd
-validate_piecewise_hazard <- function(hazard, cutpoints, name = "hazard") {
+validate_piecewise_hazard <- function(
+  hazard,
+  cutpoints,
+  name = "hazard",
+  cutpoints_name = "cutpoints"
+) {
   if (
     !is.numeric(hazard) ||
       !is.null(dim(hazard)) ||
@@ -461,7 +480,9 @@ validate_piecewise_hazard <- function(hazard, cutpoints, name = "hazard") {
     stop(
       "Length of '",
       name,
-      "' must be one greater than length of 'cutpoints'"
+      "' must be one greater than length of '",
+      cutpoints_name,
+      "'"
     )
   }
 

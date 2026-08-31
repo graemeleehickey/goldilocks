@@ -1,6 +1,19 @@
 #' @title Simulate and analyze one Goldilocks adaptive trial
 #'
 #' @inheritParams sim_comp_data
+#' @param cutpoints finite, positive, strictly increasing interior follow-up
+#'   times defining the piecewise-exponential model used for interim posterior
+#'   estimation, predictive imputation, and final analysis. The number of
+#'   interval-specific prior columns must be one greater than the number of
+#'   cutpoints. Default is `NULL`, which uses a constant-hazard analysis model.
+#' @param generation_cutpoints finite, positive, strictly increasing interior
+#'   follow-up times defining the piecewise-exponential model used to generate
+#'   event times. `hazard_treatment` and `hazard_control` must each have one
+#'   value per resulting interval. Defaults to `cutpoints`, preserving the
+#'   historical behavior in which generation and analysis used one partition.
+#' @param end_of_study finite study endpoint, strictly greater than the final
+#'   value in both `cutpoints` and `generation_cutpoints` when either is
+#'   supplied.
 #' @param interim_look vector. Sample size for each interim look. Note: the
 #'   maximum sample size should not be included. For two-arm designs, each
 #'   interim look must be at least the (largest) block size (see `block`),
@@ -324,8 +337,8 @@
 #'     under follow-up.
 #'
 #'   Calendar time is measured from the first patient's enrollment at time
-#'   zero. Times use the same units as `lambda_time`, `cutpoints`, and
-#'   `end_of_study`.
+#'   zero. Times use the same units as `lambda_time`, `cutpoints`,
+#'   `generation_cutpoints`, and `end_of_study`.
 #'
 #'   The returned object has a `decision_design` attribute containing
 #'   `interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
@@ -338,7 +351,8 @@
 #'   `do.call(survival_adapt, attr(result, "arguments"))`. Its `prop_loss`
 #'   element is normalized to a named value for every simulated arm.
 #'   Its `rand_ratio` element is normalized to `control`, `treatment` order for
-#'   two-arm designs.
+#'   two-arm designs. Its `cutpoints` and `generation_cutpoints` elements retain
+#'   the analysis and data-generation partitions, respectively.
 #'
 #'   With return_trace = TRUE, a goldilocks_trial object is returned. Its
 #'   summary element is the same data frame and its trace element has one row
@@ -410,7 +424,8 @@ survival_adapt <- function(
   imputed_final = FALSE,
   return_trace = FALSE,
   binary_imputation = c("event-time", "bernoulli"),
-  prior_surv_final = prior_surv
+  prior_surv_final = prior_surv,
+  generation_cutpoints = cutpoints
 ) {
   Call <- match.call()
   Arguments <- capture_arguments(survival_adapt, environment())
@@ -455,6 +470,7 @@ survival_adapt <- function(
     stop("'mc_conf_level' must be greater than 0.5 and less than 1")
   }
   validate_cutpoints(cutpoints)
+  validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
   n_intervals <- length(cutpoints) + 1L
   prior_surv <- normalize_gamma_prior(
     prior_surv,
@@ -532,7 +548,7 @@ survival_adapt <- function(
   data_total <- sim_comp_data(
     hazard_treatment = hazard_treatment,
     hazard_control = hazard_control,
-    cutpoints = cutpoints,
+    generation_cutpoints = generation_cutpoints,
     N_total = N_total,
     lambda = lambda,
     lambda_time = lambda_time,

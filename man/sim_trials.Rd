@@ -37,7 +37,8 @@ sim_trials(
   backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL,
   binary_imputation = c("event-time", "bernoulli"),
-  prior_surv_final = prior_surv
+  prior_surv_final = prior_surv,
+  generation_cutpoints = cutpoints
 )
 }
 \arguments{
@@ -47,14 +48,11 @@ under the treatment arm.}
 \item{hazard_control}{vector. Finite non-negative constant hazard rates
 under the control arm.}
 
-\item{cutpoints}{finite, positive, strictly increasing interior times at
-which the baseline hazard changes. The number of hazards for each arm must
-be one greater than the number of cutpoints. Default is \code{NULL}, which
-corresponds to a simple (non-piecewise) exponential model. Realized event
-times are assigned to analysis intervals using the survival
-counting-process convention, open on the left and closed on the right; an
-event exactly at a cutpoint therefore belongs to the interval ending at
-that cutpoint.}
+\item{cutpoints}{finite, positive, strictly increasing interior follow-up
+times defining the piecewise-exponential model used for interim posterior
+estimation, predictive imputation, and final analysis. The number of
+interval-specific prior columns must be one greater than the number of
+cutpoints. Default is \code{NULL}, which uses a constant-hazard analysis model.}
 
 \item{N_total}{integer. Maximum sample size allowable}
 
@@ -73,8 +71,9 @@ ensuring both treatment groups are present at every interim analysis; a
 smaller look could enroll subjects from one treatment group only, leaving
 the interim posterior undefined for the missing group.}
 
-\item{end_of_study}{finite study endpoint, strictly greater than the last
-cutpoint.}
+\item{end_of_study}{finite study endpoint, strictly greater than the final
+value in both \code{cutpoints} and \code{generation_cutpoints} when either is
+supplied.}
 
 \item{prior_surv}{numeric vector or matrix. Gamma prior for the
 piecewise-exponential hazards used during interim prediction. A length-two
@@ -244,6 +243,12 @@ for time-to-event analysis methods.}
 \item{prior_surv_final}{numeric vector or matrix. Gamma prior used for
 final-stage piecewise-exponential imputation and, for \code{method = "bayes-surv"}, final analysis. It accepts the same forms as \code{prior_surv}
 and defaults to \code{prior_surv}, preserving the historical behavior.}
+
+\item{generation_cutpoints}{finite, positive, strictly increasing interior
+follow-up times defining the piecewise-exponential model used to generate
+event times. \code{hazard_treatment} and \code{hazard_control} must each have one
+value per resulting interval. Defaults to \code{cutpoints}, preserving the
+historical behavior in which generation and analysis used one partition.}
 }
 \value{
 A list containing \code{sims}, a data frame with one row per successfully
@@ -263,8 +268,10 @@ and worker counts, task count, and backend-selection reason. An \code{arguments}
 attribute contains a named list of all evaluated argument values, including
 defaults. Its \code{prop_loss} element is normalized to a named value for every
 simulated arm, and its \code{rand_ratio} element is normalized to \code{control},
-\code{treatment} order for two-arm designs. The attribute can be saved with
-\code{\link[=saveRDS]{saveRDS()}} and supplied to a later call with
+\code{treatment} order for two-arm designs. Its \code{cutpoints} and
+\code{generation_cutpoints} elements retain the analysis and data-generation
+partitions, respectively. The attribute can be saved with \code{\link[=saveRDS]{saveRDS()}} and
+supplied to a later call with
 \code{do.call(sim_trials, attr(result, "arguments"))}.
 }
 \description{

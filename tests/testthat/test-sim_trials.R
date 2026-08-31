@@ -147,6 +147,14 @@ test_that("sim_trials rejects invalid ncores", {
 test_that("sim_trials defaults to serial execution", {
   expect_identical(formals(sim_trials)$ncores, 1L)
   expect_identical(formals(sim_trials)$return_trace, FALSE)
+  expect_identical(
+    as.character(formals(sim_trials)$generation_cutpoints),
+    "cutpoints"
+  )
+  expect_identical(
+    as.character(formals(survival_adapt)$generation_cutpoints),
+    "cutpoints"
+  )
   expect_equal(
     as.character(formals(sim_trials)$backend)[-1],
     c("auto", "fork", "psock", "sequential")
@@ -175,6 +183,7 @@ test_that("sim_trials retains complete evaluated arguments", {
   expect_identical(arguments$binary_imputation, "event-time")
   expect_identical(arguments$backend, "sequential")
   expect_identical(arguments$seed, 8601)
+  expect_identical(arguments$generation_cutpoints, arguments$cutpoints)
   expect_identical(
     arguments$rand_ratio,
     c(control = 1, treatment = 1)
@@ -191,6 +200,35 @@ test_that("sim_trials retains complete evaluated arguments", {
   replayed <- do.call(sim_trials, arguments)
   expect_identical(replayed$sims, out$sims)
   expect_identical(replayed$failures, out$failures)
+})
+
+test_that("sim_trials generation cutpoints default preserves seeded results", {
+  common_args <- list(
+    hazard_treatment = c(0.02, 0.01),
+    hazard_control = c(0.03, 0.015),
+    cutpoints = 12,
+    N_total = 20,
+    lambda = 10,
+    end_of_study = 24,
+    alternative = "two.sided",
+    N_trials = 1,
+    method = "logrank",
+    backend = "sequential",
+    seed = 8602
+  )
+
+  from_default <- do.call(sim_trials, common_args)
+  from_explicit <- do.call(
+    sim_trials,
+    c(common_args, list(generation_cutpoints = common_args$cutpoints))
+  )
+
+  expect_identical(from_default$sims, from_explicit$sims)
+  expect_identical(from_default$failures, from_explicit$failures)
+  expect_identical(
+    attr(from_default, "arguments", exact = TRUE),
+    attr(from_explicit, "arguments", exact = TRUE)
+  )
 })
 
 test_that("sim_trials optionally retains traces without changing summaries", {
@@ -520,14 +558,15 @@ test_that("sim_trials uses reproducible per-trial streams in parallel", {
 })
 
 test_that("sim_trials produces identical seeded PSOCK results", {
-  hc <- -log(0.7) / 36
-  ht <- -log(0.85) / 36
+  hc <- c(0.03, 0.02, 0.01)
+  ht <- c(0.02, 0.015, 0.008)
 
   run_with_backend <- function(backend, ncores) {
     sim_trials(
       hazard_treatment = ht,
       hazard_control = hc,
-      cutpoints = NULL,
+      cutpoints = c(6, 12, 24),
+      generation_cutpoints = c(8, 20),
       N_total = 100,
       lambda = 20,
       lambda_time = NULL,

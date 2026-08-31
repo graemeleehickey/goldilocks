@@ -5,14 +5,11 @@
 #'   under the treatment arm.
 #' @param hazard_control vector. Finite non-negative constant hazard rates
 #'   under the control arm.
-#' @param cutpoints finite, positive, strictly increasing interior times at
-#'   which the baseline hazard changes. The number of hazards for each arm must
-#'   be one greater than the number of cutpoints. Default is `NULL`, which
-#'   corresponds to a simple (non-piecewise) exponential model. Realized event
-#'   times are assigned to analysis intervals using the survival
-#'   counting-process convention, open on the left and closed on the right; an
-#'   event exactly at a cutpoint therefore belongs to the interval ending at
-#'   that cutpoint.
+#' @param generation_cutpoints finite, positive, strictly increasing interior
+#'   follow-up times at which the data-generating hazard changes. The number of
+#'   hazards for each arm must be one greater than the number of generation
+#'   cutpoints. Default is `NULL`, which corresponds to a simple
+#'   (non-piecewise) exponential data-generating model.
 #' @param N_total integer. Maximum sample size allowable
 #' @param lambda finite positive enrollment rates per unit time. Supply one rate
 #'   for each interval defined by `lambda_time`. See [enrollment()] for the
@@ -21,7 +18,7 @@
 #'   times at which the enrollment rate changes. The initial boundary at zero
 #'   is implicit, so `length(lambda)` must equal `length(lambda_time) + 1`.
 #' @param end_of_study finite study endpoint, strictly greater than the last
-#'   cutpoint.
+#'   generation cutpoint.
 #' @param block scalar. Block size for generating the randomization schedule.
 #' @param rand_ratio length-two positive integer randomization allocation. Name
 #'   the values `control` and `treatment`; either supplied order is accepted and
@@ -45,13 +42,13 @@
 #'   enrollment times are measured from first patient in. No uniform jitter is
 #'   added in `sim_comp_data()`.
 #'
-#'   `lambda_time` and `cutpoints` both contain internal change times, but they
-#'   describe different clocks. `lambda_time` describes changes in the trial's
-#'   calendar-time enrollment rate measured from first patient in. `cutpoints`
-#'   describes changes in an individual subject's event hazard measured from
-#'   that subject's enrollment. They need not have the same values or length.
-#'   All time quantities supplied to a simulation should nevertheless use one
-#'   common unit, such as days or months.
+#'   `lambda_time` and `generation_cutpoints` both contain internal change
+#'   times, but they describe different clocks. `lambda_time` describes changes
+#'   in the trial's calendar-time enrollment rate measured from first patient
+#'   in. `generation_cutpoints` describes changes in an individual subject's
+#'   event hazard measured from that subject's enrollment. They need not have
+#'   the same values or length. All time quantities supplied to a simulation
+#'   should nevertheless use one common unit, such as days or months.
 #'
 #'   PWEALL represents the continuous generating hazard with pieces closed on
 #'   the left and open on the right. This differs from the package's
@@ -80,7 +77,7 @@
 sim_comp_data <- function(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoints = NULL,
+  generation_cutpoints = NULL,
   N_total,
   lambda = 0.3,
   lambda_time = NULL,
@@ -98,12 +95,27 @@ sim_comp_data <- function(
 
   validate_positive_integer_scalar(N_total, "N_total")
   prop_loss <- normalize_prop_loss(prop_loss, single_arm)
-  validate_cutpoints(cutpoints)
-  validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
+  validate_cutpoints(generation_cutpoints, "generation_cutpoints")
+  validate_endpoint_time(
+    end_of_study,
+    generation_cutpoints,
+    "end_of_study",
+    "generation_cutpoints"
+  )
 
-  validate_piecewise_hazard(hazard_treatment, cutpoints, "hazard_treatment")
+  validate_piecewise_hazard(
+    hazard_treatment,
+    generation_cutpoints,
+    "hazard_treatment",
+    "generation_cutpoints"
+  )
   if (!single_arm) {
-    validate_piecewise_hazard(hazard_control, cutpoints, "hazard_control")
+    validate_piecewise_hazard(
+      hazard_control,
+      generation_cutpoints,
+      "hazard_control",
+      "generation_cutpoints"
+    )
     rand_ratio <- validate_randomization_args(
       N_total,
       block,
@@ -150,7 +162,7 @@ sim_comp_data <- function(
       hazard = hazard_control,
       n = sum(treatment == 0),
       maxtime = end_of_study,
-      cutpoints = cutpoints
+      cutpoints = generation_cutpoints
     )
     time[treatment == 0] <- sim_control$time
     event[treatment == 0] <- sim_control$event
@@ -160,7 +172,7 @@ sim_comp_data <- function(
     hazard = hazard_treatment,
     n = sum(treatment == 1),
     maxtime = end_of_study,
-    cutpoints = cutpoints
+    cutpoints = generation_cutpoints
   )
   time[treatment == 1] <- sim_treatment$time
   event[treatment == 1] <- sim_treatment$event
