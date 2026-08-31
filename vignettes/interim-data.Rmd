@@ -1,0 +1,133 @@
+---
+title: "Applying predictive decisions to an observed interim data cut"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Applying predictive decisions to an observed interim data cut}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r setup, message = FALSE}
+library(goldilocks)
+```
+
+`survival_adapt()` simulates a complete adaptive trial. `evaluate_interim()`
+instead applies the same predictive decision calculation to one observed
+interim data cut. It does not generate event, censoring, or enrollment times,
+and it does not retain a participant-level copy of the input in its result.
+
+## Preparing the data cut
+
+The input has one row for every enrolled participant and uses a common time
+unit throughout. Calendar-time `enrollment` is measured from first participant
+randomization at time zero. Subject-level `time` is measured from that
+participant's randomization.
+
+The status values make the reason for incomplete follow-up explicit:
+
+| `status` | Interpretation |
+|---|---|
+| `event` | The endpoint event has been observed. |
+| `complete` | Event-free follow-up reached `end_of_study`. |
+| `pending` | The participant remains under follow-up. |
+| `censored` | Follow-up ended early without an event. |
+
+A blinded data-management team can prepare enrollment, follow-up, event, and
+status fields without access to treatment assignments:
+
+```{r blinded-data}
+blinded_cut <- data.frame(
+  id = 1:8,
+  enrollment = 0:7,
+  time = c(8, 7, 6, 5, 4, 3, 2, 1),
+  event = c(1, 0, 0, 1, 0, 0, 0, 0),
+  status = c(
+    "event", "pending", "censored", "event",
+    "pending", "pending", "pending", "pending"
+  )
+)
+
+blinded_cut
+```
+
+The calculation itself is arm-specific. An independent unblinded statistician
+or service therefore joins the treatment assignment before running it. The
+participant-level input need not be distributed with the aggregate result.
+
+```{r unblinded-data}
+randomization_export <- data.frame(
+  id = 1:8,
+  treatment = c(0, 1, 0, 1, 0, 1, 0, 1)
+)
+
+interim_cut <- blinded_cut
+interim_cut$treatment <- randomization_export$treatment[
+  match(interim_cut$id, randomization_export$id)
+]
+interim_cut <- interim_cut[
+  c("id", "treatment", "enrollment", "time", "event", "status")
+]
+```
+
+## Evaluating the look
+
+Suppose this is the second planned look of a trial with maximum sample size 12,
+equal randomization, and ten time units of follow-up per participant:
+
+```{r evaluate-look}
+interim_result <- evaluate_interim(
+  data = interim_cut,
+  data_cut = 8,
+  look = 2,
+  N_total = 12,
+  end_of_study = 10,
+  rand_ratio = c(control = 1, treatment = 1),
+  alternative = "less",
+  Fn = 0.05,
+  Sn = 0.90,
+  prob_ha = 0.95,
+  N_impute = 20,
+  seed = 20260831
+)
+
+interim_result
+interim_result$decision
+interim_result$monte_carlo
+```
+
+At the maximum sample size, equal randomization implies six participants per
+arm. Four have already accrued in each arm, so the function internally adds two
+potential future participants per arm for the maximum-sample calculation:
+
+```{r allocation-diagnostics}
+interim_result$diagnostics$target_allocation
+interim_result$diagnostics$current_allocation
+interim_result$diagnostics$potential_accruals
+```
+
+No block size or future randomization sequence is needed. The design must have
+an exactly allocable maximum sample size: for example, a 1:2 ratio requires
+`N_total` to be divisible by three. Observed enrollment in either arm cannot
+already exceed its implied maximum.
+
+## Reviewing and retaining the audit trail
+
+The decision uses the Monte Carlo point estimates. The standard errors and
+exact one-sided bounds describe finite-draw uncertainty but do not change the
+decision. The one-row trace uses the same schema as a simulated adaptive-trial
+trace and can be summarized or plotted with the existing helpers:
+
+```{r audit-trace}
+summarise_trial_trace(interim_result)
+interim_result$trace
+```
+
+The metadata records the evaluated design, package version, data cut, fixed
+time-origin convention, and random-number policy. Supplying `seed` makes the
+calculation reproducible while preserving the caller's random-number state.
+With `seed = NULL`, the calculation instead uses and advances the current R
+random-number state.

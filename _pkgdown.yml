@@ -28,6 +28,7 @@ reference:
       trial designs.
     contents:
       - survival_adapt
+      - evaluate_interim
       - sim_trials
       - summarise_sims
       - summarise_calendar_time
@@ -37,6 +38,7 @@ reference:
       - summarise_trial_trace
       - plot_trial_trace
       - plot_sim_stopping
+      - print.goldilocks_interim
       - print.goldilocks_trial
       - print.goldilocks_calendar_summary
 
@@ -69,6 +71,7 @@ articles:
       - bayesian-binary
       - single-arm
       - decision-traces
+      - interim-data
   - title: Developer
     contents:
       - architecture

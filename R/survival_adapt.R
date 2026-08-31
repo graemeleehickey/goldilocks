@@ -610,222 +610,39 @@ survival_adapt <- function(
         event <- ifelse(subject_impute_success, 0, event)
       })
 
-      # Carry out interim analysis on patients with complete data only
-      # - Set-up new 'data' data frame
-      data <- subset(
-        data_interim,
-        subset = subject_enrolled,
-        select = c(time, event, treatment)
+      look_time <- data_total$enrollment[analysis_at_enrollnumber[i]]
+      interim_result <- evaluate_interim_core(
+        data_interim = data_interim,
+        look = i,
+        planned_N = analysis_at_enrollnumber[i],
+        calendar_time = look_time,
+        active_followup = active_followup_at(data_total, look_time),
+        end_of_study = end_of_study,
+        cutpoints = cutpoints,
+        single_arm = single_arm,
+        prior_surv = prior_surv,
+        prior_bin = prior_bin,
+        bin_method = bin_method,
+        alternative = alternative,
+        h0 = h0,
+        Fn = Fn[i],
+        Sn = Sn[i],
+        prob_ha = prob_ha,
+        N_impute = N_impute,
+        N_mcmc = N_mcmc,
+        mc_conf_level = mc_conf_level,
+        empty_interval = empty_interval,
+        method = method,
+        binary_imputation = binary_imputation,
+        check_futility = check_futility
       )
-
-      # Capture warnings for this look while preserving their usual output.
-      warning_state <- new.env(parent = emptyenv())
-      warning_state$messages <- character()
-      warning_state$empty_interval_fallbacks <- character()
-      capture_warning <- function(warning) {
-        if (return_trace) {
-          warning_state$messages <- unique(c(
-            warning_state$messages,
-            conditionMessage(warning)
-          ))
-        }
-      }
-      capture_empty_interval <- function(condition) {
-        if (return_trace) {
-          detail <- condition$details
-          entries <- paste0(
-            condition$policy,
-            ": treatment=",
-            detail$treatment,
-            ", interval=",
-            detail$interval
-          )
-          warning_state$empty_interval_fallbacks <- unique(c(
-            warning_state$empty_interval_fallbacks,
-            entries
-          ))
-        }
-      }
-
-      # Posterior distribution of lambdas: current data
-      post_lambda <- withCallingHandlers(
-        posterior(
-          data = data,
-          cutpoints = cutpoints,
-          prior_surv = prior_surv,
-          N_mcmc = N_impute,
-          single_arm = single_arm,
-          empty_interval = empty_interval
-        ),
-        warning = capture_warning,
-        goldilocks_empty_interval = capture_empty_interval
-      )
-
-      ##########################################################################
-      ### Loop over multiple imputations
-      ##########################################################################
-
-      futility_test <- 0
-      expected_success_test <- 0
-      inner_mc_uncertain_now <- 0L
-      inner_mc_uncertain_max <- 0L
-      for (j in 1:N_impute) {
-        h <- post_lambda[j, , , drop = FALSE]
-
-        stop_check <- withCallingHandlers(
-          test_stop_success(
-            data = data_interim,
-            hazard = h,
-            end_of_study = end_of_study,
-            cutpoints = cutpoints,
-            single_arm = single_arm,
-            prior_surv = prior_surv,
-            N_mcmc = N_mcmc,
-            method = method,
-            alternative = alternative,
-            h0 = h0,
-            prior_bin = prior_bin,
-            bin_method = bin_method,
-            binary_imputation = if (method %in% c("bayes-bin", "riskdiff")) {
-              binary_imputation
-            } else {
-              "event-time"
-            },
-            empty_interval = empty_interval,
-            check_futility = check_futility,
-            mc_conf_level = mc_conf_level,
-            prob_ha = prob_ha
-          ),
-          warning = capture_warning,
-          goldilocks_empty_interval = capture_empty_interval
-        )
-
-        # Every completed-data analysis uses its strict point comparison with
-        # prob_ha. Bayesian Monte Carlo bounds are retained only as diagnostics.
-        analysis_now <- stop_check$classification_now
-        if (analysis_now$crossed) {
-          expected_success_test <- expected_success_test + 1
-        }
-        inner_mc_uncertain_now <- inner_mc_uncertain_now +
-          as.integer(analysis_now$uncertain)
-
-        if (check_futility) {
-          analysis_max <- stop_check$classification_max
-          if (analysis_max$crossed) {
-            futility_test <- futility_test + 1
-          }
-          inner_mc_uncertain_max <- inner_mc_uncertain_max +
-            as.integer(analysis_max$uncertain)
-        }
-      }
-
-      # The outer Monte Carlo estimands are probabilities that a completed
-      # dataset meets its final success rule. Exact one-sided bounds describe
-      # finite-draw uncertainty but do not alter the point-estimate decision.
-      ppp_now_mc <- monte_carlo_probability_summary(
-        successes = expected_success_test,
-        draws = N_impute,
-        threshold = Sn[i],
-        direction = "greater",
-        confidence = mc_conf_level
-      )
-      ppp_success <- ppp_now_mc$estimate
-      ppp_max_mc <- if (check_futility) {
-        monte_carlo_probability_summary(
-          successes = futility_test,
-          draws = N_impute,
-          threshold = Fn[i],
-          direction = "less",
-          confidence = mc_conf_level
-        )
-      } else {
-        NULL
-      }
-      ppp_success_at_max <- if (check_futility) {
-        ppp_max_mc$estimate
-      } else {
-        NA_real_
-      }
-
-      decision <- if (ppp_now_mc$point_crossed) {
-        "stop_expected_success"
-      } else if (check_futility && ppp_max_mc$point_crossed) {
-        "stop_futility"
-      } else {
-        "continue"
-      }
-      decision_reason <- if (decision == "stop_expected_success") {
-        "expected_success_estimate_above_threshold"
-      } else if (decision == "stop_futility") {
-        "futility_estimate_below_threshold"
-      } else {
-        "continue_thresholds_not_crossed"
-      }
+      ppp_success <- interim_result$ppp_success
+      ppp_success_at_max <- interim_result$ppp_success_at_max
+      decision <- interim_result$decision
+      decision_reason <- interim_result$decision_reason
 
       if (return_trace) {
-        look_time <- data_total$enrollment[analysis_at_enrollnumber[i]]
-        trace_rows[[i]] <- data.frame(
-          look = i,
-          planned_N = analysis_at_enrollnumber[i],
-          calendar_time = look_time,
-          active_followup = active_followup_at(data_total, look_time),
-          N_enrolled = nrow(data),
-          N_treatment = sum(data$treatment == 1),
-          N_control = sum(data$treatment == 0),
-          events_treatment = sum(data$event[data$treatment == 1]),
-          events_control = sum(data$event[data$treatment == 0]),
-          N_pending = sum(
-            data_interim$subject_enrolled &
-              data_interim$subject_impute_success
-          ),
-          N_not_enrolled = sum(data_interim$subject_impute_futility),
-          ppp_stop_now = ppp_success,
-          ppp_stop_now_mcse = ppp_now_mc$mcse,
-          ppp_stop_now_lower = ppp_now_mc$lower,
-          ppp_stop_now_upper = ppp_now_mc$upper,
-          ppp_stop_now_draws = ppp_now_mc$draws,
-          success_threshold = Sn[i],
-          ppp_success_at_max = ppp_success_at_max,
-          ppp_success_at_max_mcse = if (check_futility) {
-            ppp_max_mc$mcse
-          } else {
-            NA_real_
-          },
-          ppp_success_at_max_lower = if (check_futility) {
-            ppp_max_mc$lower
-          } else {
-            NA_real_
-          },
-          ppp_success_at_max_upper = if (check_futility) {
-            ppp_max_mc$upper
-          } else {
-            NA_real_
-          },
-          ppp_success_at_max_draws = if (check_futility) {
-            ppp_max_mc$draws
-          } else {
-            NA_integer_
-          },
-          futility_threshold = if (check_futility) Fn[i] else NA_real_,
-          inner_mc_uncertain_stop_now = inner_mc_uncertain_now,
-          inner_mc_uncertain_success_at_max = if (check_futility) {
-            inner_mc_uncertain_max
-          } else {
-            NA_integer_
-          },
-          decision = decision,
-          decision_reason = decision_reason,
-          empty_interval_fallback_count = length(
-            warning_state$empty_interval_fallbacks
-          ),
-          empty_interval_fallbacks = paste(
-            warning_state$empty_interval_fallbacks,
-            collapse = " | "
-          ),
-          warning_count = length(warning_state$messages),
-          warning_messages = paste(warning_state$messages, collapse = " | "),
-          stringsAsFactors = FALSE
-        )
+        trace_rows[[i]] <- interim_result$trace
       }
 
       if (decision == "stop_expected_success") {

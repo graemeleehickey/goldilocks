@@ -53,8 +53,9 @@ new_trial_trace <- function(rows) {
 
 #' @title Extract an interim decision trace
 #'
-#' @description Accepts either a goldilocks_trial object returned by
-#'   survival_adapt with return_trace enabled or the trace data frame itself.
+#' @description Accepts a `goldilocks_trial` object returned by
+#'   [survival_adapt()] with `return_trace` enabled, a `goldilocks_interim`
+#'   object returned by [evaluate_interim()], or the trace data frame itself.
 #'
 #' @param x Trial result or decision trace.
 #'
@@ -63,14 +64,15 @@ new_trial_trace <- function(rows) {
 #' @keywords internal
 #' @noRd
 get_trial_trace <- function(x) {
-  if (inherits(x, "goldilocks_trial")) {
+  if (inherits(x, "goldilocks_trial") || inherits(x, "goldilocks_interim")) {
     return(x$trace)
   }
   if (is.data.frame(x)) {
     return(x)
   }
   stop(
-    "'x' must be a goldilocks_trial object or an interim trace data frame"
+    "'x' must be a goldilocks_trial object, a goldilocks_interim object, ",
+    "or an interim trace data frame"
   )
 }
 
@@ -98,7 +100,8 @@ print.goldilocks_trial <- function(x, ...) {
 #'   stopping decision. Pass the goldilocks_trial object to include final
 #'   analysis information, or pass its trace element to summarize the path only.
 #'
-#' @param x A goldilocks_trial object or an interim trace data frame.
+#' @param x A `goldilocks_trial` object, a `goldilocks_interim` object, or an
+#'   interim trace data frame.
 #'
 #' @return A one-row data frame.
 #'
@@ -148,7 +151,8 @@ summarise_trial_trace <- function(x) {
 #'   Thresholds and early stopping decisions are marked on the probability
 #'   panels.
 #'
-#' @param x A goldilocks_trial object or an interim trace data frame.
+#' @param x A `goldilocks_trial` object, a `goldilocks_interim` object, or an
+#'   interim trace data frame.
 #'
 #' @return The trace data frame, invisibly.
 #'
