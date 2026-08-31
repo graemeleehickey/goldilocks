@@ -370,7 +370,12 @@ Its `prop_loss` element is normalized to a named value for every
 simulated arm. Its `rand_ratio` element is normalized to `control`,
 `treatment` order for two-arm designs. Its `cutpoints` and
 `generation_cutpoints` elements retain the analysis and data-generation
-partitions, respectively.
+partitions, respectively. For `method = "bayes-bin"`, this metadata
+explicitly retains the imputation priors (`prior_surv` and
+`prior_surv_final`), completed-data analysis prior (`prior_bin`), and
+imputation horizon (`end_of_study`). The separate `prior_design`
+attribute gives the resolved Gamma parameters by stage, arm, and
+interval.
 
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 `summary` element is the same data frame and its `trace` element has one
@@ -529,22 +534,30 @@ At each interim (and final) analysis methods as:
   final estimates and variances are pooled with Rubin's rules. It cannot
   be used with `method = "logrank"`.
 
-When `method = "bayes-surv"` or `method = "bayes-bin"` and imputation is
-involved (either at interim analyses or via `imputed_final = TRUE`), a
-two-stage posterior procedure is used. First, the posterior distribution
-of the piecewise hazard rates is estimated from the *observed* data and
-used to draw imputed event times for censored subjects. Second, a *new*
-posterior is estimated from the combined observed and imputed data: the
-piecewise-exponential posterior for `method = "bayes-surv"` or the beta
-posterior for `method = "bayes-bin"`. This posterior is used for
-inference. This is consistent with the predictive probability framework
-described in Broglio et al. (2014), but users should be aware that the
-imputation model's posterior influences the analysis posterior. For
-frequentist methods (`"logrank"`, `"cox"`, `"riskdiff"`), each completed
-dataset uses a standard test rather than a posterior, so this feedback
-loop does not arise. Imputed Cox final analyses then pool the
-completed-data estimates and variances using Rubin's rules. Imputed
-risk-difference final analyses use the same scalar combining rule.
+When imputation is involved, either at interim analyses or through
+`imputed_final = TRUE`, the package uses a modular impute-then-analyze
+procedure. First, the piecewise-exponential model is fitted to the
+*observed* time-to-event data and used to complete pending outcomes.
+Second, each completed dataset is analyzed using the model selected by
+`method`.
+
+For `method = "bayes-bin"`, these are deliberately separate models. The
+imputation model has piecewise hazards with Gamma prior `prior_surv` (or
+`prior_surv_final` during final imputation), whereas the completed-data
+analysis has an event probability at `end_of_study` with Beta prior
+`prior_bin`. The Beta prior is not derived from the Gamma prior, and the
+two stages are not one joint Bayesian model. Both prior specifications
+can therefore affect predictive decisions when outcomes require
+imputation. The `"event-time"` and `"bernoulli"` binary-imputation
+options use the same piecewise-exponential prediction model and do not
+change this separation.
+
+For `method = "bayes-surv"`, the second analysis instead forms a fresh
+piecewise-exponential posterior from the completed data and the original
+survival prior. For frequentist methods (`"logrank"`, `"cox"`,
+`"riskdiff"`), each completed dataset uses a standard test rather than a
+posterior. Imputed Cox and risk-difference final analyses pool estimates
+and variances using Rubin's rules.
 
 At each interim look, follow-up times are masked (censored) to reflect
 the calendar time of the analysis. The package treats enrollment and

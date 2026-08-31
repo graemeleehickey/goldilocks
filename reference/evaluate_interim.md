@@ -257,7 +257,10 @@ An object of class `goldilocks_interim`, containing:
   [`summarise_trial_trace()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_trial_trace.md);
 
 - `metadata`: the evaluated design, resolved prior design, package
-  version, time-origin, data-cut, and random-number policy.
+  version, time-origin, data-cut, and random-number policy. For
+  `method = "bayes-bin"`, `metadata$design` retains the normalized
+  imputation prior (`prior_surv`), completed-data analysis prior
+  (`prior_bin`), and imputation horizon (`end_of_study`).
 
 ## Details
 

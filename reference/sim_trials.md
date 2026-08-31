@@ -360,9 +360,12 @@ values, including defaults. Its `prop_loss` element is normalized to a
 named value for every simulated arm, and its `rand_ratio` element is
 normalized to `control`, `treatment` order for two-arm designs. Its
 `cutpoints` and `generation_cutpoints` elements retain the analysis and
-data-generation partitions, respectively. The attribute can be saved
-with [`saveRDS()`](https://rdrr.io/r/base/readRDS.html) and supplied to
-a later call with `do.call(sim_trials, attr(result, "arguments"))`.
+data-generation partitions, respectively. For `method = "bayes-bin"`, it
+also retains the imputation priors (`prior_surv` and
+`prior_surv_final`), completed-data analysis prior (`prior_bin`), and
+imputation horizon (`end_of_study`). The attribute can be saved with
+[`saveRDS()`](https://rdrr.io/r/base/readRDS.html) and supplied to a
+later call with `do.call(sim_trials, attr(result, "arguments"))`.
 
 ## Details
 

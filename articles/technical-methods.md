@@ -941,11 +941,16 @@ proof-of-concept settings, but validity then depends on the benchmark
 being transportable to the enrolled population.
 
 For complete binary endpoints, `method = "bayes-bin"` replaces the
-piecewise-exponential final analysis with a conjugate beta-binomial
-analysis. The interim prediction machinery still imputes
-not-yet-observed endpoint statuses from the event-time model, so users
-should specify data-generating hazards that are clinically meaningful
-for the binary endpoint time.
+piecewise-exponential completed-data analysis with a conjugate
+beta-binomial analysis. The interim prediction machinery still imputes
+not-yet-observed endpoint statuses from the piecewise-exponential
+event-time model. These are separate models rather than components of
+one joint Bayesian model: the Gamma hazard prior used for imputation
+does not determine the Beta event-probability prior used for
+completed-data analysis. Both priors can affect predictive decisions
+when outcomes are pending. The retained `arguments` metadata records
+`prior_surv`, `prior_surv_final`, `prior_bin`, and the imputation
+horizon `end_of_study` so the modular specification can be audited.
 
 ## References
 

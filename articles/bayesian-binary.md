@@ -24,6 +24,24 @@ probabilities are affected by `prior_surv` and `prior_bin`; a final
 imputed analysis uses `prior_surv_final` and `prior_bin`; and a
 non-imputed final binary analysis is affected by `prior_bin` alone.
 
+The imputation and completed-data analysis are separate models. The
+piecewise-exponential Gamma model uses event times and available
+event-free follow-up to predict pending endpoint statuses. The
+beta-binomial model then analyzes the completed event indicators at
+`end_of_study`. `prior_bin` is not derived from the binary-horizon
+distribution implied by `prior_surv`, and `goldilocks` does not treat
+the two stages as one joint Bayesian model. This modular combination may
+be intentional, but its operating characteristics can depend on both
+prior specifications whenever outcomes require imputation. Choosing
+`binary_imputation = "bernoulli"` rather than `"event-time"` does not
+remove the distinction: both options use the same piecewise-exponential
+prediction model.
+
+The returned `arguments` metadata records `prior_surv`,
+`prior_surv_final`, `prior_bin`, and `end_of_study`; the separate
+`prior_design` metadata contains the resolved Gamma parameters by stage,
+arm, and interval.
+
 For the examples below, we use the default weakly informative
 \operatorname{Gamma}(0.1, 0.1) hazard prior and a uniform
 \operatorname{Beta}(1, 1) binary-endpoint prior:

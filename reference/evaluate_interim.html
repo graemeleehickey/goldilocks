@@ -286,7 +286,9 @@ by arm and interval;</p></li>
 <li><p><code>trace</code>: a one-row decision trace compatible with
 <code><a href="plot_trial_trace.html">plot_trial_trace()</a></code> and <code><a href="summarise_trial_trace.html">summarise_trial_trace()</a></code>;</p></li>
 <li><p><code>metadata</code>: the evaluated design, resolved prior design, package version,
-time-origin, data-cut, and random-number policy.</p></li>
+time-origin, data-cut, and random-number policy. For <code>method = "bayes-bin"</code>, <code>metadata$design</code> retains the normalized imputation prior
+(<code>prior_surv</code>), completed-data analysis prior (<code>prior_bin</code>), and
+imputation horizon (<code>end_of_study</code>).</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

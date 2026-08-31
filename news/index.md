@@ -4,6 +4,13 @@
 
 ### Improvements
 
+- Documentation now states explicitly that Bayesian binary prediction
+  uses a piecewise-exponential Gamma model to impute pending outcomes
+  and a separate beta-binomial model to analyze completed endpoint
+  statuses. These stages are modular rather than one joint Bayesian
+  model. The documented retained metadata identifies both prior
+  specifications and the imputation horizon
+  ([\#64](https://github.com/graemeleehickey/goldilocks/issues/64)).
 - `prior_surv` and `prior_surv_final` now accept independent
   arm-specific Gamma priors as lists named `control` and `treatment` (or
   `treatment` for a single-arm design). Each arm may use a shared
