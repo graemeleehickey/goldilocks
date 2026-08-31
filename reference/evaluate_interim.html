@@ -123,14 +123,17 @@ cutpoints. Default is <code>NULL</code>, which uses a constant-hazard analysis m
 
 
 <dt id="arg-prior-surv">prior_surv<a class="anchor" aria-label="anchor" href="#arg-prior-surv"></a></dt>
-<dd><p>numeric vector or matrix. Gamma prior for the
+<dd><p>numeric vector, matrix, or named list. Gamma prior for the
 piecewise-exponential hazards used during interim prediction. A length-two
-vector supplies shape and rate and is broadcast across all intervals. A
-<code>2</code> by <code>length(cutpoints) + 1</code> matrix supplies interval-specific values,
-with shapes in row 1, rates in row 2, and columns ordered from the earliest
-to the latest interval. The same interval prior is applied to both
-treatment groups. Rates must use the same time unit as event times,
-exposure, and cutpoints. The default is <code>c(0.1, 0.1)</code>.</p></dd>
+vector supplies shape and rate and is broadcast across all arms and
+intervals. A <code>2</code> by <code>length(cutpoints) + 1</code> matrix supplies
+interval-specific values shared by all arms, with shapes in row 1 and rates
+in row 2. For independent arm-specific priors, supply a list named
+<code>control</code> and <code>treatment</code> in a two-arm design, or <code>treatment</code> in a
+single-arm design. Each list element may be a length-two vector or an
+interval-specific matrix. Both arms must be supplied; no values are
+borrowed or filled from the other arm. Rates must use the same time unit as
+event times, exposure, and cutpoints. The default is <code>c(0.1, 0.1)</code>.</p></dd>
 
 
 <dt id="arg-prior-bin">prior_bin<a class="anchor" aria-label="anchor" href="#arg-prior-bin"></a></dt>
@@ -277,12 +280,13 @@ uses and advances the current random-number state.</p></dd>
     <p>An object of class <code>goldilocks_interim</code>, containing:</p><ul><li><p><code>decision</code>: a one-row decision summary;</p></li>
 <li><p><code>probabilities</code>: current- and maximum-sample predictive probabilities;</p></li>
 <li><p><code>monte_carlo</code>: estimates, standard errors, and diagnostic bounds;</p></li>
-<li><p><code>diagnostics</code>: observed status counts, potential accruals, warnings, and
-imputation diagnostics;</p></li>
+<li><p><code>diagnostics</code>: observed status counts, potential accruals, warnings,
+imputation diagnostics, and resolved Gamma prior and posterior parameters
+by arm and interval;</p></li>
 <li><p><code>trace</code>: a one-row decision trace compatible with
 <code><a href="plot_trial_trace.html">plot_trial_trace()</a></code> and <code><a href="summarise_trial_trace.html">summarise_trial_trace()</a></code>;</p></li>
-<li><p><code>metadata</code>: the evaluated design, package version, time-origin, data-cut,
-and random-number policy.</p></li>
+<li><p><code>metadata</code>: the evaluated design, resolved prior design, package version,
+time-origin, data-cut, and random-number policy.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

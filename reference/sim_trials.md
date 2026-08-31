@@ -97,14 +97,18 @@ sim_trials(
 
 - prior_surv:
 
-  numeric vector or matrix. Gamma prior for the piecewise-exponential
-  hazards used during interim prediction. A length-two vector supplies
-  shape and rate and is broadcast across all intervals. A `2` by
-  `length(cutpoints) + 1` matrix supplies interval-specific values, with
-  shapes in row 1, rates in row 2, and columns ordered from the earliest
-  to the latest interval. The same interval prior is applied to both
-  treatment groups. Rates must use the same time unit as event times,
-  exposure, and cutpoints. The default is `c(0.1, 0.1)`.
+  numeric vector, matrix, or named list. Gamma prior for the
+  piecewise-exponential hazards used during interim prediction. A
+  length-two vector supplies shape and rate and is broadcast across all
+  arms and intervals. A `2` by `length(cutpoints) + 1` matrix supplies
+  interval-specific values shared by all arms, with shapes in row 1 and
+  rates in row 2. For independent arm-specific priors, supply a list
+  named `control` and `treatment` in a two-arm design, or `treatment` in
+  a single-arm design. Each list element may be a length-two vector or
+  an interval-specific matrix. Both arms must be supplied; no values are
+  borrowed or filled from the other arm. Rates must use the same time
+  unit as event times, exposure, and cutpoints. The default is
+  `c(0.1, 0.1)`.
 
 - prior_bin:
 
@@ -317,10 +321,11 @@ sim_trials(
 
 - prior_surv_final:
 
-  numeric vector or matrix. Gamma prior used for final-stage
-  piecewise-exponential imputation and, for `method = "bayes-surv"`,
-  final analysis. It accepts the same forms as `prior_surv` and defaults
-  to `prior_surv`, preserving the historical behavior.
+  numeric vector, matrix, or named list. Gamma prior used for
+  final-stage piecewise-exponential imputation and, for
+  `method = "bayes-surv"`, final analysis. It accepts the same shared or
+  arm-specific forms as `prior_surv` and defaults to `prior_surv`,
+  preserving the historical behavior.
 
 - generation_cutpoints:
 
@@ -343,7 +348,8 @@ and active follow-up at each look. See
 for details of the summary and trace columns, and
 [`summarise_calendar_time()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.md)
 for wide operating-characteristic tables. The returned object also
-retains the normalized `decision_design` attribute from
+retains the normalized `decision_design` and resolved `prior_design`
+attributes from
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
 An `rng_metadata` attribute records the caller RNG kind, effective
 backend, seed policy, and stream seed when applicable. A deterministic

@@ -261,27 +261,29 @@ form is what makes the Gamma posterior update available in closed form.
 For each treatment value z and interval j, `goldilocks` assumes an
 independent Gamma prior
 
-\lambda\_{zj} \sim \operatorname{Gamma}(\alpha_0, \beta_0),
+\lambda\_{zj} \sim \operatorname{Gamma}(\alpha\_{0zj}, \beta\_{0zj}),
 
-where \alpha\_{0j} is the shape and \beta\_{0j} is the rate for interval
-j. This follows the
+where \alpha\_{0zj} is the shape and \beta\_{0zj} is the rate for arm z
+and interval j. This follows the
 [`stats::rgamma()`](https://rdrr.io/r/stats/GammaDist.html)
 parameterization. The argument `prior_surv = c(alpha0, beta0)`
-broadcasts one shape-rate pair over all intervals. Alternatively, a
-two-row matrix supplies interval-specific shapes in row 1 and rates in
-row 2, with columns in chronological interval order. The same interval
-prior is applied to every treatment group. `prior_surv_final` accepts
-the same forms and defaults to `prior_surv`; it can therefore specify a
-different prior for final imputation and final piecewise-exponential
-analysis.
+broadcasts one shape-rate pair over all arms and intervals.
+Alternatively, a two-row matrix supplies interval-specific shapes in row
+1 and rates in row 2, with columns in chronological interval order, and
+broadcasts that matrix across arms. Independent arm-specific priors are
+supplied as a list named `control` and `treatment`; each element may be
+a length-two vector or a two-row interval-specific matrix. Both arms
+must be specified, and no borrowing occurs between them.
+`prior_surv_final` accepts the same forms and defaults to `prior_surv`;
+it can therefore specify different priors by stage, arm, and interval.
 
 At an analysis, let d\_{zj} be the number of observed events for
 treatment value z, interval j, and let y\_{zj} be the total observed
 exposure time for that treatment value and interval. Gamma-exponential
 conjugacy gives
 
-\lambda\_{zj} \mid \mathcal{D} \sim \operatorname{Gamma}(\alpha\_{0j} +
-d\_{zj}, \beta\_{0j} + y\_{zj}).
+\lambda\_{zj} \mid \mathcal{D} \sim \operatorname{Gamma}(\alpha\_{0zj} +
+d\_{zj}, \beta\_{0zj} + y\_{zj}).
 
 The package obtains (d\_{zj}, y\_{zj}) by splitting each subject’s
 observed follow-up over the cut-point intervals. Posterior draws are

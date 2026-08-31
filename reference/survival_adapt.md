@@ -92,14 +92,18 @@ survival_adapt(
 
 - prior_surv:
 
-  numeric vector or matrix. Gamma prior for the piecewise-exponential
-  hazards used during interim prediction. A length-two vector supplies
-  shape and rate and is broadcast across all intervals. A `2` by
-  `length(cutpoints) + 1` matrix supplies interval-specific values, with
-  shapes in row 1, rates in row 2, and columns ordered from the earliest
-  to the latest interval. The same interval prior is applied to both
-  treatment groups. Rates must use the same time unit as event times,
-  exposure, and cutpoints. The default is `c(0.1, 0.1)`.
+  numeric vector, matrix, or named list. Gamma prior for the
+  piecewise-exponential hazards used during interim prediction. A
+  length-two vector supplies shape and rate and is broadcast across all
+  arms and intervals. A `2` by `length(cutpoints) + 1` matrix supplies
+  interval-specific values shared by all arms, with shapes in row 1 and
+  rates in row 2. For independent arm-specific priors, supply a list
+  named `control` and `treatment` in a two-arm design, or `treatment` in
+  a single-arm design. Each list element may be a length-two vector or
+  an interval-specific matrix. Both arms must be supplied; no values are
+  borrowed or filled from the other arm. Rates must use the same time
+  unit as event times, exposure, and cutpoints. The default is
+  `c(0.1, 0.1)`.
 
 - prior_bin:
 
@@ -270,7 +274,8 @@ survival_adapt(
   logical. Should the interim decision path be returned in addition to
   the usual final summary? The default, FALSE, returns the historical
   one-row data frame. When TRUE, the result is a goldilocks_trial object
-  with summary, trace, and call elements.
+  with summary, trace, prior and posterior diagnostics, and call
+  elements.
 
 - binary_imputation:
 
@@ -283,10 +288,11 @@ survival_adapt(
 
 - prior_surv_final:
 
-  numeric vector or matrix. Gamma prior used for final-stage
-  piecewise-exponential imputation and, for `method = "bayes-surv"`,
-  final analysis. It accepts the same forms as `prior_surv` and defaults
-  to `prior_surv`, preserving the historical behavior.
+  numeric vector, matrix, or named list. Gamma prior used for
+  final-stage piecewise-exponential imputation and, for
+  `method = "bayes-surv"`, final analysis. It accepts the same shared or
+  arm-specific forms as `prior_surv` and defaults to `prior_surv`,
+  preserving the historical behavior.
 
 - generation_cutpoints:
 
@@ -352,7 +358,9 @@ zero. Times use the same units as `lambda_time`, `cutpoints`,
 The returned object has a `decision_design` attribute containing
 `interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
 this metadata are normalized to one value per interim look (and have
-length zero when no interim looks are planned).
+length zero when no interim looks are planned). A `prior_design`
+attribute contains the fully broadcast Gamma shape, rate, mean hazard,
+and standard deviation for every stage, arm, and interval.
 
 Both return forms have an `arguments` attribute containing a named list
 of the evaluated argument values, including defaults. It can be saved
@@ -365,8 +373,11 @@ simulated arm. Its `rand_ratio` element is normalized to `control`,
 partitions, respectively.
 
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
-summary element is the same data frame and its trace element has one row
-per interim look. The trace records calendar time, the number of
+`summary` element is the same data frame and its `trace` element has one
+row per interim look. `prior_diagnostics` contains the resolved interim
+and final priors. `posterior_diagnostics` reports observed and effective
+sufficient statistics and conjugate posterior parameters by completed
+look, arm, and interval. The trace records calendar time, the number of
 subjects actively under follow-up, enrollment and observed events by
 arm, predictive probabilities, diagnostic Monte Carlo standard errors
 and exact bounds, draw counts, thresholds, the decision and reason,

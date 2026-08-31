@@ -139,14 +139,17 @@ supplied.</p></dd>
 
 
 <dt id="arg-prior-surv">prior_surv<a class="anchor" aria-label="anchor" href="#arg-prior-surv"></a></dt>
-<dd><p>numeric vector or matrix. Gamma prior for the
+<dd><p>numeric vector, matrix, or named list. Gamma prior for the
 piecewise-exponential hazards used during interim prediction. A length-two
-vector supplies shape and rate and is broadcast across all intervals. A
-<code>2</code> by <code>length(cutpoints) + 1</code> matrix supplies interval-specific values,
-with shapes in row 1, rates in row 2, and columns ordered from the earliest
-to the latest interval. The same interval prior is applied to both
-treatment groups. Rates must use the same time unit as event times,
-exposure, and cutpoints. The default is <code>c(0.1, 0.1)</code>.</p></dd>
+vector supplies shape and rate and is broadcast across all arms and
+intervals. A <code>2</code> by <code>length(cutpoints) + 1</code> matrix supplies
+interval-specific values shared by all arms, with shapes in row 1 and rates
+in row 2. For independent arm-specific priors, supply a list named
+<code>control</code> and <code>treatment</code> in a two-arm design, or <code>treatment</code> in a
+single-arm design. Each list element may be a length-two vector or an
+interval-specific matrix. Both arms must be supplied; no values are
+borrowed or filled from the other arm. Rates must use the same time unit as
+event times, exposure, and cutpoints. The default is <code>c(0.1, 0.1)</code>.</p></dd>
 
 
 <dt id="arg-prior-bin">prior_bin<a class="anchor" aria-label="anchor" href="#arg-prior-bin"></a></dt>
@@ -348,9 +351,10 @@ for time-to-event analysis methods.</p></dd>
 
 
 <dt id="arg-prior-surv-final">prior_surv_final<a class="anchor" aria-label="anchor" href="#arg-prior-surv-final"></a></dt>
-<dd><p>numeric vector or matrix. Gamma prior used for
-final-stage piecewise-exponential imputation and, for <code>method = "bayes-surv"</code>, final analysis. It accepts the same forms as <code>prior_surv</code>
-and defaults to <code>prior_surv</code>, preserving the historical behavior.</p></dd>
+<dd><p>numeric vector, matrix, or named list. Gamma prior
+used for final-stage piecewise-exponential imputation and, for <code>method = "bayes-surv"</code>, final analysis. It accepts the same shared or arm-specific
+forms as <code>prior_surv</code> and defaults to <code>prior_surv</code>, preserving the
+historical behavior.</p></dd>
 
 
 <dt id="arg-generation-cutpoints">generation_cutpoints<a class="anchor" aria-label="anchor" href="#arg-generation-cutpoints"></a></dt>
@@ -372,7 +376,8 @@ always retained in <code>sims</code>; traces additionally retain calendar time a
 active follow-up at each look. See <code><a href="survival_adapt.html">survival_adapt()</a></code> for details of the
 summary and trace columns, and <code><a href="summarise_calendar_time.html">summarise_calendar_time()</a></code> for wide
 operating-characteristic tables. The returned object also retains the
-normalized <code>decision_design</code> attribute from <code><a href="survival_adapt.html">survival_adapt()</a></code>. An
+normalized <code>decision_design</code> and resolved <code>prior_design</code> attributes from
+<code><a href="survival_adapt.html">survival_adapt()</a></code>. An
 <code>rng_metadata</code> attribute records the caller RNG kind, effective backend,
 seed policy, and stream seed when applicable. A deterministic
 <code>parallel_metadata</code> attribute records the requested and effective backend

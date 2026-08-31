@@ -77,14 +77,18 @@ evaluate_interim(
 
 - prior_surv:
 
-  numeric vector or matrix. Gamma prior for the piecewise-exponential
-  hazards used during interim prediction. A length-two vector supplies
-  shape and rate and is broadcast across all intervals. A `2` by
-  `length(cutpoints) + 1` matrix supplies interval-specific values, with
-  shapes in row 1, rates in row 2, and columns ordered from the earliest
-  to the latest interval. The same interval prior is applied to both
-  treatment groups. Rates must use the same time unit as event times,
-  exposure, and cutpoints. The default is `c(0.1, 0.1)`.
+  numeric vector, matrix, or named list. Gamma prior for the
+  piecewise-exponential hazards used during interim prediction. A
+  length-two vector supplies shape and rate and is broadcast across all
+  arms and intervals. A `2` by `length(cutpoints) + 1` matrix supplies
+  interval-specific values shared by all arms, with shapes in row 1 and
+  rates in row 2. For independent arm-specific priors, supply a list
+  named `control` and `treatment` in a two-arm design, or `treatment` in
+  a single-arm design. Each list element may be a length-two vector or
+  an interval-specific matrix. Both arms must be supplied; no values are
+  borrowed or filled from the other arm. Rates must use the same time
+  unit as event times, exposure, and cutpoints. The default is
+  `c(0.1, 0.1)`.
 
 - prior_bin:
 
@@ -244,15 +248,16 @@ An object of class `goldilocks_interim`, containing:
 - `monte_carlo`: estimates, standard errors, and diagnostic bounds;
 
 - `diagnostics`: observed status counts, potential accruals, warnings,
-  and imputation diagnostics;
+  imputation diagnostics, and resolved Gamma prior and posterior
+  parameters by arm and interval;
 
 - `trace`: a one-row decision trace compatible with
   [`plot_trial_trace()`](https://graemeleehickey.github.io/goldilocks/reference/plot_trial_trace.md)
   and
   [`summarise_trial_trace()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_trial_trace.md);
 
-- `metadata`: the evaluated design, package version, time-origin,
-  data-cut, and random-number policy.
+- `metadata`: the evaluated design, resolved prior design, package
+  version, time-origin, data-cut, and random-number policy.
 
 ## Details
 

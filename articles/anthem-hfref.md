@@ -432,9 +432,9 @@ Several distinctions are consequential:
 1.  **Predictive model.** The ADR uses common control baseline hazards
     and one shared treatment log hazard ratio with a weakly informative
     normal prior. `goldilocks` estimates independent piecewise hazards
-    for the two arms and applies the same Gamma prior matrix to each.
-    The reported control-hazard priors can be supplied, but the joint
-    sponsor parameterization cannot.
+    for the two arms. Arm-specific Gamma priors can represent the
+    reported control-hazard prior, but the joint sponsor
+    parameterization and its shared treatment-effect prior cannot.
 2.  **Look timing.** Package looks occur when an enrollment count is
     reached. It cannot additionally require 300 patients with nine
     months since randomization at the first look, nor schedule futility

@@ -4,6 +4,16 @@
 
 ### Improvements
 
+- `prior_surv` and `prior_surv_final` now accept independent
+  arm-specific Gamma priors as lists named `control` and `treatment` (or
+  `treatment` for a single-arm design). Each arm may use a shared
+  shape-rate vector or its own interval-specific matrix. Existing
+  vectors and matrices still broadcast across arms and preserve seeded
+  results. Resolved prior parameters are retained in metadata, while
+  individual traced trials and externally evaluated interim looks report
+  conjugate posterior diagnostics by arm and interval. Priors remain
+  independent: no hierarchical or implicit borrowing is performed
+  ([\#88](https://github.com/graemeleehickey/goldilocks/issues/88)).
 - New
   [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
   applies the same posterior-predictive decision calculation used by
