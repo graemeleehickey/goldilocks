@@ -149,15 +149,15 @@ enrollment(
 assigns positive realized enrollment times in (0,3.5\] to rate 2, times
 in (3.5,9\] to rate 5, and later times to rate 8. All rates are
 enrollments per common time unit. `lambda_time`, enrollment times, event
-times, hazard `cutpoints`, and `end_of_study` should therefore all use
-the same unit, such as days or months.
+times, `cutpoints`, `generation_cutpoints`, and `end_of_study` should
+therefore all use the same unit, such as days or months.
 
-Although `lambda_time` and hazard `cutpoints` share the same
-internal-knot API, they operate on different clocks. Enrollment knots
-are trial-calendar times from first patient in. Hazard cutpoints are
-follow-up times from each individual subject’s enrollment. Their values
-and lengths are unrelated unless the scientific design happens to make
-them coincide.
+Although `lambda_time`, `cutpoints`, and `generation_cutpoints` share
+the same internal-knot API, enrollment knots operate on a different
+clock. Enrollment knots are trial-calendar times from first patient in.
+Both event-time partitions use follow-up from each individual subject’s
+enrollment. Their values and lengths are unrelated unless the scientific
+design makes them coincide.
 
 The package does not currently model site activations, site-specific
 random rates, pauses, recruitment caps, or uncertainty in the supplied
@@ -167,36 +167,55 @@ simulation scenario.
 
 ## 3. Event-time model
 
-The time-to-event model is piecewise exponential. Let
+The data-generating and predictive-analysis models are both piecewise
+exponential, but their partitions may differ. For generation, let
+
+0 = g_0 \< g_1 \< \cdots \< g\_{K-1}.
+
+The interior values (g_1,\ldots,g\_{K-1}) are supplied through
+`generation_cutpoints`. For treatment value z \in \\0,1\\, the
+corresponding `hazard_treatment` or `hazard_control` vector supplies one
+hazard \theta\_{zk} per generating interval:
+
+h^{\mathrm{gen}}\_z(t) = \theta\_{zk}, \qquad g\_{k-1} \le t \< g_k,
+
+where g_K = \infty. This is PWEALL’s representation of the continuous
+generating hazard.
+
+For posterior estimation, predictive imputation, and final
+piecewise-exponential analysis, let
 
 0 = s_0 \< s_1 \< \cdots \< s\_{J-1}.
 
 The interior cutpoints (s_1,\ldots,s\_{J-1}) are supplied through
-`cutpoints`; the initial boundary s_0 = 0 is implicit. These define
-intervals
+`cutpoints`; the initial boundary s_0 = 0 is implicit. The analysis
+model has one hazard \lambda\_{zj} per interval. Realized event times
+are assigned to analysis intervals using
 
-\[s_0, s_1), \[s_1, s_2), \ldots, \[s\_{J-1}, \infty).
+(s_0, s_1\], (s_1, s_2\], \ldots, (s\_{J-1}, \infty).
 
-For treatment value z \in \\0,1\\, where z = 1 denotes the treatment arm
-and z = 0 denotes the control arm, interval j has constant hazard
-\lambda\_{zj}. The subject-level hazard is therefore
+Here z = 1 denotes the treatment arm and z = 0 denotes the control arm.
+The analysis hazard is
 
 h_z(t) = \lambda\_{zj}, \qquad s\_{j-1} \le t \< s_j,
 
 where the last interval has no finite upper endpoint. With
-`cutpoints = NULL`, J = 1 and the model reduces to an ordinary
-exponential model.
+`cutpoints = NULL`, J = 1 and the analysis uses an ordinary exponential
+model. With `generation_cutpoints = NULL`, generation uses one constant
+hazard. By default, `generation_cutpoints = cutpoints`, which reproduces
+the historical shared partition; explicitly supplying both arguments
+permits model misspecification scenarios without transforming either
+partition.
 
-The display above matches PWEALL’s representation of the continuous
-generating hazard. The cumulative hazard and event-time distribution are
-continuous at each cutpoint, so changing the value of the hazard at the
-cutpoint itself does not change generated event times. For observed-data
-sufficient statistics, `goldilocks` follows `Surv(start, stop, event)`
-and [`survSplit()`](https://rdrr.io/pkg/survival/man/survSplit.html):
-realized times are assigned using (s\_{j-1},s_j\]. Thus an event
-recorded exactly at s_j is counted in the interval ending at s_j. This
-explicit rule matters for rounded or discrete recorded times even though
-the boundary has probability zero under the continuous generating model.
+The cumulative hazard and event-time distribution are continuous at each
+generating cutpoint, so changing the hazard at the cutpoint itself does
+not change generated event times. For observed-data sufficient
+statistics, `goldilocks` follows `Surv(start, stop, event)` and
+[`survSplit()`](https://rdrr.io/pkg/survival/man/survSplit.html): an
+event recorded exactly at s_j is counted in the analysis interval ending
+at s_j. This explicit rule matters for rounded or discrete recorded
+times even though the boundary has probability zero under a continuous
+generating model.
 
 The cumulative hazard for treatment value z at time t is
 

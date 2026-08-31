@@ -224,81 +224,88 @@ month intervals; the 16-month package horizon uses the first two
 cut-points</td>
 </tr>
 <tr class="even">
-<td align="left"><code>hazard_control</code></td>
-<td align="left">0.00828, 0.00828, 0.00240 events/week</td>
+<td align="left"><code>generation_cutpoints</code></td>
+<td align="left">12 months</td>
 <td align="left">reported</td>
-<td align="left">ADR Table 5, one-year control event probability 0.35;
-the 0-12 month rate is repeated across the 6-month analysis
-cut-point</td>
+<td align="left">ADR Table 5 uses 0-12, 12-24, and &gt;24 month
+generating intervals; only the 12-month cut-point precedes the 16-month
+horizon</td>
 </tr>
 <tr class="odd">
+<td align="left"><code>hazard_control</code></td>
+<td align="left">0.00828, 0.00240 events/week</td>
+<td align="left">reported</td>
+<td align="left">ADR Table 5, using its two generating hazards that
+apply before the 16-month horizon</td>
+</tr>
+<tr class="even">
 <td align="left"><code>hazard_treatment</code></td>
 <td align="left">0.70 x control hazard</td>
 <td align="left">inferred</td>
 <td align="left">ADR Sections 5.1 and 7 report the target hazard-ratio
 scenario</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>prop_loss</code></td>
 <td align="left">0.10</td>
 <td align="left">reported</td>
 <td align="left">ADR Sections 5.3 and 7.2</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>prior_surv</code></td>
 <td align="left">Gamma shapes 1; rates 1/0.0069, 1/0.0069, 1/0.0035</td>
 <td align="left">reported</td>
 <td align="left">ADR Table 1; <code>goldilocks</code> applies these
 independent priors to both arms</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>alternative</code></td>
 <td align="left">less</td>
 <td align="left">reported</td>
 <td align="left">ADR Equation 1 defines lower treatment hazard as
 benefit</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>h0</code></td>
 <td align="left">0</td>
 <td align="left">reported</td>
 <td align="left">ADR Equation 1 uses equality of survival
 distributions</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>Fn</code></td>
 <td align="left">0.01 at every modeled look</td>
 <td align="left">reported</td>
 <td align="left">ADR Section 3.2</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>Sn</code></td>
 <td align="left">1.00 at N=400; 0.95 at N=500,…,900</td>
 <td align="left">inferred</td>
 <td align="left">ADR Section 3.3; 1.00 disables package success stopping
 at N=400</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>prob_ha</code></td>
 <td align="left">0.981</td>
 <td align="left">inferred</td>
 <td align="left">1 minus the reported one-sided P-value threshold of
 0.019</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>method</code></td>
 <td align="left">logrank</td>
 <td align="left">reported</td>
 <td align="left">ADR Section 1.4.1</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>imputed_final</code></td>
 <td align="left">FALSE</td>
 <td align="left">inferred</td>
 <td align="left">The reported final analysis uses observed
 right-censored data</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>N_impute</code></td>
 <td align="left">300 evaluated</td>
 <td align="left">assumed</td>
@@ -306,7 +313,7 @@ right-censored data</td>
 ADR Section 2.3.3 specifies at least 10,000 draws for actual interim
 analyses and 1,000 within design simulations</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>N_trials</code></td>
 <td align="left">20 per evaluated scenario</td>
 <td align="left">assumed</td>
@@ -344,16 +351,18 @@ in the final paper:</p>
 <span><span class="co">#&gt;                               Quantity     Value</span></span>
 <span><span class="co">#&gt; 1   One-year control event probability 0.3498551</span></span>
 <span><span class="co">#&gt; 2 Three-year control event probability 0.4297041</span></span></code></pre></div>
-<p>The package uses one cut-point vector for both data generation and
-predictive imputation. We retain the reported predictive cut-points at 6
-and 12 months, repeat the reported 0-12-month generating hazard on
-either side of the 6-month cut-point, and truncate at the package’s
-16-month subject-level horizon.</p>
+<p>The data-generating and predictive models use different partitions.
+We retain the predictive cut-points at 6 and 12 months and the
+generating cut-point at 12 months. The reported 18-month predictive
+cut-point and 24-month generating cut-point fall beyond this example’s
+16-month subject-level horizon, so neither can affect an event time or
+imputation and both are omitted.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">analysis_cutpoints_week</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">12</span><span class="op">)</span> <span class="op">*</span> <span class="va">weeks_per_month</span></span>
+<span><span class="va">generation_cutpoints_week</span> <span class="op">&lt;-</span> <span class="fl">12</span> <span class="op">*</span> <span class="va">weeks_per_month</span></span>
 <span><span class="va">end_of_study_week</span> <span class="op">&lt;-</span> <span class="fl">16</span> <span class="op">*</span> <span class="va">weeks_per_month</span></span>
 <span></span>
-<span><span class="va">hazard_control_week</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.00828</span>, <span class="fl">0.00828</span>, <span class="fl">0.00240</span><span class="op">)</span></span>
+<span><span class="va">hazard_control_week</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.00828</span>, <span class="fl">0.00240</span><span class="op">)</span></span>
 <span><span class="va">hazard_treatment_target_week</span> <span class="op">&lt;-</span> <span class="fl">0.70</span> <span class="op">*</span> <span class="va">hazard_control_week</span></span>
 <span><span class="va">hazard_treatment_null_week</span> <span class="op">&lt;-</span> <span class="va">hazard_control_week</span></span>
 <span></span>
@@ -467,6 +476,7 @@ log-rank criterion into the package convention of analyzing
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">anthem_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  cutpoints <span class="op">=</span> <span class="va">analysis_cutpoints_week</span>,</span>
+<span>  generation_cutpoints <span class="op">=</span> <span class="va">generation_cutpoints_week</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="va">ramp_rate_per_week</span>,</span>
 <span>  lambda_time <span class="op">=</span> <span class="va">ramp_change_week</span>,</span>
@@ -780,11 +790,6 @@ informative normal prior. <code>goldilocks</code> estimates independent
 piecewise hazards for the two arms and applies the same Gamma prior
 matrix to each. The reported control-hazard priors can be supplied, but
 the joint sponsor parameterization cannot.</li>
-<li>
-<strong>Cut-points and generation.</strong> The package uses one set
-of cut-points for data generation and predictive imputation. The sponsor
-used 0-6, 6-12, 12-18, and later intervals for prediction but 0-12,
-12-24, and later intervals for generating its reference scenarios.</li>
 <li>
 <strong>Look timing.</strong> Package looks occur when an enrollment
 count is reached. It cannot additionally require 300 patients with nine

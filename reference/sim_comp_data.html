@@ -51,7 +51,7 @@ piecewise exponential distribution</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">sim_comp_data</span><span class="op">(</span></span>
 <span>  <span class="va">hazard_treatment</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  generation_cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">N_total</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">0.3</span>,</span>
 <span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -76,15 +76,12 @@ under the treatment arm.</p></dd>
 under the control arm.</p></dd>
 
 
-<dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
-<dd><p>finite, positive, strictly increasing interior times at
-which the baseline hazard changes. The number of hazards for each arm must
-be one greater than the number of cutpoints. Default is <code>NULL</code>, which
-corresponds to a simple (non-piecewise) exponential model. Realized event
-times are assigned to analysis intervals using the survival
-counting-process convention, open on the left and closed on the right; an
-event exactly at a cutpoint therefore belongs to the interval ending at
-that cutpoint.</p></dd>
+<dt id="arg-generation-cutpoints">generation_cutpoints<a class="anchor" aria-label="anchor" href="#arg-generation-cutpoints"></a></dt>
+<dd><p>finite, positive, strictly increasing interior
+follow-up times at which the data-generating hazard changes. The number of
+hazards for each arm must be one greater than the number of generation
+cutpoints. Default is <code>NULL</code>, which corresponds to a simple
+(non-piecewise) exponential data-generating model.</p></dd>
 
 
 <dt id="arg-n-total">N_total<a class="anchor" aria-label="anchor" href="#arg-n-total"></a></dt>
@@ -105,7 +102,7 @@ is implicit, so <code>length(lambda)</code> must equal <code>length(lambda_time)
 
 <dt id="arg-end-of-study">end_of_study<a class="anchor" aria-label="anchor" href="#arg-end-of-study"></a></dt>
 <dd><p>finite study endpoint, strictly greater than the last
-cutpoint.</p></dd>
+generation cutpoint.</p></dd>
 
 
 <dt id="arg-block">block<a class="anchor" aria-label="anchor" href="#arg-block"></a></dt>
@@ -155,13 +152,13 @@ during observation.</p></li>
 <code><a href="enrollment.html">enrollment()</a></code>. The first patient is placed at time zero and all subsequent
 enrollment times are measured from first patient in. No uniform jitter is
 added in <code>sim_comp_data()</code>.</p>
-<p><code>lambda_time</code> and <code>cutpoints</code> both contain internal change times, but they
-describe different clocks. <code>lambda_time</code> describes changes in the trial's
-calendar-time enrollment rate measured from first patient in. <code>cutpoints</code>
-describes changes in an individual subject's event hazard measured from
-that subject's enrollment. They need not have the same values or length.
-All time quantities supplied to a simulation should nevertheless use one
-common unit, such as days or months.</p>
+<p><code>lambda_time</code> and <code>generation_cutpoints</code> both contain internal change
+times, but they describe different clocks. <code>lambda_time</code> describes changes
+in the trial's calendar-time enrollment rate measured from first patient
+in. <code>generation_cutpoints</code> describes changes in an individual subject's
+event hazard measured from that subject's enrollment. They need not have
+the same values or length. All time quantities supplied to a simulation
+should nevertheless use one common unit, such as days or months.</p>
 <p>PWEALL represents the continuous generating hazard with pieces closed on
 the left and open on the right. This differs from the package's
 open-left, closed-right convention for assigning realized times only at

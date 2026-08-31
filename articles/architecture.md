@@ -30,13 +30,15 @@ The functions fall into three layers:
   [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md),
   and
   [`pwe_sim()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_sim.md).
+  Its `generation_cutpoints` argument defines the data-generating hazard
+  partition.
 - **[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)**:
-  Simulates a single adaptive trial. Generates data via
+  Simulates a single adaptive trial. It passes `generation_cutpoints` to
   [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md),
-  conducts interim analyses using `posterior()` and
-  `test_stop_success()`, and performs the final analysis via
-  `test_final()`. With `return_trace = TRUE`, it also retains a compact
-  audit trail for each completed interim look.
+  uses `cutpoints` for posterior estimation and predictive imputation,
+  and performs the final analysis via `test_final()`. With
+  `return_trace = TRUE`, it also retains a compact audit trail for each
+  completed interim look.
 - **[`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)**:
   Top-level entry point. Runs
   [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)

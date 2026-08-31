@@ -97,30 +97,30 @@ cannot capture both regimes; using the average rate over-states early
 survival and under-states late survival. A piecewise-exponential model
 with a single internal cut-point is often a good compromise, fitting one
 hazard for the early interval and another for everything afterwards.</p>
-<p>The package handles piecewise hazards through two related
-arguments:</p>
+<p>The package handles piecewise hazards through related generation and
+analysis arguments:</p>
 <ul>
 <li>
-<code>cutpoints</code>: the positive interior times at which the
-hazard changes. With <span class="math inline">J - 1</span> cutpoints
-there are <span class="math inline">J</span> intervals and therefore
-<span class="math inline">J</span> hazard rates for each treatment
-group. For example, PWEALL represents the continuous generating hazard
-for <code>cutpoints = 6</code> with pieces <span class="math inline">[0,
-6)</span> and <span class="math inline">[6, \infty)</span>. The default
-<code>cutpoints = NULL</code> supplies no change times and produces a
-single, constant hazard interval. When <code>goldilocks</code> assigns a
-realized event time to an analysis interval, it follows the survival
-counting-process convention <span class="math inline">(0,6]</span> and
-<span class="math inline">(6,\infty)</span> instead: an event recorded
-exactly at month 6 belongs to the first interval. These representations
-give the same continuous event-time distribution because an isolated
-cutpoint has probability zero.</li>
+<code>generation_cutpoints</code> defines the intervals used to
+generate event times. <code>hazard_treatment</code> and
+<code>hazard_control</code> supply one constant hazard per generating
+interval. For example, PWEALL represents
+<code>generation_cutpoints = 6</code> with pieces <span class="math inline">[0, 6)</span> and <span class="math inline">[6,
+\infty)</span>.</li>
 <li>
-<code>hazard_treatment</code> and <code>hazard_control</code>:
-vectors of length <span class="math inline">J</span> giving the constant
-hazard for each interval.</li>
+<code>cutpoints</code> defines the intervals used for posterior
+estimation, predictive imputation, and final piecewise-exponential
+analysis. When <code>goldilocks</code> assigns a realized event time to
+these intervals, it follows the survival counting-process convention
+<span class="math inline">(0,6]</span> and <span class="math inline">(6,\infty)</span>: an event recorded exactly at
+month 6 belongs to the first interval.</li>
 </ul>
+<p>By default <code>generation_cutpoints = cutpoints</code>, so one
+vector describes both models as in earlier package versions. The
+partitions may instead differ, and they need not contain the same number
+of intervals. The different boundary representations at an isolated
+cutpoint give the same continuous event-time distribution because the
+cutpoint itself has probability zero.</p>
 <p>The helper <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> maps cumulative event
 probabilities at given times into the corresponding piecewise
 hazards.</p>
@@ -227,7 +227,7 @@ time unit as the design below:</p>
 <span><span class="va">example_trial_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_comp_data.html">sim_comp_data</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">hc</span>,</span>
-<span>  cutpoints <span class="op">=</span> <span class="va">cutpoints</span>,</span>
+<span>  generation_cutpoints <span class="op">=</span> <span class="va">cutpoints</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="fl">12</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -345,6 +345,7 @@ from the subject-follow-up hazard <code>cutpoints</code> used above.</p>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
 <span>  hazard_control   <span class="op">=</span> <span class="va">hc</span>,</span>
 <span>  cutpoints        <span class="op">=</span> <span class="va">cutpoints</span>,</span>
+<span>  generation_cutpoints <span class="op">=</span> <span class="va">cutpoints</span>,</span>
 <span>  N_total          <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  lambda           <span class="op">=</span> <span class="fl">5</span>,                <span class="co"># enrollments per month</span></span>
 <span>  lambda_time      <span class="op">=</span> <span class="cn">NULL</span>,             <span class="co"># no internal enrollment-rate knots</span></span>
@@ -411,18 +412,15 @@ commensurate bias reduction.</p></li>
 <h2 id="sensitivity-to-the-cut-point-specification">Sensitivity to the cut-point specification<a class="anchor" aria-label="anchor" href="#sensitivity-to-the-cut-point-specification"></a>
 </h2>
 <p>If you suspect a piecewise structure but are unsure where the
-cut-point should sit, a useful sensitivity check is to fix the
-data-generating hazards (the truth) and vary the <em>analysis</em>
-cut-points – that is, what <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> is told to
-model. The simulator generates trial data from
-<code>hazard_treatment</code> and <code>hazard_control</code> evaluated
-against the supplied <code>cutpoints</code>, so to compare
-analysis-model choices on a common ground you would run separate
-<code><a href="../reference/sim_trials.html">sim_trials()</a></code> simulations under the same data-generating
-truth, varying the analytic cut-points each time. If the operating
-characteristics are similar across choices, the design is robust to the
-cut-point specification. If they differ markedly, the cut-point becomes
-a design decision worth justifying in the protocol.</p>
+analysis cut-point should sit, fix <code>hazard_treatment</code>,
+<code>hazard_control</code>, and <code>generation_cutpoints</code> as
+the data-generating truth, then vary <code>cutpoints</code> across
+separate <code><a href="../reference/sim_trials.html">sim_trials()</a></code> calls. The hazard vectors continue to
+match the fixed generation partition, while each analysis prior must
+match the candidate analysis partition. If the operating characteristics
+are similar, the design is robust to the analysis cut-point
+specification. If they differ markedly, the cut-point becomes a design
+decision worth justifying in the protocol.</p>
 <p>A simpler – but very different – comparison is the equivalent design
 that is <em>both</em> simulated and analyzed under a single constant
 hazard for each treatment group matched to the overall 24-month

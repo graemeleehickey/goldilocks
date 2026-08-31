@@ -100,13 +100,15 @@ pipeline.</p>
 <li>
 <strong><code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code></strong>: Generates a complete
 trial dataset by calling <code><a href="../reference/enrollment.html">enrollment()</a></code>,
-<code><a href="../reference/randomization.html">randomization()</a></code>, and <code><a href="../reference/pwe_sim.html">pwe_sim()</a></code>.</li>
+<code><a href="../reference/randomization.html">randomization()</a></code>, and <code><a href="../reference/pwe_sim.html">pwe_sim()</a></code>. Its
+<code>generation_cutpoints</code> argument defines the data-generating
+hazard partition.</li>
 <li>
 <strong><code><a href="../reference/survival_adapt.html">survival_adapt()</a></code></strong>: Simulates a single
-adaptive trial. Generates data via <code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code>,
-conducts interim analyses using <code>posterior()</code> and
-<code>test_stop_success()</code>, and performs the final analysis via
-<code>test_final()</code>. With <code>return_trace = TRUE</code>, it
+adaptive trial. It passes <code>generation_cutpoints</code> to
+<code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code>, uses <code>cutpoints</code> for posterior
+estimation and predictive imputation, and performs the final analysis
+via <code>test_final()</code>. With <code>return_trace = TRUE</code>, it
 also retains a compact audit trail for each completed interim look.</li>
 <li>
 <strong><code><a href="../reference/sim_trials.html">sim_trials()</a></code></strong>: Top-level entry point.

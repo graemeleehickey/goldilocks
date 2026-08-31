@@ -38,7 +38,8 @@ sim_trials(
   backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL,
   binary_imputation = c("event-time", "bernoulli"),
-  prior_surv_final = prior_surv
+  prior_surv_final = prior_surv,
+  generation_cutpoints = cutpoints
 )
 ```
 
@@ -56,14 +57,12 @@ sim_trials(
 
 - cutpoints:
 
-  finite, positive, strictly increasing interior times at which the
-  baseline hazard changes. The number of hazards for each arm must be
-  one greater than the number of cutpoints. Default is `NULL`, which
-  corresponds to a simple (non-piecewise) exponential model. Realized
-  event times are assigned to analysis intervals using the survival
-  counting-process convention, open on the left and closed on the right;
-  an event exactly at a cutpoint therefore belongs to the interval
-  ending at that cutpoint.
+  finite, positive, strictly increasing interior follow-up times
+  defining the piecewise-exponential model used for interim posterior
+  estimation, predictive imputation, and final analysis. The number of
+  interval-specific prior columns must be one greater than the number of
+  cutpoints. Default is `NULL`, which uses a constant-hazard analysis
+  model.
 
 - N_total:
 
@@ -93,7 +92,8 @@ sim_trials(
 
 - end_of_study:
 
-  finite study endpoint, strictly greater than the last cutpoint.
+  finite study endpoint, strictly greater than the final value in both
+  `cutpoints` and `generation_cutpoints` when either is supplied.
 
 - prior_surv:
 
@@ -322,6 +322,14 @@ sim_trials(
   final analysis. It accepts the same forms as `prior_surv` and defaults
   to `prior_surv`, preserving the historical behavior.
 
+- generation_cutpoints:
+
+  finite, positive, strictly increasing interior follow-up times
+  defining the piecewise-exponential model used to generate event times.
+  `hazard_treatment` and `hazard_control` must each have one value per
+  resulting interval. Defaults to `cutpoints`, preserving the historical
+  behavior in which generation and analysis used one partition.
+
 ## Value
 
 A list containing `sims`, a data frame with one row per successfully
@@ -344,10 +352,11 @@ backend and worker counts, task count, and backend-selection reason. An
 `arguments` attribute contains a named list of all evaluated argument
 values, including defaults. Its `prop_loss` element is normalized to a
 named value for every simulated arm, and its `rand_ratio` element is
-normalized to `control`, `treatment` order for two-arm designs. The
-attribute can be saved with
-[`saveRDS()`](https://rdrr.io/r/base/readRDS.html) and supplied to a
-later call with `do.call(sim_trials, attr(result, "arguments"))`.
+normalized to `control`, `treatment` order for two-arm designs. Its
+`cutpoints` and `generation_cutpoints` elements retain the analysis and
+data-generation partitions, respectively. The attribute can be saved
+with [`saveRDS()`](https://rdrr.io/r/base/readRDS.html) and supplied to
+a later call with `do.call(sim_trials, attr(result, "arguments"))`.
 
 ## Details
 

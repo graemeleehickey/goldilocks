@@ -33,7 +33,8 @@ survival_adapt(
   imputed_final = FALSE,
   return_trace = FALSE,
   binary_imputation = c("event-time", "bernoulli"),
-  prior_surv_final = prior_surv
+  prior_surv_final = prior_surv,
+  generation_cutpoints = cutpoints
 )
 ```
 
@@ -51,14 +52,12 @@ survival_adapt(
 
 - cutpoints:
 
-  finite, positive, strictly increasing interior times at which the
-  baseline hazard changes. The number of hazards for each arm must be
-  one greater than the number of cutpoints. Default is `NULL`, which
-  corresponds to a simple (non-piecewise) exponential model. Realized
-  event times are assigned to analysis intervals using the survival
-  counting-process convention, open on the left and closed on the right;
-  an event exactly at a cutpoint therefore belongs to the interval
-  ending at that cutpoint.
+  finite, positive, strictly increasing interior follow-up times
+  defining the piecewise-exponential model used for interim posterior
+  estimation, predictive imputation, and final analysis. The number of
+  interval-specific prior columns must be one greater than the number of
+  cutpoints. Default is `NULL`, which uses a constant-hazard analysis
+  model.
 
 - N_total:
 
@@ -88,7 +87,8 @@ survival_adapt(
 
 - end_of_study:
 
-  finite study endpoint, strictly greater than the last cutpoint.
+  finite study endpoint, strictly greater than the final value in both
+  `cutpoints` and `generation_cutpoints` when either is supplied.
 
 - prior_surv:
 
@@ -288,6 +288,14 @@ survival_adapt(
   final analysis. It accepts the same forms as `prior_surv` and defaults
   to `prior_surv`, preserving the historical behavior.
 
+- generation_cutpoints:
+
+  finite, positive, strictly increasing interior follow-up times
+  defining the piecewise-exponential model used to generate event times.
+  `hazard_treatment` and `hazard_control` must each have one value per
+  resulting interval. Defaults to `cutpoints`, preserving the historical
+  behavior in which generation and analysis used one partition.
+
 ## Value
 
 With return_trace = FALSE (the default), a data frame containing some
@@ -338,8 +346,8 @@ including:
   concurrently under follow-up.
 
 Calendar time is measured from the first patient's enrollment at time
-zero. Times use the same units as `lambda_time`, `cutpoints`, and
-`end_of_study`.
+zero. Times use the same units as `lambda_time`, `cutpoints`,
+`generation_cutpoints`, and `end_of_study`.
 
 The returned object has a `decision_design` attribute containing
 `interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
@@ -352,7 +360,9 @@ with [`saveRDS()`](https://rdrr.io/r/base/readRDS.html) and supplied to
 a later call with `do.call(survival_adapt, attr(result, "arguments"))`.
 Its `prop_loss` element is normalized to a named value for every
 simulated arm. Its `rand_ratio` element is normalized to `control`,
-`treatment` order for two-arm designs.
+`treatment` order for two-arm designs. Its `cutpoints` and
+`generation_cutpoints` elements retain the analysis and data-generation
+partitions, respectively.
 
 With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row

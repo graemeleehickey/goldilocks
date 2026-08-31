@@ -9,7 +9,7 @@ piecewise exponential distribution
 sim_comp_data(
   hazard_treatment,
   hazard_control = NULL,
-  cutpoints = NULL,
+  generation_cutpoints = NULL,
   N_total,
   lambda = 0.3,
   lambda_time = NULL,
@@ -32,16 +32,13 @@ sim_comp_data(
   vector. Finite non-negative constant hazard rates under the control
   arm.
 
-- cutpoints:
+- generation_cutpoints:
 
-  finite, positive, strictly increasing interior times at which the
-  baseline hazard changes. The number of hazards for each arm must be
-  one greater than the number of cutpoints. Default is `NULL`, which
-  corresponds to a simple (non-piecewise) exponential model. Realized
-  event times are assigned to analysis intervals using the survival
-  counting-process convention, open on the left and closed on the right;
-  an event exactly at a cutpoint therefore belongs to the interval
-  ending at that cutpoint.
+  finite, positive, strictly increasing interior follow-up times at
+  which the data-generating hazard changes. The number of hazards for
+  each arm must be one greater than the number of generation cutpoints.
+  Default is `NULL`, which corresponds to a simple (non-piecewise)
+  exponential data-generating model.
 
 - N_total:
 
@@ -62,7 +59,8 @@ sim_comp_data(
 
 - end_of_study:
 
-  finite study endpoint, strictly greater than the last cutpoint.
+  finite study endpoint, strictly greater than the last generation
+  cutpoint.
 
 - block:
 
@@ -122,13 +120,14 @@ The first patient is placed at time zero and all subsequent enrollment
 times are measured from first patient in. No uniform jitter is added in
 `sim_comp_data()`.
 
-`lambda_time` and `cutpoints` both contain internal change times, but
-they describe different clocks. `lambda_time` describes changes in the
-trial's calendar-time enrollment rate measured from first patient in.
-`cutpoints` describes changes in an individual subject's event hazard
-measured from that subject's enrollment. They need not have the same
-values or length. All time quantities supplied to a simulation should
-nevertheless use one common unit, such as days or months.
+`lambda_time` and `generation_cutpoints` both contain internal change
+times, but they describe different clocks. `lambda_time` describes
+changes in the trial's calendar-time enrollment rate measured from first
+patient in. `generation_cutpoints` describes changes in an individual
+subject's event hazard measured from that subject's enrollment. They
+need not have the same values or length. All time quantities supplied to
+a simulation should nevertheless use one common unit, such as days or
+months.
 
 PWEALL represents the continuous generating hazard with pieces closed on
 the left and open on the right. This differs from the package's

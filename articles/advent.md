@@ -894,28 +894,29 @@ correspond to:
   Division by 30 converts the SAP’s subjects/month rates to the
   subjects/day scale used here.
 - Using the SAP’s second effectiveness generator with
-  `cutpoints = c(90, 100, 200, 300)` and both `hazard_treatment` and
-  `hazard_control` set to
+  `generation_cutpoints = c(90, 100, 200, 300)` and both
+  `hazard_treatment` and `hazard_control` set to
   `c(0.000055695, 0.010034797, 0.001690763, 0.000680535, 0.000573122)`
   in its equal-arm target scenario.
 - Using the SAP’s third effectiveness generator with
-  `cutpoints = c(90, 120)` and both hazard arguments set to
+  `generation_cutpoints = c(90, 120)` and both hazard arguments set to
   `c(0.000569925, 0.007879626, 0.000596254)` in its equal-arm target
   scenario.
-- Using the SAP’s second safety generator with `cutpoints = c(7, 180)`
-  and both hazard arguments set to
+- Using the SAP’s second safety generator with
+  `generation_cutpoints = c(7, 180)` and both hazard arguments set to
   `c(0.007327613, 0.000122991, 0.0000600610)` in its equal-arm target
   scenario.
 
 The three alternative event-time generators deliberately use
 data-generating partitions that differ from the principal analysis
-partitions. The current package accepts one `cutpoints` vector for both
-event generation and predictive imputation, so it cannot reproduce those
-model-misspecification sensitivities directly. The SAP also planned an
-imputation-model sensitivity with six pieces: day 90 followed by five
-post-90-day intervals containing approximately equal event counts,
-potentially with different cut-points by arm. A shared fixed package
-cut-point vector cannot reproduce that analysis either.
+partitions. They can be represented by changing `generation_cutpoints`
+and the hazard vectors while retaining `cutpoints` and the priors for
+the principal predictive model. The SAP also planned an imputation-model
+sensitivity with six pieces: day 90 followed by five post-90-day
+intervals containing approximately equal event counts, potentially with
+different cut-points by arm. `goldilocks` uses one analysis partition
+shared by both arms, so arm-specific predictive cut-points remain
+outside the current API.
 
 The SAP supplies quantitative reference results based on 10,000
 simulated trials per scenario and M=5000 predictive draws or

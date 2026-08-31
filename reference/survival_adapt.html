@@ -73,7 +73,8 @@
 <span>  imputed_final <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_trace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  binary_imputation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event-time"</span>, <span class="st">"bernoulli"</span><span class="op">)</span>,</span>
-<span>  prior_surv_final <span class="op">=</span> <span class="va">prior_surv</span></span>
+<span>  prior_surv_final <span class="op">=</span> <span class="va">prior_surv</span>,</span>
+<span>  generation_cutpoints <span class="op">=</span> <span class="va">cutpoints</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -92,14 +93,11 @@ under the control arm.</p></dd>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
-<dd><p>finite, positive, strictly increasing interior times at
-which the baseline hazard changes. The number of hazards for each arm must
-be one greater than the number of cutpoints. Default is <code>NULL</code>, which
-corresponds to a simple (non-piecewise) exponential model. Realized event
-times are assigned to analysis intervals using the survival
-counting-process convention, open on the left and closed on the right; an
-event exactly at a cutpoint therefore belongs to the interval ending at
-that cutpoint.</p></dd>
+<dd><p>finite, positive, strictly increasing interior follow-up
+times defining the piecewise-exponential model used for interim posterior
+estimation, predictive imputation, and final analysis. The number of
+interval-specific prior columns must be one greater than the number of
+cutpoints. Default is <code>NULL</code>, which uses a constant-hazard analysis model.</p></dd>
 
 
 <dt id="arg-n-total">N_total<a class="anchor" aria-label="anchor" href="#arg-n-total"></a></dt>
@@ -128,8 +126,9 @@ the interim posterior undefined for the missing group.</p></dd>
 
 
 <dt id="arg-end-of-study">end_of_study<a class="anchor" aria-label="anchor" href="#arg-end-of-study"></a></dt>
-<dd><p>finite study endpoint, strictly greater than the last
-cutpoint.</p></dd>
+<dd><p>finite study endpoint, strictly greater than the final
+value in both <code>cutpoints</code> and <code>generation_cutpoints</code> when either is
+supplied.</p></dd>
 
 
 <dt id="arg-prior-surv">prior_surv<a class="anchor" aria-label="anchor" href="#arg-prior-surv"></a></dt>
@@ -317,6 +316,14 @@ for time-to-event analysis methods.</p></dd>
 final-stage piecewise-exponential imputation and, for <code>method = "bayes-surv"</code>, final analysis. It accepts the same forms as <code>prior_surv</code>
 and defaults to <code>prior_surv</code>, preserving the historical behavior.</p></dd>
 
+
+<dt id="arg-generation-cutpoints">generation_cutpoints<a class="anchor" aria-label="anchor" href="#arg-generation-cutpoints"></a></dt>
+<dd><p>finite, positive, strictly increasing interior
+follow-up times defining the piecewise-exponential model used to generate
+event times. <code>hazard_treatment</code> and <code>hazard_control</code> must each have one
+value per resulting interval. Defaults to <code>cutpoints</code>, preserving the
+historical behavior in which generation and analysis used one partition.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -352,8 +359,8 @@ subjects.</p></li>
 <li><p><code>peak_active_followup</code>: Largest number of enrolled subjects concurrently
 under follow-up.</p></li>
 </ul><p>Calendar time is measured from the first patient's enrollment at time
-zero. Times use the same units as <code>lambda_time</code>, <code>cutpoints</code>, and
-<code>end_of_study</code>.</p>
+zero. Times use the same units as <code>lambda_time</code>, <code>cutpoints</code>,
+<code>generation_cutpoints</code>, and <code>end_of_study</code>.</p>
 <p>The returned object has a <code>decision_design</code> attribute containing
 <code>interim_look</code>, <code>Fn</code>, <code>Sn</code>, and the Monte Carlo settings. Thresholds in
 this metadata are normalized to one value per interim look (and have
@@ -364,7 +371,8 @@ the evaluated argument values, including defaults. It can be saved with
 <code>do.call(survival_adapt, attr(result, "arguments"))</code>. Its <code>prop_loss</code>
 element is normalized to a named value for every simulated arm.
 Its <code>rand_ratio</code> element is normalized to <code>control</code>, <code>treatment</code> order for
-two-arm designs.</p>
+two-arm designs. Its <code>cutpoints</code> and <code>generation_cutpoints</code> elements retain
+the analysis and data-generation partitions, respectively.</p>
 <p>With return_trace = TRUE, a goldilocks_trial object is returned. Its
 summary element is the same data frame and its trace element has one row
 per interim look. The trace records calendar time, the number of subjects

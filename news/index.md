@@ -4,6 +4,21 @@
 
 ### Improvements
 
+- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  and
+  [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+  now allow the event-time generator and predictive analysis to use
+  different piecewise-exponential partitions. `generation_cutpoints`
+  controls `hazard_treatment` and `hazard_control`, while `cutpoints`
+  continues to control posterior estimation, predictive imputation,
+  final analysis, and interval-specific priors. The new argument
+  defaults to `cutpoints`, preserving existing calls and seeded results.
+  The generation-only
+  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md)
+  interface now names its partition `generation_cutpoints` explicitly;
+  direct named calls to `sim_comp_data(cutpoints =)` must use
+  `sim_comp_data(generation_cutpoints =)` instead
+  ([\#95](https://github.com/graemeleehickey/goldilocks/issues/95)).
 - `rand_ratio` and `randomization(allocation =)` now accept vectors
   named `control` and `treatment` in either order and normalize them
   internally. Legacy unnamed vectors remain interpreted as

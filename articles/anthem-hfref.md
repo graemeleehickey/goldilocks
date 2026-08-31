@@ -92,7 +92,8 @@ The status labels have the following meanings:
 | `block` | 3 | assumed | ADR reports varying blocks of 3, 6, or 9; fixed 3 is the closest API setting |
 | `lambda`, `lambda_time` | Six-step ramp to 26 patients/month | inferred | ADR Sections 5.2 and 7 report a six-month ramp to a peak of 26/month |
 | `cutpoints` | 6 and 12 months | reported | ADR Section 2.1 reports 0-6, 6-12, 12-18, and \>18 month intervals; the 16-month package horizon uses the first two cut-points |
-| `hazard_control` | 0.00828, 0.00828, 0.00240 events/week | reported | ADR Table 5, one-year control event probability 0.35; the 0-12 month rate is repeated across the 6-month analysis cut-point |
+| `generation_cutpoints` | 12 months | reported | ADR Table 5 uses 0-12, 12-24, and \>24 month generating intervals; only the 12-month cut-point precedes the 16-month horizon |
+| `hazard_control` | 0.00828, 0.00240 events/week | reported | ADR Table 5, using its two generating hazards that apply before the 16-month horizon |
 | `hazard_treatment` | 0.70 x control hazard | inferred | ADR Sections 5.1 and 7 report the target hazard-ratio scenario |
 | `prop_loss` | 0.10 | reported | ADR Sections 5.3 and 7.2 |
 | `prior_surv` | Gamma shapes 1; rates 1/0.0069, 1/0.0069, 1/0.0035 | reported | ADR Table 1; `goldilocks` applies these independent priors to both arms |
@@ -136,18 +137,20 @@ data.frame(
 #> 2 Three-year control event probability 0.4297041
 ```
 
-The package uses one cut-point vector for both data generation and
-predictive imputation. We retain the reported predictive cut-points at 6
-and 12 months, repeat the reported 0-12-month generating hazard on
-either side of the 6-month cut-point, and truncate at the package’s
-16-month subject-level horizon.
+The data-generating and predictive models use different partitions. We
+retain the predictive cut-points at 6 and 12 months and the generating
+cut-point at 12 months. The reported 18-month predictive cut-point and
+24-month generating cut-point fall beyond this example’s 16-month
+subject-level horizon, so neither can affect an event time or imputation
+and both are omitted.
 
 ``` r
 
 analysis_cutpoints_week <- c(6, 12) * weeks_per_month
+generation_cutpoints_week <- 12 * weeks_per_month
 end_of_study_week <- 16 * weeks_per_month
 
-hazard_control_week <- c(0.00828, 0.00828, 0.00240)
+hazard_control_week <- c(0.00828, 0.00240)
 hazard_treatment_target_week <- 0.70 * hazard_control_week
 hazard_treatment_null_week <- hazard_control_week
 
@@ -232,6 +235,7 @@ criterion into the package convention of analyzing `1 - P`.
 
 anthem_common <- list(
   cutpoints = analysis_cutpoints_week,
+  generation_cutpoints = generation_cutpoints_week,
   N_total = 1000,
   lambda = ramp_rate_per_week,
   lambda_time = ramp_change_week,
@@ -431,30 +435,25 @@ Several distinctions are consequential:
     for the two arms and applies the same Gamma prior matrix to each.
     The reported control-hazard priors can be supplied, but the joint
     sponsor parameterization cannot.
-2.  **Cut-points and generation.** The package uses one set of
-    cut-points for data generation and predictive imputation. The
-    sponsor used 0-6, 6-12, 12-18, and later intervals for prediction
-    but 0-12, 12-24, and later intervals for generating its reference
-    scenarios.
-3.  **Look timing.** Package looks occur when an enrollment count is
+2.  **Look timing.** Package looks occur when an enrollment count is
     reached. It cannot additionally require 300 patients with nine
     months since randomization at the first look, nor schedule futility
     updates four and eight months after accrual ends.
-4.  **Follow-up horizon.** `end_of_study` is a per-subject
+3.  **Follow-up horizon.** `end_of_study` is a per-subject
     administrative horizon. The published trial kept all randomized
     patients under follow-up until the common final visit 16 months
     after the last randomization, so earlier participants could
     contribute more than 16 months.
-5.  **Dropout.** The ADR generated independent exponential dropout times
+4.  **Dropout.** The ADR generated independent exponential dropout times
     giving 10% cumulative dropout by 16 months. `prop_loss = 0.10`
     selects a fixed proportion for loss to follow-up and samples
     censoring before each selected subject’s potential event or
     administrative time.
-6.  **Accrual and randomization.** The stepwise accrual approximation
+5.  **Accrual and randomization.** The stepwise accrual approximation
     replaces a linear six-month ramp. The package also cannot reproduce
     geographic and clinical stratification or randomly varying block
     sizes 3, 6, and 9.
-7.  **Monte Carlo diagnostics.** The public ADR defines each predictive
+6.  **Monte Carlo diagnostics.** The public ADR defines each predictive
     probability as the proportion of imputed datasets in which the final
     test succeeds, and compares that point estimate with 0.95 or 0.01.
     `goldilocks` uses the same strict point-estimate comparisons. With
