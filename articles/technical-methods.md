@@ -607,6 +607,18 @@ and \boldsymbol{\lambda}\_0:
 \Delta^{(b)} = \left\[1 - \exp\\-H_1^{(b)}(\tau)\\\right\] - \left\[1 -
 \exp\\-H_0^{(b)}(\tau)\\\right\], \qquad b = 1,\ldots,B.
 
+In the implementation, fixed analysis-interval widths span from time
+zero through `end_of_study`; they do not shorten to the maximum
+follow-up observed at an interim or final data cut. Observed events and
+person-time determine the Gamma posterior for each interval separately.
+General analyses transform posterior hazards through the checked
+`haz_to_prop()` and
+[`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
+path, while repeated predictive and imputed-final Bayesian-survival
+analyses use an equivalent internal matrix calculation with the
+precomputed widths. Both paths target the same H_a(\tau) and preserve
+the same posterior draws.
+
 The Monte Carlo estimate of the posterior probability for
 `alternative = "less"` is
 

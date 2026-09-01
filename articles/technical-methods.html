@@ -789,6 +789,16 @@ draws of <span class="math inline">\boldsymbol{\lambda}_1</span> and
   -
   \left[1 - \exp\{-H_0^{(b)}(\tau)\}\right],
   \qquad b = 1,\ldots,B.</span></p>
+<p>In the implementation, fixed analysis-interval widths span from time
+zero through <code>end_of_study</code>; they do not shorten to the
+maximum follow-up observed at an interim or final data cut. Observed
+events and person-time determine the Gamma posterior for each interval
+separately. General analyses transform posterior hazards through the
+checked <code>haz_to_prop()</code> and <code><a href="../reference/ppwe.html">ppwe()</a></code> path, while
+repeated predictive and imputed-final Bayesian-survival analyses use an
+equivalent internal matrix calculation with the precomputed widths. Both
+paths target the same <span class="math inline">H_a(\tau)</span> and
+preserve the same posterior draws.</p>
 <p>The Monte Carlo estimate of the posterior probability for
 <code>alternative = "less"</code> is</p>
 <p><span class="math display">\widehat{\Pr}(\Delta &lt; h_0 \mid
