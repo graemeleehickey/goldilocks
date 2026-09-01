@@ -240,6 +240,90 @@ analyse_bayes_surv_sufficient_stats <- function(
     empty_interval = empty_interval
   )
 
+  analyse_bayes_surv_posterior_draws(
+    post_lambda = post_lambda,
+    cutpoints = cutpoints,
+    end_of_study = end_of_study,
+    single_arm = single_arm,
+    alternative = alternative,
+    h0 = h0
+  )
+}
+
+#' Analyze trusted Bayesian-survival sufficient statistics
+#'
+#' @description Internal fast path for canonical sufficient statistics created
+#'   by `posterior_sufficient_stats()` and a normalized survival prior. Public
+#'   and general-purpose internal entry points retain the checked
+#'   `analyse_bayes_surv_sufficient_stats()` path.
+#'
+#' @inheritParams analyse_bayes_surv_sufficient_stats
+#'
+#' @return See `analyse_bayes_surv_sufficient_stats()`.
+#'
+#' @keywords internal
+#' @noRd
+analyse_bayes_surv_sufficient_stats_kernel <- function(
+  data_summ,
+  cutpoints,
+  end_of_study,
+  prior_surv,
+  N_mcmc,
+  single_arm,
+  alternative,
+  h0,
+  empty_interval = "prior"
+) {
+  if (
+    !is.character(alternative) ||
+      length(alternative) != 1L ||
+      !alternative %in% c("greater", "less") ||
+      !is.numeric(h0) ||
+      length(h0) != 1L ||
+      is.na(h0) ||
+      !is.finite(h0)
+  ) {
+    stop(
+      "Internal Bayesian-survival invariant failed: invalid hypothesis",
+      call. = FALSE
+    )
+  }
+
+  post_lambda <- posterior_from_sufficient_stats_kernel(
+    data_summ = data_summ,
+    prior_surv = prior_surv,
+    N_mcmc = N_mcmc,
+    single_arm = single_arm,
+    empty_interval = empty_interval
+  )
+
+  analyse_bayes_surv_posterior_draws(
+    post_lambda = post_lambda,
+    cutpoints = cutpoints,
+    end_of_study = end_of_study,
+    single_arm = single_arm,
+    alternative = alternative,
+    h0 = h0
+  )
+}
+
+#' Summarize Bayesian-survival posterior draws
+#'
+#' @param post_lambda Posterior piecewise-hazard draws.
+#' @inheritParams analyse_bayes_surv_sufficient_stats
+#'
+#' @return See `analyse_bayes_surv_sufficient_stats()`.
+#'
+#' @keywords internal
+#' @noRd
+analyse_bayes_surv_posterior_draws <- function(
+  post_lambda,
+  cutpoints,
+  end_of_study,
+  single_arm,
+  alternative,
+  h0
+) {
   # haz_to_prop() evaluates all posterior draws together. For piecewise hazards
   # it delegates to the matrix-based ppwe() cumulative-hazard calculation,
   # avoiding a draw-by-draw probability loop.

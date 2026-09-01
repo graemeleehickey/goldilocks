@@ -30,6 +30,14 @@ posterior_from_sufficient_stats_internal <- getFromNamespace(
   "posterior_from_sufficient_stats",
   "goldilocks"
 )
+posterior_from_sufficient_stats_kernel_internal <- getFromNamespace(
+  "posterior_from_sufficient_stats_kernel",
+  "goldilocks"
+)
+normalize_gamma_prior_internal <- getFromNamespace(
+  "normalize_gamma_prior",
+  "goldilocks"
+)
 impute_data_internal <- getFromNamespace("impute_data", "goldilocks")
 cumulative_hazard_to_probability_internal <- getFromNamespace(
   "cumulative_hazard_to_probability",
@@ -97,6 +105,12 @@ posterior_stats <- posterior_sufficient_stats_internal(
   data = posterior_data,
   cutpoints = cutpoints_piecewise,
   single_arm = FALSE
+)
+posterior_prior <- normalize_gamma_prior_internal(
+  c(0.1, 0.1),
+  n_intervals = n_intervals_piecewise,
+  single_arm = FALSE,
+  name = "prior_surv"
 )
 
 cox_data <- data.frame(
@@ -180,11 +194,20 @@ benchmark_results <- bench::mark(
       single_arm = FALSE
     )
   },
-  posterior_from_stats_piecewise = {
+  posterior_from_stats_checked = {
     set.seed(1001)
     posterior_from_sufficient_stats_internal(
       data_summ = posterior_stats,
-      prior_surv = c(0.1, 0.1),
+      prior_surv = posterior_prior,
+      N_mcmc = 1000,
+      single_arm = FALSE
+    )
+  },
+  posterior_from_stats_kernel = {
+    set.seed(1001)
+    posterior_from_sufficient_stats_kernel_internal(
+      data_summ = posterior_stats,
+      prior_surv = posterior_prior,
       N_mcmc = 1000,
       single_arm = FALSE
     )

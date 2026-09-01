@@ -411,6 +411,49 @@ test_that("Bayesian survival sufficient-statistics analysis is equivalent", {
   }
 })
 
+test_that("trusted Bayesian survival analysis exactly matches checked analysis", {
+  data <- data.frame(
+    time = c(3, 8, 15, 4, 10, 18),
+    event = c(1, 0, 1, 0, 1, 1),
+    treatment = c(0, 0, 0, 1, 1, 1)
+  )
+  cutpoints <- c(5, 12)
+  data_summ <- posterior_sufficient_stats(data, cutpoints, FALSE)
+  prior <- normalize_gamma_prior(
+    list(
+      control = c(0.5, 0.25),
+      treatment = c(1, 0.5)
+    ),
+    n_intervals = 3,
+    single_arm = FALSE,
+    name = "prior_surv"
+  )
+  args <- list(
+    data_summ = data_summ,
+    cutpoints = cutpoints,
+    end_of_study = 24,
+    prior_surv = prior,
+    N_mcmc = 100,
+    single_arm = FALSE,
+    alternative = "less",
+    h0 = 0
+  )
+
+  set.seed(8247)
+  checked <- do.call(analyse_bayes_surv_sufficient_stats, args)
+  checked_seed <- .Random.seed
+  set.seed(8247)
+  kernel <- do.call(analyse_bayes_surv_sufficient_stats_kernel, args)
+  kernel_seed <- .Random.seed
+
+  expect_identical(kernel, checked)
+  expect_identical(
+    attr(kernel, "mc_counts", exact = TRUE),
+    attr(checked, "mc_counts", exact = TRUE)
+  )
+  expect_identical(kernel_seed, checked_seed)
+})
+
 test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less'", {
   set.seed(5091)
   data <- data.frame(

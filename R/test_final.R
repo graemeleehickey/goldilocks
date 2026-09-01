@@ -112,7 +112,7 @@ test_final <- function(
           cutpoints = cutpoints,
           single_arm = single_arm
         )
-        success <- analyse_bayes_surv_sufficient_stats(
+        success <- analyse_bayes_surv_sufficient_stats_kernel(
           data_summ = data_summ,
           cutpoints = cutpoints,
           end_of_study = end_of_study,

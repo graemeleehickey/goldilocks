@@ -198,74 +198,272 @@ posterior_from_sufficient_stats <- function(
     stop("No subjects in the control arm")
   }
 
-  if (any(data_summ$n == 0)) {
-    empty_details <- data_summ[
-      data_summ$n == 0,
-      c("treatment", "interval"),
-      drop = FALSE
-    ]
-    empty_details$interval <- as.character(empty_details$interval)
-    signalCondition(structure(
-      list(
-        message = paste0(
-          "Empty piecewise-exponential interval(s) handled with policy '",
-          empty_interval,
-          "'"
-        ),
-        call = NULL,
-        policy = empty_interval,
-        details = empty_details
-      ),
-      class = c("goldilocks_empty_interval", "condition")
-    ))
-
-    if (empty_interval == "error") {
-      stop(
-        "At least one treatment arm interval has zero subjects; set ",
-        "'empty_interval' to 'propagate' or 'prior' to continue."
-      )
-    }
-
-    if (empty_interval == "propagate") {
-      data_summ <- propagate_empty_intervals(data_summ)
-    }
-  }
-
-  # The third dimension is always length two for compatibility with the
-  # imputation code: slice 1 is treatment and slice 2 is control. In a
-  # single-arm design the unused control slice deliberately remains NA.
-  post <- array(NA_real_, dim = c(N_mcmc, n_intervals, 2))
-
-  treatment_summ <- data_summ[data_summ$treatment == 1, , drop = FALSE]
-  treatment_summ <- treatment_summ[
-    match(interval_values, as.character(treatment_summ$interval)),
+  data_summ <- resolve_empty_posterior_intervals(
+    data_summ,
+    empty_interval = empty_interval
+  )
+  canonical_combinations <- expand.grid(
+    interval = interval_values,
+    treatment = treatment_values,
+    stringsAsFactors = FALSE
+  )
+  canonical_keys <- paste(
+    canonical_combinations$treatment,
+    canonical_combinations$interval,
+    sep = "\r"
+  )
+  data_summ <- data_summ[
+    match(canonical_keys, actual_combinations),
     ,
     drop = FALSE
   ]
-  for (j in 1:n_intervals) {
-    post[, j, 1] <- rgamma(
+
+  draw_gamma_posterior_kernel(
+    data_summ = data_summ,
+    prior_surv = prior_surv,
+    N_mcmc = N_mcmc,
+    single_arm = single_arm
+  )
+}
+
+#' Draw a posterior from internally generated sufficient statistics
+#'
+#' @description Fast path for statistics returned directly by
+#'   `posterior_sufficient_stats()`. Unlike `posterior_from_sufficient_stats()`,
+#'   this function does not normalize rich prior inputs or accept shuffled
+#'   arm/interval rows. It retains inexpensive assertions for dynamic state and
+#'   applies the configured empty-interval policy before sampling.
+#'
+#' @inheritParams posterior_from_sufficient_stats
+#'
+#' @return See `posterior()`.
+#'
+#' @keywords internal
+#' @noRd
+posterior_from_sufficient_stats_kernel <- function(
+  data_summ,
+  prior_surv,
+  N_mcmc,
+  single_arm,
+  empty_interval = "prior"
+) {
+  if (
+    !is.logical(single_arm) ||
+      length(single_arm) != 1L ||
+      is.na(single_arm)
+  ) {
+    stop(
+      "Internal posterior invariant failed: invalid single-arm indicator",
+      call. = FALSE
+    )
+  }
+  if (
+    !is.numeric(N_mcmc) ||
+      length(N_mcmc) != 1L ||
+      is.na(N_mcmc) ||
+      !is.finite(N_mcmc) ||
+      N_mcmc < 1L ||
+      N_mcmc != floor(N_mcmc)
+  ) {
+    stop(
+      "Internal posterior invariant failed: invalid draw count",
+      call. = FALSE
+    )
+  }
+  if (
+    !is.character(empty_interval) ||
+      length(empty_interval) != 1L ||
+      !empty_interval %in% c("prior", "propagate", "error")
+  ) {
+    stop(
+      "Internal posterior invariant failed: invalid empty-interval policy",
+      call. = FALSE
+    )
+  }
+
+  expected_arms <- if (single_arm) "treatment" else c("control", "treatment")
+  valid_prior <- is.array(prior_surv) &&
+    length(dim(prior_surv)) == 3L &&
+    dim(prior_surv)[1L] == 2L &&
+    dim(prior_surv)[3L] == length(expected_arms) &&
+    identical(dimnames(prior_surv)$parameter, c("shape", "rate")) &&
+    identical(dimnames(prior_surv)$arm, expected_arms) &&
+    is.numeric(prior_surv) &&
+    !anyNA(prior_surv) &&
+    all(is.finite(prior_surv)) &&
+    all(prior_surv > 0)
+  if (!valid_prior) {
+    stop(
+      "Internal posterior invariant failed: non-canonical survival prior",
+      call. = FALSE
+    )
+  }
+
+  n_intervals <- dim(prior_surv)[2L]
+  required_columns <- c(
+    "treatment",
+    "interval",
+    "n",
+    "tot_time",
+    "tot_events"
+  )
+  expected_treatment <- if (single_arm) {
+    rep(1, n_intervals)
+  } else {
+    rep(c(0, 1), each = n_intervals)
+  }
+  expected_interval <- rep(seq_len(n_intervals), length(expected_arms))
+  valid_structure <- is.data.frame(data_summ) &&
+    all(required_columns %in% names(data_summ)) &&
+    nrow(data_summ) == length(expected_treatment) &&
+    !anyNA(data_summ$treatment) &&
+    all(data_summ$treatment == expected_treatment) &&
+    !anyNA(data_summ$interval) &&
+    all(as.character(data_summ$interval) == as.character(expected_interval))
+  if (!valid_structure) {
+    stop(
+      paste0(
+        "Internal posterior invariant failed: non-canonical sufficient ",
+        "statistics"
+      ),
+      call. = FALSE
+    )
+  }
+
+  statistic_values <- unlist(
+    data_summ[c("n", "tot_time", "tot_events")],
+    use.names = FALSE
+  )
+  count_values <- unlist(
+    data_summ[c("n", "tot_events")],
+    use.names = FALSE
+  )
+  if (
+    anyNA(statistic_values) ||
+      any(!is.finite(statistic_values)) ||
+      any(statistic_values < 0) ||
+      any(count_values != floor(count_values))
+  ) {
+    stop(
+      "Internal posterior invariant failed: invalid sufficient statistics",
+      call. = FALSE
+    )
+  }
+  if (sum(data_summ$n[data_summ$treatment == 1]) == 0) {
+    stop(
+      "Internal posterior invariant failed: no subjects in treatment arm",
+      call. = FALSE
+    )
+  }
+  if (!single_arm && sum(data_summ$n[data_summ$treatment == 0]) == 0) {
+    stop(
+      "Internal posterior invariant failed: no subjects in control arm",
+      call. = FALSE
+    )
+  }
+
+  data_summ <- resolve_empty_posterior_intervals(
+    data_summ,
+    empty_interval = empty_interval
+  )
+  draw_gamma_posterior_kernel(
+    data_summ = data_summ,
+    prior_surv = prior_surv,
+    N_mcmc = N_mcmc,
+    single_arm = single_arm
+  )
+}
+
+#' Apply the configured empty-interval policy
+#'
+#' @inheritParams posterior_from_sufficient_stats
+#'
+#' @return The sufficient-statistics data frame after any propagation.
+#'
+#' @keywords internal
+#' @noRd
+resolve_empty_posterior_intervals <- function(data_summ, empty_interval) {
+  if (!any(data_summ$n == 0)) {
+    return(data_summ)
+  }
+
+  empty_details <- data_summ[
+    data_summ$n == 0,
+    c("treatment", "interval"),
+    drop = FALSE
+  ]
+  empty_details$interval <- as.character(empty_details$interval)
+  signalCondition(structure(
+    list(
+      message = paste0(
+        "Empty piecewise-exponential interval(s) handled with policy '",
+        empty_interval,
+        "'"
+      ),
+      call = NULL,
+      policy = empty_interval,
+      details = empty_details
+    ),
+    class = c("goldilocks_empty_interval", "condition")
+  ))
+
+  if (empty_interval == "error") {
+    stop(
+      "At least one treatment arm interval has zero subjects; set ",
+      "'empty_interval' to 'propagate' or 'prior' to continue."
+    )
+  }
+  if (empty_interval == "propagate") {
+    return(propagate_empty_intervals(data_summ))
+  }
+  data_summ
+}
+
+#' Sample Gamma posterior hazards from canonical sufficient statistics
+#'
+#' @inheritParams posterior_from_sufficient_stats
+#'
+#' @return See `posterior()`.
+#'
+#' @keywords internal
+#' @noRd
+draw_gamma_posterior_kernel <- function(
+  data_summ,
+  prior_surv,
+  N_mcmc,
+  single_arm
+) {
+  n_intervals <- dim(prior_surv)[2L]
+  treatment_rows <- if (single_arm) {
+    seq_len(n_intervals)
+  } else {
+    n_intervals + seq_len(n_intervals)
+  }
+  control_rows <- seq_len(n_intervals)
+
+  # The third dimension remains length two for compatibility with imputation:
+  # slice 1 is treatment and slice 2 is control. The unused single-arm control
+  # slice deliberately remains NA.
+  post <- array(NA_real_, dim = c(N_mcmc, n_intervals, 2L))
+  for (j in seq_len(n_intervals)) {
+    row <- treatment_rows[j]
+    post[, j, 1L] <- rgamma(
       N_mcmc,
-      prior_surv["shape", j, "treatment"] + treatment_summ$tot_events[j],
-      prior_surv["rate", j, "treatment"] + treatment_summ$tot_time[j]
+      prior_surv["shape", j, "treatment"] + data_summ$tot_events[row],
+      prior_surv["rate", j, "treatment"] + data_summ$tot_time[row]
     )
   }
 
   if (!single_arm) {
-    control_summ <- data_summ[data_summ$treatment == 0, , drop = FALSE]
-    control_summ <- control_summ[
-      match(interval_values, as.character(control_summ$interval)),
-      ,
-      drop = FALSE
-    ]
-    for (j in 1:n_intervals) {
-      post[, j, 2] <- rgamma(
+    for (j in seq_len(n_intervals)) {
+      row <- control_rows[j]
+      post[, j, 2L] <- rgamma(
         N_mcmc,
-        prior_surv["shape", j, "control"] + control_summ$tot_events[j],
-        prior_surv["rate", j, "control"] + control_summ$tot_time[j]
+        prior_surv["shape", j, "control"] + data_summ$tot_events[row],
+        prior_surv["rate", j, "control"] + data_summ$tot_time[row]
       )
     }
   }
-
   post
 }
 

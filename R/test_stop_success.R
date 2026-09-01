@@ -61,7 +61,7 @@ test_stop_success <- function(
       single_arm = single_arm,
       rows = data_success_impute$subject_enrolled
     )
-    success_now <- analyse_bayes_surv_sufficient_stats(
+    success_now <- analyse_bayes_surv_sufficient_stats_kernel(
       data_summ = data_summ_now,
       cutpoints = cutpoints,
       end_of_study = end_of_study,
@@ -128,7 +128,7 @@ test_stop_success <- function(
         cutpoints = cutpoints,
         single_arm = single_arm
       )
-      success_max <- analyse_bayes_surv_sufficient_stats(
+      success_max <- analyse_bayes_surv_sufficient_stats_kernel(
         data_summ = data_summ_max,
         cutpoints = cutpoints,
         end_of_study = end_of_study,

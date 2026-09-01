@@ -9,10 +9,12 @@ schedules. In particular, its low-rate case guards the continuous-time
 generator against work that scales with empty calendar bins rather than with
 the requested number of enrollments.
 
-It also reports piecewise-exponential posterior sampling both from a
-patient-level data frame and from precomputed sufficient statistics. The latter
-isolates the repeated second-stage posterior work performed after Bayesian
-predictive imputation.
+It also reports piecewise-exponential posterior sampling from a patient-level
+data frame and from precomputed sufficient statistics. The sufficient-statistic
+pair compares the general checked entry point with the trusted internal kernel
+used for canonical summaries generated inside Bayesian predictive imputation.
+Both receive the same normalized prior and reset to the same seed, isolating
+validation overhead without changing the Gamma posterior calculation.
 
 The stable cumulative-hazard/probability transformations are benchmarked over
 100,000 values spanning near-zero inputs through their mathematical

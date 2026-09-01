@@ -25,6 +25,54 @@ test_that("survival_adapt-bayes-surv", {
   expect_s3_class(out, "data.frame")
 })
 
+test_that("Bayesian survival fast path preserves seeded trial results", {
+  args <- list(
+    hazard_treatment = c(0.015, 0.025),
+    hazard_control = c(0.025, 0.035),
+    cutpoints = 6,
+    N_total = 60,
+    lambda = 12,
+    interim_look = 30,
+    end_of_study = 12,
+    prior_surv = list(
+      control = c(0.5, 0.25),
+      treatment = c(1, 0.5)
+    ),
+    prior_surv_final = list(
+      control = c(1, 0.5),
+      treatment = c(2, 1)
+    ),
+    prop_loss = 0.1,
+    alternative = "less",
+    Fn = 0.05,
+    Sn = 0.9,
+    prob_ha = 0.95,
+    N_impute = 3,
+    N_mcmc = 5,
+    method = "bayes-surv",
+    imputed_final = TRUE,
+    return_trace = TRUE
+  )
+
+  set.seed(6195)
+  optimized <- do.call(survival_adapt, args)
+  optimized_seed <- .Random.seed
+
+  checked_kernel <- function(...) {
+    analyse_bayes_surv_sufficient_stats(...)
+  }
+  local_mocked_bindings(
+    analyse_bayes_surv_sufficient_stats_kernel = checked_kernel,
+    .package = "goldilocks"
+  )
+  set.seed(6195)
+  checked <- do.call(survival_adapt, args)
+  checked_seed <- .Random.seed
+
+  expect_identical(optimized, checked)
+  expect_identical(optimized_seed, checked_seed)
+})
+
 test_that("survival_adapt-bayes-bin", {
   set.seed(1)
   out <- survival_adapt(
