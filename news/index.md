@@ -4,6 +4,13 @@
 
 ### Improvements
 
+- Repeated Bayesian-survival completed-data analyses now use a guarded
+  internal Gamma-posterior kernel when both the sufficient statistics
+  and normalized priors were created by `goldilocks`. General entry
+  points retain their full validation and flexible input handling, while
+  exact seeded results, random number consumption, empty-interval
+  behavior, and public outputs are unchanged
+  ([\#89](https://github.com/graemeleehickey/goldilocks/issues/89)).
 - Documentation now states explicitly that Bayesian binary prediction
   uses a piecewise-exponential Gamma model to impute pending outcomes
   and a separate beta-binomial model to analyze completed endpoint
