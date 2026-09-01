@@ -454,6 +454,110 @@ test_that("trusted Bayesian survival analysis exactly matches checked analysis",
   expect_identical(kernel_seed, checked_seed)
 })
 
+test_that("trusted Bayesian survival effect draws match checked conversion", {
+  cases <- list(
+    list(
+      name = "two-arm, one draw, one interval",
+      draws = 1L,
+      cutpoints = NULL,
+      end_of_study = 24,
+      single_arm = FALSE
+    ),
+    list(
+      name = "single-arm, one draw, piecewise",
+      draws = 1L,
+      cutpoints = c(5, 12),
+      end_of_study = 24,
+      single_arm = TRUE
+    ),
+    list(
+      name = "two-arm, multiple draws, piecewise",
+      draws = 10L,
+      cutpoints = c(5, 12),
+      end_of_study = 24,
+      single_arm = FALSE
+    ),
+    list(
+      name = "single-arm, multiple draws, one interval",
+      draws = 10L,
+      cutpoints = NULL,
+      end_of_study = 24,
+      single_arm = TRUE
+    )
+  )
+
+  for (case in cases) {
+    n_intervals <- length(case$cutpoints) + 1L
+    post_lambda <- array(
+      seq_len(case$draws * n_intervals * 2L) / 100,
+      dim = c(case$draws, n_intervals, 2L)
+    )
+    if (case$single_arm) {
+      post_lambda[,, 2L] <- NA_real_
+    }
+    interval_widths <- endpoint_interval_widths(
+      case$cutpoints,
+      case$end_of_study
+    )
+
+    expected <- haz_to_prop(
+      post = post_lambda,
+      cutpoints = case$cutpoints,
+      end_of_study = case$end_of_study,
+      single_arm = case$single_arm
+    )$effect
+    actual <- bayes_surv_effect_draws_kernel(
+      post_lambda = post_lambda,
+      interval_widths = interval_widths,
+      single_arm = case$single_arm
+    )
+
+    expect_identical(actual, expected, info = case$name)
+  }
+})
+
+test_that("trusted Bayesian survival effect kernel rejects incompatible state", {
+  expect_error(
+    bayes_surv_effect_draws_kernel(
+      post_lambda = matrix(0.1, nrow = 2, ncol = 2),
+      interval_widths = c(6, 6),
+      single_arm = FALSE
+    ),
+    "incompatible posterior hazards and interval widths"
+  )
+
+  data <- data.frame(
+    time = c(3, 8, 15, 4, 10, 18),
+    event = c(1, 0, 1, 0, 1, 1),
+    treatment = c(0, 0, 0, 1, 1, 1)
+  )
+  data_summ <- posterior_sufficient_stats(data, c(5, 12), FALSE)
+  prior <- normalize_gamma_prior(
+    c(0.5, 0.25),
+    n_intervals = 3,
+    single_arm = FALSE,
+    name = "prior_surv"
+  )
+
+  set.seed(8248)
+  seed_before <- .Random.seed
+  expect_error(
+    analyse_bayes_surv_sufficient_stats_kernel(
+      data_summ = data_summ,
+      cutpoints = c(5, 12),
+      end_of_study = 24,
+      prior_surv = prior,
+      N_mcmc = 10,
+      single_arm = FALSE,
+      alternative = "less",
+      h0 = 0,
+      interval_widths = c(5, -1, 20)
+    ),
+    "invalid interval widths"
+  )
+  expect_identical(.Random.seed, seed_before)
+})
+
 test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less'", {
   set.seed(5091)
   data <- data.frame(

@@ -7,6 +7,8 @@
 #' @inheritParams sim_comp_data
 #' @param check_futility Logical. Does the adaptive design include a test for
 #'   assessment of futility?
+#' @param interval_widths Precomputed analysis-interval durations through the
+#'   endpoint horizon, used by the trusted Bayesian-survival analysis path.
 #' @param prob_ha Final completed-data success threshold.
 #' @param mc_conf_level Confidence level for diagnostic finite posterior Monte
 #'   Carlo bounds.
@@ -18,6 +20,7 @@ test_stop_success <- function(
   hazard,
   end_of_study,
   cutpoints,
+  interval_widths,
   single_arm,
   prior_surv,
   N_mcmc,
@@ -70,7 +73,8 @@ test_stop_success <- function(
       single_arm = single_arm,
       alternative = alternative,
       h0 = h0,
-      empty_interval = empty_interval
+      empty_interval = empty_interval,
+      interval_widths = interval_widths
     )
   } else {
     # Frequentist and binary-Bayesian methods still require patient-level
@@ -137,7 +141,8 @@ test_stop_success <- function(
         single_arm = single_arm,
         alternative = alternative,
         h0 = h0,
-        empty_interval = empty_interval
+        empty_interval = empty_interval,
+        interval_widths = interval_widths
       )
     } else {
       # Create the patient-level data required by the other analysis methods.

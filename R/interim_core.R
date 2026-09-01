@@ -115,6 +115,11 @@ evaluate_interim_core <- function(
     single_arm = single_arm,
     empty_interval = empty_interval
   )
+  interval_widths <- if (method == "bayes-surv") {
+    endpoint_interval_widths(cutpoints, end_of_study)
+  } else {
+    NULL
+  }
 
   maximum_successes <- 0L
   current_successes <- 0L
@@ -129,6 +134,7 @@ evaluate_interim_core <- function(
         hazard = hazard,
         end_of_study = end_of_study,
         cutpoints = cutpoints,
+        interval_widths = interval_widths,
         single_arm = single_arm,
         prior_surv = prior_surv,
         N_mcmc = N_mcmc,

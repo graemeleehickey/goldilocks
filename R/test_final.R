@@ -63,6 +63,11 @@ test_final <- function(
     single_arm,
     imputed_final
   )
+  interval_widths <- if (imputed_final && method == "bayes-surv") {
+    endpoint_interval_widths(cutpoints, end_of_study)
+  } else {
+    NULL
+  }
 
   if (imputed_final) {
     if (method %in% c("cox", "riskdiff") && N_impute < 2) {
@@ -121,7 +126,8 @@ test_final <- function(
           single_arm = single_arm,
           alternative = alternative,
           h0 = h0,
-          empty_interval = empty_interval
+          empty_interval = empty_interval,
+          interval_widths = interval_widths
         )
         post_paa[j] <- success$success
         effect_final[j] <- success$effect

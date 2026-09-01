@@ -2,6 +2,13 @@
 
 ## Improvements
 
+* Bayesian-survival predictive and imputed-final analyses now reuse fixed
+  analysis-interval widths and calculate endpoint treatment-effect draws
+  directly from trusted posterior hazard arrays. The widths span the specified
+  `end_of_study` estimand regardless of currently observed maximum follow-up.
+  The outer imputation loop and Gamma draw order remain unchanged, preserving
+  exact seeded results while avoiding repeated validation and temporary
+  probability data frames (#90).
 * Repeated Bayesian-survival completed-data analyses now use a guarded internal
   Gamma-posterior kernel when both the sufficient statistics and normalized
   priors were created by `goldilocks`. General entry points retain their full

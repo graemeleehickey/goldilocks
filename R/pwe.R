@@ -247,8 +247,24 @@ ppwe <- function(hazard, end_of_study, cutpoints = NULL) {
   validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
   validate_hazard_matrix(hazard, cutpoints)
 
-  interval_lower <- c(0, cutpoints)
-  interval_upper <- c(cutpoints, Inf)
-  duration <- pmax(0, pmin(end_of_study, interval_upper) - interval_lower)
+  duration <- endpoint_interval_widths(cutpoints, end_of_study)
   cumulative_hazard_to_probability(drop(hazard %*% duration))
+}
+
+#' Calculate analysis-interval widths through the endpoint horizon
+#'
+#' @description Returns the fixed model-interval durations used to integrate
+#'   piecewise hazards through `end_of_study`. These widths describe the
+#'   estimand horizon and do not depend on the maximum follow-up currently
+#'   observed in the data.
+#'
+#' @param cutpoints Analysis-model cutpoints.
+#' @param end_of_study Endpoint horizon.
+#'
+#' @return A numeric vector with one positive width per analysis interval.
+#'
+#' @keywords internal
+#' @noRd
+endpoint_interval_widths <- function(cutpoints, end_of_study) {
+  diff(c(0, cutpoints, end_of_study))
 }

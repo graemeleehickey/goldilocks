@@ -272,7 +272,8 @@ analyse_bayes_surv_sufficient_stats_kernel <- function(
   single_arm,
   alternative,
   h0,
-  empty_interval = "prior"
+  empty_interval = "prior",
+  interval_widths = NULL
 ) {
   if (
     !is.character(alternative) ||
@@ -288,6 +289,20 @@ analyse_bayes_surv_sufficient_stats_kernel <- function(
       call. = FALSE
     )
   }
+  if (is.null(interval_widths)) {
+    interval_widths <- endpoint_interval_widths(cutpoints, end_of_study)
+  }
+  valid_interval_widths <- is.numeric(interval_widths) &&
+    length(interval_widths) == length(cutpoints) + 1L &&
+    !anyNA(interval_widths) &&
+    all(is.finite(interval_widths)) &&
+    all(interval_widths > 0)
+  if (!valid_interval_widths) {
+    stop(
+      "Internal Bayesian-survival invariant failed: invalid interval widths",
+      call. = FALSE
+    )
+  }
 
   post_lambda <- posterior_from_sufficient_stats_kernel(
     data_summ = data_summ,
@@ -297,11 +312,13 @@ analyse_bayes_surv_sufficient_stats_kernel <- function(
     empty_interval = empty_interval
   )
 
-  analyse_bayes_surv_posterior_draws(
+  effect_draws <- bayes_surv_effect_draws_kernel(
     post_lambda = post_lambda,
-    cutpoints = cutpoints,
-    end_of_study = end_of_study,
-    single_arm = single_arm,
+    interval_widths = interval_widths,
+    single_arm = single_arm
+  )
+  summarise_bayes_surv_effect_draws(
+    effect_draws = effect_draws,
     alternative = alternative,
     h0 = h0
   )
@@ -335,6 +352,88 @@ analyse_bayes_surv_posterior_draws <- function(
   )
   effect_draws <- post_event_probability$effect
 
+  summarise_bayes_surv_effect_draws(
+    effect_draws = effect_draws,
+    alternative = alternative,
+    h0 = h0
+  )
+}
+
+#' Calculate Bayesian-survival effect draws from trusted posterior hazards
+#'
+#' @description Converts canonical posterior hazard arrays directly to event
+#'   probabilities at the endpoint horizon. Callers precompute
+#'   `interval_widths`, avoiding repeated checked `ppwe()` calls and temporary
+#'   probability data frames inside predictive-imputation loops.
+#'
+#' @param interval_widths Positive analysis-interval durations through the
+#'   endpoint horizon.
+#' @inheritParams analyse_bayes_surv_posterior_draws
+#'
+#' @return A numeric vector containing one effect per posterior draw.
+#'
+#' @keywords internal
+#' @noRd
+bayes_surv_effect_draws_kernel <- function(
+  post_lambda,
+  interval_widths,
+  single_arm
+) {
+  post_dimensions <- dim(post_lambda)
+  valid_structure <- is.array(post_lambda) &&
+    length(post_dimensions) == 3L &&
+    post_dimensions[2L] == length(interval_widths) &&
+    post_dimensions[3L] == 2L
+  if (!valid_structure) {
+    stop(
+      paste0(
+        "Internal Bayesian-survival invariant failed: incompatible posterior ",
+        "hazards and interval widths"
+      ),
+      call. = FALSE
+    )
+  }
+
+  n_draws <- post_dimensions[1L]
+  n_intervals <- post_dimensions[2L]
+  treatment_hazard <- matrix(
+    post_lambda[,, 1L],
+    nrow = n_draws,
+    ncol = n_intervals
+  )
+  treatment_probability <- cumulative_hazard_to_probability(
+    drop(treatment_hazard %*% interval_widths)
+  )
+
+  if (single_arm) {
+    return(treatment_probability)
+  }
+
+  control_hazard <- matrix(
+    post_lambda[,, 2L],
+    nrow = n_draws,
+    ncol = n_intervals
+  )
+  control_probability <- cumulative_hazard_to_probability(
+    drop(control_hazard %*% interval_widths)
+  )
+  treatment_probability - control_probability
+}
+
+#' Summarize Bayesian-survival effect draws
+#'
+#' @param effect_draws Posterior event-probability effects.
+#' @inheritParams analyse_bayes_surv_posterior_draws
+#'
+#' @return See `analyse_bayes_surv_sufficient_stats()`.
+#'
+#' @keywords internal
+#' @noRd
+summarise_bayes_surv_effect_draws <- function(
+  effect_draws,
+  alternative,
+  h0
+) {
   success_indicator <- if (alternative == "greater") {
     effect_draws > h0
   } else {

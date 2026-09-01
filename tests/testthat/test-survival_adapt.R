@@ -58,7 +58,7 @@ test_that("Bayesian survival fast path preserves seeded trial results", {
   optimized <- do.call(survival_adapt, args)
   optimized_seed <- .Random.seed
 
-  checked_kernel <- function(...) {
+  checked_kernel <- function(..., interval_widths = NULL) {
     analyse_bayes_surv_sufficient_stats(...)
   }
   local_mocked_bindings(

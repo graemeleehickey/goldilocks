@@ -302,6 +302,14 @@ test_that("conditional PWE event probabilities remain stable in the tail", {
 
 # --- ppwe ---
 
+test_that("endpoint interval widths span the fixed analysis horizon", {
+  expect_identical(endpoint_interval_widths(NULL, 36), 36)
+  expect_identical(
+    endpoint_interval_widths(c(6, 12), 36),
+    c(6, 6, 24)
+  )
+})
+
 test_that("ppwe returns probabilities in (0, 1)", {
   haz_matrix <- matrix(c(0.01, 0.02, 0.015, 0.025), ncol = 2)
   out <- ppwe(hazard = haz_matrix, end_of_study = 36, cutpoints = 12)

@@ -21,6 +21,14 @@ load_goldilocks()
 
 ppwe_internal <- getFromNamespace("ppwe", "goldilocks")
 haz_to_prop_internal <- getFromNamespace("haz_to_prop", "goldilocks")
+bayes_surv_effect_draws_kernel_internal <- getFromNamespace(
+  "bayes_surv_effect_draws_kernel",
+  "goldilocks"
+)
+endpoint_interval_widths_internal <- getFromNamespace(
+  "endpoint_interval_widths",
+  "goldilocks"
+)
 posterior_internal <- getFromNamespace("posterior", "goldilocks")
 posterior_sufficient_stats_internal <- getFromNamespace(
   "posterior_sufficient_stats",
@@ -74,6 +82,10 @@ set.seed(4242)
 cutpoints_piecewise <- c(6, 12)
 end_of_study <- 36
 n_intervals_piecewise <- length(cutpoints_piecewise) + 1L
+analysis_interval_widths <- endpoint_interval_widths_internal(
+  cutpoints_piecewise,
+  end_of_study
+)
 
 hazard_matrix <- matrix(
   stats::rgamma(15000, shape = 2, rate = 80),
@@ -181,6 +193,13 @@ benchmark_results <- bench::mark(
       post = posterior_draws,
       cutpoints = cutpoints_piecewise,
       end_of_study = end_of_study,
+      single_arm = FALSE
+    )
+  },
+  bayes_surv_effect_kernel_piecewise = {
+    bayes_surv_effect_draws_kernel_internal(
+      post_lambda = posterior_draws,
+      interval_widths = analysis_interval_widths,
       single_arm = FALSE
     )
   },
