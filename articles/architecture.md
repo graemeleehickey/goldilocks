@@ -53,13 +53,29 @@ function. Consequently, simulated and external interim decisions share
 posterior prediction, imputation, completed-data analysis, threshold
 comparisons, diagnostics, and trace construction.
 
-The core draws `N_impute` hazards from the observed-data posterior. For
-each draw, `test_stop_success()` imputes currently pending follow-up
-and, when futility is enabled, future subjects through the maximum
-sample size. Each completed dataset is analyzed separately. The
-resulting success indicators estimate the predictive probabilities used
-for expected-success and futility decisions. Exact Monte Carlo bounds
-are retained as diagnostics; decisions use the point estimates.
+The core draws `N_impute` hazards from the observed-data posterior and
+passes the complete array to `impute_predictive_draws()`. That internal
+batch calculation generates subject-by-draw time and event matrices for
+currently pending follow-up and, when futility is enabled, future
+subjects through the maximum sample size. It stores only rows requiring
+imputation. `test_stop_success()` then materializes and analyzes one
+matrix column at a time, so the completed-data analysis models and
+decision rules remain unchanged. The scalar `impute_data()` helper
+remains in active use for final-analysis imputation and as the reference
+implementation.
+
+Within an interim batch, random inputs are generated in posterior-draw
+order; for each draw the order is current treatment, current control,
+future treatment, then future control. All predictive imputations are
+generated before completed-data analysis begins. This remains exactly
+reproducible under [`set.seed()`](https://rdrr.io/r/base/Random.html)
+and across supported serial and parallel backends. Because Bayesian
+completed-data analyses previously consumed random numbers between
+imputations, the same seed can produce different Bayesian results than
+in earlier package versions. The resulting success indicators estimate
+the predictive probabilities used for expected-success and futility
+decisions. Exact Monte Carlo bounds are retained as diagnostics;
+decisions use the point estimates.
 
 ## Bayesian-survival checked and trusted paths
 
@@ -201,6 +217,9 @@ Several conventions link the layers above:
 - outer predictive decisions use `N_impute`, completed-data Bayesian
   Monte Carlo uses `N_mcmc`, and exact bounds are diagnostic rather than
   decision-changing; and
+- interim RNG order is posterior hazards, the complete
+  predictive-imputation batch in draw/current/future/arm order, and then
+  completed-data analyses; and
 - trusted kernels may bypass repeated rich-input validation only after
   package-owned callers have constructed canonical inputs. General entry
   points retain checked behavior.

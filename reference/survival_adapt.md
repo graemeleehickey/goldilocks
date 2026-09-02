@@ -602,8 +602,8 @@ survival_adapt(
  method = "bayes-surv")
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less         300       300        600   600
-#>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
-#> 1            1 -0.08353039         0.6             0                     0
+#>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
+#> 1            1 -0.105519         0.8             0                     0
 #>       stopping_reason accrual_stop_time analysis_ready_time
 #> 1 maximum_sample_size          27.54104            63.52808
 #>   planned_completion_time followup_person_time peak_active_followup
