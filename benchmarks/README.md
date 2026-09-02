@@ -20,8 +20,16 @@ The Bayesian-survival effect pair compares the checked `haz_to_prop()` route
 with the trusted completed-data kernel. The latter reuses fixed analysis-
 interval widths and returns treatment-effect draws directly, avoiding repeated
 cutpoint validation and temporary probability data frames. It deliberately
-retains the outer imputation loop so seeded results and bounded peak memory are
-unchanged.
+retains the completed-data analysis loop; the separate predictive-imputation
+benchmark below measures batching before that loop begins.
+
+The predictive-imputation pair generates 100 expected-success and futility
+completions for the same two-arm interim data. The scalar reference calls
+`impute_data()` twice per posterior draw and retains each completed data frame;
+the batch path stores only subject-by-draw time and event matrices for rows that
+need imputation. Both expressions reset to the same seed and use the documented
+draw, cohort, and arm order, so their generated outcomes can also be checked
+directly in unit tests.
 
 The stable cumulative-hazard/probability transformations are benchmarked over
 100,000 values spanning near-zero inputs through their mathematical

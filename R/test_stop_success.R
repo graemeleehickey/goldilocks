@@ -1,10 +1,14 @@
-#' @title Run test for whether we should stop enrollment at the interim analysis
+#' @title Analyze one completed predictive draw for an interim decision
 #'
-#' @description Imputes one predictive dataset and evaluates expected success
-#'   at the current and, when requested, maximum sample size.
+#' @description Materializes one column of batched predictive imputations and
+#'   evaluates expected success at the current and, when requested, maximum
+#'   sample size.
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
+#' @param imputations Batched interim imputations returned by
+#'   `impute_predictive_draws()`.
+#' @param draw Index of the predictive draw to analyze.
 #' @param check_futility Logical. Does the adaptive design include a test for
 #'   assessment of futility?
 #' @param interval_widths Precomputed analysis-interval durations through the
@@ -17,7 +21,8 @@
 #' @noRd
 test_stop_success <- function(
   data,
-  hazard,
+  imputations,
+  draw,
   end_of_study,
   cutpoints,
   interval_widths,
@@ -29,7 +34,6 @@ test_stop_success <- function(
   h0,
   prior_bin,
   bin_method,
-  binary_imputation,
   empty_interval,
   check_futility,
   prob_ha,
@@ -39,15 +43,10 @@ test_stop_success <- function(
   ### Test for success at current sample size (-> stop for success)
   ##############################################################################
 
-  # Single imputed data set
-  data_success_impute <- impute_data(
+  data_success_impute <- materialize_predictive_draw(
     data_in = data,
-    hazard = hazard,
-    end_of_study = end_of_study,
-    cutpoints = cutpoints,
-    type = "success",
-    single_arm = single_arm,
-    binary_imputation = binary_imputation
+    imputations = imputations,
+    draw = draw
   )
 
   if (method == "bayes-surv") {
@@ -108,18 +107,13 @@ test_stop_success <- function(
   ##############################################################################
 
   if (check_futility) {
-    # Take the already imputed data for expected success and append on
-    # imputed event times for subjects not yet enrolled
-
-    # Single imputed data set
-    data_futility_impute <- impute_data(
+    # Take the already imputed data for expected success and add the batched
+    # outcomes for subjects not yet enrolled.
+    data_futility_impute <- materialize_predictive_draw(
       data_in = data_success_impute,
-      hazard = hazard,
-      end_of_study = end_of_study,
-      cutpoints = cutpoints,
-      type = "futility",
-      single_arm = single_arm,
-      binary_imputation = binary_imputation
+      imputations = imputations,
+      draw = draw,
+      include_future = TRUE
     )
 
     if (method == "bayes-surv") {

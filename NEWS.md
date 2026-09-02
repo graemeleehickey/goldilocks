@@ -2,19 +2,28 @@
 
 ## Improvements
 
+* Interim predictive imputation now accepts the complete posterior hazard array
+  and generates subject-by-draw time and event matrices in one batch before the
+  existing completed-data analysis loop. This removes repeated PWE validation,
+  function-call, and data-frame construction overhead while leaving public
+  inputs, outputs, and statistical analyses unchanged. The scalar
+  `impute_data()` helper remains the active final-analysis and reference path.
+  Within a batch, random inputs retain posterior-draw order, with current
+  treatment, current control, future treatment, and future control generated in
+  that order. All interim imputations now precede completed-data analyses, so
+  seeded Bayesian results can differ from earlier versions; repeated runs and
+  serial/parallel backends remain reproducible (#37).
 * Bayesian-survival predictive and imputed-final analyses now reuse fixed
   analysis-interval widths and calculate endpoint treatment-effect draws
   directly from trusted posterior hazard arrays. The widths span the specified
   `end_of_study` estimand regardless of currently observed maximum follow-up.
-  The outer imputation loop and Gamma draw order remain unchanged, preserving
-  exact seeded results while avoiding repeated validation and temporary
-  probability data frames (#90).
+  The completed-data analysis loop remains while repeated validation and
+  temporary probability data frames are avoided (#90).
 * Repeated Bayesian-survival completed-data analyses now use a guarded internal
   Gamma-posterior kernel when both the sufficient statistics and normalized
   priors were created by `goldilocks`. General entry points retain their full
-  validation and flexible input handling, while exact seeded results, random
-  number consumption, empty-interval behavior, and public outputs are unchanged
-  (#89).
+  validation and flexible input handling. The kernel itself preserves the
+  checked path's Gamma draws, empty-interval behavior, and public outputs (#89).
 * Documentation now states explicitly that Bayesian binary prediction uses a
   piecewise-exponential Gamma model to impute pending outcomes and a separate
   beta-binomial model to analyze completed endpoint statuses. These stages are

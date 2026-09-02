@@ -120,18 +120,31 @@ evaluate_interim_core <- function(
   } else {
     NULL
   }
+  predictive_binary_imputation <- if (method %in% c("bayes-bin", "riskdiff")) {
+    binary_imputation
+  } else {
+    "event-time"
+  }
+  imputations <- impute_predictive_draws(
+    data_in = data_interim,
+    hazards = post_lambda,
+    end_of_study = end_of_study,
+    cutpoints = cutpoints,
+    single_arm = single_arm,
+    binary_imputation = predictive_binary_imputation,
+    check_futility = check_futility
+  )
 
   maximum_successes <- 0L
   current_successes <- 0L
   inner_mc_uncertain_now <- 0L
   inner_mc_uncertain_max <- 0L
   for (j in seq_len(N_impute)) {
-    hazard <- post_lambda[j, , , drop = FALSE]
-
     stop_check <- withCallingHandlers(
       test_stop_success(
         data = data_interim,
-        hazard = hazard,
+        imputations = imputations,
+        draw = j,
         end_of_study = end_of_study,
         cutpoints = cutpoints,
         interval_widths = interval_widths,
@@ -143,11 +156,6 @@ evaluate_interim_core <- function(
         h0 = h0,
         prior_bin = prior_bin,
         bin_method = bin_method,
-        binary_imputation = if (method %in% c("bayes-bin", "riskdiff")) {
-          binary_imputation
-        } else {
-          "event-time"
-        },
         empty_interval = empty_interval,
         check_futility = check_futility,
         mc_conf_level = mc_conf_level,

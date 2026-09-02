@@ -369,6 +369,31 @@ test_that("survival_adapt-complex", {
   expect_s3_class(out, "data.frame")
 })
 
+test_that("batched Bayesian interim imputation is reproducible", {
+  run_once <- function() {
+    set.seed(4205)
+    survival_adapt(
+      hazard_treatment = c(0.02, 0.01),
+      hazard_control = c(0.03, 0.015),
+      cutpoints = 6,
+      N_total = 30,
+      lambda = 10,
+      interim_look = 15,
+      end_of_study = 12,
+      prior_surv = c(0.1, 0.1),
+      alternative = "less",
+      Fn = 0.05,
+      Sn = 1,
+      N_impute = 3,
+      N_mcmc = 4,
+      method = "bayes-surv",
+      return_trace = TRUE
+    )
+  }
+
+  expect_identical(run_once(), run_once())
+})
+
 test_that("generation_cutpoints defaults exactly to analysis cutpoints", {
   common_args <- list(
     hazard_treatment = c(0.02, 0.01),

@@ -64,7 +64,9 @@ digraph trial_pipeline {
   posterior_stats [label = 'posterior_sufficient_stats()']
   posterior_checked [label = 'posterior_from_sufficient_stats()']
   posterior_complete [label = 'posterior()']
-  impute_data [label = 'impute_data()']
+  impute_batch [label = 'impute_predictive_draws()\nvectorized PWE / Bernoulli sampling']
+  materialize [label = 'materialize_predictive_draw()']
+  impute_data [label = 'impute_data()\nscalar final/reference path']
   pwe_impute [label = 'pwe_impute()', fillcolor = '#dae8fc', color = '#6c8ebf']
   analyse_data [label = 'analyse_data()']
   bayes_kernel [label = 'Bayesian-survival kernels', fillcolor = '#fff2cc', color = '#d6b656']
@@ -88,17 +90,17 @@ digraph trial_pipeline {
 
   interim_core -> posterior_stats [label = 'observed data']
   posterior_stats -> posterior_checked [label = 'observed sufficient statistics']
-  posterior_checked -> test_stop [label = 'N_impute hazard draws']
-  interim_core -> test_stop [label = 'predictive loop']
+  posterior_checked -> impute_batch [label = 'N_impute hazard draws']
+  interim_core -> impute_batch [label = 'one batch per look']
+  impute_batch -> materialize [label = 'time / event matrices']
+  materialize -> test_stop [label = 'one column per analysis']
 
-  test_stop -> impute_data
-  impute_data -> pwe_impute [label = 'pending follow-up']
-  impute_data -> pwe_sim [label = 'future subjects']
   test_stop -> bayes_kernel [label = 'bayes-surv']
   test_stop -> analyse_data [label = 'other methods']
 
   test_final -> posterior_complete [label = 'if imputed_final']
   posterior_complete -> impute_data [label = 'N_impute hazard draws']
+  impute_data -> pwe_impute [label = 'pending follow-up']
   test_final -> bayes_kernel [label = 'imputed bayes-surv']
   test_final -> analyse_data [label = 'observed / bayes-bin']
   test_final -> rubin_pool [label = 'imputed cox / riskdiff']
@@ -112,7 +114,9 @@ digraph trial_pipeline {
 
 At every simulated look, `survival_adapt()` prepares the observed data cut and calls `evaluate_interim_core()`. `evaluate_interim()` instead validates an external data cut, derives potential future allocation from `N_total` and `rand_ratio`, and then calls the same core function. Consequently, simulated and external interim decisions share posterior prediction, imputation, completed-data analysis, threshold comparisons, diagnostics, and trace construction.
 
-The core draws `N_impute` hazards from the observed-data posterior. For each draw, `test_stop_success()` imputes currently pending follow-up and, when futility is enabled, future subjects through the maximum sample size. Each completed dataset is analyzed separately. The resulting success indicators estimate the predictive probabilities used for expected-success and futility decisions. Exact Monte Carlo bounds are retained as diagnostics; decisions use the point estimates.
+The core draws `N_impute` hazards from the observed-data posterior and passes the complete array to `impute_predictive_draws()`. That internal batch calculation generates subject-by-draw time and event matrices for currently pending follow-up and, when futility is enabled, future subjects through the maximum sample size. It stores only rows requiring imputation. `test_stop_success()` then materializes and analyzes one matrix column at a time, so the completed-data analysis models and decision rules remain unchanged. The scalar `impute_data()` helper remains in active use for final-analysis imputation and as the reference implementation.
+
+Within an interim batch, random inputs are generated in posterior-draw order; for each draw the order is current treatment, current control, future treatment, then future control. All predictive imputations are generated before completed-data analysis begins. This remains exactly reproducible under `set.seed()` and across supported serial and parallel backends. Because Bayesian completed-data analyses previously consumed random numbers between imputations, the same seed can produce different Bayesian results than in earlier package versions. The resulting success indicators estimate the predictive probabilities used for expected-success and futility decisions. Exact Monte Carlo bounds are retained as diagnostics; decisions use the point estimates.
 
 ## Bayesian-survival checked and trusted paths
 
@@ -288,4 +292,5 @@ Several conventions link the layers above:
 -   `generation_cutpoints` governs event-time generation only, whereas `cutpoints` governs posterior estimation, predictive imputation, analysis priors, and endpoint probability calculations;
 -   analysis intervals follow the survival counting-process convention `(start, stop]` when observed events are assigned to sufficient statistics;
 -   outer predictive decisions use `N_impute`, completed-data Bayesian Monte Carlo uses `N_mcmc`, and exact bounds are diagnostic rather than decision-changing; and
+-   interim RNG order is posterior hazards, the complete predictive-imputation batch in draw/current/future/arm order, and then completed-data analyses; and
 -   trusted kernels may bypass repeated rich-input validation only after package-owned callers have constructed canonical inputs. General entry points retain checked behavior.

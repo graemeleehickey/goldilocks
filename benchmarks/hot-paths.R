@@ -47,6 +47,10 @@ normalize_gamma_prior_internal <- getFromNamespace(
   "goldilocks"
 )
 impute_data_internal <- getFromNamespace("impute_data", "goldilocks")
+impute_predictive_draws_internal <- getFromNamespace(
+  "impute_predictive_draws",
+  "goldilocks"
+)
 cumulative_hazard_to_probability_internal <- getFromNamespace(
   "cumulative_hazard_to_probability",
   "goldilocks"
@@ -149,6 +153,34 @@ imputation_hazard <- array(
   c(0.018, 0.026, 0.034, 0.026, 0.034, 0.042),
   dim = c(1, n_intervals_piecewise, 2)
 )
+imputation_hazards <- array(
+  stats::rgamma(100 * n_intervals_piecewise * 2, shape = 2, rate = 80),
+  dim = c(100, n_intervals_piecewise, 2)
+)
+
+scalar_predictive_imputations <- function() {
+  current <- vector("list", dim(imputation_hazards)[1])
+  maximum <- vector("list", dim(imputation_hazards)[1])
+  for (draw in seq_len(dim(imputation_hazards)[1])) {
+    current[[draw]] <- impute_data_internal(
+      data_in = imputation_data,
+      hazard = imputation_hazards[draw, , , drop = FALSE],
+      end_of_study = end_of_study,
+      cutpoints = cutpoints_piecewise,
+      type = "success",
+      single_arm = FALSE
+    )
+    maximum[[draw]] <- impute_data_internal(
+      data_in = current[[draw]],
+      hazard = imputation_hazards[draw, , , drop = FALSE],
+      end_of_study = end_of_study,
+      cutpoints = cutpoints_piecewise,
+      type = "futility",
+      single_arm = FALSE
+    )
+  }
+  list(current = current, maximum = maximum)
+}
 
 trial_cutpoints <- c(4, 8)
 trial_hazard_control <- prop_to_haz(
@@ -259,8 +291,24 @@ benchmark_results <- bench::mark(
       single_arm = FALSE
     )
   },
-  survival_adapt_logrank = {
+  predictive_imputation_scalar = {
     set.seed(1004)
+    scalar_predictive_imputations()
+  },
+  predictive_imputation_batch = {
+    set.seed(1004)
+    impute_predictive_draws_internal(
+      data_in = imputation_data,
+      hazards = imputation_hazards,
+      end_of_study = end_of_study,
+      cutpoints = cutpoints_piecewise,
+      single_arm = FALSE,
+      binary_imputation = "event-time",
+      check_futility = TRUE
+    )
+  },
+  survival_adapt_logrank = {
+    set.seed(1005)
     survival_adapt(
       hazard_treatment = trial_hazard_treatment,
       hazard_control = trial_hazard_control,
@@ -286,7 +334,7 @@ benchmark_results <- bench::mark(
     )
   },
   survival_adapt_bayes = {
-    set.seed(1005)
+    set.seed(1006)
     survival_adapt(
       hazard_treatment = trial_hazard_treatment,
       hazard_control = trial_hazard_control,
