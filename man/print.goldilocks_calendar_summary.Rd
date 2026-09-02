@@ -7,11 +7,13 @@
 \method{print}{goldilocks_calendar_summary}(x, digits = 1, ...)
 }
 \arguments{
-\item{x}{A \code{goldilocks_calendar_summary} object.}
+\item{x}{A \code{goldilocks_calendar_summary} result returned by
+\code{\link[=summarise_calendar_time]{summarise_calendar_time()}}.}
 
-\item{digits}{Number of digits after the decimal point in displayed values.}
+\item{digits}{A single non-negative integer giving the number of digits after
+the decimal point in displayed values. The default is \code{1}.}
 
-\item{...}{Unused.}
+\item{...}{Additional arguments; currently ignored.}
 }
 \value{
 \code{x}, invisibly.

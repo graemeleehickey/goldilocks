@@ -7,13 +7,16 @@
 plot_sim_ocs(x, effect, xlab = "True treatment effect")
 }
 \arguments{
-\item{x}{A data frame returned by \code{\link[=summarise_sims]{summarise_sims()}}, with one row per
-simulation scenario.}
+\item{x}{A required data frame returned by \code{\link[=summarise_sims]{summarise_sims()}}, with one row
+per simulation scenario and columns \code{power}, \code{stop_success},
+\code{stop_futility}, \code{stop_max_N}, and \code{mean_N}.}
 
-\item{effect}{Numeric treatment-effect values corresponding to the rows of
-\code{x}, or a single character string naming a numeric column in \code{x}.}
+\item{effect}{A required numeric vector containing one finite treatment-effect
+value per row of \code{x}, or a single character string naming such a numeric
+column in \code{x}.}
 
-\item{xlab}{Character label for the treatment-effect axis.}
+\item{xlab}{A single character string for the treatment-effect axis label.
+The default is \code{"True treatment effect"}.}
 }
 \value{
 \code{x}, invisibly.

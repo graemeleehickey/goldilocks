@@ -1,23 +1,27 @@
-#' @title Analyze one completed predictive draw for an interim decision
+#' @title Evaluate success for one predictively completed trial
 #'
-#' @description Materializes one column of batched predictive imputations and
-#'   evaluates expected success at the current and, when requested, maximum
-#'   sample size.
+#' @description Constructs one completed trial from the predictive imputations
+#'   and evaluates the prespecified success criterion at the current and, when
+#'   requested, maximum sample size.
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
-#' @param imputations Batched interim imputations returned by
+#' @param imputations A list of interim predictive imputations returned by
 #'   `impute_predictive_draws()`.
-#' @param draw Index of the predictive draw to analyze.
-#' @param check_futility Logical. Does the adaptive design include a test for
-#'   assessment of futility?
-#' @param interval_widths Precomputed analysis-interval durations through the
-#'   endpoint horizon, used by the trusted Bayesian-survival analysis path.
-#' @param prob_ha Final completed-data success threshold.
-#' @param mc_conf_level Confidence level for diagnostic finite posterior Monte
-#'   Carlo bounds.
+#' @param draw A positive integer identifying the predictive imputation to
+#'   analyze.
+#' @param check_futility A single logical value indicating whether the design
+#'   includes a futility assessment at the maximum sample size.
+#' @param interval_widths A numeric vector giving the analysis-interval
+#'   durations through `end_of_study`, used for the Bayesian survival analysis.
+#' @param prob_ha A single numeric probability in `[0, 1]` defining success in
+#'   the completed-data analysis.
+#' @param mc_conf_level A single numeric probability strictly between `0.5` and
+#'   `1`, giving the level of diagnostic finite Monte Carlo bounds.
 #'
-#' @return See analyse_data
+#' @return A numeric vector containing indicators of success at the current and
+#'   maximum sample sizes and indicators of material inner Monte Carlo
+#'   uncertainty.
 #' @noRd
 test_stop_success <- function(
   data,

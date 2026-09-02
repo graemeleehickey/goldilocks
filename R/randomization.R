@@ -1,15 +1,19 @@
-#' @title Randomization allocation
+#' @title Generate a block-randomized treatment sequence
 #'
 #' @description Generates a randomized treatment assignment sequence for
-#'   control and treatment arms with different randomization ratios and block
-#'   sizes.
+#'   control and treatment arms using a fixed allocation ratio and one or more
+#'   permitted block sizes.
 #'
-#' @param N_total integer. Total sample size for randomization allocation.
-#' @param block vector. One or more positive integer block sizes. Every block
-#'   size must be a multiple of `sum(allocation)`.
-#' @param allocation length-two positive integer vector. Name the values
-#'   `control` and `treatment`; either supplied order is accepted and normalized
-#'   internally. A legacy unnamed vector remains accepted in
+#' @param N_total A required positive integer giving the total number of
+#'   treatment assignments.
+#' @param block A positive integer vector containing one or more permitted block
+#'   sizes. Every block size must be a multiple of `sum(allocation)`. The
+#'   default is `2`.
+#' @param allocation A length-two positive integer vector giving the control to
+#'   treatment allocation ratio. The default is
+#'   `c(control = 1, treatment = 1)`. Name the values
+#'   `control` and `treatment`; either supplied order is accepted and matched by
+#'   name. A legacy unnamed vector remains accepted in
 #'   `c(control, treatment)` order. Unequal unnamed values produce a warning
 #'   because names may be required in a future major release.
 #'

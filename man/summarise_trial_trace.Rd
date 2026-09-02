@@ -7,14 +7,16 @@
 summarise_trial_trace(x)
 }
 \arguments{
-\item{x}{A \code{goldilocks_trial} object, a \code{goldilocks_interim} object, or an
-interim trace data frame.}
+\item{x}{A required \code{goldilocks_trial} result from \code{\link[=survival_adapt]{survival_adapt()}}, a
+\code{goldilocks_interim} result from \code{\link[=evaluate_interim]{evaluate_interim()}}, or an interim trace
+data frame.}
 }
 \value{
 A one-row data frame.
 }
 \description{
 Creates a compact one-row summary of the final interim look and
-stopping decision. Pass the goldilocks_trial object to include final
-analysis information, or pass its trace element to summarize the path only.
+stopping decision. Pass a \code{goldilocks_trial} object to include final
+analysis information, or pass its \code{trace} element to summarize the path
+only.
 }

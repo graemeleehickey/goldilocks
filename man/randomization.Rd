@@ -2,19 +2,23 @@
 % Please edit documentation in R/randomization.R
 \name{randomization}
 \alias{randomization}
-\title{Randomization allocation}
+\title{Generate a block-randomized treatment sequence}
 \usage{
 randomization(N_total, block = 2, allocation = c(control = 1, treatment = 1))
 }
 \arguments{
-\item{N_total}{integer. Total sample size for randomization allocation.}
+\item{N_total}{A required positive integer giving the total number of
+treatment assignments.}
 
-\item{block}{vector. One or more positive integer block sizes. Every block
-size must be a multiple of \code{sum(allocation)}.}
+\item{block}{A positive integer vector containing one or more permitted block
+sizes. Every block size must be a multiple of \code{sum(allocation)}. The
+default is \code{2}.}
 
-\item{allocation}{length-two positive integer vector. Name the values
-\code{control} and \code{treatment}; either supplied order is accepted and normalized
-internally. A legacy unnamed vector remains accepted in
+\item{allocation}{A length-two positive integer vector giving the control to
+treatment allocation ratio. The default is
+\code{c(control = 1, treatment = 1)}. Name the values
+\code{control} and \code{treatment}; either supplied order is accepted and matched by
+name. A legacy unnamed vector remains accepted in
 \code{c(control, treatment)} order. Unequal unnamed values produce a warning
 because names may be required in a future major release.}
 }
@@ -24,8 +28,8 @@ An integer treatment assignment vector, coded \code{0} for control and
 }
 \description{
 Generates a randomized treatment assignment sequence for
-control and treatment arms with different randomization ratios and block
-sizes.
+control and treatment arms using a fixed allocation ratio and one or more
+permitted block sizes.
 }
 \details{
 Complete randomization may not always be ideal due to the chance of

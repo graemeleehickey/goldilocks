@@ -7,13 +7,14 @@
 \method{print}{goldilocks_interim}(x, ...)
 }
 \arguments{
-\item{x}{A \code{goldilocks_interim} object returned by \code{\link[=evaluate_interim]{evaluate_interim()}}.}
+\item{x}{A \code{goldilocks_interim} result returned by \code{\link[=evaluate_interim]{evaluate_interim()}}.}
 
-\item{...}{Unused.}
+\item{...}{Additional arguments; currently ignored.}
 }
 \value{
 \code{x}, invisibly.
 }
 \description{
-Print an externally evaluated interim analysis
+Prints the predictive probabilities and decision from an
+interim analysis returned by \code{\link[=evaluate_interim]{evaluate_interim()}}.
 }

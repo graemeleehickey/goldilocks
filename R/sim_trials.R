@@ -1,50 +1,46 @@
-#' @title Simulate one or more clinical trials subject to known design
-#'   parameters and treatment effect
+#' @title Estimate operating characteristics by trial simulation
 #'
-#' @description Simulate multiple clinical trials with fixed input parameters,
-#'   and tidily extract the relevant data to generate operating characteristics.
+#' @description Repeats [survival_adapt()] under fixed design and
+#'   data-generating assumptions, returning trial-level results from which
+#'   operating characteristics can be estimated.
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
-#' @param N_trials integer. Number of trials to simulate.
-#' @param ncores positive integer. Number of cores to use for parallel
-#'   processing. Defaults to `1L` (serial execution). Package-owned worker
-#'   pools are capped at the number of trials. With `backend = "auto"`, at
-#'   least two trials per worker are required so that small workloads avoid
-#'   parallel startup overhead.
-#' @param backend character. Parallel backend. "auto" (the default) uses
-#'   serial execution for `ncores = 1` or fewer than four trials. Otherwise it
-#'   uses the existing fork backend on Unix-like platforms and a PSOCK cluster
-#'   on Windows, with at least two trials assigned per worker. "fork",
-#'   "psock", and "sequential" select a backend explicitly and bypass this
-#'   workload crossover.
-#' @param seed optional integer. Seed used to generate independent per-trial
-#'   `"L'Ecuyer-CMRG"` random-number streams. The default, `NULL`,
-#'   does not reset the global RNG state, preserving the usual unseeded
-#'   simulation behavior.
-#' @param return_trace logical. Should the compact interim decision trace from
-#'   every simulated trial be retained? The default, `FALSE`, preserves the
+#' @param N_trials A positive integer giving the number of independent trials
+#'   to simulate. The default is `10`.
+#' @param ncores A positive integer giving the maximum number of processor cores
+#'   to use. The default is `1L`, which runs trials sequentially. The number
+#'   actually used cannot exceed `N_trials`; with `backend = "auto"`, at least
+#'   two trials are required per core to justify the parallel-processing
+#'   overhead.
+#' @param backend A single character string selecting the computational method.
+#'   `"auto"` (the default) runs sequentially when `ncores = 1` or fewer than
+#'   four trials are requested; otherwise it uses fork-based parallelization on
+#'   Unix-like systems and a PSOCK cluster on Windows. `"fork"`, `"psock"`, and
+#'   `"sequential"` select a method explicitly. Forking is unavailable on
+#'   Windows.
+#' @param seed `NULL` (the default), or a single integer between `0` and
+#'   `.Machine$integer.max`. A supplied seed gives reproducible simulations,
+#'   including when trials are run in parallel, and leaves the pre-existing
+#'   random-number state unchanged.
+#' @param return_trace A single logical value indicating whether to retain the
+#'   compact interim decision trace from every simulated trial. The default,
+#'   `FALSE`, preserves the
 #'   compact output. When `TRUE`, the returned list also contains a `traces`
 #'   data frame with a `trial` column linking each trace row to the corresponding
 #'   original simulated trial.
 #'
-#' @details This is basically a wrapper function for
-#'   [survival_adapt()], whereby we repeatedly run the function for independent
-#'   trials (all with the same input design parameters and treatment effect).
+#' @details This function is a wrapper for [survival_adapt()] that repeatedly
+#'   simulates independent trials under the same design parameters and assumed
+#'   treatment effect.
 #'
 #'   To use multiple cores (where available), the argument `ncores`
 #'   can be increased from the default of 1. The default `backend = "auto"`
-#'   stays sequential for fewer than four trials and otherwise uses at most one
-#'   worker per two trials. This simple workload heuristic amortizes process
-#'   startup without trying to predict the cost of an individual trial. When
-#'   it selects parallel execution, it uses [pbmcapply::pbmclapply()] on
-#'   Unix-like platforms and a PSOCK cluster on Windows, where forked processes
-#'   are unavailable. Set `backend` explicitly to bypass the crossover.
-#'
-#'   A PSOCK cluster created by `sim_trials()` is always stopped before the
-#'   function returns, including when worker evaluation fails. PSOCK tasks use
-#'   static worker chunks, so the invariant simulation design is serialized
-#'   once per active worker rather than once per trial.
+#'   stays sequential for fewer than four trials and otherwise uses no more than
+#'   one core per two trials. This avoids parallel-processing overhead for small
+#'   simulation studies. On Unix-like systems parallel trials use forked R
+#'   processes; on Windows they use PSOCK processes. Set `backend` explicitly
+#'   when a particular computational method is required.
 #'
 #'   Errors raised by an individual [survival_adapt()] call are isolated so
 #'   other trials can finish. Failed trials are excluded from `sims`, recorded
@@ -54,20 +50,11 @@
 #'   `failures`. With a supplied `seed`, the original call and failed trial
 #'   number reproduce the same per-trial random-number stream.
 #'
-#'   Set `seed` to make `sim_trials()` reproducible. When a seed is
-#'   supplied, `sim_trials()` first generates one independent
-#'   `"L'Ecuyer-CMRG"` stream for each simulated trial, then each call to
-#'   [survival_adapt()] runs with its own per-trial stream. This avoids
-#'   reusing the same random-number stream across workers when
-#'   `ncores > 1`, and produces identical seeded results across supported
-#'   backends. A seeded call restores the caller's RNG state on exit. With
-#'   `seed = NULL`, sequential execution uses and advances R's current global
-#'   RNG state directly. Fork execution delegates stream setup to
-#'   [pbmcapply::pbmclapply()]. PSOCK execution draws one integer seed from the
-#'   caller's current RNG state, thereby advancing that state predictably, and
-#'   expands it into independent per-trial `"L'Ecuyer-CMRG"` streams. Resetting
-#'   the caller to the same state therefore reproduces an unseeded PSOCK call,
-#'   while consecutive calls do not reuse streams.
+#'   With a supplied `seed`, each trial receives an independent random-number
+#'   stream. The resulting trial-level simulations are identical whether they
+#'   are run sequentially or with a supported parallel method, and the
+#'   pre-existing R random-number state is restored afterward. With
+#'   `seed = NULL`, the current random-number state is used and advanced.
 #'
 #' @return A list containing `sims`, a data frame with one row per successfully
 #'   simulated trial; `failures`, a data frame with columns `trial`,
@@ -78,16 +65,15 @@
 #'   active follow-up at each look. See [survival_adapt()] for details of the
 #'   summary and trace columns, and [summarise_calendar_time()] for wide
 #'   operating-characteristic tables. The returned object also retains the
-#'   normalized `decision_design` and resolved `prior_design` attributes from
+#'   evaluated `decision_design` and resolved `prior_design` attributes from
 #'   [survival_adapt()]. An
-#'   `rng_metadata` attribute records the caller RNG kind, effective backend,
-#'   seed policy, and stream seed when applicable. A deterministic
-#'   `parallel_metadata` attribute records the requested and effective backend
-#'   and worker counts, task count, and backend-selection reason. An `arguments`
+#'   `rng_metadata` attribute records the random-number generator, computational
+#'   method, and seed policy. A `parallel_metadata` attribute records the
+#'   requested and actual computational method and number of cores. An `arguments`
 #'   attribute contains a named list of all evaluated argument values, including
-#'   defaults. Its `prop_loss` element is normalized to a named value for every
-#'   simulated arm, and its `rand_ratio` element is normalized to `control`,
-#'   `treatment` order for two-arm designs. Its `cutpoints` and
+#'   defaults. Its `prop_loss` element contains a named value for every simulated
+#'   arm, and its `rand_ratio` element is stored in `control`, `treatment` order
+#'   for two-arm designs. Its `cutpoints` and
 #'   `generation_cutpoints` elements retain the analysis and data-generation
 #'   partitions, respectively. For `method = "bayes-bin"`, it also retains the
 #'   imputation priors (`prior_surv` and `prior_surv_final`), completed-data
@@ -457,12 +443,14 @@ sim_trials <- function(
 #'
 #' @title Resolve trial-simulation execution details
 #'
-#' @description Applies the automatic workload crossover, caps package-owned
-#'   workers at useful independent work.
+#' @description Applies the automatic workload rule and limits the number of
+#'   parallel processes to the number useful for the requested simulations.
 #'
-#' @param backend Requested backend name.
-#' @param ncores Requested number of workers.
-#' @param N_trials Number of independent trial tasks.
+#' @param backend A single character string naming the requested computational
+#'   method.
+#' @param ncores A positive integer giving the requested number of processor
+#'   cores.
+#' @param N_trials A positive integer giving the number of independent trials.
 #'
 #' @return A list describing the effective backend and worker pool.
 #'
@@ -564,12 +552,14 @@ stop_sim_cluster <- function(cluster) {
 #'
 #' @title Resolve a trial-simulation backend
 #'
-#' @description Maps the platform-independent "auto" choice to the serial,
-#'   fork, or PSOCK implementation. Forking is rejected on Windows because R
+#' @description Maps the platform-independent `"auto"` choice to sequential,
+#'   fork, or PSOCK computation. Forking is rejected on Windows because R
 #'   does not support it there.
 #'
-#' @param backend Requested backend name.
-#' @param ncores Number of requested workers.
+#' @param backend A single character string naming the requested computational
+#'   method.
+#' @param ncores A positive integer giving the requested number of processor
+#'   cores.
 #'
 #' @return A single backend name.
 #'
@@ -598,7 +588,7 @@ resolve_sim_backend <- function(backend, ncores) {
 #' @title Prepare a package function for PSOCK execution
 #'
 #' @description Re-homes the package's R functions in a serializable
-#'   environment so PSOCK workers use the same source implementation as the
+#'   environment so PSOCK workers use the same package function definitions as the
 #'   calling session. The package namespace remains the parent environment to
 #'   provide imported functions and compiled routines. This helper is used by
 #'   multi-core Windows execution, where `sim_trials()` selects PSOCK workers
@@ -606,7 +596,7 @@ resolve_sim_backend <- function(backend, ncores) {
 #'   `initialize_sim_cluster()` gives each worker the parent package library
 #'   and loads the namespace so registered compiled routines are available.
 #'
-#' @param name Name of the package function to prepare.
+#' @param name A single character string naming the package function to prepare.
 #'
 #' @return A function with all package R dependencies available in its
 #'   enclosing environment.
@@ -644,8 +634,10 @@ make_psock_callable <- function(name) {
 #'   `survival_adapt()` call so seeded simulations are reproducible across
 #'   serial and parallel execution.
 #'
-#' @param seed Integer seed used to initialize the stream sequence.
-#' @param n Integer number of streams to generate.
+#' @param seed A single integer used to initialize the random-number stream
+#'   sequence.
+#' @param n A non-negative integer giving the number of independent streams to
+#'   generate.
 #'
 #' @return A list of length `n`; each element is an integer vector that can be
 #'   assigned to `.Random.seed`.

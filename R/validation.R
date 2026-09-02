@@ -3,6 +3,11 @@
 #' @description Checks that an input is a single finite probability, optionally
 #'   excluding one to support distributions with an open upper bound.
 #'
+#' @param x A numeric value to validate.
+#' @param name A single character string naming the argument in error messages.
+#' @param upper_open A single logical value indicating whether `1` should be
+#'   excluded. The default is `FALSE`.
+#'
 #' @noRd
 validate_single_probability <- function(x, name, upper_open = FALSE) {
   if (
@@ -25,6 +30,11 @@ validate_single_probability <- function(x, name, upper_open = FALSE) {
 #'
 #' @description Checks that every value in an input vector is a finite
 #'   probability, optionally excluding one.
+#'
+#' @param x A numeric vector to validate.
+#' @param name A single character string naming the argument in error messages.
+#' @param upper_open A single logical value indicating whether `1` should be
+#'   excluded. The default is `FALSE`.
 #'
 #' @noRd
 validate_probability_vector <- function(x, name, upper_open = FALSE) {
@@ -51,14 +61,18 @@ validate_probability_vector <- function(x, name, upper_open = FALSE) {
 #'   `control`, `treatment`. Callers select whether a shared scalar or an
 #'   unnamed legacy vector is allowed.
 #'
-#' @param x Input vector.
-#' @param name Argument name used in messages.
-#' @param single_arm Whether the simulation has only a treatment arm.
-#' @param allow_scalar Whether a scalar should be replicated across two arms.
-#' @param allow_unnamed Whether an unnamed length-two vector should be accepted
-#'   in legacy `c(control, treatment)` order.
-#' @param warn_unnamed_unequal Whether an unequal unnamed vector should emit a
-#'   future-compatibility warning.
+#' @param x A vector containing a shared or arm-specific value.
+#' @param name A single character string naming the argument in error messages.
+#' @param single_arm A single logical value indicating whether the design has
+#'   only a treatment arm. The default is `FALSE`.
+#' @param allow_scalar A single logical value indicating whether a shared value
+#'   may be repeated across two arms. The default is `FALSE`.
+#' @param allow_unnamed A single logical value indicating whether an unnamed
+#'   length-two vector may be interpreted in legacy `c(control, treatment)`
+#'   order. The default is `FALSE`.
+#' @param warn_unnamed_unequal A single logical value indicating whether an
+#'   unequal unnamed vector should produce a future-compatibility warning. The
+#'   default is `FALSE`.
 #'
 #' @return A named vector containing `treatment` for a single-arm design or
 #'   `control` followed by `treatment` for a two-arm design.
@@ -136,8 +150,10 @@ normalize_arm_vector <- function(
 
 #' Normalize arm-specific loss-to-follow-up proportions
 #'
-#' @param prop_loss One shared probability or a named arm-specific vector.
-#' @param single_arm Whether the simulation has only a treatment arm.
+#' @param prop_loss A numeric vector containing one shared probability or two
+#'   values named `control` and `treatment`.
+#' @param single_arm A single logical value indicating whether the design has
+#'   only a treatment arm.
 #'
 #' @return A canonical named arm vector.
 #'
@@ -158,8 +174,10 @@ normalize_prop_loss <- function(prop_loss, single_arm) {
 
 #' Normalize a two-arm randomization allocation
 #'
-#' @param allocation Allocation weights.
-#' @param name Argument name used in messages.
+#' @param allocation A length-two positive integer vector giving the control and
+#'   treatment allocation weights.
+#' @param name A single character string naming the argument in error messages.
+#'   The default is `"allocation"`.
 #'
 #' @return A positive integer vector in canonical arm order.
 #'
@@ -195,6 +213,9 @@ normalize_allocation <- function(allocation, name = "allocation") {
 #' @description Checks that an input is a single finite, strictly positive
 #'   integer suitable for a sample size or count.
 #'
+#' @param x A numeric value to validate.
+#' @param name A single character string naming the argument in error messages.
+#'
 #' @noRd
 validate_positive_integer_scalar <- function(x, name) {
   if (
@@ -217,6 +238,9 @@ validate_positive_integer_scalar <- function(x, name) {
 #'   Unlike `validate_positive_integer_scalar()`, zero is accepted so callers
 #'   can define an explicit zero-draw result.
 #'
+#' @param x A numeric value to validate.
+#' @param name A single character string naming the argument in error messages.
+#'
 #' @noRd
 validate_nonnegative_integer_scalar <- function(x, name) {
   if (
@@ -237,6 +261,9 @@ validate_nonnegative_integer_scalar <- function(x, name) {
 #'
 #' @description Checks that an input vector contains only finite, strictly
 #'   positive integers.
+#'
+#' @param x A numeric vector to validate.
+#' @param name A single character string naming the argument in error messages.
 #'
 #' @noRd
 validate_positive_integer_vector <- function(x, name) {
@@ -259,6 +286,9 @@ validate_positive_integer_vector <- function(x, name) {
 #'
 #' @description Checks that an input is a non-missing scalar logical value.
 #'
+#' @param x A logical value to validate.
+#' @param name A single character string naming the argument in error messages.
+#'
 #' @noRd
 validate_logical_scalar <- function(x, name) {
   if (!is.logical(x) || length(x) != 1 || is.na(x)) {
@@ -273,6 +303,11 @@ validate_logical_scalar <- function(x, name) {
 #' @description Checks that a numeric vector contains finite, non-negative
 #'   values. Callers opt in explicitly when a zero-length vector has a defined
 #'   result.
+#'
+#' @param x A numeric vector to validate.
+#' @param name A single character string naming the argument in error messages.
+#' @param allow_empty A single logical value indicating whether a zero-length
+#'   vector is permitted. The default is `FALSE`.
 #'
 #' @noRd
 validate_nonnegative_numeric_vector <- function(
@@ -306,6 +341,11 @@ validate_nonnegative_numeric_vector <- function(
 #' @description Checks that a vector contains only non-missing zero-one event
 #'   indicators.
 #'
+#' @param x A numeric or logical vector to validate.
+#' @param name A single character string naming the argument in error messages.
+#' @param allow_empty A single logical value indicating whether a zero-length
+#'   vector is permitted. The default is `FALSE`.
+#'
 #' @noRd
 validate_binary_vector <- function(x, name, allow_empty = FALSE) {
   if (
@@ -334,6 +374,15 @@ validate_binary_vector <- function(x, name, allow_empty = FALSE) {
 #' @description Checks that Gamma priors supply finite, strictly positive shape
 #'   and rate parameters, then broadcasts shared or arm-specific inputs to a
 #'   named parameter-by-interval-by-arm array.
+#'
+#' @param prior_surv A numeric vector, matrix, list, or three-dimensional array
+#'   containing Gamma shape and rate parameters.
+#' @param n_intervals A positive integer giving the number of
+#'   piecewise-exponential intervals.
+#' @param single_arm A single logical value indicating whether the design has
+#'   only a treatment arm.
+#' @param name A single character string naming the prior argument in error
+#'   messages. The default is `"prior_surv"`.
 #'
 #' @noRd
 normalize_gamma_prior <- function(
@@ -457,6 +506,10 @@ normalize_gamma_prior <- function(
 #' @description Checks that a piecewise model has finite, positive, strictly
 #'   increasing interior cutpoints, or no cutpoints for a constant hazard.
 #'
+#' @param cutpoints `NULL`, or a numeric vector of interior cutpoints.
+#' @param name A single character string naming the argument in error messages.
+#'   The default is `"cutpoints"`.
+#'
 #' @noRd
 validate_cutpoints <- function(cutpoints, name = "cutpoints") {
   if (is.null(cutpoints)) {
@@ -487,6 +540,13 @@ validate_cutpoints <- function(cutpoints, name = "cutpoints") {
 #'
 #' @description Checks that an analysis endpoint is finite and positive and
 #'   lies after the final piecewise cutpoint.
+#'
+#' @param endpoint A numeric value giving the endpoint time.
+#' @param cutpoints `NULL`, or a numeric vector of interior cutpoints.
+#' @param name A single character string naming the endpoint argument in error
+#'   messages.
+#' @param cutpoints_name A single character string naming the cutpoint argument
+#'   in error messages. The default is `"cutpoints"`.
 #'
 #' @noRd
 validate_endpoint_time <- function(
@@ -526,6 +586,10 @@ validate_endpoint_time <- function(
 #' @description Checks that an optional administrative censoring time is a
 #'   single, finite, strictly positive numeric value after the final cutpoint.
 #'
+#' @param maxtime `NULL`, or a numeric value giving the administrative censoring
+#'   time.
+#' @param cutpoints `NULL`, or a numeric vector of interior cutpoints.
+#'
 #' @noRd
 validate_maxtime <- function(maxtime, cutpoints) {
   if (is.null(maxtime)) {
@@ -539,6 +603,13 @@ validate_maxtime <- function(maxtime, cutpoints) {
 #'
 #' @description Checks that a finite non-negative hazard vector has one value
 #'   for every piecewise interval.
+#'
+#' @param hazard A numeric vector of piecewise-constant hazard rates.
+#' @param cutpoints `NULL`, or a numeric vector of interior cutpoints.
+#' @param name A single character string naming the hazard argument in error
+#'   messages. The default is `"hazard"`.
+#' @param cutpoints_name A single character string naming the cutpoint argument
+#'   in error messages. The default is `"cutpoints"`.
 #'
 #' @noRd
 validate_piecewise_hazard <- function(
@@ -576,6 +647,11 @@ validate_piecewise_hazard <- function(
 #' @description Checks that posterior hazard draws form a non-empty finite
 #'   non-negative matrix with one column per piecewise interval.
 #'
+#' @param hazard A numeric matrix of posterior piecewise-hazard draws.
+#' @param cutpoints `NULL`, or a numeric vector of interior cutpoints.
+#' @param name A single character string naming the hazard argument in error
+#'   messages. The default is `"hazard"`.
+#'
 #' @noRd
 validate_hazard_matrix <- function(hazard, cutpoints, name = "hazard") {
   if (
@@ -606,6 +682,11 @@ validate_hazard_matrix <- function(hazard, cutpoints, name = "hazard") {
 #'
 #' @description Checks the target sample size, piecewise enrollment rates, and
 #'   their chronologically ordered knots before simulating accrual.
+#'
+#' @param lambda A numeric vector of enrollment rates.
+#' @param lambda_time `NULL`, or a numeric vector of enrollment-rate change
+#'   times.
+#' @param N_total A positive integer giving the target sample size.
 #'
 #' @noRd
 validate_enrollment_schedule <- function(lambda, lambda_time, N_total) {
@@ -659,6 +740,13 @@ validate_enrollment_schedule <- function(lambda, lambda_time, N_total) {
 #' @description Checks that a two-arm block-randomization schedule has valid
 #'   block sizes and allocation weights compatible with the target sample size.
 #'
+#' @param N_total A positive integer giving the target sample size.
+#' @param block A positive integer vector of permitted block sizes.
+#' @param allocation A length-two positive integer vector giving the control and
+#'   treatment allocation weights.
+#' @param allocation_name A single character string naming `allocation` in
+#'   error messages. The default is `"allocation"`.
+#'
 #' @noRd
 validate_randomization_args <- function(
   N_total,
@@ -710,6 +798,11 @@ validate_randomization_args <- function(
 #' @description Checks that a null value is finite and lies within the support
 #'   of probability-scale treatment effects when applicable.
 #'
+#' @param h0 A single numeric null value.
+#' @param method A single character string naming the analysis method.
+#' @param single_arm A single logical value indicating whether the design is
+#'   single-arm.
+#'
 #' @noRd
 validate_h0 <- function(h0, method, single_arm) {
   if (
@@ -756,6 +849,12 @@ validate_h0 <- function(h0, method, single_arm) {
 #' @description Applies the shared scalar-or-one-per-look contract used by
 #'   futility and expected-success thresholds. A scalar is broadcast to every
 #'   interim look; any non-scalar vector must have exactly one value per look.
+#'
+#' @param threshold `NULL`, or a numeric vector of decision thresholds.
+#' @param n_interims A non-negative integer giving the number of interim looks.
+#' @param name A single character string naming the threshold in error messages.
+#' @param null_disables A single logical value indicating whether `NULL` should
+#'   disable the decision rule. The default is `FALSE`.
 #'
 #' @noRd
 normalize_interim_threshold <- function(
@@ -804,6 +903,14 @@ normalize_interim_threshold <- function(
 #'
 #' @description Checks the mutually compatible analysis settings shared by
 #'   trial simulation and final analysis.
+#'
+#' @param method A single character string naming the analysis method.
+#' @param alternative A single character string naming the alternative
+#'   hypothesis.
+#' @param single_arm A single logical value indicating whether the design is
+#'   single-arm.
+#' @param imputed_final A single logical value indicating whether the final
+#'   analysis uses multiply imputed outcomes.
 #'
 #' @noRd
 validate_analysis_configuration <- function(
@@ -870,6 +977,12 @@ validate_analysis_configuration <- function(
 #'   positive enrollment counts below the target sample size and, for two-arm
 #'   block randomization, after at least one complete block.
 #'
+#' @param interim_look A positive integer vector giving cumulative enrollment at
+#'   each interim analysis.
+#' @param N_total A positive integer giving the maximum sample size.
+#' @param min_look `NULL`, or a positive integer giving the earliest permitted
+#'   interim look. The default is `NULL`.
+#'
 #' @noRd
 validate_interim_looks <- function(interim_look, N_total, min_look = NULL) {
   validate_positive_integer_vector(interim_look, "interim_look")
@@ -900,6 +1013,12 @@ validate_interim_looks <- function(interim_look, N_total, min_look = NULL) {
 #'
 #' @description Checks the Beta prior, computational method, and Monte Carlo
 #'   sample size before a Bayesian binomial analysis is run.
+#'
+#' @param prior_bin A length-two numeric vector of positive Beta shape
+#'   parameters.
+#' @param bin_method A single character string naming the posterior-probability
+#'   calculation.
+#' @param N_mcmc A positive integer giving the number of Monte Carlo draws.
 #'
 #' @noRd
 validate_bayes_binomial_args <- function(prior_bin, bin_method, N_mcmc) {

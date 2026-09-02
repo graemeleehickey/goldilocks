@@ -1,16 +1,17 @@
-#' @title Perform the final analysis test/method on the complete data
+#' @title Apply the prespecified analysis to completed trial data
 #'
-#' @description Dispatches an imputed or complete trial dataset to the selected
-#'   Bayesian or frequentist analysis and returns its success score and effect.
+#' @description Applies the selected Bayesian or frequentist analysis to an
+#'   observed or imputed completed data set and returns its success measure and
+#'   treatment-effect estimate.
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
 #' @inheritParams haz_to_prop
-#' @param data data frame. The (time-to-event) analysis data to be analyzed per
-#'   the pre-specified analysis method. Generally this will be an imputed data
-#'   set, and the analysis will be looped over multiple imputed datasets.
+#' @param data A data frame with one row per subject and columns `time`, `event`,
+#'   and `treatment`. It contains the observed or imputed outcomes to be analyzed
+#'   using the prespecified method.
 #'
-#' @return A list with 2 elements:
+#' @return A list with two elements:
 #'
 #'   - `success`: Analysis-specific success score:
 #'     - if `method = "bayes-surv"`, the posterior probability that the treatment
@@ -188,7 +189,8 @@ analyse_data <- function(
 #'   callers use this function after deriving the completed exposure and event
 #'   totals, avoiding a second patient-level posterior setup.
 #'
-#' @param data_summ Completed-data sufficient statistics created by
+#' @param data_summ A data frame of completed-data exposure times and event
+#'   counts by arm and piecewise interval, created by
 #'   `posterior_sufficient_stats()`.
 #' @inheritParams analyse_data
 #'
@@ -250,12 +252,10 @@ analyse_bayes_surv_sufficient_stats <- function(
   )
 }
 
-#' Analyze trusted Bayesian-survival sufficient statistics
+#' Analyze validated Bayesian survival sufficient statistics
 #'
-#' @description Internal fast path for canonical sufficient statistics created
-#'   by `posterior_sufficient_stats()` and a normalized survival prior. Public
-#'   and general-purpose internal entry points retain the checked
-#'   `analyse_bayes_surv_sufficient_stats()` path.
+#' @description Applies the Bayesian survival analysis to sufficient statistics
+#'   already validated and ordered by arm and piecewise interval.
 #'
 #' @inheritParams analyse_bayes_surv_sufficient_stats
 #'
@@ -326,7 +326,9 @@ analyse_bayes_surv_sufficient_stats_kernel <- function(
 
 #' Summarize Bayesian-survival posterior draws
 #'
-#' @param post_lambda Posterior piecewise-hazard draws.
+#' @param post_lambda A three-dimensional numeric array of posterior
+#'   piecewise-hazard draws, with draws in rows, intervals in columns, and
+#'   treatment followed by control in the third dimension.
 #' @inheritParams analyse_bayes_surv_sufficient_stats
 #'
 #' @return See `analyse_bayes_surv_sufficient_stats()`.
@@ -359,15 +361,14 @@ analyse_bayes_surv_posterior_draws <- function(
   )
 }
 
-#' Calculate Bayesian-survival effect draws from trusted posterior hazards
+#' Calculate Bayesian survival effects from posterior hazard draws
 #'
-#' @description Converts canonical posterior hazard arrays directly to event
-#'   probabilities at the endpoint horizon. Callers precompute
-#'   `interval_widths`, avoiding repeated checked `ppwe()` calls and temporary
-#'   probability data frames inside predictive-imputation loops.
+#' @description Converts posterior piecewise-hazard draws to event probabilities
+#'   at the endpoint horizon and, for a two-arm design, calculates the
+#'   treatment-minus-control difference.
 #'
-#' @param interval_widths Positive analysis-interval durations through the
-#'   endpoint horizon.
+#' @param interval_widths A numeric vector of positive analysis-interval
+#'   durations through the endpoint horizon.
 #' @inheritParams analyse_bayes_surv_posterior_draws
 #'
 #' @return A numeric vector containing one effect per posterior draw.
@@ -422,7 +423,7 @@ bayes_surv_effect_draws_kernel <- function(
 
 #' Summarize Bayesian-survival effect draws
 #'
-#' @param effect_draws Posterior event-probability effects.
+#' @param effect_draws A numeric vector of posterior event-probability effects.
 #' @inheritParams analyse_bayes_surv_posterior_draws
 #'
 #' @return See `analyse_bayes_surv_sufficient_stats()`.
@@ -699,20 +700,23 @@ risk_difference_wald_test_checked <- function(
   )
 }
 
-#' @title Calculate the log-rank test very quickly
+#' @title Calculate a two-sample log-rank test
 #'
-#' @description Calls the compiled log-rank implementation for two groups of
-#'   survival outcomes and event indicators.
+#' @description Calculates a log-rank test from the follow-up times and event
+#'   indicators in two independent treatment groups.
 #'
-#' @param groupa vector of group a's survival times
-#' @param groupb vector of group b's survival times
-#' @param groupacensored vector of censored information of group a's survival
-#'   times
-#' @param groupbcensored vector of censored information of group b's survival
-#'   times
-#' @param onlyz (optional) calculate only z-statistic
+#' @param groupa A numeric vector of non-negative follow-up times for group A.
+#' @param groupb A numeric vector of non-negative follow-up times for group B.
+#' @param groupacensored A zero-one integer vector indicating events in group A,
+#'   where `1` denotes an event and `0` denotes censoring.
+#' @param groupbcensored A zero-one integer vector indicating events in group B,
+#'   where `1` denotes an event and `0` denotes censoring.
+#' @param onlyz A single logical value indicating whether to return only the
+#'   standardized log-rank statistic. The default is `FALSE`.
 #'
-#' @return chi-squared statistic, z-statistic, p-value
+#' @return A numeric vector containing the chi-squared statistic, standardized
+#'   statistic, and two-sided *P*-value. When `onlyz = TRUE`, only the
+#'   standardized statistic is returned.
 #'
 #' @examples
 #' T1 <- c(6, 6, 6, 6, 7, 9, 10, 10, 11, 13, 16, 17, 19, 20, 22, 23, 25, 32, 32, 34, 35)
@@ -756,10 +760,10 @@ assert_logrank_estimable <- function(lr) {
   invisible(TRUE)
 }
 
-#' @title Fast Cox proportional hazards Wald test for treatment effect
+#' @title Calculate a Cox proportional hazards Wald test
 #'
-#' @description Fits the package's low-overhead Cox model and converts fitter
-#'   warnings into clear non-estimability errors.
+#' @description Fits a Cox proportional hazards model for the treatment effect
+#'   and converts fitting warnings into clear non-estimability errors.
 #'
 #' @inheritParams analyse_data
 #'
@@ -830,12 +834,12 @@ assert_cox_estimable <- function(fit) {
   invisible(TRUE)
 }
 
-#' @title Fit a low-overhead Cox Wald test with a public fallback
+#' @title Fit a Cox Wald test using an available survival calculation
 #'
-#' @description Uses an isolated, compatibility-checked `coxph.fit()` fast path
-#'   when available and otherwise calls the exported [survival::coxph()]
-#'   interface. `engine` and `compatibility` exist only to exercise both
-#'   internal branches in tests and maintainer benchmarks.
+#' @description Uses the lower-overhead `coxph.fit()` calculation when its
+#'   arguments are compatible with the installed version of `survival`, and
+#'   otherwise uses [survival::coxph()]. The `engine` and `compatibility`
+#'   arguments support equivalence testing of the two calculations.
 #'
 #' @noRd
 cox_wald_test <- function(
@@ -875,7 +879,7 @@ cox_wald_test <- function(
   cox_wald_test_public(data)
 }
 
-#' @title Resolve the survival Cox fast path once per package session
+#' @title Check availability of the lower-overhead Cox calculation
 #'
 #' @description Records the installed `survival` version and verifies every
 #'   unexported fitter argument used by the package. Installations outside the
@@ -940,7 +944,7 @@ coxph_fit_compatibility <- local({
   }
 })
 
-#' @title Fit a Cox Wald test through the guarded fast path
+#' @title Fit a Cox Wald test with `coxph.fit()`
 #'
 #' @noRd
 cox_wald_test_fast <- function(data, fitter) {
@@ -982,7 +986,7 @@ cox_wald_test_fast <- function(data, fitter) {
   )
 }
 
-#' @title Fit a Cox Wald test through survival's public API
+#' @title Fit a Cox Wald test with [survival::coxph()]
 #'
 #' @noRd
 cox_wald_test_public <- function(data) {

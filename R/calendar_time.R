@@ -13,7 +13,8 @@
 #' `return_trace = TRUE`. A simulation data frame can also be supplied, but only
 #' the trial-duration table can then be calculated.
 #'
-#' @param data A complete result returned by [sim_trials()], a simulation
+#' @param data A required complete result returned by [sim_trials()], a
+#'   simulation
 #'   `data.frame`, or a list of either form. Named list elements identify
 #'   scenarios. Existing `scenario` columns and grouping variables are
 #'   preserved.
@@ -190,9 +191,11 @@ summarise_calendar_time <- function(data) {
 
 #' Print a calendar-time operating-characteristic summary
 #'
-#' @param x A `goldilocks_calendar_summary` object.
-#' @param digits Number of digits after the decimal point in displayed values.
-#' @param ... Unused.
+#' @param x A `goldilocks_calendar_summary` result returned by
+#'   [summarise_calendar_time()].
+#' @param digits A single non-negative integer giving the number of digits after
+#'   the decimal point in displayed values. The default is `1`.
+#' @param ... Additional arguments; currently ignored.
 #'
 #' @return `x`, invisibly.
 #'

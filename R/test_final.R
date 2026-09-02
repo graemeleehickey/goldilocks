@@ -1,39 +1,31 @@
-#' @title Run final test once enrollment is complete
+#' @title Conduct the prespecified final analysis
 #'
-#' @description Once enrollment is complete, the final analysis must be
-#'   conducted. The final analysis can take two forms depending on whether the
-#'   data is "complete" or not (see Details).
+#' @description Applies the selected final analysis after accrual has stopped and
+#'   the available follow-up is complete. Depending on `imputed_final`, subjects
+#'   lost to follow-up are either handled as observed censored outcomes or have
+#'   their outcomes multiply imputed.
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
-#' @param data_in data frame. The time-to-event data that requires imputation,
-#'   with columns for treatment assignment (`treatment`, coded `1`
+#' @param data_in A data frame with one row per enrolled subject and columns for
+#'   treatment assignment (`treatment`, coded `1`
 #'   for treatment and `0` for control; single-arm designs use all 1s),
 #'   event time (`time`), event indicator (`event`), and indicator of
 #'   whether the subject requires imputation for expected success
 #'   (`subject_impute_success`).
 #'
-#' @details If `prop_loss > 0`, then there is drop-out (loss to
-#'   follow-up) for some subjects. During the Goldilocks algorithm, all subjects
-#'   who are event-free and still eligible for follow-up for the primary
-#'   endpoint are imputed. This means subjects who are lost to follow-up will be
-#'   imputed. In the final analysis we need to decide whether we mimic that, or
-#'   whether we will exclude or right-censor such subjects (depending on
-#'   analysis `method` choice). This is controlled by `imputed_final`,
-#'   which is a Boolean: `TRUE` implies the final analysis will be based on
-#'   fully imputed data, whereas `FALSE` implies the final analysis will be
-#'   based on observed (non-imputed) data only.
+#' @details Interim predictive calculations complete all outcomes that are not
+#'   yet observed. At the final analysis, `imputed_final = TRUE` likewise
+#'   imputes outcomes for subjects lost to follow-up before `end_of_study`.
+#'   With `imputed_final = FALSE`, time-to-event analyses retain their observed
+#'   right-censoring, whereas binary analyses (`method = "riskdiff"` or
+#'   `"bayes-bin"`) exclude subjects without complete endpoint status. Design
+#'   evaluations should prespecify this choice and assess sensitivity to it when
+#'   appreciable loss to follow-up is expected.
 #'
-#'   If `imputed_final = FALSE` then intuitively, we might expect to see a
-#'   marginal increase in the proportion of studies that stop for expected
-#'   success, but which then go on to fail. We have not verified this aspect,
-#'   but it should be noted. When `method = "riskdiff"` or
-#'   `method = "bayes-bin"` and `imputed_final = FALSE`, subjects lost to
-#'   follow-up are excluded from the analysis because complete binary outcome
-#'   analyses cannot handle right-censored observations.
-#'
-#' @return Vector with 1) posterior probability (or P-value equivalent) for
-#'   the alternative hypothesis, and 2) the treatment effect. For an imputed
+#' @return A length-two numeric vector containing the posterior probability (or
+#'   `1 - P` for a frequentist analysis) for the alternative hypothesis,
+#'   followed by the treatment-effect estimate. For an imputed
 #'   Cox analysis these are the Rubin-pooled Wald-test result and pooled log
 #'   hazard ratio. For an imputed risk-difference analysis these are the
 #'   Rubin-pooled Wald-test result and pooled treatment-control event-risk
@@ -230,8 +222,10 @@ test_final <- function(
 #'   within-imputation variances, then evaluates the pooled estimate against
 #'   its null value using Rubin's large-sample degrees of freedom.
 #'
-#' @param estimates Numeric vector of per-imputation effect estimates.
-#' @param variances Numeric vector of corresponding within-imputation variances.
+#' @param estimates A numeric vector of treatment-effect estimates, one per
+#'   imputed data set. At least two values are required.
+#' @param variances A numeric vector of corresponding finite, non-negative
+#'   within-imputation variances.
 #' @inheritParams survival_adapt
 #'
 #' @return A list containing the pooled success score, effect estimate, standard

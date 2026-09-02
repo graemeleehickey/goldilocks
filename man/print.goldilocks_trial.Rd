@@ -2,19 +2,22 @@
 % Please edit documentation in R/trial_trace.R
 \name{print.goldilocks_trial}
 \alias{print.goldilocks_trial}
-\title{Print an adaptive trial trace result}
+\title{Print a Goldilocks adaptive trial result}
 \usage{
 \method{print}{goldilocks_trial}(x, ...)
 }
 \arguments{
-\item{x}{A goldilocks_trial object.}
+\item{x}{A \code{goldilocks_trial} result returned by \code{\link[=survival_adapt]{survival_adapt()}} when
+\code{return_trace = TRUE}.}
 
-\item{...}{Additional arguments passed to print.data.frame.}
+\item{...}{Additional arguments passed to \code{\link[base:print.dataframe]{base::print.data.frame()}} when
+printing the final trial summary.}
 }
 \value{
 The input object, invisibly.
 }
 \description{
 Prints the final trial summary and reports how many interim
-looks were completed when survival_adapt returns a goldilocks_trial object.
+looks were completed for a \code{goldilocks_trial} object returned by
+\code{\link[=survival_adapt]{survival_adapt()}}.
 }

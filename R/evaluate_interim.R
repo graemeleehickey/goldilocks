@@ -1,39 +1,51 @@
 #' Evaluate an externally observed interim data cut
 #'
-#' @description Applies the same posterior-predictive decision calculation used
+#' @description Applies the same posterior predictive decision calculation used
 #'   by [survival_adapt()] to subject-level data observed at one interim look.
 #'   The function does not simulate a trial or modify `data`. Participants who
-#'   could still be enrolled before the maximum sample size are constructed
-#'   internally from `N_total`, the observed arm counts, and `rand_ratio`.
+#'   could still be enrolled before the maximum sample size are represented
+#'   according to `N_total`, the observed arm counts, and `rand_ratio`.
 #'
-#' @param data Data frame with one row per enrolled subject and columns `id`,
+#' @param data A required data frame with one row per enrolled subject and
+#'   columns `id`,
 #'   `treatment`, `enrollment`, `time`, `event`, and `status`. Treatment is
 #'   coded `1` for treatment and `0` for control; single-arm data use `1`.
 #'   `enrollment` is measured from first participant randomization, which must
-#'   be zero, and `time` is follow-up from that subject's randomization.
-#' @param data_cut Non-negative calendar time of the interim data cut, measured
+#'   be zero, and `time` is follow-up from that subject's randomization. See
+#'   Details for the permitted character values in `status`.
+#' @param data_cut A required single finite, non-negative numeric value giving
+#'   the calendar time of the interim data cut, measured
 #'   from the same origin and in the same units as `enrollment`, `time`,
 #'   `end_of_study`, and `cutpoints`.
-#' @param look Positive integer identifying the prespecified interim look.
-#' @param N_total Positive integer maximum sample size.
-#' @param end_of_study Positive subject-level follow-up horizon.
-#' @param rand_ratio Length-two positive integer maximum-sample allocation
-#'   ratio. Name the values `control` and `treatment`; either order is accepted.
+#' @param look A required positive integer identifying the prespecified interim
+#'   look.
+#' @param N_total A required positive integer giving the maximum total sample
+#'   size.
+#' @param end_of_study A required single finite, positive numeric value giving
+#'   the planned follow-up time for each subject.
+#' @param rand_ratio A length-two positive integer vector giving the control to
+#'   treatment allocation ratio at the maximum sample size. The default is
+#'   `c(control = 1, treatment = 1)`. Name the values `control` and `treatment`;
+#'   either order is accepted.
 #'   A legacy unnamed vector is interpreted as `c(control, treatment)`. The
 #'   maximum sample size must divide exactly according to this ratio. Ignored
 #'   for single-arm designs.
-#' @param single_arm Logical indicating whether the design has one treatment
-#'   arm and no control arm.
-#' @param Fn Single probability threshold for stopping for futility at this
+#' @param single_arm A single logical value indicating whether the design has
+#'   one treatment arm and no control arm. The default is `FALSE`.
+#' @param Fn `NULL`, or a single numeric probability in `[0, 1]` giving the
+#'   threshold for stopping for futility at this
 #'   look. Futility is declared when predictive success at the maximum sample
 #'   size is strictly less than `Fn`. Set `Fn = 0` or `NULL` to disable the
-#'   maximum-sample calculation.
-#' @param Sn Single probability threshold for stopping for expected success at
+#'   maximum-sample calculation. The default is `0.05`.
+#' @param Sn A single numeric probability in `[0, 1]` giving the threshold for
+#'   stopping for expected success at
 #'   this look. Expected success is declared when predictive success among the
-#'   currently enrolled participants is strictly greater than `Sn`.
-#' @param seed `NULL`, or a non-negative integer used for the predictive Monte
+#'   currently enrolled participants is strictly greater than `Sn`. The default
+#'   is `0.9`.
+#' @param seed `NULL` (the default), or a single non-negative integer used for
+#'   the predictive Monte
 #'   Carlo calculation. A supplied seed makes the result reproducible and
-#'   preserves the caller's random-number state. With `seed = NULL`, the call
+#'   leaves the existing random-number state unchanged. With `seed = NULL`, the call
 #'   uses and advances the current random-number state.
 #' @inheritParams survival_adapt
 #'
@@ -570,8 +582,11 @@ validate_interim_seed <- function(seed) {
 
 #' Print an externally evaluated interim analysis
 #'
-#' @param x A `goldilocks_interim` object returned by [evaluate_interim()].
-#' @param ... Unused.
+#' @description Prints the predictive probabilities and decision from an
+#'   interim analysis returned by [evaluate_interim()].
+#'
+#' @param x A `goldilocks_interim` result returned by [evaluate_interim()].
+#' @param ... Additional arguments; currently ignored.
 #'
 #' @return `x`, invisibly.
 #'

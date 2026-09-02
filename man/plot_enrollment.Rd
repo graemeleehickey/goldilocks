@@ -24,42 +24,61 @@ plot_enrollment(
 )
 }
 \arguments{
-\item{x}{\code{NULL}, or a result returned by \code{\link[=survival_adapt]{survival_adapt()}} or
+\item{x}{\code{NULL} (the default), or a result returned by \code{\link[=survival_adapt]{survival_adapt()}} or
 \code{\link[=sim_trials]{sim_trials()}}. Results created by current versions of \code{goldilocks} retain
 the evaluated enrollment design needed by this function.}
 
-\item{lambda}{finite positive enrollment rates per unit time. Required when
-\code{x = NULL}; otherwise it can override the rate stored in \code{x}.}
+\item{lambda}{\code{NULL} (the default), or a numeric vector of finite, positive
+enrollment rates per unit of calendar time. It is required when \code{x = NULL}
+and otherwise overrides the rates stored in \code{x}.}
 
-\item{N_total}{positive integer maximum sample size. Required when
-\code{x = NULL}; otherwise it can override the value stored in \code{x}.}
+\item{N_total}{\code{NULL} (the default), or a positive integer giving the maximum
+total sample size. It is required when \code{x = NULL} and otherwise overrides
+the value stored in \code{x}.}
 
-\item{lambda_time}{\code{NULL}, or the finite, positive, strictly increasing
-internal times at which the enrollment rate changes. See \code{\link[=enrollment]{enrollment()}}.}
+\item{lambda_time}{\code{NULL} (the default), or a numeric vector of finite,
+positive, strictly increasing calendar times at which the enrollment rate
+changes. See \code{\link[=enrollment]{enrollment()}}.}
 
-\item{interim_look}{\code{NULL}, or the enrollment counts at interim looks.}
+\item{interim_look}{\code{NULL} (the default), or a strictly increasing positive
+integer vector giving the cumulative enrollment at each interim look. All
+values must be less than \code{N_total}.}
 
-\item{end_of_study}{optional positive follow-up duration. When available and
-\code{annotate = TRUE}, it is reported beneath the plot.}
+\item{end_of_study}{\code{NULL} (the default), or a single finite, positive
+numeric value giving the planned follow-up time for each subject. When
+available and \code{annotate = TRUE}, it is reported beneath the plot.}
 
-\item{n_sim}{non-negative integer number of random enrollment trajectories
-to draw.}
+\item{n_sim}{A single non-negative integer giving the number of random
+enrollment trajectories to draw. The default is \code{20L}; use \code{0} to show
+only the expected enrollment curve.}
 
-\item{seed}{\code{NULL}, or a single non-negative integer seed for the random
-trajectories. A supplied seed does not alter the caller's random-number
-state.}
+\item{seed}{\code{NULL} (the default), or a single integer between \code{0} and
+\code{.Machine$integer.max} for the random trajectories. A supplied seed gives
+reproducible trajectories and leaves the existing random-number state
+unchanged.}
 
-\item{time_unit}{\code{NULL}, or a character label for the design's unit of time,
-such as \code{"months"} or \code{"days"}.}
+\item{time_unit}{\code{NULL} (the default), or a non-empty character string naming
+the design's unit of time, such as \code{"months"} or \code{"days"}.}
 
-\item{xlab, ylab, main}{axis and main-title labels. With \code{xlab = NULL}, a label
-is constructed from \code{time_unit}.}
+\item{xlab}{\code{NULL} (the default), or a character string for the horizontal
+axis label. When \code{NULL}, the label is constructed from \code{time_unit}.}
 
-\item{annotate}{logical. Should the follow-up and simulation notes be drawn
-beneath the plot?}
+\item{ylab}{A character string for the vertical axis label. The default is
+\code{"Cumulative number of enrolled patients"}.}
 
-\item{projection_col, simulation_col, milestone_col}{colours for the expected
-projection, random trajectories, and milestone guides.}
+\item{main}{\code{NULL} (the default), or a character string for the main title.}
+
+\item{annotate}{A single logical value indicating whether follow-up and
+simulation notes should appear beneath the plot. The default is \code{TRUE}.}
+
+\item{projection_col}{A character string specifying the colour of the
+expected enrollment curve. The default is \code{"#276E9B"}.}
+
+\item{simulation_col}{A character string specifying the colour of the random
+enrollment trajectories. The default is \code{"#777777"}.}
+
+\item{milestone_col}{A character string specifying the colour of the interim
+and maximum-sample-size guides. The default is \code{"#C8682A"}.}
 }
 \value{
 Invisibly, a list containing the evaluated \code{design}, the

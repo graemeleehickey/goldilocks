@@ -31,32 +31,40 @@ evaluate_interim(
 )
 }
 \arguments{
-\item{data}{Data frame with one row per enrolled subject and columns \code{id},
+\item{data}{A required data frame with one row per enrolled subject and
+columns \code{id},
 \code{treatment}, \code{enrollment}, \code{time}, \code{event}, and \code{status}. Treatment is
 coded \code{1} for treatment and \code{0} for control; single-arm data use \code{1}.
 \code{enrollment} is measured from first participant randomization, which must
-be zero, and \code{time} is follow-up from that subject's randomization.}
+be zero, and \code{time} is follow-up from that subject's randomization. See
+Details for the permitted character values in \code{status}.}
 
-\item{data_cut}{Non-negative calendar time of the interim data cut, measured
+\item{data_cut}{A required single finite, non-negative numeric value giving
+the calendar time of the interim data cut, measured
 from the same origin and in the same units as \code{enrollment}, \code{time},
 \code{end_of_study}, and \code{cutpoints}.}
 
-\item{look}{Positive integer identifying the prespecified interim look.}
+\item{look}{A required positive integer identifying the prespecified interim
+look.}
 
-\item{N_total}{Positive integer maximum sample size.}
+\item{N_total}{A required positive integer giving the maximum total sample
+size.}
 
-\item{end_of_study}{Positive subject-level follow-up horizon.}
+\item{end_of_study}{A required single finite, positive numeric value giving
+the planned follow-up time for each subject.}
 
-\item{cutpoints}{finite, positive, strictly increasing interior follow-up
+\item{cutpoints}{\code{NULL} (the default), or a numeric vector of finite,
+positive, strictly increasing interior follow-up
 times defining the piecewise-exponential model used for interim posterior
 estimation, predictive imputation, and final analysis. The number of
 interval-specific prior columns must be one greater than the number of
-cutpoints. Default is \code{NULL}, which uses a constant-hazard analysis model.}
+cutpoints. \code{NULL} specifies a constant-hazard analysis model.}
 
-\item{prior_surv}{numeric vector, matrix, or named list. Gamma prior for the
+\item{prior_surv}{A numeric vector, matrix, or named list specifying the
+Gamma prior for the
 piecewise-exponential hazards used during interim prediction. A length-two
-vector supplies shape and rate and is broadcast across all arms and
-intervals. A \code{2} by \code{length(cutpoints) + 1} matrix supplies
+vector supplies shape and rate and applies the same prior to every arm and
+interval. A \code{2} by \code{length(cutpoints) + 1} matrix supplies
 interval-specific values shared by all arms, with shapes in row 1 and rates
 in row 2. For independent arm-specific priors, supply a list named
 \code{control} and \code{treatment} in a two-arm design, or \code{treatment} in a
@@ -65,26 +73,30 @@ interval-specific matrix. Both arms must be supplied; no values are
 borrowed or filled from the other arm. Rates must use the same time unit as
 event times, exposure, and cutpoints. The default is \code{c(0.1, 0.1)}.}
 
-\item{prior_bin}{vector. Prior distribution for the event probability when
-\code{method = "bayes-bin"}. The two values are the shape parameters of the
-\code{Beta(a, b)} prior. The same prior is applied to both treatment arms.}
+\item{prior_bin}{A length-two numeric vector of finite, positive shape
+parameters \code{c(a, b)} for the \code{Beta(a, b)} event-probability prior used when
+\code{method = "bayes-bin"}. The same prior is applied to both arms. The default
+is \code{c(1, 1)}, a uniform prior.}
 
-\item{bin_method}{character. Method used to calculate the posterior
-probability for \code{method = "bayes-bin"}, must be one of \code{"mc"} (Monte Carlo
+\item{bin_method}{A single character string selecting how to calculate the
+posterior probability for \code{method = "bayes-bin"}. It must be one of
+\code{"mc"} (Monte Carlo
 sampling), \code{"normal"} (normal approximation), or \code{"quadrature"} (numerical
 integration). The default is \code{"mc"}.}
 
-\item{rand_ratio}{Length-two positive integer maximum-sample allocation
-ratio. Name the values \code{control} and \code{treatment}; either order is accepted.
+\item{rand_ratio}{A length-two positive integer vector giving the control to
+treatment allocation ratio at the maximum sample size. The default is
+\code{c(control = 1, treatment = 1)}. Name the values \code{control} and \code{treatment};
+either order is accepted.
 A legacy unnamed vector is interpreted as \code{c(control, treatment)}. The
 maximum sample size must divide exactly according to this ratio. Ignored
 for single-arm designs.}
 
-\item{single_arm}{Logical indicating whether the design has one treatment
-arm and no control arm.}
+\item{single_arm}{A single logical value indicating whether the design has
+one treatment arm and no control arm. The default is \code{FALSE}.}
 
-\item{alternative}{character. The string specifying the alternative
-hypothesis, must be one of \code{"greater"} (default), \code{"less"} or
+\item{alternative}{A single character string specifying the alternative
+hypothesis. It must be one of \code{"greater"} (the default), \code{"less"}, or
 \code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
 supported for \code{method = "bayes-surv"} and \code{method = "bayes-bin"}. All three
 options are supported for \code{method = "logrank"}, \code{method = "cox"}, and
@@ -93,8 +105,9 @@ survival outcomes, \code{"less"} corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
 corresponds to the treatment arm having a higher cumulative incidence.}
 
-\item{h0}{single finite numeric null hypothesis value or margin. Default is
-\code{h0 = 0}. For Bayesian analyses, \code{h0} must lie in \verb{[0, 1]} for a
+\item{h0}{A single finite numeric value specifying the null hypothesis or
+margin. The default is \code{0}. For Bayesian analyses, \code{h0} must lie in
+\verb{[0, 1]} for a
 single-arm design and \verb{[-1, 1]} for a two-arm design.
 \itemize{
 \item When \code{method = "bayes-surv"}, \code{h0} is the null value of
@@ -117,35 +130,44 @@ usual equal-survival null. Nonzero values are rejected because the
 standard log-rank statistic does not implement a nonzero effect margin.
 }}
 
-\item{Fn}{Single probability threshold for stopping for futility at this
+\item{Fn}{\code{NULL}, or a single numeric probability in \verb{[0, 1]} giving the
+threshold for stopping for futility at this
 look. Futility is declared when predictive success at the maximum sample
 size is strictly less than \code{Fn}. Set \code{Fn = 0} or \code{NULL} to disable the
-maximum-sample calculation.}
+maximum-sample calculation. The default is \code{0.05}.}
 
-\item{Sn}{Single probability threshold for stopping for expected success at
+\item{Sn}{A single numeric probability in \verb{[0, 1]} giving the threshold for
+stopping for expected success at
 this look. Expected success is declared when predictive success among the
-currently enrolled participants is strictly greater than \code{Sn}.}
+currently enrolled participants is strictly greater than \code{Sn}. The default
+is \code{0.9}.}
 
-\item{prob_ha}{scalar value between 0 and 1. Probability threshold of alternative
-hypothesis.}
+\item{prob_ha}{A single numeric probability in \verb{[0, 1]} defining success in
+each completed-data analysis. For Bayesian methods this is compared with
+the posterior probability of the alternative; for frequentist methods it
+is compared with \code{1 - P}. The default is \code{0.95}.}
 
-\item{N_impute}{integer. Number of predictive imputations used at each
+\item{N_impute}{A positive integer giving the number of predictive
+imputations used at each
 interim look and, when requested, for final multiple imputation. The
-default is 500. An imputed Cox or risk-difference final analysis requires
+default is \code{500}. An imputed Cox or risk-difference final analysis requires
 at least two.}
 
-\item{N_mcmc}{integer. Number of posterior samples used within each
+\item{N_mcmc}{A positive integer giving the number of posterior draws used
+within each
 \code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
-\code{bin_method = "mc"}. The default is 1000.}
+\code{bin_method = "mc"}. The default is \code{1000}.}
 
-\item{mc_conf_level}{probability strictly between 0.5 and 1. Confidence
+\item{mc_conf_level}{A single numeric probability strictly between \code{0.5} and
+\code{1}, giving the confidence
 level for one-sided exact binomial bounds reported as diagnostics of
 finite Monte Carlo uncertainty. The bounds do not alter completed-data
 success classifications or interim decisions, which use strict point-
-estimate comparisons with \code{prob_ha}, \code{Sn}, and \code{Fn}. The default is 0.95.}
+estimate comparisons with \code{prob_ha}, \code{Sn}, and \code{Fn}. The default is \code{0.95}.}
 
-\item{empty_interval}{character. Policy for empty piecewise-exponential
-intervals in \code{method = "bayes-surv"} posterior calculations. An empty
+\item{empty_interval}{A single character string specifying how to handle
+empty piecewise-exponential intervals when updating Gamma hazard models for
+predictive imputation and Bayesian survival analysis. An empty
 interval is an interval with no exposed subjects in a treatment arm at the
 analysis time. \code{"prior"} (the default) leaves the interval at zero exposure
 time and zero events, so its posterior is driven only by its assigned
@@ -154,24 +176,26 @@ time and event counts from the nearest non-empty interval in the same
 treatment arm and emits a warning. \code{"error"} stops when any empty interval
 is found.}
 
-\item{method}{character. For an imputed data set (or the final data set after
-follow-up is complete), whether the analysis should be a log-rank
+\item{method}{A single character string specifying the completed-data and
+final analysis. Available choices are a log-rank
 (\code{method = "logrank"}) test, Cox proportional hazards regression model
 Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
 complete binary outcomes (\code{method = "bayes-bin"}), or a frequentist
-risk-difference Wald test of complete binary outcomes (\code{method = "riskdiff"}). See Details section.}
+risk-difference Wald test of complete binary outcomes (\code{method = "riskdiff"}). The default is \code{"logrank"}. See Details.}
 
-\item{binary_imputation}{character. Predictive imputation approach for
+\item{binary_imputation}{A single character string selecting the predictive
+imputation approach for
 \code{method = "bayes-bin"} or \code{method = "riskdiff"}. \code{"event-time"} (the default)
 draws a conditional piecewise-exponential event time and reduces it to
 event status at \code{end_of_study}. \code{"bernoulli"} draws the endpoint status
 directly from its conditional event probability. This argument is ignored
 for time-to-event analysis methods.}
 
-\item{seed}{\code{NULL}, or a non-negative integer used for the predictive Monte
+\item{seed}{\code{NULL} (the default), or a single non-negative integer used for
+the predictive Monte
 Carlo calculation. A supplied seed makes the result reproducible and
-preserves the caller's random-number state. With \code{seed = NULL}, the call
+leaves the existing random-number state unchanged. With \code{seed = NULL}, the call
 uses and advances the current random-number state.}
 }
 \value{
@@ -192,11 +216,11 @@ imputation horizon (\code{end_of_study}).
 }
 }
 \description{
-Applies the same posterior-predictive decision calculation used
+Applies the same posterior predictive decision calculation used
 by \code{\link[=survival_adapt]{survival_adapt()}} to subject-level data observed at one interim look.
 The function does not simulate a trial or modify \code{data}. Participants who
-could still be enrolled before the maximum sample size are constructed
-internally from \code{N_total}, the observed arm counts, and \code{rand_ratio}.
+could still be enrolled before the maximum sample size are represented
+according to \code{N_total}, the observed arm counts, and \code{rand_ratio}.
 }
 \details{
 The arm-specific maximum enrollment is

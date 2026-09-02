@@ -1,29 +1,40 @@
 #' @title Simulate and analyze one Goldilocks adaptive trial
 #'
+#' @description Simulates one single-arm or randomized two-arm trial under a
+#'   Goldilocks sample-size design. At each planned interim look, posterior
+#'   predictive probabilities determine whether to stop accrual for expected
+#'   success, stop for futility, or continue toward the maximum sample size.
+#'
 #' @inheritParams sim_comp_data
-#' @param cutpoints finite, positive, strictly increasing interior follow-up
+#' @param cutpoints `NULL` (the default), or a numeric vector of finite,
+#'   positive, strictly increasing interior follow-up
 #'   times defining the piecewise-exponential model used for interim posterior
 #'   estimation, predictive imputation, and final analysis. The number of
 #'   interval-specific prior columns must be one greater than the number of
-#'   cutpoints. Default is `NULL`, which uses a constant-hazard analysis model.
-#' @param generation_cutpoints finite, positive, strictly increasing interior
+#'   cutpoints. `NULL` specifies a constant-hazard analysis model.
+#' @param generation_cutpoints `NULL`, or a numeric vector of finite, positive,
+#'   strictly increasing interior
 #'   follow-up times defining the piecewise-exponential model used to generate
 #'   event times. `hazard_treatment` and `hazard_control` must each have one
 #'   value per resulting interval. Defaults to `cutpoints`, preserving the
 #'   historical behavior in which generation and analysis used one partition.
-#' @param end_of_study finite study endpoint, strictly greater than the final
-#'   value in both `cutpoints` and `generation_cutpoints` when either is
-#'   supplied.
-#' @param interim_look vector. Sample size for each interim look. Note: the
-#'   maximum sample size should not be included. For two-arm designs, each
+#' @param end_of_study A required finite, positive numeric value giving the
+#'   planned subject-level follow-up time. It must be greater than the final
+#'   value in both `cutpoints` and `generation_cutpoints`, when supplied, and
+#'   use the same time unit.
+#' @param interim_look `NULL` (the default) for no interim analyses, or a
+#'   strictly increasing positive integer vector giving the cumulative sample
+#'   size at each interim look. Do not include the maximum sample size. For
+#'   two-arm designs, each
 #'   interim look must be at least the (largest) block size (see `block`),
 #'   ensuring both treatment groups are present at every interim analysis; a
 #'   smaller look could enroll subjects from one treatment group only, leaving
 #'   the interim posterior undefined for the missing group.
-#' @param prior_surv numeric vector, matrix, or named list. Gamma prior for the
+#' @param prior_surv A numeric vector, matrix, or named list specifying the
+#'   Gamma prior for the
 #'   piecewise-exponential hazards used during interim prediction. A length-two
-#'   vector supplies shape and rate and is broadcast across all arms and
-#'   intervals. A `2` by `length(cutpoints) + 1` matrix supplies
+#'   vector supplies shape and rate and applies the same prior to every arm and
+#'   interval. A `2` by `length(cutpoints) + 1` matrix supplies
 #'   interval-specific values shared by all arms, with shapes in row 1 and rates
 #'   in row 2. For independent arm-specific priors, supply a list named
 #'   `control` and `treatment` in a two-arm design, or `treatment` in a
@@ -31,26 +42,30 @@
 #'   interval-specific matrix. Both arms must be supplied; no values are
 #'   borrowed or filled from the other arm. Rates must use the same time unit as
 #'   event times, exposure, and cutpoints. The default is `c(0.1, 0.1)`.
-#' @param prior_surv_final numeric vector, matrix, or named list. Gamma prior
+#' @param prior_surv_final A numeric vector, matrix, or named list specifying
+#'   the Gamma prior
 #'   used for final-stage piecewise-exponential imputation and, for `method =
 #'   "bayes-surv"`, final analysis. It accepts the same shared or arm-specific
 #'   forms as `prior_surv` and defaults to `prior_surv`, preserving the
 #'   historical behavior.
-#' @param prior_bin vector. Prior distribution for the event probability when
-#'   `method = "bayes-bin"`. The two values are the shape parameters of the
-#'   `Beta(a, b)` prior. The same prior is applied to both treatment arms.
-#' @param bin_method character. Method used to calculate the posterior
-#'   probability for `method = "bayes-bin"`, must be one of `"mc"` (Monte Carlo
+#' @param prior_bin A length-two numeric vector of finite, positive shape
+#'   parameters `c(a, b)` for the `Beta(a, b)` event-probability prior used when
+#'   `method = "bayes-bin"`. The same prior is applied to both arms. The default
+#'   is `c(1, 1)`, a uniform prior.
+#' @param bin_method A single character string selecting how to calculate the
+#'   posterior probability for `method = "bayes-bin"`. It must be one of
+#'   `"mc"` (Monte Carlo
 #'   sampling), `"normal"` (normal approximation), or `"quadrature"` (numerical
 #'   integration). The default is `"mc"`.
-#' @param binary_imputation character. Predictive imputation approach for
+#' @param binary_imputation A single character string selecting the predictive
+#'   imputation approach for
 #'   `method = "bayes-bin"` or `method = "riskdiff"`. `"event-time"` (the default)
 #'   draws a conditional piecewise-exponential event time and reduces it to
 #'   event status at `end_of_study`. `"bernoulli"` draws the endpoint status
 #'   directly from its conditional event probability. This argument is ignored
 #'   for time-to-event analysis methods.
-#' @param alternative character. The string specifying the alternative
-#'   hypothesis, must be one of `"greater"` (default), `"less"` or
+#' @param alternative A single character string specifying the alternative
+#'   hypothesis. It must be one of `"greater"` (the default), `"less"`, or
 #'   `"two.sided"`. One-sided alternatives (`"greater"` and `"less"`) are
 #'   supported for `method = "bayes-surv"` and `method = "bayes-bin"`. All three
 #'   options are supported for `method = "logrank"`, `method = "cox"`, and
@@ -58,8 +73,9 @@
 #'   survival outcomes, `"less"` corresponds to the treatment arm having a lower
 #'   cumulative incidence (i.e., treatment is beneficial), and `"greater"`
 #'   corresponds to the treatment arm having a higher cumulative incidence.
-#' @param h0 single finite numeric null hypothesis value or margin. Default is
-#'   `h0 = 0`. For Bayesian analyses, `h0` must lie in `[0, 1]` for a
+#' @param h0 A single finite numeric value specifying the null hypothesis or
+#'   margin. The default is `0`. For Bayesian analyses, `h0` must lie in
+#'   `[0, 1]` for a
 #'   single-arm design and `[-1, 1]` for a two-arm design.
 #'   * When `method = "bayes-surv"`, `h0` is the null value of
 #'     \eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
@@ -79,35 +95,45 @@
 #'   * When `method = "logrank"`, only `h0 = 0` is supported; this denotes the
 #'     usual equal-survival null. Nonzero values are rejected because the
 #'     standard log-rank statistic does not implement a nonzero effect margin.
-#' @param Fn vector of values between 0 and 1. Each element is the probability
+#' @param Fn `NULL`, or a numeric vector of probabilities in `[0, 1]`. Each
+#'   value is the predictive-probability
 #'   threshold to stop at the \eqn{i}-th look early for futility. If there are
 #'   no interim looks (i.e. `interim_look = NULL`), then `Fn` is not
 #'   used in the simulations or analysis. Set `Fn = 0` to disable futility
 #'   monitoring; `Fn = NULL` has the same effect. Supply either one value,
-#'   which is broadcast to every interim look, or exactly one value per
-#'   `interim_look`. Other lengths are rejected rather than recycled.
-#' @param Sn vector of values between 0 and 1. Each element is the probability
+#'   which is repeated at every interim look, or exactly one value per
+#'   `interim_look`. Other lengths are rejected rather than recycled. The
+#'   default is `0.05`.
+#' @param Sn A numeric vector of probabilities in `[0, 1]`. Each value is the
+#'   predictive-probability
 #'   threshold to stop at the \eqn{i}-th look early for expected success. If
 #'   there are no interim looks (i.e. `interim_look = NULL`), then
 #'   `Sn` is not used in the simulations or analysis. Supply either one value,
-#'   which is broadcast to every interim look, or exactly one value per
-#'   `interim_look`. Other lengths are rejected rather than recycled.
-#' @param prob_ha scalar value between 0 and 1. Probability threshold of alternative
-#'   hypothesis.
-#' @param N_impute integer. Number of predictive imputations used at each
+#'   which is repeated at every interim look, or exactly one value per
+#'   `interim_look`. Other lengths are rejected rather than recycled. The
+#'   default is `0.9`.
+#' @param prob_ha A single numeric probability in `[0, 1]` defining success in
+#'   each completed-data analysis. For Bayesian methods this is compared with
+#'   the posterior probability of the alternative; for frequentist methods it
+#'   is compared with `1 - P`. The default is `0.95`.
+#' @param N_impute A positive integer giving the number of predictive
+#'   imputations used at each
 #'   interim look and, when requested, for final multiple imputation. The
-#'   default is 500. An imputed Cox or risk-difference final analysis requires
+#'   default is `500`. An imputed Cox or risk-difference final analysis requires
 #'   at least two.
-#' @param N_mcmc integer. Number of posterior samples used within each
+#' @param N_mcmc A positive integer giving the number of posterior draws used
+#'   within each
 #'   `method = "bayes-surv"` and by `method = "bayes-bin"` when
-#'   `bin_method = "mc"`. The default is 1000.
-#' @param mc_conf_level probability strictly between 0.5 and 1. Confidence
+#'   `bin_method = "mc"`. The default is `1000`.
+#' @param mc_conf_level A single numeric probability strictly between `0.5` and
+#'   `1`, giving the confidence
 #'   level for one-sided exact binomial bounds reported as diagnostics of
 #'   finite Monte Carlo uncertainty. The bounds do not alter completed-data
 #'   success classifications or interim decisions, which use strict point-
-#'   estimate comparisons with `prob_ha`, `Sn`, and `Fn`. The default is 0.95.
-#' @param empty_interval character. Policy for empty piecewise-exponential
-#'   intervals in `method = "bayes-surv"` posterior calculations. An empty
+#'   estimate comparisons with `prob_ha`, `Sn`, and `Fn`. The default is `0.95`.
+#' @param empty_interval A single character string specifying how to handle
+#'   empty piecewise-exponential intervals when updating Gamma hazard models for
+#'   predictive imputation and Bayesian survival analysis. An empty
 #'   interval is an interval with no exposed subjects in a treatment arm at the
 #'   analysis time. `"prior"` (the default) leaves the interval at zero exposure
 #'   time and zero events, so its posterior is driven only by its assigned
@@ -115,27 +141,27 @@
 #'   time and event counts from the nearest non-empty interval in the same
 #'   treatment arm and emits a warning. `"error"` stops when any empty interval
 #'   is found.
-#' @param method character. For an imputed data set (or the final data set after
-#'   follow-up is complete), whether the analysis should be a log-rank
+#' @param method A single character string specifying the completed-data and
+#'   final analysis. Available choices are a log-rank
 #'   (`method = "logrank"`) test, Cox proportional hazards regression model
 #'   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
 #'   analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis of
 #'   complete binary outcomes (`method = "bayes-bin"`), or a frequentist
 #'   risk-difference Wald test of complete binary outcomes (`method =
-#'   "riskdiff"`). See Details section.
-#' @param imputed_final logical. Should the final analysis (after all subjects
-#'   have been followed-up to the study end) be based on imputed outcomes for
+#'   "riskdiff"`). The default is `"logrank"`. See Details.
+#' @param imputed_final A single logical value indicating whether the final
+#'   analysis should be based on imputed outcomes for
 #'   subjects who were LTFU (i.e. right-censored with time less than
-#'   `end_of_study`)? Default is `FALSE`, which means that the final analysis
+#'   `end_of_study`). The default is `FALSE`, which means that the final analysis
 #'   incorporates right-censoring. With `method = "cox"` or `method =
 #'   "riskdiff"`, setting this to `TRUE` analyzes each imputed dataset and pools
 #'   the scalar treatment effects and variances using Rubin's rules; this
 #'   requires `N_impute >= 2`. Imputed final analyses remain unavailable for
 #'   `method = "logrank"`.
-#' @param return_trace logical. Should the interim decision path be returned in
-#'   addition to the usual final summary? The default, FALSE, returns the
-#'   historical one-row data frame. When TRUE, the result is a
-#'   goldilocks_trial object with summary, trace, prior and posterior
+#' @param return_trace A single logical value indicating whether the interim
+#'   decision path should be returned in addition to the usual final summary.
+#'   The default, `FALSE`, returns the historical one-row data frame. When
+#'   `TRUE`, the result is a `goldilocks_trial` object with summary, trace, prior and posterior
 #'   diagnostics, and call elements.
 #'
 #' @details Implements the Goldilocks design method described in Broglio et al.
@@ -143,29 +169,31 @@
 #'
 #'   1. **The posterior predictive probability of eventual success.** This is
 #'      calculated as the proportion of imputed datasets at the *current* sample
-#'      size that would go on to be success at the specified threshold. At each
+#'      size that satisfy the completed-data success criterion. At each
 #'      interim analysis this proportion is compared to the corresponding
 #'      element of `Sn`, and if it exceeds the threshold,
 #'      accrual/enrollment is suspended and the outstanding follow-up allowed to
 #'      complete before conducting the pre-specified final analysis.
 #'
-#'   2. **The posterior predictive probability of final success**. This is
+#'   2. **The posterior predictive probability of success at the maximum sample
+#'      size.** This is
 #'      calculated as the proportion of imputed datasets at the *maximum*
-#'      threshold that would go on to be successful. Similar to above, it is
+#'      sample size that satisfy the completed-data success criterion. It is
 #'      compared to the corresponding element of `Fn`, and if it is below the
 #'      threshold, accrual/enrollment is suspended and the
 #'      trial terminated. Typically this would be a binding decision. If it is
 #'      not a binding decision, then one should also explore the simulations
 #'      with `Fn = 0`.
 #'
-#'   Hence, at each interim analysis look, 3 decisions are allowed:
+#'   Hence, each interim look has three possible decisions:
 #'
 #'   1. **Stop for expected success**
 #'   2. **Stop for futility**
 #'   3. **Continue to enroll** new subjects, or if at maximum sample size,
 #'      proceed to final analysis.
 #'
-#'   At each interim (and final) analysis methods as:
+#'   The following completed-data analysis methods are available at interim and
+#'   final analyses:
 #'
 #'  * Log-rank test (`method = "logrank"`).
 #'      Each (imputed) dataset with both treatment and control arms can be
@@ -195,19 +223,19 @@
 #'      freedom. When `imputed_final = FALSE`, the existing single Cox model is
 #'      fitted directly to the observed right-censored data.
 #'
-#'   * Bayesian absolute difference (`method = "bayes-surv"`).
+#'   * Bayesian difference in cumulative event probability
+#'     (`method = "bayes-surv"`).
 #'      Each imputed dataset is used to update the conjugate Gamma prior
 #'      (defined by `prior_surv` at interim looks and `prior_surv_final` at the
 #'      final stage), yielding a posterior distribution for the
 #'      piecewise exponential rate parameters. In turn, the posterior
 #'      distribution of the cumulative incidence function (\eqn{1 - S(t)}, where
 #'      \eqn{S(t)} is the survival function) evaluated at time
-#'      `end_of_study` is calculated. If a single-arm study, then this
-#'      summarizes the treatment effect, else, if a two-armed study, the
-#'      independent posteriors are used to estimate the posterior distribution
-#'      of the difference. A posterior probability is calculated according to the
-#'      specification of the test type (`alternative`) and the value of the null
-#'      hypothesis (`h0`).
+#'      `end_of_study` is calculated. In a single-arm study, inference concerns
+#'      the treatment-arm event probability. In a two-arm study, the independent
+#'      arm-specific posteriors define the posterior distribution of the
+#'      treatment-minus-control difference. The reported posterior probability
+#'      is determined by `alternative` and `h0`.
 #'
 #'      For piecewise-exponential analyses, an interim or final dataset may
 #'      contain intervals with no exposed subjects in one treatment arm,
@@ -271,18 +299,18 @@
 #'      follow-up is complete can be analyzed on imputed datasets for Bayesian
 #'      methods (`"bayes-surv"` and `"bayes-bin"`), Cox regression, and the
 #'      frequentist risk-difference analysis, or on the non-imputed dataset.
-#'      Since the imputations/predictions used
-#'      during the interim analyses assume all subjects are imputed (since loss
-#'      to follow-up is not yet known), it would seem most appropriate to
-#'      conduct the trial in the same manner, especially if loss to follow-up
-#'      rates are appreciable. Note, this only applies to subjects who are
-#'      right-censored due to loss to follow-up, which we assume is a
-#'      non-informative process. For Cox regression the final estimates and
+#'      Interim prediction completes outcomes that are not yet observed,
+#'      whereas final imputation applies only to subjects right-censored because
+#'      of loss to follow-up before `end_of_study`. Design evaluations should
+#'      prespecify whether the final analysis imputes these outcomes and assess
+#'      sensitivity to that choice, particularly when appreciable attrition is
+#'      expected. Loss to follow-up is assumed to be non-informative. For Cox
+#'      regression the final estimates and
 #'      variances are pooled with Rubin's rules. It cannot be used with
 #'      `method = "logrank"`.
 #'
 #'   When imputation is involved, either at interim analyses or through
-#'   `imputed_final = TRUE`, the package uses a modular impute-then-analyze
+#'   `imputed_final = TRUE`, the package uses a two-stage impute-then-analyze
 #'   procedure. First, the piecewise-exponential model is fitted to the
 #'   *observed* time-to-event data and used to complete pending outcomes.
 #'   Second, each completed dataset is analyzed using the model selected by
@@ -313,9 +341,8 @@
 #'   that they contribute negligible but non-zero exposure to the interim
 #'   posterior. This affects at most one subject per interim look.
 #'
-#' @return With return_trace = FALSE (the default), a data frame containing
-#'   some input parameters (arguments) as well as statistics from the analysis,
-#'   including:
+#' @return With `return_trace = FALSE` (the default), a one-row data frame
+#'   containing the evaluated design and final trial results, including:
 #'
 #'   - `N_treatment`: Number of patients enrolled in the treatment arm.
 #'   - `N_control`: Number of patients enrolled in the control arm.
@@ -353,17 +380,17 @@
 #'
 #'   The returned object has a `decision_design` attribute containing
 #'   `interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
-#'   this metadata are normalized to one value per interim look (and have
+#'   this information are stored as one value per interim look (and have
 #'   length zero when no interim looks are planned).
-#'   A `prior_design` attribute contains the fully broadcast Gamma shape, rate,
+#'   A `prior_design` attribute contains the resolved Gamma shape, rate,
 #'   mean hazard, and standard deviation for every stage, arm, and interval.
 #'
 #'   Both return forms have an `arguments` attribute containing a named list of
 #'   the evaluated argument values, including defaults. It can be saved with
 #'   [saveRDS()] and supplied to a later call with
 #'   `do.call(survival_adapt, attr(result, "arguments"))`. Its `prop_loss`
-#'   element is normalized to a named value for every simulated arm.
-#'   Its `rand_ratio` element is normalized to `control`, `treatment` order for
+#'   element contains a named value for every simulated arm.
+#'   Its `rand_ratio` element is stored in `control`, `treatment` order for
 #'   two-arm designs. Its `cutpoints` and `generation_cutpoints` elements retain
 #'   the analysis and data-generation partitions, respectively.
 #'   For `method = "bayes-bin"`, this metadata explicitly retains the
@@ -372,7 +399,7 @@
 #'   separate `prior_design` attribute gives the resolved Gamma parameters by
 #'   stage, arm, and interval.
 #'
-#'   With return_trace = TRUE, a goldilocks_trial object is returned. Its
+#'   With `return_trace = TRUE`, a `goldilocks_trial` object is returned. Its
 #'   `summary` element is the same data frame and its `trace` element has one row
 #'   per interim look. `prior_diagnostics` contains the resolved interim and
 #'   final priors. `posterior_diagnostics` reports observed and effective

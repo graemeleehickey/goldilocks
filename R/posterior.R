@@ -1,20 +1,21 @@
-#' @title Posterior distribution of piecewise exponential constant hazard rates
+#' @title Sample posterior piecewise-exponential hazard rates
 #'
-#' @description Using the Beta-Gamma conjugacy property, the posterior
-#'   distribution of the piecewise hazard rates (\eqn{\lambda_j}, for `j = 1,
-#'   ..., J`) is calculated and sampled from.
+#' @description Updates independent Gamma priors with the observed event counts
+#'   and exposure times, then samples the posterior distribution of each
+#'   piecewise-constant hazard rate.
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams haz_to_prop
-#' @param data data frame. Minimum requirements are 3 columns: event time
-#'   (`time`), indicator of the event (`event`), and indicator for
+#' @param data A data frame with one row per subject and at least three columns:
+#'   follow-up time (`time`), event indicator (`event`), and
 #'   treatment assignment (`treatment`, coded `1` for treatment and
-#'   `0` for control). Other columns can be included in the data frame and
-#'   will be handled in the split.
-#' @param empty_interval character. Policy for piecewise intervals with no
+#'   `0` for control). Additional columns are ignored.
+#' @param empty_interval A single character string specifying how to handle a
+#'   piecewise interval with no
 #'   exposed subjects in a treatment arm. `"propagate"` copies sufficient
 #'   statistics from the nearest non-empty interval in the same arm;
-#'   `"prior"` leaves the interval with zero exposure and zero events, making
+#'   `"prior"` (the default) leaves the interval with zero exposure and zero
+#'   events, making
 #'   the posterior prior-driven; `"error"` stops with a clear message.
 #'
 #' @return An array of dimension 3. The first dimension is of length
@@ -64,13 +65,10 @@ posterior <- function(
 
 #' @title Draw piecewise-exponential hazards from sufficient statistics
 #'
-#' @description Draws from the conjugate Gamma posterior using one row per
-#'   treatment arm and piecewise interval. This is the statistics-based half of
-#'   `posterior()`: callers that already have completed-data exposure times and
-#'   event counts can avoid sending a patient-level data frame through the
-#'   posterior calculation again.
+#' @description Draws from the conjugate Gamma posterior using one row of
+#'   sufficient statistics per treatment arm and piecewise interval.
 #'
-#' @param data_summ Data frame containing `treatment`, `interval`, `n`,
+#' @param data_summ A data frame containing `treatment`, `interval`, `n`,
 #'   `tot_time`, and `tot_events`. The `n` column is retained even though it is
 #'   not part of the Gamma update because it distinguishes an empty interval
 #'   from an interval having zero events. That distinction is required by
@@ -226,13 +224,11 @@ posterior_from_sufficient_stats <- function(
   )
 }
 
-#' Draw a posterior from internally generated sufficient statistics
+#' Draw posterior hazards from validated sufficient statistics
 #'
-#' @description Fast path for statistics returned directly by
-#'   `posterior_sufficient_stats()`. Unlike `posterior_from_sufficient_stats()`,
-#'   this function does not normalize rich prior inputs or accept shuffled
-#'   arm/interval rows. It retains inexpensive assertions for dynamic state and
-#'   applies the configured empty-interval policy before sampling.
+#' @description Draws posterior hazards from sufficient statistics already
+#'   validated and ordered by arm and interval, then applies the selected
+#'   empty-interval rule before sampling.
 #'
 #' @inheritParams posterior_from_sufficient_stats
 #'
@@ -469,11 +465,16 @@ draw_gamma_posterior_kernel <- function(
 
 #' Summarize resolved Gamma priors by arm and interval
 #'
-#' @param prior_surv A supported survival-prior specification.
-#' @param cutpoints Piecewise-exponential cutpoints.
-#' @param end_of_study End of subject-level follow-up.
-#' @param single_arm Whether the design is single-arm.
-#' @param stage Optional stage label.
+#' @param prior_surv A numeric vector, matrix, or named list specifying a Gamma
+#'   prior in one of the forms described for [survival_adapt()].
+#' @param cutpoints `NULL`, or a numeric vector of piecewise-exponential
+#'   cutpoints.
+#' @param end_of_study A single finite, positive numeric value giving the
+#'   subject-level follow-up horizon.
+#' @param single_arm A single logical value indicating whether the design is
+#'   single-arm.
+#' @param stage `NULL`, or a single character string labelling the interim or
+#'   final analysis stage. The default is `NULL`.
 #'
 #' @return A tidy data frame containing resolved Gamma parameters and moments.
 #'
@@ -528,8 +529,10 @@ gamma_prior_diagnostics <- function(
 #'   auditable.
 #'
 #' @inheritParams gamma_prior_diagnostics
-#' @param data_summ Observed PWE sufficient statistics.
-#' @param empty_interval Empty-interval policy used by the posterior update.
+#' @param data_summ A data frame of observed piecewise-exponential sufficient
+#'   statistics, with one row per arm and interval.
+#' @param empty_interval A single character string specifying the empty-interval
+#'   rule used by the posterior update.
 #'
 #' @return A tidy data frame containing prior parameters, observed and effective
 #'   sufficient statistics, and posterior parameters and moments.
@@ -661,9 +664,8 @@ propagate_empty_intervals <- function(data_summ) {
 #' @description Aggregates exposure time and event counts by treatment arm and
 #'   piecewise interval for conjugate Gamma posterior updates.
 #'
-#' @param rows Optional logical vector selecting the patient rows to summarize.
-#'   This avoids constructing a temporary three-column analysis data frame when
-#'   the caller already holds an imputed simulation data set.
+#' @param rows `NULL` (the default), or a logical vector with one value per row
+#'   of `data`, selecting the subjects to include in the sufficient statistics.
 #'
 #' @noRd
 posterior_sufficient_stats <- function(

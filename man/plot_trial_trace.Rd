@@ -7,8 +7,9 @@
 plot_trial_trace(x)
 }
 \arguments{
-\item{x}{A \code{goldilocks_trial} object, a \code{goldilocks_interim} object, or an
-interim trace data frame.}
+\item{x}{A required \code{goldilocks_trial} result from \code{\link[=survival_adapt]{survival_adapt()}}, a
+\code{goldilocks_interim} result from \code{\link[=evaluate_interim]{evaluate_interim()}}, or an interim trace
+data frame.}
 }
 \value{
 The trace data frame, invisibly.

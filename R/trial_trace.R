@@ -3,7 +3,8 @@
 #' @description Binds trace rows produced during an adaptive trial and supplies
 #'   a stable zero-row data frame when a design has no interim looks.
 #'
-#' @param rows List of interim trace rows.
+#' @param rows A list of data frames, with one row for each completed interim
+#'   look. `NULL` elements are omitted.
 #'
 #' @return A data frame with one row per completed interim look.
 #'
@@ -57,7 +58,8 @@ new_trial_trace <- function(rows) {
 #'   [survival_adapt()] with `return_trace` enabled, a `goldilocks_interim`
 #'   object returned by [evaluate_interim()], or the trace data frame itself.
 #'
-#' @param x Trial result or decision trace.
+#' @param x A `goldilocks_trial` result, a `goldilocks_interim` result, or an
+#'   interim trace data frame.
 #'
 #' @return An interim decision trace data frame.
 #'
@@ -76,13 +78,16 @@ get_trial_trace <- function(x) {
   )
 }
 
-#' @title Print an adaptive trial trace result
+#' @title Print a Goldilocks adaptive trial result
 #'
 #' @description Prints the final trial summary and reports how many interim
-#'   looks were completed when survival_adapt returns a goldilocks_trial object.
+#'   looks were completed for a `goldilocks_trial` object returned by
+#'   [survival_adapt()].
 #'
-#' @param x A goldilocks_trial object.
-#' @param ... Additional arguments passed to print.data.frame.
+#' @param x A `goldilocks_trial` result returned by [survival_adapt()] when
+#'   `return_trace = TRUE`.
+#' @param ... Additional arguments passed to [base::print.data.frame()] when
+#'   printing the final trial summary.
 #'
 #' @return The input object, invisibly.
 #'
@@ -97,11 +102,13 @@ print.goldilocks_trial <- function(x, ...) {
 #' @title Summarize an interim decision path
 #'
 #' @description Creates a compact one-row summary of the final interim look and
-#'   stopping decision. Pass the goldilocks_trial object to include final
-#'   analysis information, or pass its trace element to summarize the path only.
+#'   stopping decision. Pass a `goldilocks_trial` object to include final
+#'   analysis information, or pass its `trace` element to summarize the path
+#'   only.
 #'
-#' @param x A `goldilocks_trial` object, a `goldilocks_interim` object, or an
-#'   interim trace data frame.
+#' @param x A required `goldilocks_trial` result from [survival_adapt()], a
+#'   `goldilocks_interim` result from [evaluate_interim()], or an interim trace
+#'   data frame.
 #'
 #' @return A one-row data frame.
 #'
@@ -151,8 +158,9 @@ summarise_trial_trace <- function(x) {
 #'   Thresholds and early stopping decisions are marked on the probability
 #'   panels.
 #'
-#' @param x A `goldilocks_trial` object, a `goldilocks_interim` object, or an
-#'   interim trace data frame.
+#' @param x A required `goldilocks_trial` result from [survival_adapt()], a
+#'   `goldilocks_interim` result from [evaluate_interim()], or an interim trace
+#'   data frame.
 #'
 #' @return The trace data frame, invisibly.
 #'
@@ -322,8 +330,10 @@ plot_trial_trace <- function(x) {
 #'   denominator used by the selected view. The input can be the `sims` element
 #'   returned by [sim_trials()] or the complete `sim_trials()` result.
 #'
-#' @param x A simulation result data frame or the list returned by sim_trials.
-#' @param type Character string specifying the percentages to plot. `"marginal"`
+#' @param x A required simulation-result data frame, or the complete list
+#'   returned by [sim_trials()].
+#' @param type A single character string specifying the percentages to plot.
+#'   `"marginal"` (the default)
 #'   shows the percentage of all simulated trials ending at each sample size;
 #'   its bars sum to 100 percent across sample sizes. `"conditional"` shows the
 #'   percentage stopping at each look among trials still active at the start of
@@ -505,7 +515,8 @@ plot_sim_stopping <- function(
 
 #' Extract sample sizes from retained simulation traces
 #'
-#' @param simulation_result Original input supplied to `plot_sim_stopping()`.
+#' @param simulation_result A simulation-result data frame or complete
+#'   [sim_trials()] result supplied to `plot_sim_stopping()`.
 #'
 #' @return A numeric vector of trace-recorded enrolled sample sizes.
 #'
@@ -527,8 +538,10 @@ sim_stopping_trace_sizes <- function(simulation_result) {
 
 #' Draw a stopping flowchart for simulated trials
 #'
-#' @param sims Simulation summary data frame.
-#' @param trace_sizes Sample sizes from retained simulation traces.
+#' @param sims A simulation-result data frame containing terminal stopping
+#'   outcomes.
+#' @param trace_sizes A numeric vector of sample sizes observed in retained
+#'   interim traces.
 #'
 #' @return A `DiagrammeR` `grViz` htmlwidget.
 #'

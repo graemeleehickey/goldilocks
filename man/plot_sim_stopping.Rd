@@ -10,9 +10,11 @@ plot_sim_stopping(
 )
 }
 \arguments{
-\item{x}{A simulation result data frame or the list returned by sim_trials.}
+\item{x}{A required simulation-result data frame, or the complete list
+returned by \code{\link[=sim_trials]{sim_trials()}}.}
 
-\item{type}{Character string specifying the percentages to plot. \code{"marginal"}
+\item{type}{A single character string specifying the percentages to plot.
+\code{"marginal"} (the default)
 shows the percentage of all simulated trials ending at each sample size;
 its bars sum to 100 percent across sample sizes. \code{"conditional"} shows the
 percentage stopping at each look among trials still active at the start of

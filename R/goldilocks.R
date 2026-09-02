@@ -1,11 +1,11 @@
 #' @keywords internal
 "_PACKAGE"
 #' @name goldilocks
-#' @title goldilocks
+#' @title Goldilocks Bayesian adaptive trial designs
 #'
-#' @description The goal of `goldilocks` is to implement the Goldilocks Bayesian
-#'   adaptive design proposed by Broglio et al. (2014), for one- and two-arm
-#'   trials. Outcomes are generated with an underlying piecewise-exponential
+#' @description Implements the Goldilocks Bayesian adaptive design proposed by
+#'   Broglio et al. (2014) for single-arm and randomized two-arm trials.
+#'   Outcomes are generated with an underlying piecewise-exponential
 #'   event-time model. Final analyses may retain the time-to-event outcome
 #'   (`method = "logrank"`, `"cox"`, or `"bayes-surv"`) or reduce complete
 #'   follow-up to event status at a fixed endpoint time (`method = "riskdiff"`

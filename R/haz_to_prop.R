@@ -1,29 +1,26 @@
-#' @title Posterior event estimates at endpoint time from posterior hazard
-#'   distributions
+#' @title Convert posterior hazard draws to endpoint event probabilities
 #'
-#' @description The posterior distribution of the probability of an event
-#'   determined for a fixed time can be calculated in closed-form using the
-#'   piecewise exponential distribution and a sample from the posterior
-#'   distribution of the piecewise exponential hazard constant hazard rates.
+#' @description Calculates arm-specific event probabilities at a fixed
+#'   follow-up time from draws of piecewise-exponential hazard rates, together
+#'   with the treatment effect on the event-probability scale.
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
-#' @param post array An array of posterior probabilities of the piecewise hazard
-#'   rates (\eqn{\lambda_j}, for `j = 1, ..., J`) estimated by `posterior()`.
-#'   The array has dimension 3. The first dimension is
-#'   of length `N_mcmc`, the second dimension is of length \eqn{J} (one
-#'   column for each hazard piece), and the third dimension is of length 2, with
-#'   the first slice including posterior samples from `post_treatment`, and
-#'   the second slice including posterior samples from `post_control`.
-#' @param single_arm logical. If `TRUE`, the trial is single-arm. If
-#'   `FALSE`, the trial is a randomized two-arm trial.
+#' @param post A three-dimensional numeric array of posterior hazard-rate draws
+#'   from `posterior()`. The dimensions are posterior draws, piecewise
+#'   intervals, and arms, with treatment in the first arm slice and control in
+#'   the second.
+#' @param single_arm A single logical value indicating whether the trial has one
+#'   treatment arm (`TRUE`) or treatment and control arms (`FALSE`).
 #'
-#' @return A data frame with 3 columns of posterior samples:
+#' @return A data frame with three columns of posterior draws:
 #'
 #'   - `p_treatment`: Posterior probabilities of the event for the treatment
 #'     arm.
-#'   - `p_control`: Posterior probabilities of the event for the control arm.
-#'   - `effect`: Posterior distribution of the treatment effect.
+#'   - `p_control`: Posterior event probabilities for the control arm, or `NA`
+#'     for a single-arm design.
+#'   - `effect`: Treatment-arm event probability for a single-arm design, or the
+#'     treatment-minus-control event-probability difference for a two-arm design.
 #'
 #' @noRd
 haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {

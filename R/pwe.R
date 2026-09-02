@@ -1,19 +1,22 @@
 #' @title Simulate piecewise exponential time-to-event outcomes
 #'
-#' @description Simulate time-to-event outcomes using the piecewise constant
-#'   hazard exponential function.
+#' @description Simulates event times from a piecewise-exponential distribution,
+#'   with optional administrative censoring at a fixed follow-up time.
 #'
-#' @param n single non-negative integer. The number of random samples to
-#'   generate. Default is `n = 1`; `n = 0` returns a zero-row data frame.
-#' @param hazard vector. Finite non-negative constant hazard rates for
-#'   exponential failures. If at least one outcome is requested and the final
-#'   rate is zero, `maxtime` must be supplied so that subjects without an event
-#'   can be administratively censored.
-#' @param cutpoints finite, positive, strictly increasing vector of interior
+#' @param n A single non-negative integer giving the number of event times to
+#'   simulate. The default is `1`; `n = 0` returns a zero-row data frame.
+#' @param hazard A numeric vector of finite, non-negative event rates, with one
+#'   value per interval defined by `cutpoints`. The default is `1`, giving a
+#'   constant unit rate. If at least one outcome is requested and the final rate
+#'   is zero, `maxtime` must be supplied so that subjects without an event can
+#'   be administratively censored.
+#' @param cutpoints `NULL` (the default), or a numeric vector of finite,
+#'   positive, strictly increasing interior
 #'   times at which the hazard rate changes. The number of hazard rates must be
 #'   one greater than the number of cutpoints. Use `NULL` for a constant hazard.
-#' @param maxtime scalar. Optional administrative censoring time. When
-#'   supplied, it must be later than every cutpoint.
+#' @param maxtime `NULL` (the default), or a single finite, positive numeric
+#'   administrative censoring time. When supplied, it must be later than every
+#'   cutpoint.
 #'
 #' @details PWEALL represents the generating hazard with pieces closed on the
 #'   left and open on the right. Because the event-time distribution is
@@ -25,8 +28,9 @@
 #'   an event exactly at a cutpoint belongs to the interval ending there. See
 #'   [pwe_impute()] for the conditional sampling details.
 #'
-#' @return A data frame with simulated follow-up times (`time`) and respective
-#'   event indicator (`event`, 1 = event occurred, 0 = censoring).
+#' @return A data frame with one row per simulated subject and columns `time`,
+#'   the event or censoring time, and `event`, coded `1` for an event and `0`
+#'   for administrative censoring.
 #'
 #' @importFrom PWEALL rpwe qpwe pwe
 #' @importFrom stats rexp
@@ -73,13 +77,18 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL) {
 
 #' @title Impute piecewise exponential time-to-event outcomes
 #'
-#' @description Imputation of time-to-event outcomes using the piecewise
-#'   constant hazard exponential function conditional on observed exposure.
+#' @description Draws an event time from a piecewise-exponential distribution
+#'   conditional on a subject remaining event-free through the observed
+#'   follow-up time, with optional administrative censoring.
 #'
 #' @inheritParams pwe_sim
-#' @param time numeric vector. Finite, non-negative observed times for patients
-#'   who have not had an event or passed `maxtime`. A zero-length vector returns
+#' @param time A required numeric vector of finite, non-negative event-free
+#'   follow-up times for subjects who have not had an event. When `maxtime` is
+#'   supplied, no value may exceed it. A zero-length vector returns
 #'   a zero-row data frame. Values are not recycled against other arguments.
+#' @param hazard A required numeric vector of finite, non-negative event rates,
+#'   with one value per interval defined by `cutpoints`. If the final rate is
+#'   zero, `maxtime` must be supplied.
 #'
 #' @details If a subject is event-free at time \eqn{s < t}, then the conditional
 #'   probability is
@@ -104,8 +113,9 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL) {
 #'   counting-process convention, open on the left and closed on the right; an
 #'   event exactly at a cutpoint belongs to the interval ending there.
 #'
-#' @return A data frame with simulated follow-up times (`time`) and respective
-#'   event indicator (`event`, 1 = event occurred, 0 = censoring).
+#' @return A data frame with one row per subject and columns `time`, the imputed
+#'   event or censoring time, and `event`, coded `1` for an event and `0` for
+#'   administrative censoring.
 #' @export
 #'
 #' @examples
@@ -166,7 +176,8 @@ pwe_impute <- function(time, hazard, cutpoints = NULL, maxtime = NULL) {
 #'
 #' @inheritParams pwe_sim
 #' @inheritParams survival_adapt
-#' @param time numeric vector. Observed event-free follow-up times.
+#' @param time A numeric vector of finite, non-negative event-free follow-up
+#'   times.
 #'
 #' @return A numeric vector of conditional event probabilities.
 #' @noRd
@@ -215,17 +226,17 @@ pwe_conditional_event_probability <- function(
 }
 
 
-#' @title Cumulative distribution function of the PWE for a vectorized hazard
-#'   rate parameter
+#' @title Calculate endpoint event probabilities from piecewise hazards
 #'
-#' @description Extends [PWEALL::pwe()] to allow for vectorization over the
-#'   hazard rates.
+#' @description Calculates the cumulative event probability at a fixed
+#'   follow-up time for one or more sets of piecewise-constant hazard rates.
 #'
-#' @param hazard matrix. A matrix of hazard rate parameters with number of
-#'   columns one greater than the length of the `cutpoints` vector. The number
-#'   of rows must be at least one and is typically dictated by the number of
-#'   MCMC draws.
-#' @param end_of_study finite positive time at which the cumulative event
+#' @param hazard A required numeric matrix of finite, non-negative hazard rates.
+#'   Rows represent parameter sets, such as posterior draws, and columns
+#'   represent the intervals defined by `cutpoints`. The number of columns must
+#'   equal `length(cutpoints) + 1`, and at least one row is required.
+#' @param end_of_study A required single finite, positive numeric time at which
+#'   the cumulative event
 #'   probability is evaluated. It must be greater than every cutpoint.
 #' @inheritParams pwe_sim
 #' @inheritParams survival_adapt
@@ -237,9 +248,8 @@ pwe_conditional_event_probability <- function(
 #'   intervals, it instead uses the survival counting-process convention,
 #'   open on the left and closed on the right.
 #'
-#' @return A vector of `[0, 1]` probabilities from evaluation of the PWE
-#'   cumulative distribution function. Length of the vector matches the number
-#'   of rows of the `hazard` matrix parameter.
+#' @return A numeric vector of event probabilities in `[0, 1]`, with one value
+#'   for each row of `hazard`.
 #'
 #' @export
 ppwe <- function(hazard, end_of_study, cutpoints = NULL) {
@@ -258,8 +268,10 @@ ppwe <- function(hazard, end_of_study, cutpoints = NULL) {
 #'   estimand horizon and do not depend on the maximum follow-up currently
 #'   observed in the data.
 #'
-#' @param cutpoints Analysis-model cutpoints.
-#' @param end_of_study Endpoint horizon.
+#' @param cutpoints `NULL`, or a numeric vector of finite, positive, strictly
+#'   increasing analysis-model cutpoints.
+#' @param end_of_study A single finite, positive numeric value giving the
+#'   endpoint horizon.
 #'
 #' @return A numeric vector with one positive width per analysis interval.
 #'

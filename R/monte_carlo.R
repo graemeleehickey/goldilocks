@@ -5,6 +5,20 @@
 #'   Threshold crossing uses the point estimate; the bounds are diagnostic and
 #'   do not alter the decision.
 #'
+#' @param successes A non-negative integer giving the number of successful
+#'   Monte Carlo draws.
+#' @param draws A positive integer giving the total number of Monte Carlo draws.
+#' @param threshold A single numeric probability in `[0, 1]` against which the
+#'   estimated probability is compared.
+#' @param direction A character string specifying whether the estimate must be
+#'   `"greater"` than or `"less"` than `threshold`. The default is `"greater"`.
+#' @param confidence A single numeric probability strictly between `0.5` and
+#'   `1`, giving the confidence level for the diagnostic bound. The default is
+#'   `0.95`.
+#'
+#' @return A list containing the probability estimate, Monte Carlo standard
+#'   error, one-sided bounds, draw counts, and threshold-crossing indicators.
+#'
 #' @noRd
 monte_carlo_probability_summary <- function(
   successes,
@@ -74,6 +88,13 @@ monte_carlo_probability_summary <- function(
 
 #' @title Attach binary Monte Carlo counts to an analysis result
 #'
+#' @param result A completed-data analysis result.
+#' @param successes A non-negative integer giving the number of posterior draws
+#'   that satisfy the alternative hypothesis.
+#' @param draws A positive integer giving the total number of posterior draws.
+#'
+#' @return `result` with the counts stored in its `mc_counts` attribute.
+#'
 #' @noRd
 set_analysis_mc_counts <- function(result, successes, draws) {
   attr(result, "mc_counts") <- list(
@@ -88,6 +109,14 @@ set_analysis_mc_counts <- function(result, successes, draws) {
 #' @description All analyses use their point result. For analyses based on
 #'   posterior Monte Carlo draws, exact bounds are retained as diagnostics but
 #'   do not alter the completed-dataset classification.
+#'
+#' @param analysis A list returned by `analyse_data()`.
+#' @param prob_ha A single numeric probability in `[0, 1]` defining success.
+#' @param mc_conf_level A single numeric probability strictly between `0.5` and
+#'   `1`, giving the confidence level for diagnostic bounds.
+#'
+#' @return A list containing the point-estimate classification and any
+#'   diagnostic Monte Carlo bounds.
 #'
 #' @noRd
 classify_completed_analysis <- function(

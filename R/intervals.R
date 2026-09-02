@@ -7,8 +7,10 @@
 #'   zero because it does not belong to a positive-length interval under this
 #'   convention; callers with a fixed origin can handle it separately.
 #'
-#' @param x Numeric values to locate.
-#' @param interval_starts Increasing interval starts beginning at zero.
+#' @param x A numeric vector of finite, non-negative times to assign to
+#'   intervals.
+#' @param interval_starts A numeric vector of finite, strictly increasing
+#'   interval start times beginning at zero.
 #'
 #' @return An integer vector of interval indices.
 #'

@@ -7,14 +7,16 @@
 enrollment(lambda = 1, N_total, lambda_time = NULL)
 }
 \arguments{
-\item{lambda}{finite positive enrollment rates per unit time. Supply one
+\item{lambda}{A numeric vector of finite, positive enrollment rates per unit
+of calendar time. Supply one
 rate for each interval defined by \code{lambda_time}, so \code{length(lambda)} must
-equal \code{length(lambda_time) + 1}.}
+equal \code{length(lambda_time) + 1}. The default is \code{1}.}
 
-\item{N_total}{positive integer total sample size.}
+\item{N_total}{A required positive integer giving the total sample size.}
 
-\item{lambda_time}{\code{NULL}, or a finite, positive, strictly increasing vector
-of interior times at which the enrollment rate changes. The initial
+\item{lambda_time}{\code{NULL} (the default), or a numeric vector of finite,
+positive, strictly increasing interior times at which the enrollment rate
+changes. The initial
 boundary at time zero is implicit and must not be supplied. Use \code{NULL} for
 a constant enrollment rate.}
 }
@@ -24,22 +26,22 @@ times, measured from first patient in and expressed in the same time unit
 used for \code{lambda_time}. The first value is zero.
 }
 \description{
-Simulate enrollment times from a Poisson process with a
+Simulates enrollment times from a Poisson process with a
 piecewise-constant rate.
 }
 \details{
 \strong{Major behavior change from goldilocks 0.5.0 and earlier.} Versions through
 0.5.0 generated Poisson counts in unit-time bins. \code{enrollment()} returned
 rebased integer bin times, after which \code{sim_comp_data()} added independent
-uniform jitter and sorted the result. The current implementation instead
-generates the continuous arrival times directly from the exact
+uniform jitter and sorted the result. From version 0.6.0, enrollment times
+are drawn directly from the exact continuous-time
 piecewise-constant Poisson process. Consequently:
 \itemize{
 \item seeded simulations do not reproduce enrollment or downstream trial
 results obtained with version 0.5.0 or earlier;
 \item enrollment times and operating-characteristic estimates can change,
 particularly when rates are low or a rate change is not an integer time;
-\item the schedule API now contains internal knots only: change
+\item the \code{lambda_time} argument now contains internal change times only: change
 \code{lambda_time = 0} to \code{lambda_time = NULL} for a constant rate, and change
 \code{lambda_time = c(0, t1, t2)} to \code{lambda_time = c(t1, t2)} for a piecewise
 rate.

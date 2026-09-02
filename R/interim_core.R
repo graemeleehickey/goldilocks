@@ -1,18 +1,21 @@
 #' Evaluate one prepared interim analysis
 #'
-#' @description Runs the posterior-predictive calculation shared by simulated
-#'   trials and externally observed interim data. Callers are responsible for
-#'   preparing the internal enrollment and imputation indicators.
+#' @description Calculates posterior predictive probabilities and applies the
+#'   expected-success and futility rules for one interim data cut, whether the
+#'   data arose from a simulated or ongoing trial.
 #'
-#' @param data_interim Data frame containing `time`, `event`, `treatment`,
+#' @param data_interim A data frame containing `time`, `event`, `treatment`,
 #'   `subject_enrolled`, `subject_impute_success`, and
 #'   `subject_impute_futility`.
-#' @param look Integer index of the interim look.
-#' @param planned_N Planned enrollment at the look.
-#' @param calendar_time Calendar time of the data cut.
-#' @param active_followup Number of enrolled subjects still under follow-up.
-#' @param check_futility Whether to calculate success at the maximum sample
-#'   size.
+#' @param look A positive integer identifying the interim look.
+#' @param planned_N A positive integer giving the planned cumulative enrollment
+#'   at the look.
+#' @param calendar_time A single finite, non-negative numeric value giving the
+#'   calendar time of the data cut.
+#' @param active_followup A non-negative integer giving the number of enrolled
+#'   subjects still under follow-up.
+#' @param check_futility A single logical value indicating whether to calculate
+#'   success at the maximum sample size.
 #' @inheritParams survival_adapt
 #'
 #' @return A list containing predictive probabilities, the decision, Monte
@@ -362,7 +365,7 @@ evaluate_interim_core <- function(
 
 #' Bind interim posterior diagnostic rows
 #'
-#' @param rows List containing one posterior diagnostic data frame per look.
+#' @param rows A list containing one posterior diagnostic data frame per look.
 #'
 #' @return A stable data frame with one row per look, arm, and interval.
 #'

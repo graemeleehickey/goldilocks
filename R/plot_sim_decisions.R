@@ -8,8 +8,10 @@
 #'   continuation, and expected-success rules. Identical points are aggregated;
 #'   point size indicates their frequency.
 #'
-#' @param x A simulation result returned by [sim_trials()] with
-#'   `return_trace = TRUE`, or its `traces` data frame.
+#' @param x A required result returned by [sim_trials()] with
+#'   `return_trace = TRUE`, or the corresponding `traces` data frame. The trace
+#'   must contain interim-look numbers, predictive probabilities, decision
+#'   thresholds, and decisions.
 #'
 #' @return The simulation traces, invisibly.
 #'

@@ -2,33 +2,37 @@
 % Please edit documentation in R/prop_to_haz.R
 \name{prop_to_haz}
 \alias{prop_to_haz}
-\title{Estimate plausible piecewise constant hazard rates from summary
-summary event proportions}
+\title{Derive piecewise-constant hazard rates from cumulative event
+probabilities}
 \usage{
 prop_to_haz(probs, cutpoints = NULL, endtime)
 }
 \arguments{
-\item{probs}{vector. Finite cumulative event probabilities in \verb{[0, 1)} at
+\item{probs}{A required numeric vector of finite cumulative event
+probabilities in \verb{[0, 1)} at
 each cutpoint and at \code{endtime}, in that order. Its length must be one
 greater than the number of cutpoints. With no cutpoints, supply a single
-probability at \code{endtime}. Values are not recycled.}
+probability at \code{endtime}. Values must be non-decreasing and are not
+recycled.}
 
-\item{cutpoints}{finite, positive, strictly increasing vector of interior
-times at which the baseline hazard changes. Default is \code{NULL}, which
+\item{cutpoints}{\code{NULL} (the default), or a numeric vector of finite,
+positive, strictly increasing interior
+times at which the event hazard changes. \code{NULL}
 corresponds to a simple (non-piecewise) exponential model.}
 
-\item{endtime}{scalar. Time at which final element in \code{probs}
-corresponds to. Typically this would be the study endpoint time.}
+\item{endtime}{A required single finite, positive numeric value giving the
+follow-up time corresponding to the final element of \code{probs}. It must be
+later than every cutpoint and use the same time unit.}
 }
 \value{
-Vector of constant hazard rates for each time piece defined by
-\code{cutpoints}.
+A numeric vector of non-negative hazard rates, with one value for
+each interval defined by \code{cutpoints} and \code{endtime}.
 }
 \description{
-Given estimates of the event probability at one or more fixed
-times, the corresponding piecewise hazard rates can be determined through
-closed-form formulae. This utility function can be useful when simulating
-trial datasets with plausible event rates.
+Converts cumulative event probabilities at specified follow-up
+times into the corresponding piecewise-constant hazard rates. This is
+useful for expressing data-generation assumptions in terms of clinically
+interpretable event probabilities.
 }
 \details{
 Given \eqn{J-1} interior cutpoints, then there are J intervals

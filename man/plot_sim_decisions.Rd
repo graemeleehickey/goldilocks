@@ -7,8 +7,10 @@
 plot_sim_decisions(x)
 }
 \arguments{
-\item{x}{A simulation result returned by \code{\link[=sim_trials]{sim_trials()}} with
-\code{return_trace = TRUE}, or its \code{traces} data frame.}
+\item{x}{A required result returned by \code{\link[=sim_trials]{sim_trials()}} with
+\code{return_trace = TRUE}, or the corresponding \code{traces} data frame. The trace
+must contain interim-look numbers, predictive probabilities, decision
+thresholds, and decisions.}
 }
 \value{
 The simulation traces, invisibly.

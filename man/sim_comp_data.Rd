@@ -2,8 +2,7 @@
 % Please edit documentation in R/sim_comp_data.R
 \name{sim_comp_data}
 \alias{sim_comp_data}
-\title{Simulate a complete clinical trial with event data drawn from a
-piecewise exponential distribution}
+\title{Simulate complete trial data under piecewise-exponential event rates}
 \usage{
 sim_comp_data(
   hazard_treatment,
@@ -19,42 +18,54 @@ sim_comp_data(
 )
 }
 \arguments{
-\item{hazard_treatment}{vector. Finite non-negative constant hazard rates
-under the treatment arm.}
+\item{hazard_treatment}{A required numeric vector of finite, non-negative
+event rates for the treatment arm. Supply one rate per interval defined by
+\code{generation_cutpoints}; a single value specifies a constant event rate.}
 
-\item{hazard_control}{vector. Finite non-negative constant hazard rates
-under the control arm.}
+\item{hazard_control}{\code{NULL} (the default) for a single-arm trial, or a
+numeric vector of finite, non-negative event rates for the control arm in
+a two-arm trial. It must contain one rate per interval defined by
+\code{generation_cutpoints}.}
 
-\item{generation_cutpoints}{finite, positive, strictly increasing interior
+\item{generation_cutpoints}{\code{NULL} (the default), or a numeric vector of
+finite, positive, strictly increasing interior
 follow-up times at which the data-generating hazard changes. The number of
 hazards for each arm must be one greater than the number of generation
-cutpoints. Default is \code{NULL}, which corresponds to a simple
-(non-piecewise) exponential data-generating model.}
+cutpoints. \code{NULL} specifies a constant-hazard data-generating model.}
 
-\item{N_total}{integer. Maximum sample size allowable}
+\item{N_total}{A required positive integer giving the maximum total sample
+size.}
 
-\item{lambda}{finite positive enrollment rates per unit time. Supply one rate
-for each interval defined by \code{lambda_time}. See \code{\link[=enrollment]{enrollment()}} for the
-precise continuous-time process and time-origin convention.}
+\item{lambda}{A numeric vector of finite, positive enrollment rates per unit
+of calendar time. Supply one rate for each interval defined by
+\code{lambda_time}. The default is \code{0.3}. See \code{\link[=enrollment]{enrollment()}} for the
+continuous-time enrollment model and time origin.}
 
-\item{lambda_time}{\code{NULL}, or finite, positive, strictly increasing internal
-times at which the enrollment rate changes. The initial boundary at zero
-is implicit, so \code{length(lambda)} must equal \code{length(lambda_time) + 1}.}
+\item{lambda_time}{\code{NULL} (the default), or a numeric vector of finite,
+positive, strictly increasing calendar times at which the enrollment rate
+changes. Time zero is implicit, and \code{length(lambda)} must equal
+\code{length(lambda_time) + 1}.}
 
-\item{end_of_study}{finite study endpoint, strictly greater than the last
-generation cutpoint.}
+\item{end_of_study}{A required finite, positive numeric value giving the
+planned follow-up time for each subject. It must be later than the final
+\code{generation_cutpoints} value and use the same time unit.}
 
-\item{block}{scalar. Block size for generating the randomization schedule.}
+\item{block}{A positive integer vector of permitted randomization block
+sizes. Every value must be a multiple of \code{sum(rand_ratio)}. The default is
+\code{2} and the argument is ignored for a single-arm trial.}
 
-\item{rand_ratio}{length-two positive integer randomization allocation. Name
+\item{rand_ratio}{A length-two positive integer vector giving the control to
+treatment randomization ratio. The default is
+\code{c(control = 1, treatment = 1)}. Name
 the values \code{control} and \code{treatment}; either supplied order is accepted and
-normalized internally. A legacy unnamed vector remains accepted in
+matched by name. A legacy unnamed vector remains accepted in
 \code{c(control, treatment)} order. Unequal unnamed values produce a warning
 because names may be required in a future major release. See
 \code{\link[=randomization]{randomization()}} for more details.}
 
-\item{prop_loss}{one or two probabilities. A scalar applies the same LTFU
-proportion to every arm. For a two-arm design, differential attrition can
+\item{prop_loss}{A numeric vector containing one or two probabilities in
+\verb{[0, 1]}. A single value applies the same loss-to-follow-up proportion to
+every arm. For a two-arm design, differential attrition can
 be specified with a length-two vector named \code{control} and \code{treatment}; the
 supplied order does not matter. Within each arm,
 \verb{ceiling(prop_loss * arm size)} subjects are selected at random regardless
@@ -62,28 +73,29 @@ of event status. Each selected subject's observed time is drawn from a
 \code{Uniform(0, t)} distribution, where \code{t} is their potential event or
 censoring time. Since the LTFU time is always less than \code{t}, the event has
 not yet occurred at dropout and the subject is right-censored. Single-arm
-designs require one probability. Defaults to zero.}
+designs require one probability. The default is \code{0}, denoting no loss to
+follow-up.}
 }
 \value{
-A data frame with 1 row per subject and columns:
+A data frame with one row per subject and columns:
 \itemize{
-\item \code{time}: Time of event or censoring time.
-\item \code{treatment}: Treatment assignment, coded \code{1L} for the treatment arm and
-\code{0L} for the control arm. Single-arm designs have \code{treatment = 1L} for
+\item \code{time}: Numeric event or censoring time.
+\item \code{treatment}: Numeric treatment indicator, coded \code{1} for the treatment arm
+and \code{0} for the control arm. Single-arm designs have \code{treatment = 1} for
 every subject.
-\item \code{event}: Indicator of whether event occurred (\code{1L} if occurred and \code{0L}
-if right-censored).
-\item \code{enrollment}: Time of patient enrollment relative to the time the trial
-enrolled the first patient. The package treats enrollment and
+\item \code{event}: Numeric event indicator, coded \code{1} for an event and \code{0} for
+right-censoring.
+\item \code{enrollment}: Numeric time of subject enrollment relative to first
+patient in. The package treats enrollment and
 randomization as occurring at the same time.
-\item \code{id}: Identification number for each patient.
-\item \code{loss_to_fu}: Indicator of whether the patient was lost to follow-up
-during observation.
+\item \code{id}: Integer subject identifier.
+\item \code{loss_to_fu}: Logical indicator of loss to follow-up.
 }
 }
 \description{
-Simulate a complete clinical trial with event data drawn from a
-piecewise exponential distribution
+Simulates enrollment, treatment allocation, event or censoring
+times, and loss to follow-up for a single-arm or randomized two-arm trial.
+Event times follow a piecewise-exponential distribution within each arm.
 }
 \details{
 Enrollment is simulated directly in continuous time by

@@ -2,29 +2,30 @@
 % Please edit documentation in R/summarise_sims.R
 \name{summarise_sims}
 \alias{summarise_sims}
-\title{Summarize simulations to get operating characteristics}
+\title{Estimate operating characteristics from trial simulations}
 \usage{
 summarise_sims(data, max_mcse = NULL)
 }
 \arguments{
-\item{data}{A complete result returned by \code{\link[=sim_trials]{sim_trials()}}, a simulation
-\code{data.frame}, or a list of either form. Named list elements identify
-scenarios. Existing \code{scenario} columns and grouping variables are
+\item{data}{A required complete result returned by \code{\link[=sim_trials]{sim_trials()}}, a
+simulation \code{data.frame}, or a list of either form. Named list elements
+identify scenarios. Existing \code{scenario} columns and grouping variables are
 preserved.}
 
-\item{max_mcse}{Optional named numeric vector giving the largest acceptable
+\item{max_mcse}{\code{NULL} (the default), or a named numeric vector of finite,
+positive values giving the largest acceptable
 Monte Carlo standard error for selected estimands. Supported names are
 \code{power}, \code{stop_success}, \code{stop_futility}, \code{stop_max_N}, \code{mean_N},
 \code{stop_and_fail}, and \code{failure_rate}. A warning identifies every scenario
 and estimand whose Monte Carlo standard error exceeds its target.}
 }
 \value{
-Data frame reporting the operating characteristics, including the
+A data frame reporting the operating characteristics, including the
 power (which will be equal to the type I error in the null case); the
 proportion of trials that stopped for early expected success, futility, or
 went to the maximum sample size. The average stopping sample size (and
 standard deviation) are also recorded. The proportion of trials that
-stopped early for expected success, yet went to ultimately fail are also
+stopped early for expected success, yet went on to fail, is also
 reported. Each probability and mean is accompanied by its Monte Carlo
 standard error and 95\% Monte Carlo confidence limits, with columns ending
 in \verb{_mcse}, \verb{_mc_lower}, and \verb{_mc_upper}. Probability intervals use the
@@ -38,12 +39,14 @@ measures of model uncertainty.
 The output always reports \code{n_used}, the number of successfully analyzed
 simulations used by the operating-characteristic estimands. When complete
 \code{\link[=sim_trials]{sim_trials()}} results are supplied, it also reports requested, analyzed,
-and failed counts, the failure rate, effective backend, and seed. For a raw
+and failed counts, the failure rate, computational method, and seed. For a raw
 simulation data frame, requested and failed counts are unknown and are
-reported as \code{NA}. Full call, RNG, parallel, timing, failure, and design
-metadata, including the evaluated simulation arguments, are retained in
+reported as \code{NA}. Details of the call, random-number generation, parallel
+computation, timing, failures, and design assumptions are retained in
 the \code{simulation_metadata} attribute.
 }
 \description{
-Summarize simulations to get operating characteristics
+Estimates success, stopping, and sample-size operating
+characteristics from a collection of simulated trials and quantifies their
+Monte Carlo uncertainty.
 }

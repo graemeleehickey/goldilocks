@@ -7,28 +7,32 @@
 pwe_sim(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL)
 }
 \arguments{
-\item{n}{single non-negative integer. The number of random samples to
-generate. Default is \code{n = 1}; \code{n = 0} returns a zero-row data frame.}
+\item{n}{A single non-negative integer giving the number of event times to
+simulate. The default is \code{1}; \code{n = 0} returns a zero-row data frame.}
 
-\item{hazard}{vector. Finite non-negative constant hazard rates for
-exponential failures. If at least one outcome is requested and the final
-rate is zero, \code{maxtime} must be supplied so that subjects without an event
-can be administratively censored.}
+\item{hazard}{A numeric vector of finite, non-negative event rates, with one
+value per interval defined by \code{cutpoints}. The default is \code{1}, giving a
+constant unit rate. If at least one outcome is requested and the final rate
+is zero, \code{maxtime} must be supplied so that subjects without an event can
+be administratively censored.}
 
-\item{cutpoints}{finite, positive, strictly increasing vector of interior
+\item{cutpoints}{\code{NULL} (the default), or a numeric vector of finite,
+positive, strictly increasing interior
 times at which the hazard rate changes. The number of hazard rates must be
 one greater than the number of cutpoints. Use \code{NULL} for a constant hazard.}
 
-\item{maxtime}{scalar. Optional administrative censoring time. When
-supplied, it must be later than every cutpoint.}
+\item{maxtime}{\code{NULL} (the default), or a single finite, positive numeric
+administrative censoring time. When supplied, it must be later than every
+cutpoint.}
 }
 \value{
-A data frame with simulated follow-up times (\code{time}) and respective
-event indicator (\code{event}, 1 = event occurred, 0 = censoring).
+A data frame with one row per simulated subject and columns \code{time},
+the event or censoring time, and \code{event}, coded \code{1} for an event and \code{0}
+for administrative censoring.
 }
 \description{
-Simulate time-to-event outcomes using the piecewise constant
-hazard exponential function.
+Simulates event times from a piecewise-exponential distribution,
+with optional administrative censoring at a fixed follow-up time.
 }
 \details{
 PWEALL represents the generating hazard with pieces closed on the
