@@ -76,64 +76,91 @@ trajectories and projected interim and maximum-sample-size milestones.</p>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p><code>NULL</code>, or a result returned by <code><a href="survival_adapt.html">survival_adapt()</a></code> or
+<dd><p><code>NULL</code> (the default), or a result returned by <code><a href="survival_adapt.html">survival_adapt()</a></code> or
 <code><a href="sim_trials.html">sim_trials()</a></code>. Results created by current versions of <code>goldilocks</code> retain
 the evaluated enrollment design needed by this function.</p></dd>
 
 
 <dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
-<dd><p>finite positive enrollment rates per unit time. Required when
-<code>x = NULL</code>; otherwise it can override the rate stored in <code>x</code>.</p></dd>
+<dd><p><code>NULL</code> (the default), or a numeric vector of finite, positive
+enrollment rates per unit of calendar time. It is required when <code>x = NULL</code>
+and otherwise overrides the rates stored in <code>x</code>.</p></dd>
 
 
 <dt id="arg-n-total">N_total<a class="anchor" aria-label="anchor" href="#arg-n-total"></a></dt>
-<dd><p>positive integer maximum sample size. Required when
-<code>x = NULL</code>; otherwise it can override the value stored in <code>x</code>.</p></dd>
+<dd><p><code>NULL</code> (the default), or a positive integer giving the maximum
+total sample size. It is required when <code>x = NULL</code> and otherwise overrides
+the value stored in <code>x</code>.</p></dd>
 
 
 <dt id="arg-lambda-time">lambda_time<a class="anchor" aria-label="anchor" href="#arg-lambda-time"></a></dt>
-<dd><p><code>NULL</code>, or the finite, positive, strictly increasing
-internal times at which the enrollment rate changes. See <code><a href="enrollment.html">enrollment()</a></code>.</p></dd>
+<dd><p><code>NULL</code> (the default), or a numeric vector of finite,
+positive, strictly increasing calendar times at which the enrollment rate
+changes. See <code><a href="enrollment.html">enrollment()</a></code>.</p></dd>
 
 
 <dt id="arg-interim-look">interim_look<a class="anchor" aria-label="anchor" href="#arg-interim-look"></a></dt>
-<dd><p><code>NULL</code>, or the enrollment counts at interim looks.</p></dd>
+<dd><p><code>NULL</code> (the default), or a strictly increasing positive
+integer vector giving the cumulative enrollment at each interim look. All
+values must be less than <code>N_total</code>.</p></dd>
 
 
 <dt id="arg-end-of-study">end_of_study<a class="anchor" aria-label="anchor" href="#arg-end-of-study"></a></dt>
-<dd><p>optional positive follow-up duration. When available and
-<code>annotate = TRUE</code>, it is reported beneath the plot.</p></dd>
+<dd><p><code>NULL</code> (the default), or a single finite, positive
+numeric value giving the planned follow-up time for each subject. When
+available and <code>annotate = TRUE</code>, it is reported beneath the plot.</p></dd>
 
 
 <dt id="arg-n-sim">n_sim<a class="anchor" aria-label="anchor" href="#arg-n-sim"></a></dt>
-<dd><p>non-negative integer number of random enrollment trajectories
-to draw.</p></dd>
+<dd><p>A single non-negative integer giving the number of random
+enrollment trajectories to draw. The default is <code>20L</code>; use <code>0</code> to show
+only the expected enrollment curve.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
-<dd><p><code>NULL</code>, or a single non-negative integer seed for the random
-trajectories. A supplied seed does not alter the caller's random-number
-state.</p></dd>
+<dd><p><code>NULL</code> (the default), or a single integer between <code>0</code> and
+<code>.Machine$integer.max</code> for the random trajectories. A supplied seed gives
+reproducible trajectories and leaves the existing random-number state
+unchanged.</p></dd>
 
 
 <dt id="arg-time-unit">time_unit<a class="anchor" aria-label="anchor" href="#arg-time-unit"></a></dt>
-<dd><p><code>NULL</code>, or a character label for the design's unit of time,
-such as <code>"months"</code> or <code>"days"</code>.</p></dd>
+<dd><p><code>NULL</code> (the default), or a non-empty character string naming
+the design's unit of time, such as <code>"months"</code> or <code>"days"</code>.</p></dd>
 
 
-<dt id="arg-xlab-ylab-main">xlab, ylab, main<a class="anchor" aria-label="anchor" href="#arg-xlab-ylab-main"></a></dt>
-<dd><p>axis and main-title labels. With <code>xlab = NULL</code>, a label
-is constructed from <code>time_unit</code>.</p></dd>
+<dt id="arg-xlab">xlab<a class="anchor" aria-label="anchor" href="#arg-xlab"></a></dt>
+<dd><p><code>NULL</code> (the default), or a character string for the horizontal
+axis label. When <code>NULL</code>, the label is constructed from <code>time_unit</code>.</p></dd>
+
+
+<dt id="arg-ylab">ylab<a class="anchor" aria-label="anchor" href="#arg-ylab"></a></dt>
+<dd><p>A character string for the vertical axis label. The default is
+<code>"Cumulative number of enrolled patients"</code>.</p></dd>
+
+
+<dt id="arg-main">main<a class="anchor" aria-label="anchor" href="#arg-main"></a></dt>
+<dd><p><code>NULL</code> (the default), or a character string for the main title.</p></dd>
 
 
 <dt id="arg-annotate">annotate<a class="anchor" aria-label="anchor" href="#arg-annotate"></a></dt>
-<dd><p>logical. Should the follow-up and simulation notes be drawn
-beneath the plot?</p></dd>
+<dd><p>A single logical value indicating whether follow-up and
+simulation notes should appear beneath the plot. The default is <code>TRUE</code>.</p></dd>
 
 
-<dt id="arg-projection-col-simulation-col-milestone-col">projection_col, simulation_col, milestone_col<a class="anchor" aria-label="anchor" href="#arg-projection-col-simulation-col-milestone-col"></a></dt>
-<dd><p>colours for the expected
-projection, random trajectories, and milestone guides.</p></dd>
+<dt id="arg-projection-col">projection_col<a class="anchor" aria-label="anchor" href="#arg-projection-col"></a></dt>
+<dd><p>A character string specifying the colour of the
+expected enrollment curve. The default is <code>"#276E9B"</code>.</p></dd>
+
+
+<dt id="arg-simulation-col">simulation_col<a class="anchor" aria-label="anchor" href="#arg-simulation-col"></a></dt>
+<dd><p>A character string specifying the colour of the random
+enrollment trajectories. The default is <code>"#777777"</code>.</p></dd>
+
+
+<dt id="arg-milestone-col">milestone_col<a class="anchor" aria-label="anchor" href="#arg-milestone-col"></a></dt>
+<dd><p>A character string specifying the colour of the interim
+and maximum-sample-size guides. The default is <code>"#C8682A"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -1,6 +1,8 @@
-# Summarize simulations to get operating characteristics
+# Estimate operating characteristics from trial simulations
 
-Summarize simulations to get operating characteristics
+Estimates success, stopping, and sample-size operating characteristics
+from a collection of simulated trials and quantifies their Monte Carlo
+uncertainty.
 
 ## Usage
 
@@ -12,7 +14,7 @@ summarise_sims(data, max_mcse = NULL)
 
 - data:
 
-  A complete result returned by
+  A required complete result returned by
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md),
   a simulation `data.frame`, or a list of either form. Named list
   elements identify scenarios. Existing `scenario` columns and grouping
@@ -20,23 +22,23 @@ summarise_sims(data, max_mcse = NULL)
 
 - max_mcse:
 
-  Optional named numeric vector giving the largest acceptable Monte
-  Carlo standard error for selected estimands. Supported names are
-  `power`, `stop_success`, `stop_futility`, `stop_max_N`, `mean_N`,
-  `stop_and_fail`, and `failure_rate`. A warning identifies every
-  scenario and estimand whose Monte Carlo standard error exceeds its
-  target.
+  `NULL` (the default), or a named numeric vector of finite, positive
+  values giving the largest acceptable Monte Carlo standard error for
+  selected estimands. Supported names are `power`, `stop_success`,
+  `stop_futility`, `stop_max_N`, `mean_N`, `stop_and_fail`, and
+  `failure_rate`. A warning identifies every scenario and estimand whose
+  Monte Carlo standard error exceeds its target.
 
 ## Value
 
-Data frame reporting the operating characteristics, including the power
-(which will be equal to the type I error in the null case); the
+A data frame reporting the operating characteristics, including the
+power (which will be equal to the type I error in the null case); the
 proportion of trials that stopped for early expected success, futility,
 or went to the maximum sample size. The average stopping sample size
 (and standard deviation) are also recorded. The proportion of trials
-that stopped early for expected success, yet went to ultimately fail are
-also reported. Each probability and mean is accompanied by its Monte
-Carlo standard error and 95% Monte Carlo confidence limits, with columns
+that stopped early for expected success, yet went on to fail, is also
+reported. Each probability and mean is accompanied by its Monte Carlo
+standard error and 95% Monte Carlo confidence limits, with columns
 ending in `_mcse`, `_mc_lower`, and `_mc_upper`. Probability intervals
 use the Wilson method; the mean sample-size interval uses a t
 distribution.
@@ -51,8 +53,8 @@ simulations used by the operating-characteristic estimands. When
 complete
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
 results are supplied, it also reports requested, analyzed, and failed
-counts, the failure rate, effective backend, and seed. For a raw
+counts, the failure rate, computational method, and seed. For a raw
 simulation data frame, requested and failed counts are unknown and are
-reported as `NA`. Full call, RNG, parallel, timing, failure, and design
-metadata, including the evaluated simulation arguments, are retained in
-the `simulation_metadata` attribute.
+reported as `NA`. Details of the call, random-number generation,
+parallel computation, timing, failures, and design assumptions are
+retained in the `simulation_metadata` attribute.

@@ -15,18 +15,21 @@ plot_sim_ocs(x, effect, xlab = "True treatment effect")
 
 - x:
 
-  A data frame returned by
+  A required data frame returned by
   [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md),
-  with one row per simulation scenario.
+  with one row per simulation scenario and columns `power`,
+  `stop_success`, `stop_futility`, `stop_max_N`, and `mean_N`.
 
 - effect:
 
-  Numeric treatment-effect values corresponding to the rows of `x`, or a
-  single character string naming a numeric column in `x`.
+  A required numeric vector containing one finite treatment-effect value
+  per row of `x`, or a single character string naming such a numeric
+  column in `x`.
 
 - xlab:
 
-  Character label for the treatment-effect axis.
+  A single character string for the treatment-effect axis label. The
+  default is `"True treatment effect"`.
 
 ## Value
 

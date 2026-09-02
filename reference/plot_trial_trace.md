@@ -16,8 +16,11 @@ plot_trial_trace(x)
 
 - x:
 
-  A `goldilocks_trial` object, a `goldilocks_interim` object, or an
-  interim trace data frame.
+  A required `goldilocks_trial` result from
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md),
+  a `goldilocks_interim` result from
+  [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md),
+  or an interim trace data frame.
 
 ## Value
 

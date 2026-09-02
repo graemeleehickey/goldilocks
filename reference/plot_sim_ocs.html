@@ -59,17 +59,20 @@ stopping probabilities. The second panel shows mean enrolled sample size.</p>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>A data frame returned by <code><a href="summarise_sims.html">summarise_sims()</a></code>, with one row per
-simulation scenario.</p></dd>
+<dd><p>A required data frame returned by <code><a href="summarise_sims.html">summarise_sims()</a></code>, with one row
+per simulation scenario and columns <code>power</code>, <code>stop_success</code>,
+<code>stop_futility</code>, <code>stop_max_N</code>, and <code>mean_N</code>.</p></dd>
 
 
 <dt id="arg-effect">effect<a class="anchor" aria-label="anchor" href="#arg-effect"></a></dt>
-<dd><p>Numeric treatment-effect values corresponding to the rows of
-<code>x</code>, or a single character string naming a numeric column in <code>x</code>.</p></dd>
+<dd><p>A required numeric vector containing one finite treatment-effect
+value per row of <code>x</code>, or a single character string naming such a numeric
+column in <code>x</code>.</p></dd>
 
 
 <dt id="arg-xlab">xlab<a class="anchor" aria-label="anchor" href="#arg-xlab"></a></dt>
-<dd><p>Character label for the treatment-effect axis.</p></dd>
+<dd><p>A single character string for the treatment-effect axis label.
+The default is <code>"True treatment effect"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

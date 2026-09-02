@@ -1,7 +1,7 @@
 # Simulate piecewise exponential time-to-event outcomes
 
-Simulate time-to-event outcomes using the piecewise constant hazard
-exponential function.
+Simulates event times from a piecewise-exponential distribution, with
+optional administrative censoring at a fixed follow-up time.
 
 ## Usage
 
@@ -13,32 +13,35 @@ pwe_sim(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL)
 
 - n:
 
-  single non-negative integer. The number of random samples to generate.
-  Default is `n = 1`; `n = 0` returns a zero-row data frame.
+  A single non-negative integer giving the number of event times to
+  simulate. The default is `1`; `n = 0` returns a zero-row data frame.
 
 - hazard:
 
-  vector. Finite non-negative constant hazard rates for exponential
-  failures. If at least one outcome is requested and the final rate is
-  zero, `maxtime` must be supplied so that subjects without an event can
-  be administratively censored.
+  A numeric vector of finite, non-negative event rates, with one value
+  per interval defined by `cutpoints`. The default is `1`, giving a
+  constant unit rate. If at least one outcome is requested and the final
+  rate is zero, `maxtime` must be supplied so that subjects without an
+  event can be administratively censored.
 
 - cutpoints:
 
-  finite, positive, strictly increasing vector of interior times at
-  which the hazard rate changes. The number of hazard rates must be one
-  greater than the number of cutpoints. Use `NULL` for a constant
-  hazard.
+  `NULL` (the default), or a numeric vector of finite, positive,
+  strictly increasing interior times at which the hazard rate changes.
+  The number of hazard rates must be one greater than the number of
+  cutpoints. Use `NULL` for a constant hazard.
 
 - maxtime:
 
-  scalar. Optional administrative censoring time. When supplied, it must
-  be later than every cutpoint.
+  `NULL` (the default), or a single finite, positive numeric
+  administrative censoring time. When supplied, it must be later than
+  every cutpoint.
 
 ## Value
 
-A data frame with simulated follow-up times (`time`) and respective
-event indicator (`event`, 1 = event occurred, 0 = censoring).
+A data frame with one row per simulated subject and columns `time`, the
+event or censoring time, and `event`, coded `1` for an event and `0` for
+administrative censoring.
 
 ## Details
 

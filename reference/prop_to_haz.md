@@ -1,9 +1,9 @@
-# Estimate plausible piecewise constant hazard rates from summary summary event proportions
+# Derive piecewise-constant hazard rates from cumulative event probabilities
 
-Given estimates of the event probability at one or more fixed times, the
-corresponding piecewise hazard rates can be determined through
-closed-form formulae. This utility function can be useful when
-simulating trial datasets with plausible event rates.
+Converts cumulative event probabilities at specified follow-up times
+into the corresponding piecewise-constant hazard rates. This is useful
+for expressing data-generation assumptions in terms of clinically
+interpretable event probabilities.
 
 ## Usage
 
@@ -15,26 +15,28 @@ prop_to_haz(probs, cutpoints = NULL, endtime)
 
 - probs:
 
-  vector. Finite cumulative event probabilities in `[0, 1)` at each
-  cutpoint and at `endtime`, in that order. Its length must be one
-  greater than the number of cutpoints. With no cutpoints, supply a
-  single probability at `endtime`. Values are not recycled.
+  A required numeric vector of finite cumulative event probabilities in
+  `[0, 1)` at each cutpoint and at `endtime`, in that order. Its length
+  must be one greater than the number of cutpoints. With no cutpoints,
+  supply a single probability at `endtime`. Values must be
+  non-decreasing and are not recycled.
 
 - cutpoints:
 
-  finite, positive, strictly increasing vector of interior times at
-  which the baseline hazard changes. Default is `NULL`, which
-  corresponds to a simple (non-piecewise) exponential model.
+  `NULL` (the default), or a numeric vector of finite, positive,
+  strictly increasing interior times at which the event hazard changes.
+  `NULL` corresponds to a simple (non-piecewise) exponential model.
 
 - endtime:
 
-  scalar. Time at which final element in `probs` corresponds to.
-  Typically this would be the study endpoint time.
+  A required single finite, positive numeric value giving the follow-up
+  time corresponding to the final element of `probs`. It must be later
+  than every cutpoint and use the same time unit.
 
 ## Value
 
-Vector of constant hazard rates for each time piece defined by
-`cutpoints`.
+A numeric vector of non-negative hazard rates, with one value for each
+interval defined by `cutpoints` and `endtime`.
 
 ## Details
 

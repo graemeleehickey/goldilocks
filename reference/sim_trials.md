@@ -1,7 +1,10 @@
-# Simulate one or more clinical trials subject to known design parameters and treatment effect
+# Estimate operating characteristics by trial simulation
 
-Simulate multiple clinical trials with fixed input parameters, and
-tidily extract the relevant data to generate operating characteristics.
+Repeats
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+under fixed design and data-generating assumptions, returning
+trial-level results from which operating characteristics can be
+estimated.
 
 ## Usage
 
@@ -47,115 +50,130 @@ sim_trials(
 
 - hazard_treatment:
 
-  vector. Finite non-negative constant hazard rates under the treatment
-  arm.
+  A required numeric vector of finite, non-negative event rates for the
+  treatment arm. Supply one rate per interval defined by
+  `generation_cutpoints`; a single value specifies a constant event
+  rate.
 
 - hazard_control:
 
-  vector. Finite non-negative constant hazard rates under the control
-  arm.
+  `NULL` (the default) for a single-arm trial, or a numeric vector of
+  finite, non-negative event rates for the control arm in a two-arm
+  trial. It must contain one rate per interval defined by
+  `generation_cutpoints`.
 
 - cutpoints:
 
-  finite, positive, strictly increasing interior follow-up times
-  defining the piecewise-exponential model used for interim posterior
-  estimation, predictive imputation, and final analysis. The number of
+  `NULL` (the default), or a numeric vector of finite, positive,
+  strictly increasing interior follow-up times defining the
+  piecewise-exponential model used for interim posterior estimation,
+  predictive imputation, and final analysis. The number of
   interval-specific prior columns must be one greater than the number of
-  cutpoints. Default is `NULL`, which uses a constant-hazard analysis
-  model.
+  cutpoints. `NULL` specifies a constant-hazard analysis model.
 
 - N_total:
 
-  integer. Maximum sample size allowable
+  A required positive integer giving the maximum total sample size.
 
 - lambda:
 
-  finite positive enrollment rates per unit time. Supply one rate for
-  each interval defined by `lambda_time`. See
+  A numeric vector of finite, positive enrollment rates per unit of
+  calendar time. Supply one rate for each interval defined by
+  `lambda_time`. The default is `0.3`. See
   [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
-  for the precise continuous-time process and time-origin convention.
+  for the continuous-time enrollment model and time origin.
 
 - lambda_time:
 
-  `NULL`, or finite, positive, strictly increasing internal times at
-  which the enrollment rate changes. The initial boundary at zero is
-  implicit, so `length(lambda)` must equal `length(lambda_time) + 1`.
+  `NULL` (the default), or a numeric vector of finite, positive,
+  strictly increasing calendar times at which the enrollment rate
+  changes. Time zero is implicit, and `length(lambda)` must equal
+  `length(lambda_time) + 1`.
 
 - interim_look:
 
-  vector. Sample size for each interim look. Note: the maximum sample
-  size should not be included. For two-arm designs, each interim look
-  must be at least the (largest) block size (see `block`), ensuring both
-  treatment groups are present at every interim analysis; a smaller look
-  could enroll subjects from one treatment group only, leaving the
-  interim posterior undefined for the missing group.
+  `NULL` (the default) for no interim analyses, or a strictly increasing
+  positive integer vector giving the cumulative sample size at each
+  interim look. Do not include the maximum sample size. For two-arm
+  designs, each interim look must be at least the (largest) block size
+  (see `block`), ensuring both treatment groups are present at every
+  interim analysis; a smaller look could enroll subjects from one
+  treatment group only, leaving the interim posterior undefined for the
+  missing group.
 
 - end_of_study:
 
-  finite study endpoint, strictly greater than the final value in both
-  `cutpoints` and `generation_cutpoints` when either is supplied.
+  A required finite, positive numeric value giving the planned
+  subject-level follow-up time. It must be greater than the final value
+  in both `cutpoints` and `generation_cutpoints`, when supplied, and use
+  the same time unit.
 
 - prior_surv:
 
-  numeric vector, matrix, or named list. Gamma prior for the
-  piecewise-exponential hazards used during interim prediction. A
-  length-two vector supplies shape and rate and is broadcast across all
-  arms and intervals. A `2` by `length(cutpoints) + 1` matrix supplies
-  interval-specific values shared by all arms, with shapes in row 1 and
-  rates in row 2. For independent arm-specific priors, supply a list
-  named `control` and `treatment` in a two-arm design, or `treatment` in
-  a single-arm design. Each list element may be a length-two vector or
-  an interval-specific matrix. Both arms must be supplied; no values are
-  borrowed or filled from the other arm. Rates must use the same time
-  unit as event times, exposure, and cutpoints. The default is
-  `c(0.1, 0.1)`.
+  A numeric vector, matrix, or named list specifying the Gamma prior for
+  the piecewise-exponential hazards used during interim prediction. A
+  length-two vector supplies shape and rate and applies the same prior
+  to every arm and interval. A `2` by `length(cutpoints) + 1` matrix
+  supplies interval-specific values shared by all arms, with shapes in
+  row 1 and rates in row 2. For independent arm-specific priors, supply
+  a list named `control` and `treatment` in a two-arm design, or
+  `treatment` in a single-arm design. Each list element may be a
+  length-two vector or an interval-specific matrix. Both arms must be
+  supplied; no values are borrowed or filled from the other arm. Rates
+  must use the same time unit as event times, exposure, and cutpoints.
+  The default is `c(0.1, 0.1)`.
 
 - prior_bin:
 
-  vector. Prior distribution for the event probability when
-  `method = "bayes-bin"`. The two values are the shape parameters of the
-  `Beta(a, b)` prior. The same prior is applied to both treatment arms.
+  A length-two numeric vector of finite, positive shape parameters
+  `c(a, b)` for the `Beta(a, b)` event-probability prior used when
+  `method = "bayes-bin"`. The same prior is applied to both arms. The
+  default is `c(1, 1)`, a uniform prior.
 
 - bin_method:
 
-  character. Method used to calculate the posterior probability for
-  `method = "bayes-bin"`, must be one of `"mc"` (Monte Carlo sampling),
-  `"normal"` (normal approximation), or `"quadrature"` (numerical
-  integration). The default is `"mc"`.
+  A single character string selecting how to calculate the posterior
+  probability for `method = "bayes-bin"`. It must be one of `"mc"`
+  (Monte Carlo sampling), `"normal"` (normal approximation), or
+  `"quadrature"` (numerical integration). The default is `"mc"`.
 
 - block:
 
-  scalar. Block size for generating the randomization schedule.
+  A positive integer vector of permitted randomization block sizes.
+  Every value must be a multiple of `sum(rand_ratio)`. The default is
+  `2` and the argument is ignored for a single-arm trial.
 
 - rand_ratio:
 
-  length-two positive integer randomization allocation. Name the values
-  `control` and `treatment`; either supplied order is accepted and
-  normalized internally. A legacy unnamed vector remains accepted in
-  `c(control, treatment)` order. Unequal unnamed values produce a
+  A length-two positive integer vector giving the control to treatment
+  randomization ratio. The default is `c(control = 1, treatment = 1)`.
+  Name the values `control` and `treatment`; either supplied order is
+  accepted and matched by name. A legacy unnamed vector remains accepted
+  in `c(control, treatment)` order. Unequal unnamed values produce a
   warning because names may be required in a future major release. See
   [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
   for more details.
 
 - prop_loss:
 
-  one or two probabilities. A scalar applies the same LTFU proportion to
-  every arm. For a two-arm design, differential attrition can be
-  specified with a length-two vector named `control` and `treatment`;
-  the supplied order does not matter. Within each arm,
+  A numeric vector containing one or two probabilities in `[0, 1]`. A
+  single value applies the same loss-to-follow-up proportion to every
+  arm. For a two-arm design, differential attrition can be specified
+  with a length-two vector named `control` and `treatment`; the supplied
+  order does not matter. Within each arm,
   `ceiling(prop_loss * arm size)` subjects are selected at random
   regardless of event status. Each selected subject's observed time is
   drawn from a `Uniform(0, t)` distribution, where `t` is their
   potential event or censoring time. Since the LTFU time is always less
   than `t`, the event has not yet occurred at dropout and the subject is
-  right-censored. Single-arm designs require one probability. Defaults
-  to zero.
+  right-censored. Single-arm designs require one probability. The
+  default is `0`, denoting no loss to follow-up.
 
 - alternative:
 
-  character. The string specifying the alternative hypothesis, must be
-  one of `"greater"` (default), `"less"` or `"two.sided"`. One-sided
-  alternatives (`"greater"` and `"less"`) are supported for
+  A single character string specifying the alternative hypothesis. It
+  must be one of `"greater"` (the default), `"less"`, or `"two.sided"`.
+  One-sided alternatives (`"greater"` and `"less"`) are supported for
   `method = "bayes-surv"` and `method = "bayes-bin"`. All three options
   are supported for `method = "logrank"`, `method = "cox"`, and
   `method = "riskdiff"`. For survival outcomes, `"less"` corresponds to
@@ -165,9 +183,9 @@ sim_trials(
 
 - h0:
 
-  single finite numeric null hypothesis value or margin. Default is
-  `h0 = 0`. For Bayesian analyses, `h0` must lie in `[0, 1]` for a
-  single-arm design and `[-1, 1]` for a two-arm design.
+  A single finite numeric value specifying the null hypothesis or
+  margin. The default is `0`. For Bayesian analyses, `h0` must lie in
+  `[0, 1]` for a single-arm design and `[-1, 1]` for a two-arm design.
 
   - When `method = "bayes-surv"`, `h0` is the null value of
     \\p\_\textrm{treatment} - p\_\textrm{control}\\. In a single-arm
@@ -196,82 +214,89 @@ sim_trials(
 
 - Fn:
 
-  vector of values between 0 and 1. Each element is the probability
-  threshold to stop at the \\i\\-th look early for futility. If there
-  are no interim looks (i.e. `interim_look = NULL`), then `Fn` is not
-  used in the simulations or analysis. Set `Fn = 0` to disable futility
-  monitoring; `Fn = NULL` has the same effect. Supply either one value,
-  which is broadcast to every interim look, or exactly one value per
-  `interim_look`. Other lengths are rejected rather than recycled.
+  `NULL`, or a numeric vector of probabilities in `[0, 1]`. Each value
+  is the predictive-probability threshold to stop at the \\i\\-th look
+  early for futility. If there are no interim looks (i.e.
+  `interim_look = NULL`), then `Fn` is not used in the simulations or
+  analysis. Set `Fn = 0` to disable futility monitoring; `Fn = NULL` has
+  the same effect. Supply either one value, which is repeated at every
+  interim look, or exactly one value per `interim_look`. Other lengths
+  are rejected rather than recycled. The default is `0.05`.
 
 - Sn:
 
-  vector of values between 0 and 1. Each element is the probability
-  threshold to stop at the \\i\\-th look early for expected success. If
-  there are no interim looks (i.e. `interim_look = NULL`), then `Sn` is
-  not used in the simulations or analysis. Supply either one value,
-  which is broadcast to every interim look, or exactly one value per
-  `interim_look`. Other lengths are rejected rather than recycled.
+  A numeric vector of probabilities in `[0, 1]`. Each value is the
+  predictive-probability threshold to stop at the \\i\\-th look early
+  for expected success. If there are no interim looks (i.e.
+  `interim_look = NULL`), then `Sn` is not used in the simulations or
+  analysis. Supply either one value, which is repeated at every interim
+  look, or exactly one value per `interim_look`. Other lengths are
+  rejected rather than recycled. The default is `0.9`.
 
 - prob_ha:
 
-  scalar value between 0 and 1. Probability threshold of alternative
-  hypothesis.
+  A single numeric probability in `[0, 1]` defining success in each
+  completed-data analysis. For Bayesian methods this is compared with
+  the posterior probability of the alternative; for frequentist methods
+  it is compared with `1 - P`. The default is `0.95`.
 
 - N_impute:
 
-  integer. Number of predictive imputations used at each interim look
-  and, when requested, for final multiple imputation. The default
-  is 500. An imputed Cox or risk-difference final analysis requires at
-  least two.
+  A positive integer giving the number of predictive imputations used at
+  each interim look and, when requested, for final multiple imputation.
+  The default is `500`. An imputed Cox or risk-difference final analysis
+  requires at least two.
 
 - N_mcmc:
 
-  integer. Number of posterior samples used within each
-  `method = "bayes-surv"` and by `method = "bayes-bin"` when
-  `bin_method = "mc"`. The default is 1000.
+  A positive integer giving the number of posterior draws used within
+  each `method = "bayes-surv"` and by `method = "bayes-bin"` when
+  `bin_method = "mc"`. The default is `1000`.
 
 - mc_conf_level:
 
-  probability strictly between 0.5 and 1. Confidence level for one-sided
-  exact binomial bounds reported as diagnostics of finite Monte Carlo
-  uncertainty. The bounds do not alter completed-data success
-  classifications or interim decisions, which use strict point- estimate
-  comparisons with `prob_ha`, `Sn`, and `Fn`. The default is 0.95.
+  A single numeric probability strictly between `0.5` and `1`, giving
+  the confidence level for one-sided exact binomial bounds reported as
+  diagnostics of finite Monte Carlo uncertainty. The bounds do not alter
+  completed-data success classifications or interim decisions, which use
+  strict point- estimate comparisons with `prob_ha`, `Sn`, and `Fn`. The
+  default is `0.95`.
 
 - N_trials:
 
-  integer. Number of trials to simulate.
+  A positive integer giving the number of independent trials to
+  simulate. The default is `10`.
 
 - method:
 
-  character. For an imputed data set (or the final data set after
-  follow-up is complete), whether the analysis should be a log-rank
-  (`method = "logrank"`) test, Cox proportional hazards regression model
-  Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
-  analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis
-  of complete binary outcomes (`method = "bayes-bin"`), or a frequentist
+  A single character string specifying the completed-data and final
+  analysis. Available choices are a log-rank (`method = "logrank"`)
+  test, Cox proportional hazards regression model Wald test
+  (`method = "cox"`), a fully-Bayesian piecewise-exponential analysis
+  (`method = "bayes-surv"`), a Bayesian beta-binomial analysis of
+  complete binary outcomes (`method = "bayes-bin"`), or a frequentist
   risk-difference Wald test of complete binary outcomes
-  (`method = "riskdiff"`). See Details section.
+  (`method = "riskdiff"`). The default is `"logrank"`. See Details.
 
 - imputed_final:
 
-  logical. Should the final analysis (after all subjects have been
-  followed-up to the study end) be based on imputed outcomes for
-  subjects who were LTFU (i.e. right-censored with time less than
-  `end_of_study`)? Default is `FALSE`, which means that the final
-  analysis incorporates right-censoring. With `method = "cox"` or
-  `method = "riskdiff"`, setting this to `TRUE` analyzes each imputed
-  dataset and pools the scalar treatment effects and variances using
-  Rubin's rules; this requires `N_impute >= 2`. Imputed final analyses
-  remain unavailable for `method = "logrank"`.
+  A single logical value indicating whether the final analysis should be
+  based on imputed outcomes for subjects who were LTFU (i.e.
+  right-censored with time less than `end_of_study`). The default is
+  `FALSE`, which means that the final analysis incorporates
+  right-censoring. With `method = "cox"` or `method = "riskdiff"`,
+  setting this to `TRUE` analyzes each imputed dataset and pools the
+  scalar treatment effects and variances using Rubin's rules; this
+  requires `N_impute >= 2`. Imputed final analyses remain unavailable
+  for `method = "logrank"`.
 
 - empty_interval:
 
-  character. Policy for empty piecewise-exponential intervals in
-  `method = "bayes-surv"` posterior calculations. An empty interval is
-  an interval with no exposed subjects in a treatment arm at the
-  analysis time. `"prior"` (the default) leaves the interval at zero
+  A single character string specifying how to handle empty
+  piecewise-exponential intervals when updating Gamma hazard models for
+  predictive imputation and Bayesian survival analysis. An empty
+  interval is an interval with no exposed subjects in a treatment arm at
+  the analysis time. `"prior"` (the default) leaves the interval at zero
   exposure time and zero events, so its posterior is driven only by its
   assigned survival prior. `"propagate"` is a legacy heuristic that
   copies exposure time and event counts from the nearest non-empty
@@ -280,60 +305,61 @@ sim_trials(
 
 - return_trace:
 
-  logical. Should the compact interim decision trace from every
-  simulated trial be retained? The default, `FALSE`, preserves the
-  compact output. When `TRUE`, the returned list also contains a
-  `traces` data frame with a `trial` column linking each trace row to
-  the corresponding original simulated trial.
+  A single logical value indicating whether to retain the compact
+  interim decision trace from every simulated trial. The default,
+  `FALSE`, preserves the compact output. When `TRUE`, the returned list
+  also contains a `traces` data frame with a `trial` column linking each
+  trace row to the corresponding original simulated trial.
 
 - ncores:
 
-  positive integer. Number of cores to use for parallel processing.
-  Defaults to `1L` (serial execution). Package-owned worker pools are
-  capped at the number of trials. With `backend = "auto"`, at least two
-  trials per worker are required so that small workloads avoid parallel
-  startup overhead.
+  A positive integer giving the maximum number of processor cores to
+  use. The default is `1L`, which runs trials sequentially. The number
+  actually used cannot exceed `N_trials`; with `backend = "auto"`, at
+  least two trials are required per core to justify the
+  parallel-processing overhead.
 
 - backend:
 
-  character. Parallel backend. "auto" (the default) uses serial
-  execution for `ncores = 1` or fewer than four trials. Otherwise it
-  uses the existing fork backend on Unix-like platforms and a PSOCK
-  cluster on Windows, with at least two trials assigned per worker.
-  "fork", "psock", and "sequential" select a backend explicitly and
-  bypass this workload crossover.
+  A single character string selecting the computational method. `"auto"`
+  (the default) runs sequentially when `ncores = 1` or fewer than four
+  trials are requested; otherwise it uses fork-based parallelization on
+  Unix-like systems and a PSOCK cluster on Windows. `"fork"`, `"psock"`,
+  and `"sequential"` select a method explicitly. Forking is unavailable
+  on Windows.
 
 - seed:
 
-  optional integer. Seed used to generate independent per-trial
-  `"L'Ecuyer-CMRG"` random-number streams. The default, `NULL`, does not
-  reset the global RNG state, preserving the usual unseeded simulation
-  behavior.
+  `NULL` (the default), or a single integer between `0` and
+  `.Machine$integer.max`. A supplied seed gives reproducible
+  simulations, including when trials are run in parallel, and leaves the
+  pre-existing random-number state unchanged.
 
 - binary_imputation:
 
-  character. Predictive imputation approach for `method = "bayes-bin"`
-  or `method = "riskdiff"`. `"event-time"` (the default) draws a
-  conditional piecewise-exponential event time and reduces it to event
-  status at `end_of_study`. `"bernoulli"` draws the endpoint status
-  directly from its conditional event probability. This argument is
-  ignored for time-to-event analysis methods.
+  A single character string selecting the predictive imputation approach
+  for `method = "bayes-bin"` or `method = "riskdiff"`. `"event-time"`
+  (the default) draws a conditional piecewise-exponential event time and
+  reduces it to event status at `end_of_study`. `"bernoulli"` draws the
+  endpoint status directly from its conditional event probability. This
+  argument is ignored for time-to-event analysis methods.
 
 - prior_surv_final:
 
-  numeric vector, matrix, or named list. Gamma prior used for
-  final-stage piecewise-exponential imputation and, for
+  A numeric vector, matrix, or named list specifying the Gamma prior
+  used for final-stage piecewise-exponential imputation and, for
   `method = "bayes-surv"`, final analysis. It accepts the same shared or
   arm-specific forms as `prior_surv` and defaults to `prior_surv`,
   preserving the historical behavior.
 
 - generation_cutpoints:
 
-  finite, positive, strictly increasing interior follow-up times
-  defining the piecewise-exponential model used to generate event times.
-  `hazard_treatment` and `hazard_control` must each have one value per
-  resulting interval. Defaults to `cutpoints`, preserving the historical
-  behavior in which generation and analysis used one partition.
+  `NULL`, or a numeric vector of finite, positive, strictly increasing
+  interior follow-up times defining the piecewise-exponential model used
+  to generate event times. `hazard_treatment` and `hazard_control` must
+  each have one value per resulting interval. Defaults to `cutpoints`,
+  preserving the historical behavior in which generation and analysis
+  used one partition.
 
 ## Value
 
@@ -348,17 +374,16 @@ and active follow-up at each look. See
 for details of the summary and trace columns, and
 [`summarise_calendar_time()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.md)
 for wide operating-characteristic tables. The returned object also
-retains the normalized `decision_design` and resolved `prior_design`
+retains the evaluated `decision_design` and resolved `prior_design`
 attributes from
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
-An `rng_metadata` attribute records the caller RNG kind, effective
-backend, seed policy, and stream seed when applicable. A deterministic
-`parallel_metadata` attribute records the requested and effective
-backend and worker counts, task count, and backend-selection reason. An
-`arguments` attribute contains a named list of all evaluated argument
-values, including defaults. Its `prop_loss` element is normalized to a
+An `rng_metadata` attribute records the random-number generator,
+computational method, and seed policy. A `parallel_metadata` attribute
+records the requested and actual computational method and number of
+cores. An `arguments` attribute contains a named list of all evaluated
+argument values, including defaults. Its `prop_loss` element contains a
 named value for every simulated arm, and its `rand_ratio` element is
-normalized to `control`, `treatment` order for two-arm designs. Its
+stored in `control`, `treatment` order for two-arm designs. Its
 `cutpoints` and `generation_cutpoints` elements retain the analysis and
 data-generation partitions, respectively. For `method = "bayes-bin"`, it
 also retains the imputation priors (`prior_surv` and
@@ -369,26 +394,18 @@ later call with `do.call(sim_trials, attr(result, "arguments"))`.
 
 ## Details
 
-This is basically a wrapper function for
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md),
-whereby we repeatedly run the function for independent trials (all with
-the same input design parameters and treatment effect).
+This function is a wrapper for
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+that repeatedly simulates independent trials under the same design
+parameters and assumed treatment effect.
 
 To use multiple cores (where available), the argument `ncores` can be
 increased from the default of 1. The default `backend = "auto"` stays
-sequential for fewer than four trials and otherwise uses at most one
-worker per two trials. This simple workload heuristic amortizes process
-startup without trying to predict the cost of an individual trial. When
-it selects parallel execution, it uses
-[`pbmcapply::pbmclapply()`](https://rdrr.io/pkg/pbmcapply/man/pbmclapply.html)
-on Unix-like platforms and a PSOCK cluster on Windows, where forked
-processes are unavailable. Set `backend` explicitly to bypass the
-crossover.
-
-A PSOCK cluster created by `sim_trials()` is always stopped before the
-function returns, including when worker evaluation fails. PSOCK tasks
-use static worker chunks, so the invariant simulation design is
-serialized once per active worker rather than once per trial.
+sequential for fewer than four trials and otherwise uses no more than
+one core per two trials. This avoids parallel-processing overhead for
+small simulation studies. On Unix-like systems parallel trials use
+forked R processes; on Windows they use PSOCK processes. Set `backend`
+explicitly when a particular computational method is required.
 
 Errors raised by an individual
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
@@ -400,22 +417,11 @@ failure table to the error as `failures`. With a supplied `seed`, the
 original call and failed trial number reproduce the same per-trial
 random-number stream.
 
-Set `seed` to make `sim_trials()` reproducible. When a seed is supplied,
-`sim_trials()` first generates one independent `"L'Ecuyer-CMRG"` stream
-for each simulated trial, then each call to
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-runs with its own per-trial stream. This avoids reusing the same
-random-number stream across workers when `ncores > 1`, and produces
-identical seeded results across supported backends. A seeded call
-restores the caller's RNG state on exit. With `seed = NULL`, sequential
-execution uses and advances R's current global RNG state directly. Fork
-execution delegates stream setup to
-[`pbmcapply::pbmclapply()`](https://rdrr.io/pkg/pbmcapply/man/pbmclapply.html).
-PSOCK execution draws one integer seed from the caller's current RNG
-state, thereby advancing that state predictably, and expands it into
-independent per-trial `"L'Ecuyer-CMRG"` streams. Resetting the caller to
-the same state therefore reproduces an unseeded PSOCK call, while
-consecutive calls do not reuse streams.
+With a supplied `seed`, each trial receives an independent random-number
+stream. The resulting trial-level simulations are identical whether they
+are run sequentially or with a supported parallel method, and the
+pre-existing R random-number state is restored afterward. With
+`seed = NULL`, the current random-number state is used and advanced.
 
 ## Examples
 

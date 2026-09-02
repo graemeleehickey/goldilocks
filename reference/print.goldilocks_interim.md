@@ -1,6 +1,8 @@
 # Print an externally evaluated interim analysis
 
-Print an externally evaluated interim analysis
+Prints the predictive probabilities and decision from an interim
+analysis returned by
+[`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md).
 
 ## Usage
 
@@ -13,12 +15,12 @@ print(x, ...)
 
 - x:
 
-  A `goldilocks_interim` object returned by
+  A `goldilocks_interim` result returned by
   [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md).
 
 - ...:
 
-  Unused.
+  Additional arguments; currently ignored.
 
 ## Value
 

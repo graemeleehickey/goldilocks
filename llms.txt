@@ -99,7 +99,7 @@ devtools::install_github("graemeleehickey/goldilocks")
 ## Package
 
 - [`goldilocks`](https://graemeleehickey.github.io/goldilocks/reference/goldilocks.md)
-  : goldilocks
+  : Goldilocks Bayesian adaptive trial designs
 
 ## Adaptive trial simulation
 
@@ -111,10 +111,9 @@ designs.
 - [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
   : Evaluate an externally observed interim data cut
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
-  : Simulate one or more clinical trials subject to known design
-  parameters and treatment effect
+  : Estimate operating characteristics by trial simulation
 - [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
-  : Summarize simulations to get operating characteristics
+  : Estimate operating characteristics from trial simulations
 - [`summarise_calendar_time()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.md)
   : Summarize operating characteristics on the calendar-time scale
 - [`plot_enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/plot_enrollment.md)
@@ -132,7 +131,7 @@ designs.
 - [`print(`*`<goldilocks_interim>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_interim.md)
   : Print an externally evaluated interim analysis
 - [`print(`*`<goldilocks_trial>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_trial.md)
-  : Print an adaptive trial trace result
+  : Print a Goldilocks adaptive trial result
 - [`print(`*`<goldilocks_calendar_summary>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_calendar_summary.md)
   : Print a calendar-time operating-characteristic summary
 
@@ -142,12 +141,11 @@ Simulate complete trial datasets, including enrollment, randomization,
 and time-to-event outcomes.
 
 - [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md)
-  : Simulate a complete clinical trial with event data drawn from a
-  piecewise exponential distribution
+  : Simulate complete trial data under piecewise-exponential event rates
 - [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
   : Simulate exact continuous-time enrollment
 - [`randomization()`](https://graemeleehickey.github.io/goldilocks/reference/randomization.md)
-  : Randomization allocation
+  : Generate a block-randomized treatment sequence
 
 ## Piecewise exponential utilities
 
@@ -159,11 +157,10 @@ the piecewise exponential model.
 - [`pwe_impute()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.md)
   : Impute piecewise exponential time-to-event outcomes
 - [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
-  : Cumulative distribution function of the PWE for a vectorized hazard
-  rate parameter
+  : Calculate endpoint event probabilities from piecewise hazards
 - [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
-  : Estimate plausible piecewise constant hazard rates from summary
-  summary event proportions
+  : Derive piecewise-constant hazard rates from cumulative event
+  probabilities
 
 # Articles
 

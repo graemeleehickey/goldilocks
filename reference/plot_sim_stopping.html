@@ -74,11 +74,13 @@ returned by <code><a href="sim_trials.html">sim_trials()</a></code> or the compl
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>A simulation result data frame or the list returned by sim_trials.</p></dd>
+<dd><p>A required simulation-result data frame, or the complete list
+returned by <code><a href="sim_trials.html">sim_trials()</a></code>.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
-<dd><p>Character string specifying the percentages to plot. <code>"marginal"</code>
+<dd><p>A single character string specifying the percentages to plot.
+<code>"marginal"</code> (the default)
 shows the percentage of all simulated trials ending at each sample size;
 its bars sum to 100 percent across sample sizes. <code>"conditional"</code> shows the
 percentage stopping at each look among trials still active at the start of

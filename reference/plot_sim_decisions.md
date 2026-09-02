@@ -18,9 +18,11 @@ plot_sim_decisions(x)
 
 - x:
 
-  A simulation result returned by
+  A required result returned by
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
-  with `return_trace = TRUE`, or its `traces` data frame.
+  with `return_trace = TRUE`, or the corresponding `traces` data frame.
+  The trace must contain interim-look numbers, predictive probabilities,
+  decision thresholds, and decisions.
 
 ## Value
 

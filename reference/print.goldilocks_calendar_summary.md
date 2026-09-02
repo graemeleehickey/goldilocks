@@ -13,15 +13,17 @@ print(x, digits = 1, ...)
 
 - x:
 
-  A `goldilocks_calendar_summary` object.
+  A `goldilocks_calendar_summary` result returned by
+  [`summarise_calendar_time()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.md).
 
 - digits:
 
-  Number of digits after the decimal point in displayed values.
+  A single non-negative integer giving the number of digits after the
+  decimal point in displayed values. The default is `1`.
 
 - ...:
 
-  Unused.
+  Additional arguments; currently ignored.
 
 ## Value
 

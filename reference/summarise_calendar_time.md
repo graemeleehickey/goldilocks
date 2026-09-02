@@ -24,7 +24,7 @@ summarise_calendar_time(data)
 
 - data:
 
-  A complete result returned by
+  A required complete result returned by
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md),
   a simulation `data.frame`, or a list of either form. Named list
   elements identify scenarios. Existing `scenario` columns and grouping

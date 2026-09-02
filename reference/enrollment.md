@@ -1,6 +1,6 @@
 # Simulate exact continuous-time enrollment
 
-Simulate enrollment times from a Poisson process with a
+Simulates enrollment times from a Poisson process with a
 piecewise-constant rate.
 
 ## Usage
@@ -13,20 +13,21 @@ enrollment(lambda = 1, N_total, lambda_time = NULL)
 
 - lambda:
 
-  finite positive enrollment rates per unit time. Supply one rate for
-  each interval defined by `lambda_time`, so `length(lambda)` must equal
-  `length(lambda_time) + 1`.
+  A numeric vector of finite, positive enrollment rates per unit of
+  calendar time. Supply one rate for each interval defined by
+  `lambda_time`, so `length(lambda)` must equal
+  `length(lambda_time) + 1`. The default is `1`.
 
 - N_total:
 
-  positive integer total sample size.
+  A required positive integer giving the total sample size.
 
 - lambda_time:
 
-  `NULL`, or a finite, positive, strictly increasing vector of interior
-  times at which the enrollment rate changes. The initial boundary at
-  time zero is implicit and must not be supplied. Use `NULL` for a
-  constant enrollment rate.
+  `NULL` (the default), or a numeric vector of finite, positive,
+  strictly increasing interior times at which the enrollment rate
+  changes. The initial boundary at time zero is implicit and must not be
+  supplied. Use `NULL` for a constant enrollment rate.
 
 ## Value
 
@@ -40,9 +41,9 @@ unit used for `lambda_time`. The first value is zero.
 through 0.5.0 generated Poisson counts in unit-time bins. `enrollment()`
 returned rebased integer bin times, after which
 [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md)
-added independent uniform jitter and sorted the result. The current
-implementation instead generates the continuous arrival times directly
-from the exact piecewise-constant Poisson process. Consequently:
+added independent uniform jitter and sorted the result. From version
+0.6.0, enrollment times are drawn directly from the exact
+continuous-time piecewise-constant Poisson process. Consequently:
 
 - seeded simulations do not reproduce enrollment or downstream trial
   results obtained with version 0.5.0 or earlier;
@@ -51,10 +52,10 @@ from the exact piecewise-constant Poisson process. Consequently:
   particularly when rates are low or a rate change is not an integer
   time;
 
-- the schedule API now contains internal knots only: change
-  `lambda_time = 0` to `lambda_time = NULL` for a constant rate, and
-  change `lambda_time = c(0, t1, t2)` to `lambda_time = c(t1, t2)` for a
-  piecewise rate.
+- the `lambda_time` argument now contains internal change times only:
+  change `lambda_time = 0` to `lambda_time = NULL` for a constant rate,
+  and change `lambda_time = c(0, t1, t2)` to `lambda_time = c(t1, t2)`
+  for a piecewise rate.
 
 `enrollment()` treats time zero as **first patient in**, matching the
 time origin used throughout `goldilocks`. The first returned enrollment

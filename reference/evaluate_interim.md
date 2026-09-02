@@ -1,10 +1,10 @@
 # Evaluate an externally observed interim data cut
 
-Applies the same posterior-predictive decision calculation used by
+Applies the same posterior predictive decision calculation used by
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
 to subject-level data observed at one interim look. The function does
 not simulate a trial or modify `data`. Participants who could still be
-enrolled before the maximum sample size are constructed internally from
+enrolled before the maximum sample size are represented according to
 `N_total`, the observed arm counts, and `rand_ratio`.
 
 ## Usage
@@ -41,86 +41,92 @@ evaluate_interim(
 
 - data:
 
-  Data frame with one row per enrolled subject and columns `id`,
-  `treatment`, `enrollment`, `time`, `event`, and `status`. Treatment is
-  coded `1` for treatment and `0` for control; single-arm data use `1`.
-  `enrollment` is measured from first participant randomization, which
-  must be zero, and `time` is follow-up from that subject's
-  randomization.
+  A required data frame with one row per enrolled subject and columns
+  `id`, `treatment`, `enrollment`, `time`, `event`, and `status`.
+  Treatment is coded `1` for treatment and `0` for control; single-arm
+  data use `1`. `enrollment` is measured from first participant
+  randomization, which must be zero, and `time` is follow-up from that
+  subject's randomization. See Details for the permitted character
+  values in `status`.
 
 - data_cut:
 
-  Non-negative calendar time of the interim data cut, measured from the
-  same origin and in the same units as `enrollment`, `time`,
-  `end_of_study`, and `cutpoints`.
+  A required single finite, non-negative numeric value giving the
+  calendar time of the interim data cut, measured from the same origin
+  and in the same units as `enrollment`, `time`, `end_of_study`, and
+  `cutpoints`.
 
 - look:
 
-  Positive integer identifying the prespecified interim look.
+  A required positive integer identifying the prespecified interim look.
 
 - N_total:
 
-  Positive integer maximum sample size.
+  A required positive integer giving the maximum total sample size.
 
 - end_of_study:
 
-  Positive subject-level follow-up horizon.
+  A required single finite, positive numeric value giving the planned
+  follow-up time for each subject.
 
 - cutpoints:
 
-  finite, positive, strictly increasing interior follow-up times
-  defining the piecewise-exponential model used for interim posterior
-  estimation, predictive imputation, and final analysis. The number of
+  `NULL` (the default), or a numeric vector of finite, positive,
+  strictly increasing interior follow-up times defining the
+  piecewise-exponential model used for interim posterior estimation,
+  predictive imputation, and final analysis. The number of
   interval-specific prior columns must be one greater than the number of
-  cutpoints. Default is `NULL`, which uses a constant-hazard analysis
-  model.
+  cutpoints. `NULL` specifies a constant-hazard analysis model.
 
 - prior_surv:
 
-  numeric vector, matrix, or named list. Gamma prior for the
-  piecewise-exponential hazards used during interim prediction. A
-  length-two vector supplies shape and rate and is broadcast across all
-  arms and intervals. A `2` by `length(cutpoints) + 1` matrix supplies
-  interval-specific values shared by all arms, with shapes in row 1 and
-  rates in row 2. For independent arm-specific priors, supply a list
-  named `control` and `treatment` in a two-arm design, or `treatment` in
-  a single-arm design. Each list element may be a length-two vector or
-  an interval-specific matrix. Both arms must be supplied; no values are
-  borrowed or filled from the other arm. Rates must use the same time
-  unit as event times, exposure, and cutpoints. The default is
-  `c(0.1, 0.1)`.
+  A numeric vector, matrix, or named list specifying the Gamma prior for
+  the piecewise-exponential hazards used during interim prediction. A
+  length-two vector supplies shape and rate and applies the same prior
+  to every arm and interval. A `2` by `length(cutpoints) + 1` matrix
+  supplies interval-specific values shared by all arms, with shapes in
+  row 1 and rates in row 2. For independent arm-specific priors, supply
+  a list named `control` and `treatment` in a two-arm design, or
+  `treatment` in a single-arm design. Each list element may be a
+  length-two vector or an interval-specific matrix. Both arms must be
+  supplied; no values are borrowed or filled from the other arm. Rates
+  must use the same time unit as event times, exposure, and cutpoints.
+  The default is `c(0.1, 0.1)`.
 
 - prior_bin:
 
-  vector. Prior distribution for the event probability when
-  `method = "bayes-bin"`. The two values are the shape parameters of the
-  `Beta(a, b)` prior. The same prior is applied to both treatment arms.
+  A length-two numeric vector of finite, positive shape parameters
+  `c(a, b)` for the `Beta(a, b)` event-probability prior used when
+  `method = "bayes-bin"`. The same prior is applied to both arms. The
+  default is `c(1, 1)`, a uniform prior.
 
 - bin_method:
 
-  character. Method used to calculate the posterior probability for
-  `method = "bayes-bin"`, must be one of `"mc"` (Monte Carlo sampling),
-  `"normal"` (normal approximation), or `"quadrature"` (numerical
-  integration). The default is `"mc"`.
+  A single character string selecting how to calculate the posterior
+  probability for `method = "bayes-bin"`. It must be one of `"mc"`
+  (Monte Carlo sampling), `"normal"` (normal approximation), or
+  `"quadrature"` (numerical integration). The default is `"mc"`.
 
 - rand_ratio:
 
-  Length-two positive integer maximum-sample allocation ratio. Name the
-  values `control` and `treatment`; either order is accepted. A legacy
-  unnamed vector is interpreted as `c(control, treatment)`. The maximum
-  sample size must divide exactly according to this ratio. Ignored for
-  single-arm designs.
+  A length-two positive integer vector giving the control to treatment
+  allocation ratio at the maximum sample size. The default is
+  `c(control = 1, treatment = 1)`. Name the values `control` and
+  `treatment`; either order is accepted. A legacy unnamed vector is
+  interpreted as `c(control, treatment)`. The maximum sample size must
+  divide exactly according to this ratio. Ignored for single-arm
+  designs.
 
 - single_arm:
 
-  Logical indicating whether the design has one treatment arm and no
-  control arm.
+  A single logical value indicating whether the design has one treatment
+  arm and no control arm. The default is `FALSE`.
 
 - alternative:
 
-  character. The string specifying the alternative hypothesis, must be
-  one of `"greater"` (default), `"less"` or `"two.sided"`. One-sided
-  alternatives (`"greater"` and `"less"`) are supported for
+  A single character string specifying the alternative hypothesis. It
+  must be one of `"greater"` (the default), `"less"`, or `"two.sided"`.
+  One-sided alternatives (`"greater"` and `"less"`) are supported for
   `method = "bayes-surv"` and `method = "bayes-bin"`. All three options
   are supported for `method = "logrank"`, `method = "cox"`, and
   `method = "riskdiff"`. For survival outcomes, `"less"` corresponds to
@@ -130,9 +136,9 @@ evaluate_interim(
 
 - h0:
 
-  single finite numeric null hypothesis value or margin. Default is
-  `h0 = 0`. For Bayesian analyses, `h0` must lie in `[0, 1]` for a
-  single-arm design and `[-1, 1]` for a two-arm design.
+  A single finite numeric value specifying the null hypothesis or
+  margin. The default is `0`. For Bayesian analyses, `h0` must lie in
+  `[0, 1]` for a single-arm design and `[-1, 1]` for a two-arm design.
 
   - When `method = "bayes-surv"`, `h0` is the null value of
     \\p\_\textrm{treatment} - p\_\textrm{control}\\. In a single-arm
@@ -161,49 +167,55 @@ evaluate_interim(
 
 - Fn:
 
-  Single probability threshold for stopping for futility at this look.
-  Futility is declared when predictive success at the maximum sample
-  size is strictly less than `Fn`. Set `Fn = 0` or `NULL` to disable the
-  maximum-sample calculation.
+  `NULL`, or a single numeric probability in `[0, 1]` giving the
+  threshold for stopping for futility at this look. Futility is declared
+  when predictive success at the maximum sample size is strictly less
+  than `Fn`. Set `Fn = 0` or `NULL` to disable the maximum-sample
+  calculation. The default is `0.05`.
 
 - Sn:
 
-  Single probability threshold for stopping for expected success at this
-  look. Expected success is declared when predictive success among the
-  currently enrolled participants is strictly greater than `Sn`.
+  A single numeric probability in `[0, 1]` giving the threshold for
+  stopping for expected success at this look. Expected success is
+  declared when predictive success among the currently enrolled
+  participants is strictly greater than `Sn`. The default is `0.9`.
 
 - prob_ha:
 
-  scalar value between 0 and 1. Probability threshold of alternative
-  hypothesis.
+  A single numeric probability in `[0, 1]` defining success in each
+  completed-data analysis. For Bayesian methods this is compared with
+  the posterior probability of the alternative; for frequentist methods
+  it is compared with `1 - P`. The default is `0.95`.
 
 - N_impute:
 
-  integer. Number of predictive imputations used at each interim look
-  and, when requested, for final multiple imputation. The default
-  is 500. An imputed Cox or risk-difference final analysis requires at
-  least two.
+  A positive integer giving the number of predictive imputations used at
+  each interim look and, when requested, for final multiple imputation.
+  The default is `500`. An imputed Cox or risk-difference final analysis
+  requires at least two.
 
 - N_mcmc:
 
-  integer. Number of posterior samples used within each
-  `method = "bayes-surv"` and by `method = "bayes-bin"` when
-  `bin_method = "mc"`. The default is 1000.
+  A positive integer giving the number of posterior draws used within
+  each `method = "bayes-surv"` and by `method = "bayes-bin"` when
+  `bin_method = "mc"`. The default is `1000`.
 
 - mc_conf_level:
 
-  probability strictly between 0.5 and 1. Confidence level for one-sided
-  exact binomial bounds reported as diagnostics of finite Monte Carlo
-  uncertainty. The bounds do not alter completed-data success
-  classifications or interim decisions, which use strict point- estimate
-  comparisons with `prob_ha`, `Sn`, and `Fn`. The default is 0.95.
+  A single numeric probability strictly between `0.5` and `1`, giving
+  the confidence level for one-sided exact binomial bounds reported as
+  diagnostics of finite Monte Carlo uncertainty. The bounds do not alter
+  completed-data success classifications or interim decisions, which use
+  strict point- estimate comparisons with `prob_ha`, `Sn`, and `Fn`. The
+  default is `0.95`.
 
 - empty_interval:
 
-  character. Policy for empty piecewise-exponential intervals in
-  `method = "bayes-surv"` posterior calculations. An empty interval is
-  an interval with no exposed subjects in a treatment arm at the
-  analysis time. `"prior"` (the default) leaves the interval at zero
+  A single character string specifying how to handle empty
+  piecewise-exponential intervals when updating Gamma hazard models for
+  predictive imputation and Bayesian survival analysis. An empty
+  interval is an interval with no exposed subjects in a treatment arm at
+  the analysis time. `"prior"` (the default) leaves the interval at zero
   exposure time and zero events, so its posterior is driven only by its
   assigned survival prior. `"propagate"` is a legacy heuristic that
   copies exposure time and event counts from the nearest non-empty
@@ -212,30 +224,31 @@ evaluate_interim(
 
 - method:
 
-  character. For an imputed data set (or the final data set after
-  follow-up is complete), whether the analysis should be a log-rank
-  (`method = "logrank"`) test, Cox proportional hazards regression model
-  Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
-  analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis
-  of complete binary outcomes (`method = "bayes-bin"`), or a frequentist
+  A single character string specifying the completed-data and final
+  analysis. Available choices are a log-rank (`method = "logrank"`)
+  test, Cox proportional hazards regression model Wald test
+  (`method = "cox"`), a fully-Bayesian piecewise-exponential analysis
+  (`method = "bayes-surv"`), a Bayesian beta-binomial analysis of
+  complete binary outcomes (`method = "bayes-bin"`), or a frequentist
   risk-difference Wald test of complete binary outcomes
-  (`method = "riskdiff"`). See Details section.
+  (`method = "riskdiff"`). The default is `"logrank"`. See Details.
 
 - binary_imputation:
 
-  character. Predictive imputation approach for `method = "bayes-bin"`
-  or `method = "riskdiff"`. `"event-time"` (the default) draws a
-  conditional piecewise-exponential event time and reduces it to event
-  status at `end_of_study`. `"bernoulli"` draws the endpoint status
-  directly from its conditional event probability. This argument is
-  ignored for time-to-event analysis methods.
+  A single character string selecting the predictive imputation approach
+  for `method = "bayes-bin"` or `method = "riskdiff"`. `"event-time"`
+  (the default) draws a conditional piecewise-exponential event time and
+  reduces it to event status at `end_of_study`. `"bernoulli"` draws the
+  endpoint status directly from its conditional event probability. This
+  argument is ignored for time-to-event analysis methods.
 
 - seed:
 
-  `NULL`, or a non-negative integer used for the predictive Monte Carlo
-  calculation. A supplied seed makes the result reproducible and
-  preserves the caller's random-number state. With `seed = NULL`, the
-  call uses and advances the current random-number state.
+  `NULL` (the default), or a single non-negative integer used for the
+  predictive Monte Carlo calculation. A supplied seed makes the result
+  reproducible and leaves the existing random-number state unchanged.
+  With `seed = NULL`, the call uses and advances the current
+  random-number state.
 
 ## Value
 

@@ -31,7 +31,7 @@ plot_enrollment(
 
 - x:
 
-  `NULL`, or a result returned by
+  `NULL` (the default), or a result returned by
   [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
   or
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md).
@@ -40,58 +40,86 @@ plot_enrollment(
 
 - lambda:
 
-  finite positive enrollment rates per unit time. Required when
-  `x = NULL`; otherwise it can override the rate stored in `x`.
+  `NULL` (the default), or a numeric vector of finite, positive
+  enrollment rates per unit of calendar time. It is required when
+  `x = NULL` and otherwise overrides the rates stored in `x`.
 
 - N_total:
 
-  positive integer maximum sample size. Required when `x = NULL`;
-  otherwise it can override the value stored in `x`.
+  `NULL` (the default), or a positive integer giving the maximum total
+  sample size. It is required when `x = NULL` and otherwise overrides
+  the value stored in `x`.
 
 - lambda_time:
 
-  `NULL`, or the finite, positive, strictly increasing internal times at
-  which the enrollment rate changes. See
+  `NULL` (the default), or a numeric vector of finite, positive,
+  strictly increasing calendar times at which the enrollment rate
+  changes. See
   [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md).
 
 - interim_look:
 
-  `NULL`, or the enrollment counts at interim looks.
+  `NULL` (the default), or a strictly increasing positive integer vector
+  giving the cumulative enrollment at each interim look. All values must
+  be less than `N_total`.
 
 - end_of_study:
 
-  optional positive follow-up duration. When available and
+  `NULL` (the default), or a single finite, positive numeric value
+  giving the planned follow-up time for each subject. When available and
   `annotate = TRUE`, it is reported beneath the plot.
 
 - n_sim:
 
-  non-negative integer number of random enrollment trajectories to draw.
+  A single non-negative integer giving the number of random enrollment
+  trajectories to draw. The default is `20L`; use `0` to show only the
+  expected enrollment curve.
 
 - seed:
 
-  `NULL`, or a single non-negative integer seed for the random
-  trajectories. A supplied seed does not alter the caller's
-  random-number state.
+  `NULL` (the default), or a single integer between `0` and
+  `.Machine$integer.max` for the random trajectories. A supplied seed
+  gives reproducible trajectories and leaves the existing random-number
+  state unchanged.
 
 - time_unit:
 
-  `NULL`, or a character label for the design's unit of time, such as
-  `"months"` or `"days"`.
+  `NULL` (the default), or a non-empty character string naming the
+  design's unit of time, such as `"months"` or `"days"`.
 
-- xlab, ylab, main:
+- xlab:
 
-  axis and main-title labels. With `xlab = NULL`, a label is constructed
-  from `time_unit`.
+  `NULL` (the default), or a character string for the horizontal axis
+  label. When `NULL`, the label is constructed from `time_unit`.
+
+- ylab:
+
+  A character string for the vertical axis label. The default is
+  `"Cumulative number of enrolled patients"`.
+
+- main:
+
+  `NULL` (the default), or a character string for the main title.
 
 - annotate:
 
-  logical. Should the follow-up and simulation notes be drawn beneath
-  the plot?
+  A single logical value indicating whether follow-up and simulation
+  notes should appear beneath the plot. The default is `TRUE`.
 
-- projection_col, simulation_col, milestone_col:
+- projection_col:
 
-  colours for the expected projection, random trajectories, and
-  milestone guides.
+  A character string specifying the colour of the expected enrollment
+  curve. The default is `"#276E9B"`.
+
+- simulation_col:
+
+  A character string specifying the colour of the random enrollment
+  trajectories. The default is `"#777777"`.
+
+- milestone_col:
+
+  A character string specifying the colour of the interim and
+  maximum-sample-size guides. The default is `"#C8682A"`.
 
 ## Value
 

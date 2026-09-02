@@ -25,20 +25,22 @@ plot_sim_stopping(
 
 - x:
 
-  A simulation result data frame or the list returned by sim_trials.
+  A required simulation-result data frame, or the complete list returned
+  by
+  [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md).
 
 - type:
 
-  Character string specifying the percentages to plot. `"marginal"`
-  shows the percentage of all simulated trials ending at each sample
-  size; its bars sum to 100 percent across sample sizes. `"conditional"`
-  shows the percentage stopping at each look among trials still active
-  at the start of that look. `"cumulative"` shows the status of all
-  simulated trials after each look; every bar sums to 100 percent and
-  includes trials continuing to the next look. `"flowchart"` starts with
-  all simulated trials and branches at each look into futility,
-  continued enrollment, and expected-success nodes labelled with trial
-  counts.
+  A single character string specifying the percentages to plot.
+  `"marginal"` (the default) shows the percentage of all simulated
+  trials ending at each sample size; its bars sum to 100 percent across
+  sample sizes. `"conditional"` shows the percentage stopping at each
+  look among trials still active at the start of that look.
+  `"cumulative"` shows the status of all simulated trials after each
+  look; every bar sums to 100 percent and includes trials continuing to
+  the next look. `"flowchart"` starts with all simulated trials and
+  branches at each look into futility, continued enrollment, and
+  expected-success nodes labelled with trial counts.
 
 ## Value
 

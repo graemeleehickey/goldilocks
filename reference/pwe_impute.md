@@ -1,7 +1,8 @@
 # Impute piecewise exponential time-to-event outcomes
 
-Imputation of time-to-event outcomes using the piecewise constant hazard
-exponential function conditional on observed exposure.
+Draws an event time from a piecewise-exponential distribution
+conditional on a subject remaining event-free through the observed
+follow-up time, with optional administrative censoring.
 
 ## Usage
 
@@ -13,34 +14,35 @@ pwe_impute(time, hazard, cutpoints = NULL, maxtime = NULL)
 
 - time:
 
-  numeric vector. Finite, non-negative observed times for patients who
-  have not had an event or passed `maxtime`. A zero-length vector
-  returns a zero-row data frame. Values are not recycled against other
-  arguments.
+  A required numeric vector of finite, non-negative event-free follow-up
+  times for subjects who have not had an event. When `maxtime` is
+  supplied, no value may exceed it. A zero-length vector returns a
+  zero-row data frame. Values are not recycled against other arguments.
 
 - hazard:
 
-  vector. Finite non-negative constant hazard rates for exponential
-  failures. If at least one outcome is requested and the final rate is
-  zero, `maxtime` must be supplied so that subjects without an event can
-  be administratively censored.
+  A required numeric vector of finite, non-negative event rates, with
+  one value per interval defined by `cutpoints`. If the final rate is
+  zero, `maxtime` must be supplied.
 
 - cutpoints:
 
-  finite, positive, strictly increasing vector of interior times at
-  which the hazard rate changes. The number of hazard rates must be one
-  greater than the number of cutpoints. Use `NULL` for a constant
-  hazard.
+  `NULL` (the default), or a numeric vector of finite, positive,
+  strictly increasing interior times at which the hazard rate changes.
+  The number of hazard rates must be one greater than the number of
+  cutpoints. Use `NULL` for a constant hazard.
 
 - maxtime:
 
-  scalar. Optional administrative censoring time. When supplied, it must
-  be later than every cutpoint.
+  `NULL` (the default), or a single finite, positive numeric
+  administrative censoring time. When supplied, it must be later than
+  every cutpoint.
 
 ## Value
 
-A data frame with simulated follow-up times (`time`) and respective
-event indicator (`event`, 1 = event occurred, 0 = censoring).
+A data frame with one row per subject and columns `time`, the imputed
+event or censoring time, and `event`, coded `1` for an event and `0` for
+administrative censoring.
 
 ## Details
 

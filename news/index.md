@@ -4,6 +4,11 @@
 
 ### Improvements
 
+- Function documentation now states argument types, accepted lengths and
+  ranges, defaults, and required inputs more consistently. Titles,
+  descriptions, analysis-method explanations, and return-value
+  descriptions have also been revised to foreground their statistical
+  meaning and reduce unnecessary software-development terminology.
 - Interim predictive imputation now accepts the complete posterior
   hazard array and generates subject-by-draw time and event matrices in
   one batch before the existing completed-data analysis loop. This
