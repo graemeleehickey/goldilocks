@@ -652,6 +652,7 @@ test_that("unseeded PSOCK simulations derive streams from caller RNG state", {
   }
 
   set.seed(7101)
+  caller_kind <- RNGkind()
   first <- run_psock(2)
   set.seed(7101)
   repeated <- run_psock(2)
@@ -666,7 +667,7 @@ test_that("unseeded PSOCK simulations derive streams from caller RNG state", {
   expect_identical(metadata$backend, "psock")
   expect_identical(metadata$ncores, 2L)
   expect_identical(metadata$stream_kind, "L'Ecuyer-CMRG")
-  expect_length(metadata$caller_kind, 3)
+  expect_identical(metadata$caller_kind, caller_kind)
   expect_true(is.numeric(metadata$stream_seed))
 })
 
