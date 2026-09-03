@@ -58,11 +58,28 @@ passes the complete array to `impute_predictive_draws()`. That internal
 batch calculation generates subject-by-draw time and event matrices for
 currently pending follow-up and, when futility is enabled, future
 subjects through the maximum sample size. It stores only rows requiring
-imputation. `test_stop_success()` then materializes and analyzes one
-matrix column at a time, so the completed-data analysis models and
-decision rules remain unchanged. The scalar `impute_data()` helper
-remains in active use for final-analysis imputation and as the reference
+imputation. Survival, log-rank, and Cox analyses materialize and analyze
+one matrix column at a time. Fixed-horizon binary analyses instead
+combine each column with the observed event counts and pass the
+resulting arm-level event and subject totals directly to the same
+risk-difference or beta-binomial kernels used by the checked
+patient-level analysis. The scalar `impute_data()` helper remains in
+active use for final-analysis imputation and as the reference
 implementation.
+
+For deterministic binary analyses, repeated current or maximum-sample
+count states within one interim look are analyzed once and the result is
+reused. The state identity contains the control and treatment event
+counts and sample sizes together with every fixed analysis setting. Its
+lifetime is limited to that look. Bayesian binary analysis with
+`bin_method = "mc"` does not reuse results: every predictive completion
+receives fresh beta-posterior draws in the established
+current-then-maximum order. The count path therefore changes only the
+computational representation, not the completed-data model or Monte
+Carlo procedure.
+[`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
+reports the number of requested, distinct, repeated, and reused count
+states in `diagnostics$binary_count_reuse`.
 
 Within an interim batch, random inputs are generated in posterior-draw
 order; for each draw the order is current treatment, current control,
@@ -126,7 +143,9 @@ calculation.
 
 `analyse_data()` dispatches a completed dataset according to `method`.
 Interim prediction tests each completed dataset independently before
-averaging its binary success indicators.
+averaging its binary success indicators. For fixed-horizon binary
+methods, event counts are sufficient for that test: the patient-level
+and optimized predictive routes delegate to common count kernels.
 
 | `method` | Completed-data analysis | `imputed_final = TRUE` | `imputed_final = FALSE` |
 |:---|:---|:---|:---|
@@ -176,7 +195,8 @@ downstream displays:
 - [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
   returns the decision, predictive probabilities, Monte Carlo
   diagnostics, allocation and data-cut diagnostics, posterior
-  diagnostics, and a compatible one-look trace.
+  diagnostics, binary count-state reuse diagnostics when applicable, and
+  a compatible one-look trace.
 
 Post-processing functions consume these retained results without
 rerunning the trial:
@@ -219,7 +239,9 @@ Several conventions link the layers above:
   decision-changing; and
 - interim RNG order is posterior hazards, the complete
   predictive-imputation batch in draw/current/future/arm order, and then
-  completed-data analyses; and
+  completed-data analyses; Bayesian binary Monte Carlo retains
+  current-then-maximum order within each draw and does not reuse
+  repeated states; and
 - trusted kernels may bypass repeated rich-input validation only after
   package-owned callers have constructed canonical inputs. General entry
   points retain checked behavior.

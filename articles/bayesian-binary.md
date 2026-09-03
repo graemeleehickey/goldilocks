@@ -174,6 +174,18 @@ because it evaluates the remaining cumulative hazard through
 `-expm1(-(H(T^*) - H(T)))`, rather than subtracting two survival
 probabilities that may both round to zero.
 
+Whichever imputation approach is selected, the completed beta-binomial
+analysis needs only the number of events and subjects in each arm.
+Interim prediction therefore derives those counts directly from the
+imputed event matrices rather than rebuilding a patient-level data frame
+for every predictive replicate. With `bin_method = "normal"` or
+`"quadrature"`, an identical count state within the same interim look
+has an identical result and is evaluated once. With `bin_method = "mc"`,
+every replicate is still analyzed with fresh `N_mcmc` beta-posterior
+draws; repeated states are not reused. This computational shortcut does
+not change the imputation model, beta-binomial posterior, predictive
+sample size, or stopping thresholds.
+
 ## Single-arm design
 
 For a single-arm design, set `hazard_control = NULL`. The comparator is

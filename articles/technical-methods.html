@@ -407,12 +407,16 @@ predictive density is</p>
   \pi(\boldsymbol{\lambda} \mid \mathcal{D}_{\ell}^{\mathrm{obs}})
   d\boldsymbol{\lambda}.</span></p>
 <p>This density is the mathematical target, not an object that the
-package evaluates in closed form. In the implementation,
-<code>posterior()</code> draws <span class="math inline">\boldsymbol{\lambda}</span>,
-<code>impute_data()</code> draws completed outcomes conditional on those
-hazards, and <code>test_stop_success()</code> repeats the
-impute-and-analyze cycle to approximate the predictive probability by
-Monte Carlo simulation.</p>
+package evaluates in closed form. In the shared interim implementation,
+<code>posterior_from_sufficient_stats()</code> draws <span class="math inline">\boldsymbol{\lambda}</span> and
+<code>impute_predictive_draws()</code> draws all completed outcomes
+conditional on those hazards. Survival, log-rank, and Cox methods then
+analyze each materialized completed dataset. For
+<code>method = "riskdiff"</code> and <code>method = "bayes-bin"</code>,
+the package instead carries forward the completed event and subject
+counts by arm because these are sufficient for the fixed-horizon binary
+analysis. Both routes apply the same completed-data analysis and average
+the same replicate-level success indicators.</p>
 </div>
 <div class="section level2">
 <h2 id="interim-decision-algorithm">6. Interim decision algorithm<a class="anchor" aria-label="anchor" href="#interim-decision-algorithm"></a>
@@ -574,6 +578,20 @@ Deterministic quadrature, approximation, and frequentist analyses use
 the same strict point-estimate comparison. Exact one-sided binomial
 bounds for posterior Monte Carlo estimates are retained as diagnostics
 but do not change this classification.</p>
+<p>For the fixed-horizon binary methods, a completed replicate is
+represented by <span class="math inline">(x_0,n_0,x_1,n_1)</span> in a
+two-arm design, or <span class="math inline">(x_1,n_1)</span> in a
+single-arm design, where <span class="math inline">x_z</span> and <span class="math inline">n_z</span> are the event and subject counts in arm
+<span class="math inline">z</span>. There is no loss of statistical
+information for the risk-difference or beta-binomial analysis because
+neither uses the individual event times after endpoint status is
+complete. Deterministic repeated count states within one interim look
+are evaluated once and reused. For <code>bin_method = "mc"</code>,
+repeated states are not reused: each predictive replicate receives an
+independent set of <code>N_mcmc</code> beta-posterior draws. Thus,
+count-state reuse does not reduce the outer number of predictive
+imputations and does not alter either layer of Monte Carlo
+uncertainty.</p>
 <p>If</p>
 <p><span class="math display">\widehat{P}_{n_\ell} &gt;
 S_\ell,</span></p>
@@ -864,6 +882,15 @@ difference. With <code>bin_method = "quadrature"</code>, it uses
 numerical integration for the two-arm posterior difference. The argument
 <code>N_mcmc</code> controls the number of Monte Carlo beta draws only
 when <code>bin_method = "mc"</code>.</p>
+<p>The completed-data calculation is implemented from <span class="math inline">(x_z,n_z)</span> directly. Ordinary patient-level
+analyses first verify complete endpoint ascertainment and then reduce
+the data to these counts. Interim prediction obtains the same counts
+from the predictive event matrices without constructing a separate
+patient-level data frame for every replicate. Normal, quadrature, and
+risk-difference results are deterministic conditional on the counts, so
+an identical count state within the same look can reuse its result.
+Monte Carlo beta-binomial results are always recalculated to preserve
+fresh posterior draws and their random-number order.</p>
 </div>
 <div class="section level3">
 <h3 id="loss-to-follow-up-at-the-final-analysis">7.4 Loss to follow-up at the final analysis<a class="anchor" aria-label="anchor" href="#loss-to-follow-up-at-the-final-analysis"></a>

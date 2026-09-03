@@ -100,7 +100,7 @@ define a different statistical analysis.</p>
 <h2 id="trial-simulation-and-interim-evaluation">Trial simulation and interim evaluation<a class="anchor" aria-label="anchor" href="#trial-simulation-and-interim-evaluation"></a>
 </h2>
 <div class="grViz html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:960px;height:595.2px;"></div>
-<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\ndigraph trial_pipeline {\n\n  graph [rankdir = TB, fontsize = 12, nodesep = 0.28, ranksep = 0.48]\n  node [shape = box, style = \"filled,rounded\", fontname = Helvetica, fontsize = 9, fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  edge [fontname = Helvetica, fontsize = 8, color = \"#666666\"]\n\n  subgraph cluster_entry {\n    label = \"Entry points\"\n    color = \"#cccccc\"\n    style = \"rounded,dashed\"\n    sim_trials      [label = \"sim_trials()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    survival_adapt  [label = \"survival_adapt()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    evaluate_interim [label = \"evaluate_interim()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  }\n\n  execution_plan [label = \"backend plan + per-trial RNG streams\"]\n  prepare_external [label = \"prepare_external_interim_data()\"]\n  interim_core [label = \"evaluate_interim_core()\"]\n  test_stop [label = \"test_stop_success()\"]\n  test_final [label = \"test_final()\"]\n\n  subgraph cluster_generation {\n    label = \"Trial generation\"\n    color = \"#cccccc\"\n    style = \"rounded,dashed\"\n    sim_comp_data [label = \"sim_comp_data()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    enrollment [label = \"enrollment()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    randomization [label = \"randomization()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    pwe_sim [label = \"pwe_sim()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  }\n\n  posterior_stats [label = \"posterior_sufficient_stats()\"]\n  posterior_checked [label = \"posterior_from_sufficient_stats()\"]\n  posterior_complete [label = \"posterior()\"]\n  impute_batch [label = \"impute_predictive_draws()\nvectorized PWE / Bernoulli sampling\"]\n  materialize [label = \"materialize_predictive_draw()\"]\n  impute_data [label = \"impute_data()\nscalar final/reference path\"]\n  pwe_impute [label = \"pwe_impute()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  analyse_data [label = \"analyse_data()\"]\n  bayes_kernel [label = \"Bayesian-survival kernels\", fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n  rubin_pool [label = \"Cox / risk-difference fits + Rubin pooling\"]\n  prop_to_haz [label = \"prop_to_haz()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n  sim_trials -> execution_plan\n  execution_plan -> survival_adapt [label = \"once per trial\"]\n\n  survival_adapt -> sim_comp_data\n  survival_adapt -> interim_core [label = \"each interim look\"]\n  survival_adapt -> test_final [label = \"stopped or maximum N\"]\n\n  evaluate_interim -> prepare_external\n  prepare_external -> interim_core\n\n  sim_comp_data -> enrollment\n  sim_comp_data -> randomization\n  sim_comp_data -> pwe_sim [label = \"generation_cutpoints\"]\n  prop_to_haz -> sim_comp_data [label = \"optional design conversion\", style = dashed]\n\n  interim_core -> posterior_stats [label = \"observed data\"]\n  posterior_stats -> posterior_checked [label = \"observed sufficient statistics\"]\n  posterior_checked -> impute_batch [label = \"N_impute hazard draws\"]\n  interim_core -> impute_batch [label = \"one batch per look\"]\n  impute_batch -> materialize [label = \"time / event matrices\"]\n  materialize -> test_stop [label = \"one column per analysis\"]\n\n  test_stop -> bayes_kernel [label = \"bayes-surv\"]\n  test_stop -> analyse_data [label = \"other methods\"]\n\n  test_final -> posterior_complete [label = \"if imputed_final\"]\n  posterior_complete -> impute_data [label = \"N_impute hazard draws\"]\n  impute_data -> pwe_impute [label = \"pending follow-up\"]\n  test_final -> bayes_kernel [label = \"imputed bayes-surv\"]\n  test_final -> analyse_data [label = \"observed / bayes-bin\"]\n  test_final -> rubin_pool [label = \"imputed cox / riskdiff\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p><code><a href="../reference/sim_trials.html">sim_trials()</a></code> first resolves sequential, fork, or PSOCK
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\ndigraph trial_pipeline {\n\n  graph [rankdir = TB, fontsize = 12, nodesep = 0.28, ranksep = 0.48]\n  node [shape = box, style = \"filled,rounded\", fontname = Helvetica, fontsize = 9, fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  edge [fontname = Helvetica, fontsize = 8, color = \"#666666\"]\n\n  subgraph cluster_entry {\n    label = \"Entry points\"\n    color = \"#cccccc\"\n    style = \"rounded,dashed\"\n    sim_trials      [label = \"sim_trials()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    survival_adapt  [label = \"survival_adapt()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    evaluate_interim [label = \"evaluate_interim()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  }\n\n  execution_plan [label = \"backend plan + per-trial RNG streams\"]\n  prepare_external [label = \"prepare_external_interim_data()\"]\n  interim_core [label = \"evaluate_interim_core()\"]\n  test_stop [label = \"test_stop_success()\"]\n  test_final [label = \"test_final()\"]\n\n  subgraph cluster_generation {\n    label = \"Trial generation\"\n    color = \"#cccccc\"\n    style = \"rounded,dashed\"\n    sim_comp_data [label = \"sim_comp_data()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    enrollment [label = \"enrollment()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    randomization [label = \"randomization()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    pwe_sim [label = \"pwe_sim()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  }\n\n  posterior_stats [label = \"posterior_sufficient_stats()\"]\n  posterior_checked [label = \"posterior_from_sufficient_stats()\"]\n  posterior_complete [label = \"posterior()\"]\n  impute_batch [label = \"impute_predictive_draws()\nvectorized PWE / Bernoulli sampling\"]\n  materialize [label = \"materialize_predictive_draw()\"]\n  binary_counts [label = \"predictive_binary_count_states()\narm-level event / subject counts\"]\n  impute_data [label = \"impute_data()\nscalar final/reference path\"]\n  pwe_impute [label = \"pwe_impute()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  analyse_data [label = \"analyse_data()\"]\n  bayes_kernel [label = \"Bayesian-survival kernels\", fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n  binary_kernel [label = \"Binary count kernels\nstate reuse if deterministic\", fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n  rubin_pool [label = \"Cox / risk-difference fits + Rubin pooling\"]\n  prop_to_haz [label = \"prop_to_haz()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n  sim_trials -> execution_plan\n  execution_plan -> survival_adapt [label = \"once per trial\"]\n\n  survival_adapt -> sim_comp_data\n  survival_adapt -> interim_core [label = \"each interim look\"]\n  survival_adapt -> test_final [label = \"stopped or maximum N\"]\n\n  evaluate_interim -> prepare_external\n  prepare_external -> interim_core\n\n  sim_comp_data -> enrollment\n  sim_comp_data -> randomization\n  sim_comp_data -> pwe_sim [label = \"generation_cutpoints\"]\n  prop_to_haz -> sim_comp_data [label = \"optional design conversion\", style = dashed]\n\n  interim_core -> posterior_stats [label = \"observed data\"]\n  posterior_stats -> posterior_checked [label = \"observed sufficient statistics\"]\n  posterior_checked -> impute_batch [label = \"N_impute hazard draws\"]\n  interim_core -> impute_batch [label = \"one batch per look\"]\n  impute_batch -> materialize [label = \"survival / regression methods\"]\n  materialize -> test_stop [label = \"one column per analysis\"]\n  impute_batch -> binary_counts [label = \"fixed-horizon binary methods\"]\n  binary_counts -> binary_kernel [label = \"current + maximum states\"]\n\n  test_stop -> bayes_kernel [label = \"bayes-surv\"]\n  test_stop -> analyse_data [label = \"logrank / cox\"]\n\n  test_final -> posterior_complete [label = \"if imputed_final\"]\n  posterior_complete -> impute_data [label = \"N_impute hazard draws\"]\n  impute_data -> pwe_impute [label = \"pending follow-up\"]\n  test_final -> bayes_kernel [label = \"imputed bayes-surv\"]\n  test_final -> analyse_data [label = \"observed / bayes-bin\"]\n  test_final -> rubin_pool [label = \"imputed cox / riskdiff\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p><code><a href="../reference/sim_trials.html">sim_trials()</a></code> first resolves sequential, fork, or PSOCK
 execution and, when a seed is supplied, constructs an independent
 <code>"L'Ecuyer-CMRG"</code> stream for every requested trial.
 Trial-level errors are isolated and retained in the returned failure
@@ -125,12 +125,26 @@ posterior and passes the complete array to
 <code>impute_predictive_draws()</code>. That internal batch calculation
 generates subject-by-draw time and event matrices for currently pending
 follow-up and, when futility is enabled, future subjects through the
-maximum sample size. It stores only rows requiring imputation.
-<code>test_stop_success()</code> then materializes and analyzes one
-matrix column at a time, so the completed-data analysis models and
-decision rules remain unchanged. The scalar <code>impute_data()</code>
-helper remains in active use for final-analysis imputation and as the
-reference implementation.</p>
+maximum sample size. It stores only rows requiring imputation. Survival,
+log-rank, and Cox analyses materialize and analyze one matrix column at
+a time. Fixed-horizon binary analyses instead combine each column with
+the observed event counts and pass the resulting arm-level event and
+subject totals directly to the same risk-difference or beta-binomial
+kernels used by the checked patient-level analysis. The scalar
+<code>impute_data()</code> helper remains in active use for
+final-analysis imputation and as the reference implementation.</p>
+<p>For deterministic binary analyses, repeated current or maximum-sample
+count states within one interim look are analyzed once and the result is
+reused. The state identity contains the control and treatment event
+counts and sample sizes together with every fixed analysis setting. Its
+lifetime is limited to that look. Bayesian binary analysis with
+<code>bin_method = "mc"</code> does not reuse results: every predictive
+completion receives fresh beta-posterior draws in the established
+current-then-maximum order. The count path therefore changes only the
+computational representation, not the completed-data model or Monte
+Carlo procedure. <code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> reports the number of
+requested, distinct, repeated, and reused count states in
+<code>diagnostics$binary_count_reuse</code>.</p>
 <p>Within an interim batch, random inputs are generated in
 posterior-draw order; for each draw the order is current treatment,
 current control, future treatment, then future control. All predictive
@@ -193,7 +207,10 @@ the estimand rather than correct the cumulative-hazard calculation.</p>
 </h2>
 <p><code>analyse_data()</code> dispatches a completed dataset according
 to <code>method</code>. Interim prediction tests each completed dataset
-independently before averaging its binary success indicators.</p>
+independently before averaging its binary success indicators. For
+fixed-horizon binary methods, event counts are sufficient for that test:
+the patient-level and optimized predictive routes delegate to common
+count kernels.</p>
 <table class="table">
 <colgroup>
 <col width="25%">
@@ -302,8 +319,8 @@ and the common retained design; and</li>
 <li>
 <code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> returns the decision, predictive
 probabilities, Monte Carlo diagnostics, allocation and data-cut
-diagnostics, posterior diagnostics, and a compatible one-look
-trace.</li>
+diagnostics, posterior diagnostics, binary count-state reuse diagnostics
+when applicable, and a compatible one-look trace.</li>
 </ul>
 <p>Post-processing functions consume these retained results without
 rerunning the trial:</p>
@@ -358,7 +375,9 @@ Bayesian Monte Carlo uses <code>N_mcmc</code>, and exact bounds are
 diagnostic rather than decision-changing; and</li>
 <li>interim RNG order is posterior hazards, the complete
 predictive-imputation batch in draw/current/future/arm order, and then
-completed-data analyses; and</li>
+completed-data analyses; Bayesian binary Monte Carlo retains
+current-then-maximum order within each draw and does not reuse repeated
+states; and</li>
 <li>trusted kernels may bypass repeated rich-input validation only after
 package-owned callers have constructed canonical inputs. General entry
 points retain checked behavior.</li>

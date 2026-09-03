@@ -4,6 +4,16 @@
 
 ### Improvements
 
+- Fixed-horizon binary interim analyses now carry completed event and
+  subject counts by arm directly into shared risk-difference and
+  beta-binomial kernels, avoiding one patient-level data-frame
+  reconstruction per predictive draw. Deterministic repeated count
+  states are evaluated once within each look; Bayesian Monte Carlo
+  analyses deliberately retain fresh posterior draws for every
+  predictive completion. Interim diagnostics report count-state
+  repetition and cache-hit rates, and maintainer benchmarks compare the
+  count path with the retained materialized-data reference
+  ([\#91](https://github.com/graemeleehickey/goldilocks/issues/91)).
 - Seeded statistical regression tests now validate piecewise-exponential
   event and conditional-imputation distributions, conjugate Gamma
   posterior moments, frequentist type-I error and confidence-interval

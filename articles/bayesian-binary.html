@@ -236,6 +236,18 @@ comparison uses the same design and random-number stream:</p>
 because it evaluates the remaining cumulative hazard through
 <code>-expm1(-(H(T^*) - H(T)))</code>, rather than subtracting two
 survival probabilities that may both round to zero.</p>
+<p>Whichever imputation approach is selected, the completed
+beta-binomial analysis needs only the number of events and subjects in
+each arm. Interim prediction therefore derives those counts directly
+from the imputed event matrices rather than rebuilding a patient-level
+data frame for every predictive replicate. With
+<code>bin_method = "normal"</code> or <code>"quadrature"</code>, an
+identical count state within the same interim look has an identical
+result and is evaluated once. With <code>bin_method = "mc"</code>, every
+replicate is still analyzed with fresh <code>N_mcmc</code>
+beta-posterior draws; repeated states are not reused. This computational
+shortcut does not change the imputation model, beta-binomial posterior,
+predictive sample size, or stopping thresholds.</p>
 </div>
 <div class="section level2">
 <h2 id="single-arm-design">Single-arm design<a class="anchor" aria-label="anchor" href="#single-arm-design"></a>
