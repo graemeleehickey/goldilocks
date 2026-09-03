@@ -650,6 +650,147 @@ materialize_predictive_draw <- function(
   data_out
 }
 
+#' Prepare outcome vectors for repeated survival analyses
+#'
+#' @description Retains the observed `time`, `event`, and `treatment` vectors
+#'   needed for completed-data survival analyses and calculates the positions
+#'   at which current and future imputations will be inserted. This preparation
+#'   is performed once for an interim look.
+#'
+#' @param data_in A data frame containing the prepared interim data.
+#' @param imputations Predictive imputations returned by
+#'   `impute_predictive_draws()`.
+#' @param check_futility A single logical value indicating whether
+#'   maximum-sample-size outcomes are required.
+#'
+#' @return A list containing fixed current- and maximum-sample outcome vectors
+#'   and the corresponding imputation positions.
+#'
+#' @keywords internal
+#' @noRd
+prepare_predictive_survival_state <- function(
+  data_in,
+  imputations,
+  check_futility
+) {
+  required_columns <- c(
+    "time",
+    "event",
+    "treatment",
+    "subject_enrolled"
+  )
+  missing_columns <- setdiff(required_columns, names(data_in))
+  if (!is.data.frame(data_in) || length(missing_columns) > 0L) {
+    stop(
+      "Internal predictive-analysis invariant failed: incomplete interim data",
+      call. = FALSE
+    )
+  }
+  if (
+    !is.list(imputations) ||
+      !is.numeric(imputations$n_draws) ||
+      length(imputations$n_draws) != 1L ||
+      imputations$n_draws < 1L ||
+      is.null(imputations$current)
+  ) {
+    stop(
+      "Internal predictive-analysis invariant failed: invalid imputations",
+      call. = FALSE
+    )
+  }
+  if (
+    length(check_futility) != 1L ||
+      !is.logical(check_futility) ||
+      is.na(check_futility) ||
+      (check_futility && is.null(imputations$future))
+  ) {
+    stop(
+      "Internal predictive-analysis invariant failed: invalid futility state",
+      call. = FALSE
+    )
+  }
+
+  enrolled_rows <- which(data_in$subject_enrolled)
+  current_positions <- match(imputations$current$rows, enrolled_rows)
+  if (anyNA(current_positions)) {
+    stop(
+      paste0(
+        "Internal predictive-analysis invariant failed: current imputation ",
+        "outside the enrolled cohort"
+      ),
+      call. = FALSE
+    )
+  }
+
+  current <- list(
+    time = data_in$time[enrolled_rows],
+    event = data_in$event[enrolled_rows],
+    treatment = data_in$treatment[enrolled_rows],
+    current_positions = current_positions,
+    future_positions = integer()
+  )
+  maximum <- if (check_futility) {
+    list(
+      time = data_in$time,
+      event = data_in$event,
+      treatment = data_in$treatment,
+      current_positions = imputations$current$rows,
+      future_positions = imputations$future$rows
+    )
+  } else {
+    NULL
+  }
+
+  list(current = current, maximum = maximum)
+}
+
+#' Complete one predictive survival outcome from stored vectors
+#'
+#' @description Inserts one predictive replicate into the outcome vectors
+#'   prepared by `prepare_predictive_survival_state()`. Treatment assignments
+#'   are reused because they do not vary across predictive replicates.
+#'
+#' @param state A prepared predictive survival state.
+#' @param imputations Predictive imputations returned by
+#'   `impute_predictive_draws()`.
+#' @param draw A positive integer identifying the predictive replicate.
+#' @param maximum A single logical value indicating whether to include future
+#'   participants and analyze the maximum sample size.
+#'
+#' @return A list containing completed `time`, `event`, and `treatment` vectors.
+#'
+#' @keywords internal
+#' @noRd
+complete_predictive_survival_draw <- function(
+  state,
+  imputations,
+  draw,
+  maximum = FALSE
+) {
+  base <- if (maximum) state$maximum else state$current
+  if (is.null(base)) {
+    stop(
+      "Internal predictive-analysis invariant failed: maximum state unavailable",
+      call. = FALSE
+    )
+  }
+
+  time <- base$time
+  event <- base$event
+  time[base$current_positions] <- imputations$current$time[, draw]
+  event[base$current_positions] <- imputations$current$event[, draw]
+  if (maximum) {
+    time[base$future_positions] <- imputations$future$time[, draw]
+    event[base$future_positions] <- imputations$future$event[, draw]
+  }
+
+  list(
+    time = time,
+    event = event,
+    treatment = base$treatment
+  )
+}
+
 #' Summarize completed binary outcomes for predictive replicates
 #'
 #' @description Combines observed events with the imputed endpoint statuses of

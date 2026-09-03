@@ -6,6 +6,8 @@
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
+#' @param analysis_state A list of fixed outcome vectors and imputation
+#'   positions returned by `prepare_predictive_survival_state()`.
 #' @param imputations A list of interim predictive imputations returned by
 #'   `impute_predictive_draws()`.
 #' @param draw A positive integer identifying the predictive imputation to
@@ -19,12 +21,11 @@
 #' @param mc_conf_level A single numeric probability strictly between `0.5` and
 #'   `1`, giving the level of diagnostic finite Monte Carlo bounds.
 #'
-#' @return A numeric vector containing indicators of success at the current and
-#'   maximum sample sizes and indicators of material inner Monte Carlo
-#'   uncertainty.
+#' @return A list containing completed-data analysis results and their success
+#'   classifications at the current and, when requested, maximum sample sizes.
 #' @noRd
 test_stop_success <- function(
-  data,
+  analysis_state,
   imputations,
   draw,
   end_of_study,
@@ -36,8 +37,6 @@ test_stop_success <- function(
   method,
   alternative,
   h0,
-  prior_bin,
-  bin_method,
   empty_interval,
   check_futility,
   prob_ha,
@@ -47,125 +46,49 @@ test_stop_success <- function(
   ### Test for success at current sample size (-> stop for success)
   ##############################################################################
 
-  data_success_impute <- materialize_predictive_draw(
-    data_in = data,
+  outcome_now <- complete_predictive_survival_draw(
+    state = analysis_state,
     imputations = imputations,
     draw = draw
   )
-
-  if (method == "bayes-surv") {
-    # This is stage two of the posterior-predictive calculation. `hazard`
-    # above came from the observed-data posterior and generated one completed
-    # trial. We now summarize that completed trial and form a *fresh* posterior
-    # from its statistics plus the original prior.
-    #
-    # `rows` restricts the current-sample-size analysis to enrolled subjects
-    # without first copying time/event/treatment into another data frame.
-    data_summ_now <- posterior_sufficient_stats(
-      data = data_success_impute,
-      cutpoints = cutpoints,
-      single_arm = single_arm,
-      rows = data_success_impute$subject_enrolled
-    )
-    success_now <- analyse_bayes_surv_sufficient_stats_kernel(
-      data_summ = data_summ_now,
-      cutpoints = cutpoints,
-      end_of_study = end_of_study,
-      prior_surv = prior_surv,
-      N_mcmc = N_mcmc,
-      single_arm = single_arm,
-      alternative = alternative,
-      h0 = h0,
-      empty_interval = empty_interval,
-      interval_widths = interval_widths
-    )
-  } else {
-    # Frequentist and binary-Bayesian methods still require patient-level
-    # outcomes, so retain their existing analysis data frame.
-    time <- NULL
-    event <- NULL
-    subject_enrolled <- NULL
-    data_now <- subset(
-      data_success_impute,
-      subset = subject_enrolled,
-      select = c(time, event, treatment)
-    )
-    success_now <- analyse_data(
-      data = data_now,
-      cutpoints = cutpoints,
-      end_of_study = end_of_study,
-      prior_surv = prior_surv,
-      N_mcmc = N_mcmc,
-      single_arm = single_arm,
-      method = method,
-      alternative = alternative,
-      h0 = h0,
-      prior_bin = prior_bin,
-      bin_method = bin_method,
-      empty_interval = empty_interval
-    )
-  }
+  success_now <- analyse_completed_survival_vectors(
+    outcome = outcome_now,
+    cutpoints = cutpoints,
+    end_of_study = end_of_study,
+    interval_widths = interval_widths,
+    prior_surv = prior_surv,
+    N_mcmc = N_mcmc,
+    single_arm = single_arm,
+    method = method,
+    alternative = alternative,
+    h0 = h0,
+    empty_interval = empty_interval
+  )
 
   ##############################################################################
   ### Test for success at maximum sample size (-> stop for futility)
   ##############################################################################
 
   if (check_futility) {
-    # Take the already imputed data for expected success and add the batched
-    # outcomes for subjects not yet enrolled.
-    data_futility_impute <- materialize_predictive_draw(
-      data_in = data_success_impute,
+    outcome_max <- complete_predictive_survival_draw(
+      state = analysis_state,
       imputations = imputations,
       draw = draw,
-      include_future = TRUE
+      maximum = TRUE
     )
-
-    if (method == "bayes-surv") {
-      # The maximum-sample-size data include both the success imputations for
-      # enrolled subjects and the futility imputations for future subjects.
-      # Summarize all rows because this branch represents a completed maximum
-      # trial rather than the currently enrolled cohort.
-      data_summ_max <- posterior_sufficient_stats(
-        data = data_futility_impute,
-        cutpoints = cutpoints,
-        single_arm = single_arm
-      )
-      success_max <- analyse_bayes_surv_sufficient_stats_kernel(
-        data_summ = data_summ_max,
-        cutpoints = cutpoints,
-        end_of_study = end_of_study,
-        prior_surv = prior_surv,
-        N_mcmc = N_mcmc,
-        single_arm = single_arm,
-        alternative = alternative,
-        h0 = h0,
-        empty_interval = empty_interval,
-        interval_widths = interval_widths
-      )
-    } else {
-      # Create the patient-level data required by the other analysis methods.
-      time <- NULL
-      event <- NULL
-      treatment <- NULL
-      data_max <- subset(
-        data_futility_impute,
-        select = c(time, event, treatment)
-      )
-      success_max <- analyse_data(
-        data = data_max,
-        cutpoints = cutpoints,
-        end_of_study = end_of_study,
-        prior_surv = prior_surv,
-        N_mcmc = N_mcmc,
-        single_arm = single_arm,
-        method = method,
-        alternative = alternative,
-        h0 = h0,
-        prior_bin = prior_bin,
-        bin_method = bin_method,
-        empty_interval = empty_interval
-      )
-    }
+    success_max <- analyse_completed_survival_vectors(
+      outcome = outcome_max,
+      cutpoints = cutpoints,
+      end_of_study = end_of_study,
+      interval_widths = interval_widths,
+      prior_surv = prior_surv,
+      N_mcmc = N_mcmc,
+      single_arm = single_arm,
+      method = method,
+      alternative = alternative,
+      h0 = h0,
+      empty_interval = empty_interval
+    )
   } else {
     success_max <- NA
   }

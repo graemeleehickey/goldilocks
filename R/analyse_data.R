@@ -112,27 +112,14 @@ analyse_data <- function(
   ####################################################
 
   if (method == "logrank") {
-    t0 <- data$time[data$treatment == 0]
-    t1 <- data$time[data$treatment == 1]
-    e0 <- data$event[data$treatment == 0]
-    e1 <- data$event[data$treatment == 1]
-    lr <- logrank_test(t0, t1, e0, e1)
-    assert_logrank_estimable(lr)
-    if (alternative == "two.sided") {
-      success <- 1 - lr[3]
-    } else {
-      # Logrank z > 0 when control has excess events (treatment beneficial).
-      # This is opposite to the Cox convention.
-      # "less" => treatment beneficial => large success when z >> 0
-      # "greater" => treatment harmful => large success when z << 0
-      z <- lr[2]
-      if (alternative == "less") {
-        success <- pnorm(z)
-      } else if (alternative == "greater") {
-        success <- 1 - pnorm(z)
-      }
-    }
-    effect <- NA
+    analysis <- analyse_logrank_vectors(
+      time = data$time,
+      event = data$event,
+      treatment = data$treatment,
+      alternative = alternative
+    )
+    success <- analysis$success
+    effect <- analysis$effect
   }
 
   ####################################################
@@ -140,21 +127,15 @@ analyse_data <- function(
   ####################################################
 
   if (method == "cox") {
-    fit_cox <- cox_wald_test_checked(data)
-    z <- (fit_cox$estimate - h0) / fit_cox$std_error
-    if (alternative == "two.sided") {
-      success <- 1 - (2 * pnorm(-abs(z)))
-    } else {
-      # Cox z < 0 when the estimated log hazard ratio is less than h0.
-      # "less" => treatment beneficial/non-inferior => large success when z << 0
-      # "greater" => treatment harmful/superior to h0 => large success when z >> 0
-      if (alternative == "less") {
-        success <- 1 - pnorm(z)
-      } else if (alternative == "greater") {
-        success <- pnorm(z)
-      }
-    }
-    effect <- fit_cox$estimate
+    analysis <- analyse_cox_vectors(
+      time = data$time,
+      event = data$event,
+      treatment = data$treatment,
+      alternative = alternative,
+      h0 = h0
+    )
+    success <- analysis$success
+    effect <- analysis$effect
   }
 
   ####################################################
@@ -180,6 +161,150 @@ analyse_data <- function(
     attr(result, "mc_counts") <- attr(bin_res, "mc_counts", exact = TRUE)
   }
   return(result)
+}
+
+#' Analyze completed survival outcomes from vectors
+#'
+#' @description Applies the selected completed-data survival analysis directly
+#'   to follow-up, event, and treatment vectors. Predictive calculations use
+#'   this function after inserting one imputation into the observed outcomes.
+#'
+#' @param outcome A list containing `time`, `event`, and `treatment` vectors.
+#' @param interval_widths A numeric vector giving the piecewise-interval widths
+#'   through `end_of_study` for a Bayesian survival analysis.
+#' @inheritParams analyse_data
+#'
+#' @return A list containing the analysis-specific success score and treatment-
+#'   effect estimate.
+#'
+#' @keywords internal
+#' @noRd
+analyse_completed_survival_vectors <- function(
+  outcome,
+  cutpoints,
+  end_of_study,
+  interval_widths,
+  prior_surv,
+  N_mcmc,
+  single_arm,
+  method,
+  alternative,
+  h0,
+  empty_interval
+) {
+  if (method == "logrank") {
+    return(analyse_logrank_vectors(
+      time = outcome$time,
+      event = outcome$event,
+      treatment = outcome$treatment,
+      alternative = alternative
+    ))
+  }
+  if (method == "cox") {
+    return(analyse_cox_vectors(
+      time = outcome$time,
+      event = outcome$event,
+      treatment = outcome$treatment,
+      alternative = alternative,
+      h0 = h0
+    ))
+  }
+  if (method == "bayes-surv") {
+    data_summ <- posterior_sufficient_stats_kernel(
+      time = outcome$time,
+      event = outcome$event,
+      treatment = outcome$treatment,
+      cutpoints = cutpoints,
+      single_arm = single_arm
+    )
+    return(analyse_bayes_surv_sufficient_stats_kernel(
+      data_summ = data_summ,
+      cutpoints = cutpoints,
+      end_of_study = end_of_study,
+      prior_surv = prior_surv,
+      N_mcmc = N_mcmc,
+      single_arm = single_arm,
+      alternative = alternative,
+      h0 = h0,
+      empty_interval = empty_interval,
+      interval_widths = interval_widths
+    ))
+  }
+
+  stop(
+    "Internal predictive-analysis invariant failed: unsupported survival method",
+    call. = FALSE
+  )
+}
+
+#' Calculate a log-rank result from outcome vectors
+#'
+#' @param time A numeric vector of follow-up times.
+#' @param event A binary vector of event indicators.
+#' @param treatment A binary vector of treatment assignments.
+#' @param alternative A character value specifying the direction of the
+#'   alternative hypothesis.
+#'
+#' @return A list containing `1 - P` for the log-rank test and an unavailable
+#'   treatment-effect estimate.
+#'
+#' @keywords internal
+#' @noRd
+analyse_logrank_vectors <- function(time, event, treatment, alternative) {
+  control <- treatment == 0
+  lr <- logrank_test(
+    groupa = time[control],
+    groupb = time[!control],
+    groupacensored = event[control],
+    groupbcensored = event[!control]
+  )
+  assert_logrank_estimable(lr)
+
+  if (alternative == "two.sided") {
+    success <- 1 - lr[3]
+  } else {
+    # Log-rank z > 0 when control has excess events (treatment beneficial).
+    # This is opposite to the Cox convention.
+    # "less" => treatment beneficial => large success when z >> 0
+    # "greater" => treatment harmful => large success when z << 0
+    z <- lr[2]
+    if (alternative == "less") {
+      success <- pnorm(z)
+    } else if (alternative == "greater") {
+      success <- 1 - pnorm(z)
+    }
+  }
+
+  list(success = success, effect = NA)
+}
+
+#' Calculate a Cox Wald result from outcome vectors
+#'
+#' @inheritParams analyse_logrank_vectors
+#' @param h0 A finite numeric value giving the null log hazard ratio.
+#'
+#' @return A list containing `1 - P` for the Cox Wald test and the estimated log
+#'   hazard ratio.
+#'
+#' @keywords internal
+#' @noRd
+analyse_cox_vectors <- function(time, event, treatment, alternative, h0) {
+  fit_cox <- cox_wald_test_vectors_checked(time, event, treatment)
+  z <- (fit_cox$estimate - h0) / fit_cox$std_error
+  if (alternative == "two.sided") {
+    success <- 1 - (2 * pnorm(-abs(z)))
+  } else {
+    # Cox z < 0 when the estimated log hazard ratio is less than h0.
+    # "less" => treatment beneficial/non-inferior => large success when z << 0
+    # "greater" => treatment harmful/superior to h0 => large success when z >> 0
+    if (alternative == "less") {
+      success <- 1 - pnorm(z)
+    } else if (alternative == "greater") {
+      success <- pnorm(z)
+    }
+  }
+
+  list(success = success, effect = fit_cox$estimate)
 }
 
 #' @title Analyze Bayesian survival sufficient statistics
@@ -905,11 +1030,29 @@ assert_logrank_estimable <- function(lr) {
 #'
 #' @noRd
 cox_wald_test_checked <- function(data, ...) {
+  cox_wald_test_vectors_checked(
+    time = data$time,
+    event = data$event,
+    treatment = data$treatment,
+    ...
+  )
+}
+
+#' Calculate a checked Cox Wald test from outcome vectors
+#'
+#' @inheritParams analyse_logrank_vectors
+#'
+#' @return A list with the estimated log hazard ratio (`estimate`) and its
+#'   standard error (`std_error`).
+#'
+#' @keywords internal
+#' @noRd
+cox_wald_test_vectors_checked <- function(time, event, treatment, ...) {
   fit_state <- new.env(parent = emptyenv())
   fit_state$warnings <- character()
   fit <- tryCatch(
     withCallingHandlers(
-      cox_wald_test(data, ...),
+      cox_wald_test_vectors(time, event, treatment, ...),
       warning = function(w) {
         fit_state$warnings <- c(
           fit_state$warnings,
@@ -980,9 +1123,37 @@ cox_wald_test <- function(
   engine = c("auto", "fast", "public"),
   compatibility = coxph_fit_compatibility()
 ) {
+  cox_wald_test_vectors(
+    time = data$time,
+    event = data$event,
+    treatment = data$treatment,
+    engine = engine,
+    compatibility = compatibility
+  )
+}
+
+#' Fit a Cox Wald test from outcome vectors
+#'
+#' @inheritParams analyse_logrank_vectors
+#' @param engine A character value selecting the automatic, faster, or exported
+#'   Cox calculation.
+#' @param compatibility The result of `coxph_fit_compatibility()`.
+#'
+#' @return A list with the estimated log hazard ratio (`estimate`) and its
+#'   standard error (`std_error`).
+#'
+#' @keywords internal
+#' @noRd
+cox_wald_test_vectors <- function(
+  time,
+  event,
+  treatment,
+  engine = c("auto", "fast", "public"),
+  compatibility = coxph_fit_compatibility()
+) {
   engine <- match.arg(engine)
   if (engine == "public") {
-    return(cox_wald_test_public(data))
+    return(cox_wald_test_public_vectors(time, event, treatment))
   }
 
   fast_available <- isTRUE(compatibility$compatible) &&
@@ -995,11 +1166,11 @@ cox_wald_test <- function(
         call. = FALSE
       )
     }
-    return(cox_wald_test_public(data))
+    return(cox_wald_test_public_vectors(time, event, treatment))
   }
 
   fast_fit <- tryCatch(
-    cox_wald_test_fast(data, compatibility$fitter),
+    cox_wald_test_fast_vectors(time, event, treatment, compatibility$fitter),
     error = identity
   )
   if (!inherits(fast_fit, "error")) {
@@ -1009,7 +1180,7 @@ cox_wald_test <- function(
     stop(fast_fit)
   }
 
-  cox_wald_test_public(data)
+  cox_wald_test_public_vectors(time, event, treatment)
 }
 
 #' @title Check availability of the lower-overhead Cox calculation
@@ -1077,13 +1248,20 @@ coxph_fit_compatibility <- local({
   }
 })
 
-#' @title Fit a Cox Wald test with `coxph.fit()`
+#' Fit a Cox Wald test from outcome vectors with `coxph.fit()`
 #'
+#' @inheritParams analyse_logrank_vectors
+#' @param fitter A compatible `survival::coxph.fit()` function.
+#'
+#' @return A list with the estimated log hazard ratio (`estimate`) and its
+#'   standard error (`std_error`).
+#'
+#' @keywords internal
 #' @noRd
-cox_wald_test_fast <- function(data, fitter) {
-  y <- survival::Surv(data$time, data$event)
+cox_wald_test_fast_vectors <- function(time, event, treatment, fitter) {
+  y <- survival::Surv(time, event)
   x <- matrix(
-    as.double(data$treatment),
+    as.double(treatment),
     ncol = 1L,
     dimnames = list(NULL, "treatment")
   )
@@ -1119,10 +1297,21 @@ cox_wald_test_fast <- function(data, fitter) {
   )
 }
 
-#' @title Fit a Cox Wald test with [survival::coxph()]
+#' Fit a Cox Wald test from outcome vectors with [survival::coxph()]
 #'
+#' @inheritParams analyse_logrank_vectors
+#'
+#' @return A list with the estimated log hazard ratio (`estimate`) and its
+#'   standard error (`std_error`).
+#'
+#' @keywords internal
 #' @noRd
-cox_wald_test_public <- function(data) {
+cox_wald_test_public_vectors <- function(time, event, treatment) {
+  data <- data.frame(
+    time = time,
+    event = event,
+    treatment = treatment
+  )
   fit <- survival::coxph(
     survival::Surv(time, event) ~ treatment,
     data = data,

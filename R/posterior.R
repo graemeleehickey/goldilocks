@@ -686,11 +686,6 @@ posterior_sufficient_stats <- function(
   validate_binary_vector(data$event, "data$event")
   validate_binary_vector(data$treatment, "data$treatment")
 
-  n_intervals <- length(cutpoints) + 1L
-  interval_lower <- c(0, cutpoints)
-  interval_upper <- c(cutpoints, Inf)
-  treatment_values <- if (single_arm) 1 else c(0, 1)
-
   if (is.null(rows)) {
     rows <- rep.int(TRUE, nrow(data))
   } else if (
@@ -700,6 +695,47 @@ posterior_sufficient_stats <- function(
   ) {
     stop("'rows' must be a non-missing logical vector with one value per row")
   }
+
+  posterior_sufficient_stats_kernel(
+    time = data$time,
+    event = data$event,
+    treatment = data$treatment,
+    cutpoints = cutpoints,
+    single_arm = single_arm,
+    rows = rows
+  )
+}
+
+#' Calculate posterior sufficient statistics from outcome vectors
+#'
+#' @description Aggregates exposure time and event counts by treatment arm and
+#'   piecewise interval after the input vectors have already been validated.
+#'
+#' @param time A numeric vector of follow-up times.
+#' @param event A binary vector of event indicators.
+#' @param treatment A binary vector of treatment assignments.
+#' @param cutpoints A numeric vector of interior piecewise-interval boundaries,
+#'   or `NULL` for a constant hazard.
+#' @param single_arm A single logical value indicating a one-arm design.
+#' @param rows A logical vector selecting the subjects to include.
+#'
+#' @return A data frame containing subject counts, total exposure, and event
+#'   counts by treatment arm and piecewise interval.
+#'
+#' @keywords internal
+#' @noRd
+posterior_sufficient_stats_kernel <- function(
+  time,
+  event,
+  treatment,
+  cutpoints,
+  single_arm,
+  rows = rep.int(TRUE, length(time))
+) {
+  n_intervals <- length(cutpoints) + 1L
+  interval_lower <- c(0, cutpoints)
+  interval_upper <- c(cutpoints, Inf)
+  treatment_values <- if (single_arm) 1 else c(0, 1)
 
   data_summ <- expand.grid(
     interval = seq_len(n_intervals),
@@ -711,31 +747,29 @@ posterior_sufficient_stats <- function(
   data_summ$tot_events <- 0
 
   for (treatment_value in treatment_values) {
-    treatment_data <- data[
-      rows & data$treatment == treatment_value,
-      ,
-      drop = FALSE
-    ]
-    if (nrow(treatment_data) == 0) {
+    treatment_rows <- rows & treatment == treatment_value
+    if (!any(treatment_rows)) {
       next
     }
+    treatment_time <- time[treatment_rows]
+    treatment_event <- event[treatment_rows]
     # Match Surv(start, stop, event) and survSplit(): a realized event at a
     # cutpoint belongs to the interval ending at that cutpoint.
     event_interval <- right_closed_interval_index(
-      treatment_data$time,
+      treatment_time,
       interval_lower
     )
 
     for (j in seq_len(n_intervals)) {
       lower <- interval_lower[j]
       upper <- interval_upper[j]
-      exposure <- pmax(0, pmin(treatment_data$time, upper) - lower)
+      exposure <- pmax(0, pmin(treatment_time, upper) - lower)
       row <- data_summ$treatment == treatment_value & data_summ$interval == j
 
       data_summ$n[row] <- sum(exposure > 0)
       data_summ$tot_time[row] <- sum(exposure)
       data_summ$tot_events[row] <- sum(
-        treatment_data$event == 1 &
+        treatment_event == 1 &
           event_interval == j
       )
     }

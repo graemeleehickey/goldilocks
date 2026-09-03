@@ -65,12 +65,14 @@ digraph trial_pipeline {
   posterior_checked [label = 'posterior_from_sufficient_stats()']
   posterior_complete [label = 'posterior()']
   impute_batch [label = 'impute_predictive_draws()\nvectorized PWE / Bernoulli sampling']
-  materialize [label = 'materialize_predictive_draw()']
+  survival_state [label = 'prepare_predictive_survival_state()\nfixed outcome vectors + row positions']
+  materialize [label = 'materialize_predictive_draw()\nreference comparisons']
   binary_counts [label = 'predictive_binary_count_states()\narm-level event / subject counts']
   impute_data [label = 'impute_data()\nscalar final/reference path']
   pwe_impute [label = 'pwe_impute()', fillcolor = '#dae8fc', color = '#6c8ebf']
   analyse_data [label = 'analyse_data()']
   bayes_kernel [label = 'Bayesian-survival kernels', fillcolor = '#fff2cc', color = '#d6b656']
+  survival_tests [label = 'vector log-rank / Cox analyses', fillcolor = '#fff2cc', color = '#d6b656']
   binary_kernel [label = 'Binary count kernels\nstate reuse if deterministic', fillcolor = '#fff2cc', color = '#d6b656']
   rubin_pool [label = 'Cox / risk-difference fits + Rubin pooling']
   prop_to_haz [label = 'prop_to_haz()', fillcolor = '#dae8fc', color = '#6c8ebf']
@@ -94,13 +96,15 @@ digraph trial_pipeline {
   posterior_stats -> posterior_checked [label = 'observed sufficient statistics']
   posterior_checked -> impute_batch [label = 'N_impute hazard draws']
   interim_core -> impute_batch [label = 'one batch per look']
-  impute_batch -> materialize [label = 'survival / regression methods']
-  materialize -> test_stop [label = 'one column per analysis']
+  interim_core -> survival_state [label = 'observed outcomes']
+  impute_batch -> survival_state [label = 'survival / regression methods']
+  survival_state -> test_stop [label = 'one vector completion per draw']
+  impute_batch -> materialize [label = 'reference checks', style = dashed]
   impute_batch -> binary_counts [label = 'fixed-horizon binary methods']
   binary_counts -> binary_kernel [label = 'current + maximum states']
 
   test_stop -> bayes_kernel [label = 'bayes-surv']
-  test_stop -> analyse_data [label = 'logrank / cox']
+  test_stop -> survival_tests [label = 'logrank / cox']
 
   test_final -> posterior_complete [label = 'if imputed_final']
   posterior_complete -> impute_data [label = 'N_impute hazard draws']
@@ -118,7 +122,7 @@ digraph trial_pipeline {
 
 At every simulated look, `survival_adapt()` prepares the observed data cut and calls `evaluate_interim_core()`. `evaluate_interim()` instead validates an external data cut, derives potential future allocation from `N_total` and `rand_ratio`, and then calls the same core function. Consequently, simulated and external interim decisions share posterior prediction, imputation, completed-data analysis, threshold comparisons, diagnostics, and trace construction.
 
-The core draws `N_impute` hazards from the observed-data posterior and passes the complete array to `impute_predictive_draws()`. That internal batch calculation generates subject-by-draw time and event matrices for currently pending follow-up and, when futility is enabled, future subjects through the maximum sample size. It stores only rows requiring imputation. Survival, log-rank, and Cox analyses materialize and analyze one matrix column at a time. Fixed-horizon binary analyses instead combine each column with the observed event counts and pass the resulting arm-level event and subject totals directly to the same risk-difference or beta-binomial kernels used by the checked patient-level analysis. The scalar `impute_data()` helper remains in active use for final-analysis imputation and as the reference implementation.
+The core draws `N_impute` hazards from the observed-data posterior and passes the complete array to `impute_predictive_draws()`. That internal batch calculation generates subject-by-draw time and event matrices for currently pending follow-up and, when futility is enabled, future subjects through the maximum sample size. It stores only rows requiring imputation. For survival, log-rank, and Cox analyses, the observed outcome vectors and imputation positions are prepared once per look. Each matrix column is then inserted into copies of the follow-up and event vectors; fixed treatment assignments are reused. The completed vectors enter the same log-rank, Cox, or Bayesian-survival calculation used for an ordinary completed dataset. Fixed-horizon binary analyses instead combine each column with the observed event counts and pass the resulting arm-level event and subject totals directly to the same risk-difference or beta-binomial calculations used by the checked patient-level analysis. The scalar `impute_data()` helper remains in active use for final-analysis imputation and as the reference implementation, while `materialize_predictive_draw()` provides a patient-level reference for regression tests.
 
 For deterministic binary analyses, repeated current or maximum-sample count states within one interim look are analyzed once and the result is reused. The state identity contains the control and treatment event counts and sample sizes together with every fixed analysis setting. Its lifetime is limited to that look. Bayesian binary analysis with `bin_method = "mc"` does not reuse results: every predictive completion receives fresh beta-posterior draws in the established current-then-maximum order. The count path therefore changes only the computational representation, not the completed-data model or Monte Carlo procedure. `evaluate_interim()` reports the number of requested, distinct, repeated, and reused count states in `diagnostics$binary_count_reuse`.
 
@@ -165,14 +169,14 @@ digraph bayes_survival {
     color = '#d6b656'
     style = 'rounded,dashed'
     trusted_callers [label = 'test_stop_success() / test_final()', fillcolor = '#f5f5f5', color = '#999999']
-    trusted_stats [label = 'posterior_sufficient_stats()', fillcolor = '#f5f5f5', color = '#999999']
+    trusted_stats [label = 'posterior_sufficient_stats_kernel()\nor checked data-frame wrapper', fillcolor = '#f5f5f5', color = '#999999']
     analyse_kernel [label = 'analyse_bayes_surv_sufficient_stats_kernel()', fillcolor = '#fff2cc', color = '#d6b656']
     posterior_kernel [label = 'posterior_from_sufficient_stats_kernel()', fillcolor = '#fff2cc', color = '#d6b656']
     trusted_gamma [label = 'draw_gamma_posterior_kernel()', fillcolor = '#f5f5f5', color = '#999999']
     effect_kernel [label = 'bayes_surv_effect_draws_kernel()', fillcolor = '#fff2cc', color = '#d6b656']
     interval_widths [label = 'endpoint_interval_widths()', fillcolor = '#fff2cc', color = '#d6b656']
 
-    trusted_callers -> trusted_stats [label = 'canonical completed data']
+    trusted_callers -> trusted_stats [label = 'completed outcome vectors / data']
     trusted_stats -> analyse_kernel
     analyse_kernel -> posterior_kernel
     posterior_kernel -> trusted_gamma
@@ -188,7 +192,7 @@ digraph bayes_survival {
 
 The checked route accepts the package's supported prior specifications and defensively verifies sufficient-statistic columns, arm-interval combinations, counts, and empty intervals while normalizing arbitrary valid row order. It remains the route used by ordinary `analyse_data()` calls, including observed-data Bayesian-survival final analyses. `haz_to_prop()` returns treatment, control, and effect draws and uses the exported `ppwe()` calculation for piecewise hazards.
 
-The trusted route is used only after `goldilocks` has produced canonical arm-by-interval sufficient statistics and normalized the Gamma priors. It retains inexpensive invariant checks, draws from exactly the same Gamma posterior, and consumes random numbers in exactly the same order as the checked route. It then calculates only the treatment-effect draws needed by the decision rule, avoiding repeated cutpoint validation and temporary probability data frames.
+The trusted route is used only after `goldilocks` has produced validated completed outcomes and normalized the Gamma priors. At interim looks, `posterior_sufficient_stats_kernel()` calculates arm-by-interval events and exposure directly from the completed outcome vectors. Imputed final analyses use the checked data-frame wrapper to produce the same sufficient-statistic layout. Both then retain inexpensive invariant checks, draw from exactly the same Gamma posterior, and consume random numbers in exactly the same order as the general route. The calculation returns only the treatment-effect draws needed by the decision rule, avoiding repeated validation and temporary probability data frames.
 
 For analysis cutpoints $0 < c_1 < \cdots < c_{J-1} < \tau$, where $\tau$ is `end_of_study`, `endpoint_interval_widths()` returns
 

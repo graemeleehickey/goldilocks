@@ -79,13 +79,27 @@ materialized_binary_reference <- function(
   uncertain_now <- 0L
   uncertain_max <- 0L
   for (draw in seq_len(imputations$n_draws)) {
-    result <- goldilocks:::test_stop_success(
-      data = data,
+    current <- goldilocks:::materialize_predictive_draw(
+      data_in = data,
+      imputations = imputations,
+      draw = draw
+    )
+    current <- current[
+      current$subject_enrolled,
+      c("time", "event", "treatment"),
+      drop = FALSE
+    ]
+    maximum <- goldilocks:::materialize_predictive_draw(
+      data_in = data,
       imputations = imputations,
       draw = draw,
+      include_future = TRUE
+    )
+    maximum <- maximum[, c("time", "event", "treatment"), drop = FALSE]
+    success_now <- goldilocks:::analyse_data(
+      data = current,
       end_of_study = 12,
       cutpoints = NULL,
-      interval_widths = NULL,
       single_arm = FALSE,
       prior_surv = c(0.1, 0.1),
       N_mcmc = N_mcmc,
@@ -94,19 +108,40 @@ materialized_binary_reference <- function(
       h0 = 0,
       prior_bin = c(1, 1),
       bin_method = bin_method,
-      empty_interval = "prior",
-      check_futility = TRUE,
+      empty_interval = "prior"
+    )
+    success_max <- goldilocks:::analyse_data(
+      data = maximum,
+      end_of_study = 12,
+      cutpoints = NULL,
+      single_arm = FALSE,
+      prior_surv = c(0.1, 0.1),
+      N_mcmc = N_mcmc,
+      method = method,
+      alternative = "greater",
+      h0 = 0,
+      prior_bin = c(1, 1),
+      bin_method = bin_method,
+      empty_interval = "prior"
+    )
+    classification_now <- goldilocks:::classify_completed_analysis(
+      success_now,
+      prob_ha = prob_ha,
+      mc_conf_level = 0.95
+    )
+    classification_max <- goldilocks:::classify_completed_analysis(
+      success_max,
       prob_ha = prob_ha,
       mc_conf_level = 0.95
     )
     current_successes <- current_successes +
-      as.integer(result$classification_now$crossed)
+      as.integer(classification_now$crossed)
     maximum_successes <- maximum_successes +
-      as.integer(result$classification_max$crossed)
+      as.integer(classification_max$crossed)
     uncertain_now <- uncertain_now +
-      as.integer(result$classification_now$uncertain)
+      as.integer(classification_now$uncertain)
     uncertain_max <- uncertain_max +
-      as.integer(result$classification_max$uncertain)
+      as.integer(classification_max$uncertain)
   }
   list(
     current_successes = current_successes,

@@ -31,6 +31,15 @@ need imputation. Both expressions reset to the same seed and use the documented
 draw, cohort, and arm order, so their generated outcomes can also be checked
 directly in unit tests.
 
+The survival completed-data pairs compare the retained materialized reference
+with the vector route used at interim looks. The reference copies the complete
+interim data frame for each current and maximum-sample analysis. The vector
+route prepares row positions once, copies only the follow-up and event vectors,
+and reuses treatment assignments. Separate pairs cover log-rank, Cox, and
+Bayesian piecewise-exponential analyses. The script checks identical results
+before timing them; for the Bayesian pair it also resets the seed so both paths
+receive the same Gamma posterior draws.
+
 The binary completed-data pair starts from one common predictive-imputation
 batch. The materialized reference constructs a patient-level completed data
 frame for every current and maximum-sample analysis. The count path instead

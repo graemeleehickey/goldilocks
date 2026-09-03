@@ -51,16 +51,29 @@ impute_predictive_draws_internal <- getFromNamespace(
   "impute_predictive_draws",
   "goldilocks"
 )
+materialize_predictive_draw_internal <- getFromNamespace(
+  "materialize_predictive_draw",
+  "goldilocks"
+)
+analyse_data_internal <- getFromNamespace("analyse_data", "goldilocks")
+analyse_bayes_surv_sufficient_stats_kernel_internal <- getFromNamespace(
+  "analyse_bayes_surv_sufficient_stats_kernel",
+  "goldilocks"
+)
+prepare_predictive_survival_state_internal <- getFromNamespace(
+  "prepare_predictive_survival_state",
+  "goldilocks"
+)
+test_stop_success_internal <- getFromNamespace(
+  "test_stop_success",
+  "goldilocks"
+)
 predictive_binary_count_states_internal <- getFromNamespace(
   "predictive_binary_count_states",
   "goldilocks"
 )
 analyse_predictive_binary_counts_internal <- getFromNamespace(
   "analyse_predictive_binary_counts",
-  "goldilocks"
-)
-test_stop_success_internal <- getFromNamespace(
-  "test_stop_success",
   "goldilocks"
 )
 cumulative_hazard_to_probability_internal <- getFromNamespace(
@@ -211,17 +224,178 @@ binary_count_states <- predictive_binary_count_states_internal(
   check_futility = TRUE
 )
 
-materialized_binary_analyses <- function() {
-  current_successes <- 0L
-  maximum_successes <- 0L
+survival_analysis_state <- prepare_predictive_survival_state_internal(
+  data_in = imputation_data,
+  imputations = binary_predictive_imputations,
+  check_futility = TRUE
+)
+
+materialized_survival_analyses <- function(method, N_mcmc) {
+  output <- numeric(binary_predictive_imputations$n_draws)
+  for (draw in seq_len(binary_predictive_imputations$n_draws)) {
+    current <- materialize_predictive_draw_internal(
+      data_in = imputation_data,
+      imputations = binary_predictive_imputations,
+      draw = draw
+    )
+    maximum <- materialize_predictive_draw_internal(
+      data_in = current,
+      imputations = binary_predictive_imputations,
+      draw = draw,
+      include_future = TRUE
+    )
+
+    if (method == "bayes-surv") {
+      current_stats <- posterior_sufficient_stats_internal(
+        data = current,
+        cutpoints = cutpoints_piecewise,
+        single_arm = FALSE,
+        rows = current$subject_enrolled
+      )
+      maximum_stats <- posterior_sufficient_stats_internal(
+        data = maximum,
+        cutpoints = cutpoints_piecewise,
+        single_arm = FALSE
+      )
+      current_result <- analyse_bayes_surv_sufficient_stats_kernel_internal(
+        data_summ = current_stats,
+        cutpoints = cutpoints_piecewise,
+        end_of_study = end_of_study,
+        prior_surv = posterior_prior,
+        N_mcmc = N_mcmc,
+        single_arm = FALSE,
+        alternative = "less",
+        h0 = 0,
+        empty_interval = "prior",
+        interval_widths = analysis_interval_widths
+      )
+      maximum_result <- analyse_bayes_surv_sufficient_stats_kernel_internal(
+        data_summ = maximum_stats,
+        cutpoints = cutpoints_piecewise,
+        end_of_study = end_of_study,
+        prior_surv = posterior_prior,
+        N_mcmc = N_mcmc,
+        single_arm = FALSE,
+        alternative = "less",
+        h0 = 0,
+        empty_interval = "prior",
+        interval_widths = analysis_interval_widths
+      )
+    } else {
+      current_data <- current[
+        current$subject_enrolled,
+        c("time", "event", "treatment"),
+        drop = FALSE
+      ]
+      maximum_data <- maximum[,
+        c("time", "event", "treatment"),
+        drop = FALSE
+      ]
+      current_result <- analyse_data_internal(
+        data = current_data,
+        cutpoints = cutpoints_piecewise,
+        end_of_study = end_of_study,
+        prior_surv = c(0.1, 0.1),
+        N_mcmc = N_mcmc,
+        single_arm = FALSE,
+        method = method,
+        alternative = "less",
+        h0 = 0
+      )
+      maximum_result <- analyse_data_internal(
+        data = maximum_data,
+        cutpoints = cutpoints_piecewise,
+        end_of_study = end_of_study,
+        prior_surv = c(0.1, 0.1),
+        N_mcmc = N_mcmc,
+        single_arm = FALSE,
+        method = method,
+        alternative = "less",
+        h0 = 0
+      )
+    }
+
+    output[draw] <- current_result$success + maximum_result$success
+  }
+  output
+}
+
+vector_survival_analyses <- function(method, N_mcmc) {
+  output <- numeric(binary_predictive_imputations$n_draws)
   for (draw in seq_len(binary_predictive_imputations$n_draws)) {
     result <- test_stop_success_internal(
-      data = imputation_data,
+      analysis_state = survival_analysis_state,
       imputations = binary_predictive_imputations,
       draw = draw,
       end_of_study = end_of_study,
       cutpoints = cutpoints_piecewise,
-      interval_widths = NULL,
+      interval_widths = if (method == "bayes-surv") {
+        analysis_interval_widths
+      } else {
+        NULL
+      },
+      single_arm = FALSE,
+      prior_surv = posterior_prior,
+      N_mcmc = N_mcmc,
+      method = method,
+      alternative = "less",
+      h0 = 0,
+      empty_interval = "prior",
+      check_futility = TRUE,
+      prob_ha = 0.95,
+      mc_conf_level = 0.95
+    )
+    output[draw] <- result$success_now$success + result$success_max$success
+  }
+  output
+}
+
+for (method in c("logrank", "cox")) {
+  if (
+    !identical(
+      materialized_survival_analyses(method, 1L),
+      vector_survival_analyses(method, 1L)
+    )
+  ) {
+    stop(method, " vector benchmark does not match its materialized reference.")
+  }
+}
+set.seed(1009)
+materialized_bayes_reference <- materialized_survival_analyses(
+  "bayes-surv",
+  300L
+)
+set.seed(1009)
+vector_bayes_reference <- vector_survival_analyses("bayes-surv", 300L)
+if (!identical(materialized_bayes_reference, vector_bayes_reference)) {
+  stop("Bayesian vector benchmark does not match its materialized reference.")
+}
+
+materialized_binary_analyses <- function() {
+  current_successes <- 0L
+  maximum_successes <- 0L
+  for (draw in seq_len(binary_predictive_imputations$n_draws)) {
+    current <- materialize_predictive_draw_internal(
+      data_in = imputation_data,
+      imputations = binary_predictive_imputations,
+      draw = draw
+    )
+    current <- current[
+      current$subject_enrolled,
+      c("time", "event", "treatment"),
+      drop = FALSE
+    ]
+    maximum <- materialize_predictive_draw_internal(
+      data_in = imputation_data,
+      imputations = binary_predictive_imputations,
+      draw = draw,
+      include_future = TRUE
+    )
+    maximum <- maximum[, c("time", "event", "treatment"), drop = FALSE]
+    current_result <- analyse_data_internal(
+      data = current,
+      end_of_study = end_of_study,
+      cutpoints = cutpoints_piecewise,
       single_arm = FALSE,
       prior_surv = c(0.1, 0.1),
       N_mcmc = 1L,
@@ -230,15 +404,26 @@ materialized_binary_analyses <- function() {
       h0 = 0,
       prior_bin = c(1, 1),
       bin_method = "quadrature",
-      empty_interval = "prior",
-      check_futility = TRUE,
-      prob_ha = 0.95,
-      mc_conf_level = 0.95
+      empty_interval = "prior"
+    )
+    maximum_result <- analyse_data_internal(
+      data = maximum,
+      end_of_study = end_of_study,
+      cutpoints = cutpoints_piecewise,
+      single_arm = FALSE,
+      prior_surv = c(0.1, 0.1),
+      N_mcmc = 1L,
+      method = "bayes-bin",
+      alternative = "less",
+      h0 = 0,
+      prior_bin = c(1, 1),
+      bin_method = "quadrature",
+      empty_interval = "prior"
     )
     current_successes <- current_successes +
-      as.integer(result$classification_now$crossed)
+      as.integer(current_result$success > 0.95)
     maximum_successes <- maximum_successes +
-      as.integer(result$classification_max$crossed)
+      as.integer(maximum_result$success > 0.95)
   }
   c(current = current_successes, maximum = maximum_successes)
 }
@@ -414,6 +599,26 @@ benchmark_results <- bench::mark(
       check_futility = TRUE
     )
   },
+  survival_completed_data_materialized_logrank = {
+    materialized_survival_analyses("logrank", 1L)
+  },
+  survival_completed_data_vectors_logrank = {
+    vector_survival_analyses("logrank", 1L)
+  },
+  survival_completed_data_materialized_cox = {
+    materialized_survival_analyses("cox", 1L)
+  },
+  survival_completed_data_vectors_cox = {
+    vector_survival_analyses("cox", 1L)
+  },
+  survival_completed_data_materialized_bayes = {
+    set.seed(1010)
+    materialized_survival_analyses("bayes-surv", 300L)
+  },
+  survival_completed_data_vectors_bayes = {
+    set.seed(1010)
+    vector_survival_analyses("bayes-surv", 300L)
+  },
   binary_completed_data_materialized = {
     materialized_binary_analyses()
   },
@@ -443,6 +648,32 @@ benchmark_results <- bench::mark(
       N_impute = 100,
       N_mcmc = 100,
       method = "logrank",
+      imputed_final = FALSE
+    )
+  },
+  survival_adapt_cox = {
+    set.seed(1009)
+    survival_adapt(
+      hazard_treatment = trial_hazard_treatment,
+      hazard_control = trial_hazard_control,
+      cutpoints = trial_cutpoints,
+      N_total = 500,
+      lambda = 20,
+      lambda_time = NULL,
+      interim_look = c(250, 375),
+      end_of_study = end_of_study,
+      prior_surv = c(0.1, 0.1),
+      block = 2,
+      rand_ratio = c(1, 1),
+      prop_loss = 0.2,
+      alternative = "less",
+      h0 = 0,
+      Fn = 0.05,
+      Sn = 0.9,
+      prob_ha = 0.95,
+      N_impute = 100,
+      N_mcmc = 1,
+      method = "cox",
       imputed_final = FALSE
     )
   },

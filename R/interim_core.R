@@ -169,10 +169,15 @@ evaluate_interim_core <- function(
     inner_mc_uncertain_max <- binary_result$inner_mc_uncertain_max
     binary_count_reuse <- binary_result$reuse
   } else {
+    analysis_state <- prepare_predictive_survival_state(
+      data_in = data_interim,
+      imputations = imputations,
+      check_futility = check_futility
+    )
     for (j in seq_len(N_impute)) {
       stop_check <- withCallingHandlers(
         test_stop_success(
-          data = data_interim,
+          analysis_state = analysis_state,
           imputations = imputations,
           draw = j,
           end_of_study = end_of_study,
@@ -184,8 +189,6 @@ evaluate_interim_core <- function(
           method = method,
           alternative = alternative,
           h0 = h0,
-          prior_bin = prior_bin,
-          bin_method = bin_method,
           empty_interval = empty_interval,
           check_futility = check_futility,
           mc_conf_level = mc_conf_level,
