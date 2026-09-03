@@ -358,13 +358,15 @@ This density is the mathematical target, not an object that the package
 evaluates in closed form. In the shared interim implementation,
 `posterior_from_sufficient_stats()` draws \boldsymbol{\lambda} and
 `impute_predictive_draws()` draws all completed outcomes conditional on
-those hazards. Survival, log-rank, and Cox methods then analyze each
-materialized completed dataset. For `method = "riskdiff"` and
-`method = "bayes-bin"`, the package instead carries forward the
-completed event and subject counts by arm because these are sufficient
-for the fixed-horizon binary analysis. Both routes apply the same
-completed-data analysis and average the same replicate-level success
-indicators.
+those hazards. For survival, log-rank, and Cox methods, each replicate
+is represented by completed follow-up, event, and treatment vectors. The
+treatment assignments are fixed across replicates; only follow-up and
+event values requiring imputation are replaced. For
+`method = "riskdiff"` and `method = "bayes-bin"`, the package instead
+carries forward the completed event and subject counts by arm because
+these are sufficient for the fixed-horizon binary analysis. Both
+representations apply the same completed-data analysis and average the
+same replicate-level success indicators.
 
 ## 6. Interim decision algorithm
 

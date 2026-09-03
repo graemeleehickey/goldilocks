@@ -410,13 +410,16 @@ predictive density is</p>
 package evaluates in closed form. In the shared interim implementation,
 <code>posterior_from_sufficient_stats()</code> draws <span class="math inline">\boldsymbol{\lambda}</span> and
 <code>impute_predictive_draws()</code> draws all completed outcomes
-conditional on those hazards. Survival, log-rank, and Cox methods then
-analyze each materialized completed dataset. For
-<code>method = "riskdiff"</code> and <code>method = "bayes-bin"</code>,
-the package instead carries forward the completed event and subject
-counts by arm because these are sufficient for the fixed-horizon binary
-analysis. Both routes apply the same completed-data analysis and average
-the same replicate-level success indicators.</p>
+conditional on those hazards. For survival, log-rank, and Cox methods,
+each replicate is represented by completed follow-up, event, and
+treatment vectors. The treatment assignments are fixed across
+replicates; only follow-up and event values requiring imputation are
+replaced. For <code>method = "riskdiff"</code> and
+<code>method = "bayes-bin"</code>, the package instead carries forward
+the completed event and subject counts by arm because these are
+sufficient for the fixed-horizon binary analysis. Both representations
+apply the same completed-data analysis and average the same
+replicate-level success indicators.</p>
 </div>
 <div class="section level2">
 <h2 id="interim-decision-algorithm">6. Interim decision algorithm<a class="anchor" aria-label="anchor" href="#interim-decision-algorithm"></a>

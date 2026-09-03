@@ -58,14 +58,19 @@ passes the complete array to `impute_predictive_draws()`. That internal
 batch calculation generates subject-by-draw time and event matrices for
 currently pending follow-up and, when futility is enabled, future
 subjects through the maximum sample size. It stores only rows requiring
-imputation. Survival, log-rank, and Cox analyses materialize and analyze
-one matrix column at a time. Fixed-horizon binary analyses instead
-combine each column with the observed event counts and pass the
+imputation. For survival, log-rank, and Cox analyses, the observed
+outcome vectors and imputation positions are prepared once per look.
+Each matrix column is then inserted into copies of the follow-up and
+event vectors; fixed treatment assignments are reused. The completed
+vectors enter the same log-rank, Cox, or Bayesian-survival calculation
+used for an ordinary completed dataset. Fixed-horizon binary analyses
+instead combine each column with the observed event counts and pass the
 resulting arm-level event and subject totals directly to the same
-risk-difference or beta-binomial kernels used by the checked
+risk-difference or beta-binomial calculations used by the checked
 patient-level analysis. The scalar `impute_data()` helper remains in
 active use for final-analysis imputation and as the reference
-implementation.
+implementation, while `materialize_predictive_draw()` provides a
+patient-level reference for regression tests.
 
 For deterministic binary analyses, repeated current or maximum-sample
 count states within one interim look are analyzed once and the result is
@@ -110,13 +115,16 @@ the exported
 [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
 calculation for piecewise hazards.
 
-The trusted route is used only after `goldilocks` has produced canonical
-arm-by-interval sufficient statistics and normalized the Gamma priors.
-It retains inexpensive invariant checks, draws from exactly the same
-Gamma posterior, and consumes random numbers in exactly the same order
-as the checked route. It then calculates only the treatment-effect draws
-needed by the decision rule, avoiding repeated cutpoint validation and
-temporary probability data frames.
+The trusted route is used only after `goldilocks` has produced validated
+completed outcomes and normalized the Gamma priors. At interim looks,
+`posterior_sufficient_stats_kernel()` calculates arm-by-interval events
+and exposure directly from the completed outcome vectors. Imputed final
+analyses use the checked data-frame wrapper to produce the same
+sufficient-statistic layout. Both then retain inexpensive invariant
+checks, draw from exactly the same Gamma posterior, and consume random
+numbers in exactly the same order as the general route. The calculation
+returns only the treatment-effect draws needed by the decision rule,
+avoiding repeated validation and temporary probability data frames.
 
 For analysis cutpoints 0 \< c_1 \< \cdots \< c\_{J-1} \< \tau, where
 \tau is `end_of_study`, `endpoint_interval_widths()` returns

@@ -14,6 +14,15 @@
   stopping rules are unchanged. Interim results report how often
   identical completed-data summaries occurred and were reused
   ([\#91](https://github.com/graemeleehickey/goldilocks/issues/91)).
+- Interim log-rank, Cox, and Bayesian survival predictions now prepare
+  the observed follow-up, event indicators, treatment assignments, and
+  imputation positions once per look. Each predictive replicate replaces
+  only the follow-up and event values that were imputed, while fixed
+  treatment assignments are reused. The completed-data analyses,
+  predictive probabilities, stopping rules, and random-number sequence
+  are unchanged. This reduces the time and memory required for repeated
+  interim analyses without changing the statistical procedure
+  ([\#39](https://github.com/graemeleehickey/goldilocks/issues/39)).
 - Additional statistical validation now covers piecewise-exponential
   event and conditional-imputation distributions, conjugate Gamma
   posterior moments, frequentist type I error and confidence-interval
