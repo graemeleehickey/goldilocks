@@ -446,12 +446,12 @@ single-arm design, where x_z and n_z are the event and subject counts in
 arm z. There is no loss of statistical information for the
 risk-difference or beta-binomial analysis because neither uses the
 individual event times after endpoint status is complete. Deterministic
-repeated count states within one interim look are evaluated once and
-reused. For `bin_method = "mc"`, repeated states are not reused: each
+repeated count summaries within one interim look are evaluated once and
+reused. For `bin_method = "mc"`, repeated summaries are not reused: each
 predictive replicate receives an independent set of `N_mcmc`
-beta-posterior draws. Thus, count-state reuse does not reduce the outer
-number of predictive imputations and does not alter either layer of
-Monte Carlo uncertainty.
+beta-posterior draws. Thus, count-summary reuse does not reduce the
+outer number of predictive imputations and does not alter either layer
+of Monte Carlo uncertainty.
 
 If
 
@@ -631,13 +631,11 @@ In the implementation, fixed analysis-interval widths span from time
 zero through `end_of_study`; they do not shorten to the maximum
 follow-up observed at an interim or final data cut. Observed events and
 person-time determine the Gamma posterior for each interval separately.
-General analyses transform posterior hazards through the checked
-`haz_to_prop()` and
-[`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
-path, while repeated predictive and imputed-final Bayesian-survival
-analyses use an equivalent internal matrix calculation with the
-precomputed widths. Both paths target the same H_a(\tau) and preserve
-the same posterior draws.
+General analyses transform posterior hazards through `haz_to_prop()` and
+[`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md),
+while repeated predictive and imputed-final Bayesian-survival analyses
+use an equivalent prepared calculation with the precomputed widths. Both
+routes target the same H_a(\tau) and preserve the same posterior draws.
 
 The Monte Carlo estimate of the posterior probability for
 `alternative = "less"` is
@@ -714,7 +712,7 @@ ascertainment and then reduce the data to these counts. Interim
 prediction obtains the same counts from the predictive event matrices
 without constructing a separate patient-level data frame for every
 replicate. Normal, quadrature, and risk-difference results are
-deterministic conditional on the counts, so an identical count state
+deterministic conditional on the counts, so an identical count summary
 within the same look can reuse its result. Monte Carlo beta-binomial
 results are always recalculated to preserve fresh posterior draws and
 their random-number order.

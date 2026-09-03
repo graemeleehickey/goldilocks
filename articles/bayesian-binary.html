@@ -242,12 +242,13 @@ each arm. Interim prediction therefore derives those counts directly
 from the imputed event matrices rather than rebuilding a patient-level
 data frame for every predictive replicate. With
 <code>bin_method = "normal"</code> or <code>"quadrature"</code>, an
-identical count state within the same interim look has an identical
+identical count summary within the same interim look has an identical
 result and is evaluated once. With <code>bin_method = "mc"</code>, every
 replicate is still analyzed with fresh <code>N_mcmc</code>
-beta-posterior draws; repeated states are not reused. This computational
-shortcut does not change the imputation model, beta-binomial posterior,
-predictive sample size, or stopping thresholds.</p>
+beta-posterior draws; repeated summaries are not reused. This
+computational shortcut does not change the imputation model,
+beta-binomial posterior, predictive sample size, or stopping
+thresholds.</p>
 </div>
 <div class="section level2">
 <h2 id="single-arm-design">Single-arm design<a class="anchor" aria-label="anchor" href="#single-arm-design"></a>

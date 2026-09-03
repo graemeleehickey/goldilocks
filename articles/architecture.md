@@ -13,16 +13,16 @@ The `goldilocks` package has three ways into the adaptive calculation:
     applies the same interim decision calculation to an externally
     observed data cut.
 
-All three routes ultimately use the same interim decision engine. This
-vignette separates the package-level flow from the more detailed
+All three routes ultimately use the same interim decision calculation.
+This vignette separates the package-level flow from the more detailed
 Bayesian-survival calculation so that the performance paths do not
 obscure the statistical model.
 
 In the diagrams, **blue** nodes are exported functions, **grey** nodes
-are internal orchestration or checked analysis functions, and **gold**
-nodes are trusted internal kernels. A trusted kernel receives canonical
-objects that have already been validated and normalized by `goldilocks`;
-it does not define a different statistical analysis.
+are general internal calculations, and **gold** nodes are repeated
+calculations that receive data already prepared and validated by
+`goldilocks`. The gold and grey routes implement the same statistical
+analysis.
 
 ## Trial simulation and interim evaluation
 
@@ -45,46 +45,45 @@ analysis.
 
 At every simulated look,
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-prepares the observed data cut and calls `evaluate_interim_core()`.
+prepares the observed data cut and calls `evaluate_interim_decision()`.
 [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
 instead validates an external data cut, derives potential future
-allocation from `N_total` and `rand_ratio`, and then calls the same core
-function. Consequently, simulated and external interim decisions share
-posterior prediction, imputation, completed-data analysis, threshold
-comparisons, diagnostics, and trace construction.
+allocation from `N_total` and `rand_ratio`, and then calls the same
+decision function. Consequently, simulated and external interim
+decisions share posterior prediction, imputation, completed-data
+analysis, threshold comparisons, diagnostics, and trace construction.
 
-The core draws `N_impute` hazards from the observed-data posterior and
-passes the complete array to `impute_predictive_draws()`. That internal
-batch calculation generates subject-by-draw time and event matrices for
+The interim calculation draws `N_impute` hazards from the observed-data
+posterior and passes the complete array to `impute_predictive_draws()`.
+That function generates subject-by-draw time and event matrices for
 currently pending follow-up and, when futility is enabled, future
 subjects through the maximum sample size. It stores only rows requiring
 imputation. For survival, log-rank, and Cox analyses, the observed
-outcome vectors and imputation positions are prepared once per look.
-Each matrix column is then inserted into copies of the follow-up and
-event vectors; fixed treatment assignments are reused. The completed
-vectors enter the same log-rank, Cox, or Bayesian-survival calculation
-used for an ordinary completed dataset. Fixed-horizon binary analyses
-instead combine each column with the observed event counts and pass the
+outcomes and imputation positions are prepared once per look. Each
+matrix column is then inserted into copies of the follow-up and event
+values; fixed treatment assignments are reused. The completed outcomes
+enter the same log-rank, Cox, or Bayesian-survival calculation used for
+an ordinary completed dataset. Fixed-horizon binary analyses instead
+combine each column with the observed event counts and pass the
 resulting arm-level event and subject totals directly to the same
-risk-difference or beta-binomial calculations used by the checked
+risk-difference or beta-binomial calculations used by the general
 patient-level analysis. The scalar `impute_data()` helper remains in
 active use for final-analysis imputation and as the reference
-implementation, while `materialize_predictive_draw()` provides a
+implementation, while `complete_predictive_data()` provides a
 patient-level reference for regression tests.
 
 For deterministic binary analyses, repeated current or maximum-sample
-count states within one interim look are analyzed once and the result is
-reused. The state identity contains the control and treatment event
-counts and sample sizes together with every fixed analysis setting. Its
-lifetime is limited to that look. Bayesian binary analysis with
-`bin_method = "mc"` does not reuse results: every predictive completion
-receives fresh beta-posterior draws in the established
-current-then-maximum order. The count path therefore changes only the
-computational representation, not the completed-data model or Monte
+count summaries within one interim look are analyzed once and the result
+is reused. Two summaries match when their control and treatment event
+counts, sample sizes, and fixed analysis settings all match. Bayesian
+binary analysis with `bin_method = "mc"` does not reuse results: every
+predictive completion receives fresh beta-posterior draws in the
+established current-then-maximum order. The count-based route therefore
+changes only the representation, not the completed-data model or Monte
 Carlo procedure.
 [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
 reports the number of requested, distinct, repeated, and reused count
-states in `diagnostics$binary_count_reuse`.
+summaries in `diagnostics$binary_count_reuse`.
 
 Within an interim batch, random inputs are generated in posterior-draw
 order; for each draw the order is current treatment, current control,
@@ -99,32 +98,32 @@ the predictive probabilities used for expected-success and futility
 decisions. Exact Monte Carlo bounds are retained as diagnostics;
 decisions use the point estimates.
 
-## Bayesian-survival checked and trusted paths
+## General and prepared Bayesian-survival routes
 
 Bayesian-survival analysis uses the same Gamma piecewise-exponential
-model on both paths below. The difference is where validation occurs and
-which intermediate objects are materialized.
+model on both routes below. The difference is where validation occurs
+and which intermediate results are constructed.
 
-The checked route accepts the package’s supported prior specifications
-and defensively verifies sufficient-statistic columns, arm-interval
-combinations, counts, and empty intervals while normalizing arbitrary
-valid row order. It remains the route used by ordinary `analyse_data()`
-calls, including observed-data Bayesian-survival final analyses.
-`haz_to_prop()` returns treatment, control, and effect draws and uses
-the exported
+The general route accepts the package’s supported prior specifications
+and verifies sufficient-statistic columns, arm-interval combinations,
+counts, and empty intervals while normalizing arbitrary valid row order.
+It remains the route used by ordinary `analyse_data()` calls, including
+observed-data Bayesian-survival final analyses. `haz_to_prop()` returns
+treatment, control, and effect draws and uses the exported
 [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
 calculation for piecewise hazards.
 
-The trusted route is used only after `goldilocks` has produced validated
-completed outcomes and normalized the Gamma priors. At interim looks,
-`posterior_sufficient_stats_kernel()` calculates arm-by-interval events
-and exposure directly from the completed outcome vectors. Imputed final
-analyses use the checked data-frame wrapper to produce the same
-sufficient-statistic layout. Both then retain inexpensive invariant
+The prepared route is used only after `goldilocks` has produced
+validated completed outcomes and normalized the Gamma priors. At interim
+looks, `summarise_survival_outcomes()` calculates arm-by-interval events
+and exposure directly from the completed outcomes. Imputed final
+analyses use the general data-frame function to produce the same
+sufficient-statistic layout. Both then retain inexpensive consistency
 checks, draw from exactly the same Gamma posterior, and consume random
-numbers in exactly the same order as the general route. The calculation
-returns only the treatment-effect draws needed by the decision rule,
-avoiding repeated validation and temporary probability data frames.
+numbers in exactly the same order as the general route. The prepared
+calculation returns only the treatment-effect draws needed by the
+decision rule, avoiding repeated validation and temporary probability
+data frames.
 
 For analysis cutpoints 0 \< c_1 \< \cdots \< c\_{J-1} \< \tau, where
 \tau is `end_of_study`, `endpoint_interval_widths()` returns
@@ -149,15 +148,16 @@ calculation.
 
 ## Completed-data analysis methods
 
-`analyse_data()` dispatches a completed dataset according to `method`.
-Interim prediction tests each completed dataset independently before
+`analyse_data()` applies the selected `method` to a completed dataset.
+Interim prediction analyzes each completed dataset independently before
 averaging its binary success indicators. For fixed-horizon binary
-methods, event counts are sufficient for that test: the patient-level
-and optimized predictive routes delegate to common count kernels.
+methods, event counts are sufficient for that analysis: the
+patient-level and count-based predictive routes use the same count
+calculations.
 
 | `method` | Completed-data analysis | `imputed_final = TRUE` | `imputed_final = FALSE` |
 |:---|:---|:---|:---|
-| `bayes-surv` | Gamma piecewise-exponential posterior; effect is the treatment-minus-control event probability, or the treatment probability in a single-arm design | Analyze each completed imputation through the trusted sufficient-statistics and effect kernels, then average posterior summaries | Analyze observed right-censored data through the checked path |
+| `bayes-surv` | Gamma piecewise-exponential posterior; effect is the treatment-minus-control event probability, or the treatment probability in a single-arm design | Analyze each completed imputation through the prepared sufficient-statistics and effect calculations, then average posterior summaries | Analyze observed right-censored data through the general route |
 | `bayes-bin` | Beta-binomial posterior for completed binary endpoint status | Analyze each completed imputation and average posterior summaries | Exclude subjects lost before complete endpoint ascertainment |
 | `cox` | Cox Wald test for the log hazard ratio | Pool estimates and within-imputation variances using Rubin’s rules | Analyze observed right-censored data |
 | `riskdiff` | Wald test for the treatment-minus-control event-risk difference | Pool estimates and within-imputation variances using Rubin’s rules | Exclude subjects lost before complete endpoint ascertainment |
@@ -203,8 +203,8 @@ downstream displays:
 - [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
   returns the decision, predictive probabilities, Monte Carlo
   diagnostics, allocation and data-cut diagnostics, posterior
-  diagnostics, binary count-state reuse diagnostics when applicable, and
-  a compatible one-look trace.
+  diagnostics, binary count-summary reuse diagnostics when applicable,
+  and a compatible one-look trace.
 
 Post-processing functions consume these retained results without
 rerunning the trial:
@@ -249,7 +249,7 @@ Several conventions link the layers above:
   predictive-imputation batch in draw/current/future/arm order, and then
   completed-data analyses; Bayesian binary Monte Carlo retains
   current-then-maximum order within each draw and does not reuse
-  repeated states; and
-- trusted kernels may bypass repeated rich-input validation only after
-  package-owned callers have constructed canonical inputs. General entry
-  points retain checked behavior.
+  repeated summaries; and
+- prepared repeated calculations may bypass rich-input validation only
+  after package-owned functions have constructed canonical inputs.
+  General entry points retain full validation.
