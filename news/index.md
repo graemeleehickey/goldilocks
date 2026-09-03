@@ -17,11 +17,11 @@
 - Additional statistical validation now covers piecewise-exponential
   event and conditional-imputation distributions, conjugate Gamma
   posterior moments, frequentist type I error and confidence-interval
-  coverage, and invariance to the choice of time unit. Longer reference
-  calculations also check predictive probabilities close to the futility
-  and expected-success thresholds. Acceptance limits reflect Monte Carlo
-  uncertainty and identify the estimand, target, estimate, and
-  uncertainty when a check fails.
+  coverage, and invariance to the choice of time unit. Longer non-CRAN
+  reference calculations also check predictive probabilities close to
+  the futility and expected-success thresholds. Acceptance limits
+  reflect Monte Carlo uncertainty and identify the estimand, target,
+  estimate, and uncertainty when a check fails.
 - Function documentation now states argument types, accepted lengths and
   ranges, defaults, and required inputs more consistently. Titles,
   descriptions, analysis-method explanations, and return values have
