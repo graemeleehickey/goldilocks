@@ -508,12 +508,27 @@ bayes_binomial_test <- function(
   )
 }
 
-#' Analyze a complete binary endpoint from arm-level counts
+#' Calculate a beta-binomial result from arm totals
 #'
-#' @description Applies the beta-binomial completed-data analysis to canonical
-#'   event and subject counts. Package-owned predictive calculations call this
-#'   kernel directly; the checked patient-level route above reduces its data to
-#'   the same counts before calling it.
+#' @description Updates the Beta prior using the number of events and subjects
+#'   in each arm, then calculates the posterior probability of the specified
+#'   hypothesis and the posterior mean treatment effect. These counts are the
+#'   sufficient statistics for the completed binary-endpoint analysis.
+#'
+#' @param events_control A non-negative integer giving the number of control-arm
+#'   events. Ignored in a single-arm analysis.
+#' @param n_control A non-negative integer giving the number of control-arm
+#'   subjects. Ignored in a single-arm analysis.
+#' @param events_treatment A non-negative integer giving the number of
+#'   treatment-arm events.
+#' @param n_treatment A positive integer giving the number of treatment-arm
+#'   subjects.
+#' @inheritParams analyse_data
+#'
+#' @return A list containing the posterior probability of the alternative
+#'   (`success`) and posterior mean event probability or treatment-control
+#'   difference (`effect`). Monte Carlo analyses also retain the number of
+#'   posterior draws satisfying the alternative.
 #'
 #' @keywords internal
 #' @noRd
@@ -691,7 +706,19 @@ risk_difference_estimate_checked <- function(data, end_of_study) {
   )
 }
 
-#' Estimate a binary risk difference from arm-level counts
+#' Estimate a binary risk difference from arm totals
+#'
+#' @param events_control A non-negative integer giving the number of control-arm
+#'   events.
+#' @param n_control A positive integer giving the number of control-arm
+#'   subjects.
+#' @param events_treatment A non-negative integer giving the number of
+#'   treatment-arm events.
+#' @param n_treatment A positive integer giving the number of treatment-arm
+#'   subjects.
+#'
+#' @return A list containing the treatment-minus-control event-risk difference
+#'   (`estimate`) and its unpooled binomial variance (`variance`).
 #'
 #' @keywords internal
 #' @noRd
@@ -740,7 +767,16 @@ risk_difference_wald_test_checked <- function(
   risk_difference_wald_from_estimate_kernel(fit, alternative, h0)
 }
 
-#' Test a binary risk difference from arm-level counts
+#' Test a binary risk difference from arm totals
+#'
+#' @inheritParams risk_difference_estimate_count_kernel
+#' @param alternative A character value giving the direction of the alternative
+#'   hypothesis: `"less"`, `"greater"`, or `"two.sided"`.
+#' @param h0 A finite numeric value giving the null treatment-minus-control
+#'   event-risk difference.
+#'
+#' @return A list containing the success score (`success`), estimated risk
+#'   difference (`estimate`), variance, and standard error.
 #'
 #' @keywords internal
 #' @noRd
@@ -761,7 +797,14 @@ risk_difference_wald_count_kernel <- function(
   risk_difference_wald_from_estimate_kernel(fit, alternative, h0)
 }
 
-#' Test a binary risk difference from an estimate and variance
+#' Test a binary risk difference from its estimate and variance
+#'
+#' @param fit A list containing a finite risk-difference estimate and a
+#'   non-negative variance.
+#' @inheritParams risk_difference_wald_count_kernel
+#'
+#' @return A list containing the success score (`success`), estimated risk
+#'   difference (`estimate`), variance, and standard error.
 #'
 #' @keywords internal
 #' @noRd

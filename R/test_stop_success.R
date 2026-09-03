@@ -193,20 +193,41 @@ test_stop_success <- function(
   ))
 }
 
-#' Evaluate binary predictive completions from arm-level counts
+#' Apply the binary success rule across predictive replicates
 #'
-#' @description Applies a binary completed-data analysis directly to the event
-#'   and subject counts for every predictive draw. Deterministic analyses reuse
-#'   results for repeated count states within this interim look. Bayesian Monte
-#'   Carlo analyses deliberately evaluate every state independently so that
-#'   each predictive completion receives fresh posterior draws.
+#' @description Applies the prespecified risk-difference or beta-binomial
+#'   analysis to the arm-specific event counts for every predictive replicate.
+#'   Identical sufficient statistics have identical results for deterministic
+#'   analyses and are therefore evaluated once within a look. A Monte Carlo
+#'   beta-binomial analysis uses fresh posterior draws for every replicate,
+#'   including replicates with identical event counts.
 #'
 #' @param count_states A list returned by
-#'   `predictive_binary_count_states()`.
-#' @inheritParams test_stop_success
+#'   `predictive_binary_count_states()`, containing arm-specific event counts
+#'   and sample sizes for the current and maximum-sample completions.
+#' @param single_arm A single logical value indicating a one-arm design.
+#' @param N_mcmc A positive integer giving the number of beta-posterior draws
+#'   for `method = "bayes-bin"` and `bin_method = "mc"`.
+#' @param method A character value specifying `"riskdiff"` or `"bayes-bin"`.
+#' @param alternative A character value giving the direction of the alternative
+#'   hypothesis.
+#' @param h0 A finite numeric value giving the null event-probability difference
+#'   or, in a single-arm analysis, the null event probability.
+#' @param prior_bin A length-two positive numeric vector giving the Beta prior
+#'   shape parameters for events and non-events.
+#' @param bin_method A character value specifying `"mc"`, `"normal"`, or
+#'   `"quadrature"` for a Bayesian binary analysis.
+#' @param check_futility A single logical value indicating whether to assess
+#'   success after continuing to the maximum sample size.
+#' @param prob_ha A numeric probability in `[0, 1]` defining success for a
+#'   completed replicate.
+#' @param mc_conf_level A numeric probability strictly between `0.5` and `1`
+#'   giving the level of diagnostic Monte Carlo bounds.
 #'
-#' @return A list containing success and uncertainty totals together with
-#'   count-state reuse diagnostics.
+#' @return A list containing the numbers of successful current and maximum-
+#'   sample predictive replicates, counts of classifications with material
+#'   inner Monte Carlo uncertainty, and a summary of repeated sufficient-
+#'   statistic combinations.
 #'
 #' @keywords internal
 #' @noRd
@@ -320,11 +341,19 @@ analyse_predictive_binary_counts <- function(
   )
 }
 
-#' Construct complete keys for binary count analyses
+#' Identify equivalent completed binary analyses
 #'
-#' @description Includes every count and fixed setting used by the cached
-#'   completed-data analysis. Classification thresholds are applied after
-#'   lookup and are not part of the cached result.
+#' @description Creates one identifier per predictive replicate from the arm-
+#'   specific sufficient statistics and all fixed analysis settings. Replicates
+#'   with the same identifier have the same deterministic completed-data
+#'   result. The success threshold is applied afterwards and is not part of
+#'   this result.
+#'
+#' @param states A data frame containing event counts and sample sizes for the
+#'   control and treatment arms.
+#' @inheritParams analyse_predictive_binary_counts
+#'
+#' @return A character vector with one analysis identifier per row of `states`.
 #'
 #' @keywords internal
 #' @noRd
@@ -361,7 +390,14 @@ binary_count_analysis_keys <- function(
   )
 }
 
-#' Analyze one canonical binary count state
+#' Analyze one completed binary endpoint from sufficient statistics
+#'
+#' @param state A one-row data frame containing the event counts and sample
+#'   sizes for the control and treatment arms.
+#' @inheritParams analyse_predictive_binary_counts
+#'
+#' @return A list containing the completed-data success score and estimated
+#'   treatment effect.
 #'
 #' @keywords internal
 #' @noRd

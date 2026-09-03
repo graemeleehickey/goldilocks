@@ -650,22 +650,26 @@ materialize_predictive_draw <- function(
   data_out
 }
 
-#' Reduce predictive binary imputations to arm-level count states
+#' Summarize completed binary outcomes for predictive replicates
 #'
-#' @description Combines fixed observed events with the event matrices for
-#'   pending and future subjects. Binary completed-data analyses depend only on
-#'   these event and subject counts, so they do not need one materialized data
-#'   frame per predictive draw.
+#' @description Combines observed events with the imputed endpoint statuses of
+#'   pending and future subjects. For each predictive replicate, it records the
+#'   number of events and subjects in each arm. These are the sufficient
+#'   statistics for the risk-difference and beta-binomial analyses.
 #'
-#' @param data_in A prepared interim data frame.
-#' @param imputations Predictive imputations from
-#'   `impute_predictive_draws()`.
+#' @param data_in A data frame containing the observed event indicators,
+#'   treatment assignments, enrollment status, and indicators of which current
+#'   or future outcomes require imputation.
+#' @param imputations A list of current-cohort and future-subject endpoint
+#'   imputations returned by `impute_predictive_draws()`.
 #' @param single_arm A single logical value indicating a one-arm design.
 #' @param check_futility A single logical value indicating whether maximum-
-#'   sample-size states are required.
+#'   sample-size completions are required for the futility calculation.
 #'
-#' @return A list containing one current-state data frame per predictive draw
-#'   and, when requested, the corresponding maximum-sample-size states.
+#' @return A list containing data frames for the currently enrolled cohort and,
+#'   when requested, the maximum sample size. Each row represents one
+#'   predictive replicate and contains control and treatment event counts and
+#'   sample sizes.
 #'
 #' @keywords internal
 #' @noRd
