@@ -683,7 +683,7 @@ survival_adapt <- function(
       })
 
       look_time <- data_total$enrollment[analysis_at_enrollnumber[i]]
-      interim_result <- evaluate_interim_core(
+      interim_result <- evaluate_interim_decision(
         data_interim = data_interim,
         look = i,
         planned_N = analysis_at_enrollnumber[i],
@@ -775,7 +775,7 @@ survival_adapt <- function(
     subject_impute_success <- ((event == 0) & (time < end_of_study))
   })
 
-  results_final <- test_final(
+  results_final <- analyse_final(
     data_in = data_final,
     cutpoints = cutpoints,
     prior_surv_final = prior_surv_final,

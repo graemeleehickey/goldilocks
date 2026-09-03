@@ -32,7 +32,7 @@
 #'   difference. Bayesian imputed analyses average their summaries over
 #'   imputations.
 #' @noRd
-test_final <- function(
+analyse_final <- function(
   data_in,
   cutpoints,
   prior_surv_final,
@@ -109,7 +109,7 @@ test_final <- function(
           cutpoints = cutpoints,
           single_arm = single_arm
         )
-        success <- analyse_bayes_surv_sufficient_stats_kernel(
+        success <- analyse_prepared_bayes_surv(
           data_summ = data_summ,
           cutpoints = cutpoints,
           end_of_study = end_of_study,

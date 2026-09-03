@@ -48,7 +48,7 @@ posterior <- function(
     stop("No subjects in the control arm")
   }
 
-  # Keep the patient-level entry point as a thin compatibility wrapper. The
+  # Keep the patient-level function as a thin compatibility layer. The
   # posterior itself depends only on the statistics below, so separating the
   # two operations lets repeated imputation paths calculate the statistics once
   # and pass them directly to posterior_from_sufficient_stats().
@@ -216,7 +216,7 @@ posterior_from_sufficient_stats <- function(
     drop = FALSE
   ]
 
-  draw_gamma_posterior_kernel(
+  draw_gamma_posterior(
     data_summ = data_summ,
     prior_surv = prior_surv,
     N_mcmc = N_mcmc,
@@ -236,7 +236,7 @@ posterior_from_sufficient_stats <- function(
 #'
 #' @keywords internal
 #' @noRd
-posterior_from_sufficient_stats_kernel <- function(
+posterior_from_prepared_stats <- function(
   data_summ,
   prior_surv,
   N_mcmc,
@@ -362,7 +362,7 @@ posterior_from_sufficient_stats_kernel <- function(
     data_summ,
     empty_interval = empty_interval
   )
-  draw_gamma_posterior_kernel(
+  draw_gamma_posterior(
     data_summ = data_summ,
     prior_surv = prior_surv,
     N_mcmc = N_mcmc,
@@ -423,7 +423,7 @@ resolve_empty_posterior_intervals <- function(data_summ, empty_interval) {
 #'
 #' @keywords internal
 #' @noRd
-draw_gamma_posterior_kernel <- function(
+draw_gamma_posterior <- function(
   data_summ,
   prior_surv,
   N_mcmc,
@@ -696,7 +696,7 @@ posterior_sufficient_stats <- function(
     stop("'rows' must be a non-missing logical vector with one value per row")
   }
 
-  posterior_sufficient_stats_kernel(
+  summarise_survival_outcomes(
     time = data$time,
     event = data$event,
     treatment = data$treatment,
@@ -706,10 +706,10 @@ posterior_sufficient_stats <- function(
   )
 }
 
-#' Calculate posterior sufficient statistics from outcome vectors
+#' Calculate posterior sufficient statistics from completed outcomes
 #'
 #' @description Aggregates exposure time and event counts by treatment arm and
-#'   piecewise interval after the input vectors have already been validated.
+#'   piecewise interval after the inputs have already been validated.
 #'
 #' @param time A numeric vector of follow-up times.
 #' @param event A binary vector of event indicators.
@@ -724,7 +724,7 @@ posterior_sufficient_stats <- function(
 #'
 #' @keywords internal
 #' @noRd
-posterior_sufficient_stats_kernel <- function(
+summarise_survival_outcomes <- function(
   time,
   event,
   treatment,

@@ -25,7 +25,7 @@ test_that("survival_adapt-bayes-surv", {
   expect_s3_class(out, "data.frame")
 })
 
-test_that("Bayesian survival fast path preserves seeded trial results", {
+test_that("prepared Bayesian survival analysis preserves seeded results", {
   args <- list(
     hazard_treatment = c(0.015, 0.025),
     hazard_control = c(0.025, 0.035),
@@ -55,22 +55,22 @@ test_that("Bayesian survival fast path preserves seeded trial results", {
   )
 
   set.seed(6195)
-  optimized <- do.call(survival_adapt, args)
-  optimized_seed <- .Random.seed
+  prepared_result <- do.call(survival_adapt, args)
+  prepared_seed <- .Random.seed
 
-  checked_kernel <- function(..., interval_widths = NULL) {
+  general_analysis <- function(..., interval_widths = NULL) {
     analyse_bayes_surv_sufficient_stats(...)
   }
   local_mocked_bindings(
-    analyse_bayes_surv_sufficient_stats_kernel = checked_kernel,
+    analyse_prepared_bayes_surv = general_analysis,
     .package = "goldilocks"
   )
   set.seed(6195)
-  checked <- do.call(survival_adapt, args)
-  checked_seed <- .Random.seed
+  general_result <- do.call(survival_adapt, args)
+  general_seed <- .Random.seed
 
-  expect_identical(optimized, checked)
-  expect_identical(optimized_seed, checked_seed)
+  expect_identical(prepared_result, general_result)
+  expect_identical(prepared_seed, general_seed)
 })
 
 test_that("survival_adapt-bayes-bin", {

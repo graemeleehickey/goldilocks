@@ -306,12 +306,12 @@ test_that("batched event-time imputations match the scalar reference", {
   expect_identical(batched$current$rows, c(1L, 2L, 4L))
   expect_identical(batched$future$rows, c(5L, 6L))
   for (draw in seq_len(batched$n_draws)) {
-    current <- goldilocks:::materialize_predictive_draw(
+    current <- goldilocks:::complete_predictive_data(
       data_in,
       batched,
       draw
     )
-    maximum <- goldilocks:::materialize_predictive_draw(
+    maximum <- goldilocks:::complete_predictive_data(
       data_in,
       batched,
       draw,
@@ -387,12 +387,12 @@ test_that("batched Bernoulli imputations match the scalar reference", {
   )
 
   for (draw in seq_len(batched$n_draws)) {
-    current <- goldilocks:::materialize_predictive_draw(
+    current <- goldilocks:::complete_predictive_data(
       data_in,
       batched,
       draw
     )
-    maximum <- goldilocks:::materialize_predictive_draw(
+    maximum <- goldilocks:::complete_predictive_data(
       data_in,
       batched,
       draw,
@@ -434,11 +434,11 @@ test_that("batched imputation handles single-arm and empty blocks", {
   expect_null(out$future)
   expect_identical(.Random.seed, before)
   expect_identical(
-    goldilocks:::materialize_predictive_draw(data_in, out, 2),
+    goldilocks:::complete_predictive_data(data_in, out, 2),
     data_in
   )
   expect_error(
-    goldilocks:::materialize_predictive_draw(
+    goldilocks:::complete_predictive_data(
       data_in,
       out,
       2,
@@ -493,12 +493,12 @@ test_that("batched constant-hazard single-arm draws match scalar imputation", {
 
   for (draw in seq_len(batched$n_draws)) {
     expect_equal(
-      goldilocks:::materialize_predictive_draw(data_in, batched, draw),
+      goldilocks:::complete_predictive_data(data_in, batched, draw),
       expected[[draw]]$current,
       tolerance = 1e-12
     )
     expect_equal(
-      goldilocks:::materialize_predictive_draw(
+      goldilocks:::complete_predictive_data(
         data_in,
         batched,
         draw,

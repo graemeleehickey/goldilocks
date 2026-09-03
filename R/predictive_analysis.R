@@ -6,8 +6,8 @@
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
-#' @param analysis_state A list of fixed outcome vectors and imputation
-#'   positions returned by `prepare_predictive_survival_state()`.
+#' @param prepared_outcomes A list of fixed outcomes and imputation
+#'   positions returned by `prepare_predictive_outcomes()`.
 #' @param imputations A list of interim predictive imputations returned by
 #'   `impute_predictive_draws()`.
 #' @param draw A positive integer identifying the predictive imputation to
@@ -24,8 +24,8 @@
 #' @return A list containing completed-data analysis results and their success
 #'   classifications at the current and, when requested, maximum sample sizes.
 #' @noRd
-test_stop_success <- function(
-  analysis_state,
+analyse_predictive_survival <- function(
+  prepared_outcomes,
   imputations,
   draw,
   end_of_study,
@@ -46,12 +46,12 @@ test_stop_success <- function(
   ### Test for success at current sample size (-> stop for success)
   ##############################################################################
 
-  outcome_now <- complete_predictive_survival_draw(
-    state = analysis_state,
+  outcome_now <- complete_predictive_outcomes(
+    prepared = prepared_outcomes,
     imputations = imputations,
     draw = draw
   )
-  success_now <- analyse_completed_survival_vectors(
+  success_now <- analyse_completed_survival(
     outcome = outcome_now,
     cutpoints = cutpoints,
     end_of_study = end_of_study,
@@ -70,13 +70,13 @@ test_stop_success <- function(
   ##############################################################################
 
   if (check_futility) {
-    outcome_max <- complete_predictive_survival_draw(
-      state = analysis_state,
+    outcome_max <- complete_predictive_outcomes(
+      prepared = prepared_outcomes,
       imputations = imputations,
       draw = draw,
       maximum = TRUE
     )
-    success_max <- analyse_completed_survival_vectors(
+    success_max <- analyse_completed_survival(
       outcome = outcome_max,
       cutpoints = cutpoints,
       end_of_study = end_of_study,
@@ -125,8 +125,8 @@ test_stop_success <- function(
 #'   beta-binomial analysis uses fresh posterior draws for every replicate,
 #'   including replicates with identical event counts.
 #'
-#' @param count_states A list returned by
-#'   `predictive_binary_count_states()`, containing arm-specific event counts
+#' @param completed_counts A list returned by
+#'   `predictive_binary_counts()`, containing arm-specific event counts
 #'   and sample sizes for the current and maximum-sample completions.
 #' @param single_arm A single logical value indicating a one-arm design.
 #' @param N_mcmc A positive integer giving the number of beta-posterior draws
@@ -155,7 +155,7 @@ test_stop_success <- function(
 #' @keywords internal
 #' @noRd
 analyse_predictive_binary_counts <- function(
-  count_states,
+  completed_counts,
   single_arm,
   N_mcmc,
   method,
@@ -167,9 +167,9 @@ analyse_predictive_binary_counts <- function(
   prob_ha,
   mc_conf_level
 ) {
-  n_draws <- nrow(count_states$current)
+  n_draws <- nrow(completed_counts$current)
   if (check_futility) {
-    combined <- rbind(count_states$current, count_states$maximum)
+    combined <- rbind(completed_counts$current, completed_counts$maximum)
     draw_order <- as.vector(rbind(
       seq_len(n_draws),
       n_draws + seq_len(n_draws)
@@ -177,13 +177,13 @@ analyse_predictive_binary_counts <- function(
     combined <- combined[draw_order, , drop = FALSE]
     stage <- rep(c("current", "maximum"), n_draws)
   } else {
-    combined <- count_states$current
+    combined <- completed_counts$current
     stage <- rep.int("current", n_draws)
   }
   rownames(combined) <- NULL
 
-  keys <- binary_count_analysis_keys(
-    states = combined,
+  analysis_groups <- group_binary_analyses(
+    counts = combined,
     method = method,
     single_arm = single_arm,
     alternative = alternative,
@@ -193,16 +193,16 @@ analyse_predictive_binary_counts <- function(
     N_mcmc = N_mcmc
   )
   deterministic <- method == "riskdiff" || bin_method != "mc"
-  unique_state <- !duplicated(keys)
+  first_in_group <- !duplicated(analysis_groups)
   analysis_rows <- if (deterministic) {
-    which(unique_state)
+    which(first_in_group)
   } else {
     seq_len(nrow(combined))
   }
 
   analyses_unique <- lapply(analysis_rows, function(row) {
-    analyse_binary_count_state_kernel(
-      state = combined[row, , drop = FALSE],
+    analyse_binary_counts(
+      counts = combined[row, , drop = FALSE],
       single_arm = single_arm,
       N_mcmc = N_mcmc,
       method = method,
@@ -213,7 +213,10 @@ analyse_predictive_binary_counts <- function(
     )
   })
   analyses <- if (deterministic) {
-    analyses_unique[match(keys, keys[unique_state])]
+    analyses_unique[match(
+      analysis_groups,
+      analysis_groups[first_in_group]
+    )]
   } else {
     analyses_unique
   }
@@ -229,8 +232,8 @@ analyse_predictive_binary_counts <- function(
   uncertain <- vapply(classifications, `[[`, logical(1L), "uncertain")
   current <- stage == "current"
   maximum <- stage == "maximum"
-  unique_states <- sum(unique_state)
-  repeated_states <- length(keys) - unique_states
+  unique_summaries <- sum(first_in_group)
+  repeated_summaries <- length(analysis_groups) - unique_summaries
 
   list(
     current_successes = sum(crossed[current]),
@@ -248,14 +251,14 @@ analyse_predictive_binary_counts <- function(
     reuse = data.frame(
       method = method,
       bin_method = if (method == "bayes-bin") bin_method else NA_character_,
-      cache_enabled = deterministic,
-      analysis_requests = length(keys),
-      unique_count_states = unique_states,
-      repeated_count_states = repeated_states,
-      repeated_state_rate = repeated_states / length(keys),
-      cache_hits = if (deterministic) repeated_states else 0L,
-      cache_hit_rate = if (deterministic) {
-        repeated_states / length(keys)
+      reuse_enabled = deterministic,
+      analysis_requests = length(analysis_groups),
+      unique_count_summaries = unique_summaries,
+      repeated_count_summaries = repeated_summaries,
+      repeated_summary_rate = repeated_summaries / length(analysis_groups),
+      reused_analyses = if (deterministic) repeated_summaries else 0L,
+      reused_analysis_rate = if (deterministic) {
+        repeated_summaries / length(analysis_groups)
       } else {
         0
       },
@@ -272,16 +275,16 @@ analyse_predictive_binary_counts <- function(
 #'   result. The success threshold is applied afterwards and is not part of
 #'   this result.
 #'
-#' @param states A data frame containing event counts and sample sizes for the
+#' @param counts A data frame containing event counts and sample sizes for the
 #'   control and treatment arms.
 #' @inheritParams analyse_predictive_binary_counts
 #'
-#' @return A character vector with one analysis identifier per row of `states`.
+#' @return A character vector with one analysis identifier per row of `counts`.
 #'
 #' @keywords internal
 #' @noRd
-binary_count_analysis_keys <- function(
-  states,
+group_binary_analyses <- function(
+  counts,
   method,
   single_arm,
   alternative,
@@ -305,17 +308,17 @@ binary_count_analysis_keys <- function(
   )
   paste(
     settings,
-    states$events_control,
-    states$n_control,
-    states$events_treatment,
-    states$n_treatment,
+    counts$events_control,
+    counts$n_control,
+    counts$events_treatment,
+    counts$n_treatment,
     sep = "\r"
   )
 }
 
 #' Analyze one completed binary endpoint from sufficient statistics
 #'
-#' @param state A one-row data frame containing the event counts and sample
+#' @param counts A one-row data frame containing the event counts and sample
 #'   sizes for the control and treatment arms.
 #' @inheritParams analyse_predictive_binary_counts
 #'
@@ -324,8 +327,8 @@ binary_count_analysis_keys <- function(
 #'
 #' @keywords internal
 #' @noRd
-analyse_binary_count_state_kernel <- function(
-  state,
+analyse_binary_counts <- function(
+  counts,
   single_arm,
   N_mcmc,
   method,
@@ -335,11 +338,11 @@ analyse_binary_count_state_kernel <- function(
   bin_method
 ) {
   if (method == "bayes-bin") {
-    return(bayes_binomial_count_kernel(
-      events_control = state$events_control,
-      n_control = state$n_control,
-      events_treatment = state$events_treatment,
-      n_treatment = state$n_treatment,
+    return(bayes_binomial_from_counts(
+      events_control = counts$events_control,
+      n_control = counts$n_control,
+      events_treatment = counts$events_treatment,
+      n_treatment = counts$n_treatment,
       single_arm = single_arm,
       alternative = alternative,
       h0 = h0,
@@ -349,11 +352,11 @@ analyse_binary_count_state_kernel <- function(
     ))
   }
 
-  fit <- risk_difference_wald_count_kernel(
-    events_control = state$events_control,
-    n_control = state$n_control,
-    events_treatment = state$events_treatment,
-    n_treatment = state$n_treatment,
+  fit <- risk_difference_wald_from_counts(
+    events_control = counts$events_control,
+    n_control = counts$n_control,
+    events_treatment = counts$events_treatment,
+    n_treatment = counts$n_treatment,
     alternative = alternative,
     h0 = h0
   )

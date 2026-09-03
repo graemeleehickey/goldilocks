@@ -411,7 +411,7 @@ test_that("Bayesian survival sufficient-statistics analysis is equivalent", {
   }
 })
 
-test_that("trusted Bayesian survival analysis exactly matches checked analysis", {
+test_that("prepared Bayesian survival analysis matches general analysis", {
   data <- data.frame(
     time = c(3, 8, 15, 4, 10, 18),
     event = c(1, 0, 1, 0, 1, 1),
@@ -443,18 +443,18 @@ test_that("trusted Bayesian survival analysis exactly matches checked analysis",
   checked <- do.call(analyse_bayes_surv_sufficient_stats, args)
   checked_seed <- .Random.seed
   set.seed(8247)
-  kernel <- do.call(analyse_bayes_surv_sufficient_stats_kernel, args)
-  kernel_seed <- .Random.seed
+  prepared <- do.call(analyse_prepared_bayes_surv, args)
+  prepared_seed <- .Random.seed
 
-  expect_identical(kernel, checked)
+  expect_identical(prepared, checked)
   expect_identical(
-    attr(kernel, "mc_counts", exact = TRUE),
+    attr(prepared, "mc_counts", exact = TRUE),
     attr(checked, "mc_counts", exact = TRUE)
   )
-  expect_identical(kernel_seed, checked_seed)
+  expect_identical(prepared_seed, checked_seed)
 })
 
-test_that("trusted Bayesian survival effect draws match checked conversion", {
+test_that("prepared Bayesian survival effects match the general conversion", {
   cases <- list(
     list(
       name = "two-arm, one draw, one interval",
@@ -506,7 +506,7 @@ test_that("trusted Bayesian survival effect draws match checked conversion", {
       end_of_study = case$end_of_study,
       single_arm = case$single_arm
     )$effect
-    actual <- bayes_surv_effect_draws_kernel(
+    actual <- bayes_surv_effect_draws(
       post_lambda = post_lambda,
       interval_widths = interval_widths,
       single_arm = case$single_arm
@@ -516,9 +516,9 @@ test_that("trusted Bayesian survival effect draws match checked conversion", {
   }
 })
 
-test_that("trusted Bayesian survival effect kernel rejects incompatible state", {
+test_that("prepared Bayesian survival effects reject incompatible inputs", {
   expect_error(
-    bayes_surv_effect_draws_kernel(
+    bayes_surv_effect_draws(
       post_lambda = matrix(0.1, nrow = 2, ncol = 2),
       interval_widths = c(6, 6),
       single_arm = FALSE
@@ -542,7 +542,7 @@ test_that("trusted Bayesian survival effect kernel rejects incompatible state", 
   set.seed(8248)
   seed_before <- .Random.seed
   expect_error(
-    analyse_bayes_surv_sufficient_stats_kernel(
+    analyse_prepared_bayes_surv(
       data_summ = data_summ,
       cutpoints = c(5, 12),
       end_of_study = 24,

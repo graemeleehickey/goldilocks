@@ -21,8 +21,8 @@ load_goldilocks()
 
 ppwe_internal <- getFromNamespace("ppwe", "goldilocks")
 haz_to_prop_internal <- getFromNamespace("haz_to_prop", "goldilocks")
-bayes_surv_effect_draws_kernel_internal <- getFromNamespace(
-  "bayes_surv_effect_draws_kernel",
+bayes_surv_effect_draws_internal <- getFromNamespace(
+  "bayes_surv_effect_draws",
   "goldilocks"
 )
 endpoint_interval_widths_internal <- getFromNamespace(
@@ -38,8 +38,8 @@ posterior_from_sufficient_stats_internal <- getFromNamespace(
   "posterior_from_sufficient_stats",
   "goldilocks"
 )
-posterior_from_sufficient_stats_kernel_internal <- getFromNamespace(
-  "posterior_from_sufficient_stats_kernel",
+posterior_from_prepared_stats_internal <- getFromNamespace(
+  "posterior_from_prepared_stats",
   "goldilocks"
 )
 normalize_gamma_prior_internal <- getFromNamespace(
@@ -51,25 +51,25 @@ impute_predictive_draws_internal <- getFromNamespace(
   "impute_predictive_draws",
   "goldilocks"
 )
-materialize_predictive_draw_internal <- getFromNamespace(
-  "materialize_predictive_draw",
+complete_predictive_data_internal <- getFromNamespace(
+  "complete_predictive_data",
   "goldilocks"
 )
 analyse_data_internal <- getFromNamespace("analyse_data", "goldilocks")
-analyse_bayes_surv_sufficient_stats_kernel_internal <- getFromNamespace(
-  "analyse_bayes_surv_sufficient_stats_kernel",
+analyse_prepared_bayes_surv_internal <- getFromNamespace(
+  "analyse_prepared_bayes_surv",
   "goldilocks"
 )
-prepare_predictive_survival_state_internal <- getFromNamespace(
-  "prepare_predictive_survival_state",
+prepare_predictive_outcomes_internal <- getFromNamespace(
+  "prepare_predictive_outcomes",
   "goldilocks"
 )
-test_stop_success_internal <- getFromNamespace(
-  "test_stop_success",
+analyse_predictive_survival_internal <- getFromNamespace(
+  "analyse_predictive_survival",
   "goldilocks"
 )
-predictive_binary_count_states_internal <- getFromNamespace(
-  "predictive_binary_count_states",
+predictive_binary_counts_internal <- getFromNamespace(
+  "predictive_binary_counts",
   "goldilocks"
 )
 analyse_predictive_binary_counts_internal <- getFromNamespace(
@@ -91,7 +91,7 @@ coxph_fit_compatibility_internal <- getFromNamespace(
 )
 cox_compatibility <- coxph_fit_compatibility_internal()
 message(
-  "Cox fast path: ",
+  "Direct Cox calculation: ",
   if (cox_compatibility$compatible) "enabled" else "disabled",
   " (",
   cox_compatibility$reason,
@@ -217,28 +217,28 @@ binary_predictive_imputations <- impute_predictive_draws_internal(
   binary_imputation = "bernoulli",
   check_futility = TRUE
 )
-binary_count_states <- predictive_binary_count_states_internal(
+binary_counts <- predictive_binary_counts_internal(
   data_in = imputation_data,
   imputations = binary_predictive_imputations,
   single_arm = FALSE,
   check_futility = TRUE
 )
 
-survival_analysis_state <- prepare_predictive_survival_state_internal(
+prepared_survival_outcomes <- prepare_predictive_outcomes_internal(
   data_in = imputation_data,
   imputations = binary_predictive_imputations,
   check_futility = TRUE
 )
 
-materialized_survival_analyses <- function(method, N_mcmc) {
+data_frame_survival_analyses <- function(method, N_mcmc) {
   output <- numeric(binary_predictive_imputations$n_draws)
   for (draw in seq_len(binary_predictive_imputations$n_draws)) {
-    current <- materialize_predictive_draw_internal(
+    current <- complete_predictive_data_internal(
       data_in = imputation_data,
       imputations = binary_predictive_imputations,
       draw = draw
     )
-    maximum <- materialize_predictive_draw_internal(
+    maximum <- complete_predictive_data_internal(
       data_in = current,
       imputations = binary_predictive_imputations,
       draw = draw,
@@ -257,7 +257,7 @@ materialized_survival_analyses <- function(method, N_mcmc) {
         cutpoints = cutpoints_piecewise,
         single_arm = FALSE
       )
-      current_result <- analyse_bayes_surv_sufficient_stats_kernel_internal(
+      current_result <- analyse_prepared_bayes_surv_internal(
         data_summ = current_stats,
         cutpoints = cutpoints_piecewise,
         end_of_study = end_of_study,
@@ -269,7 +269,7 @@ materialized_survival_analyses <- function(method, N_mcmc) {
         empty_interval = "prior",
         interval_widths = analysis_interval_widths
       )
-      maximum_result <- analyse_bayes_surv_sufficient_stats_kernel_internal(
+      maximum_result <- analyse_prepared_bayes_surv_internal(
         data_summ = maximum_stats,
         cutpoints = cutpoints_piecewise,
         end_of_study = end_of_study,
@@ -320,11 +320,11 @@ materialized_survival_analyses <- function(method, N_mcmc) {
   output
 }
 
-vector_survival_analyses <- function(method, N_mcmc) {
+outcome_survival_analyses <- function(method, N_mcmc) {
   output <- numeric(binary_predictive_imputations$n_draws)
   for (draw in seq_len(binary_predictive_imputations$n_draws)) {
-    result <- test_stop_success_internal(
-      analysis_state = survival_analysis_state,
+    result <- analyse_predictive_survival_internal(
+      prepared_outcomes = prepared_survival_outcomes,
       imputations = binary_predictive_imputations,
       draw = draw,
       end_of_study = end_of_study,
@@ -353,29 +353,29 @@ vector_survival_analyses <- function(method, N_mcmc) {
 for (method in c("logrank", "cox")) {
   if (
     !identical(
-      materialized_survival_analyses(method, 1L),
-      vector_survival_analyses(method, 1L)
+      data_frame_survival_analyses(method, 1L),
+      outcome_survival_analyses(method, 1L)
     )
   ) {
-    stop(method, " vector benchmark does not match its materialized reference.")
+    stop(method, " outcome benchmark does not match its data-frame reference.")
   }
 }
 set.seed(1009)
-materialized_bayes_reference <- materialized_survival_analyses(
+data_frame_bayes_reference <- data_frame_survival_analyses(
   "bayes-surv",
   300L
 )
 set.seed(1009)
-vector_bayes_reference <- vector_survival_analyses("bayes-surv", 300L)
-if (!identical(materialized_bayes_reference, vector_bayes_reference)) {
-  stop("Bayesian vector benchmark does not match its materialized reference.")
+outcome_bayes_reference <- outcome_survival_analyses("bayes-surv", 300L)
+if (!identical(data_frame_bayes_reference, outcome_bayes_reference)) {
+  stop("Bayesian outcome benchmark does not match its data-frame reference.")
 }
 
-materialized_binary_analyses <- function() {
+data_frame_binary_analyses <- function() {
   current_successes <- 0L
   maximum_successes <- 0L
   for (draw in seq_len(binary_predictive_imputations$n_draws)) {
-    current <- materialize_predictive_draw_internal(
+    current <- complete_predictive_data_internal(
       data_in = imputation_data,
       imputations = binary_predictive_imputations,
       draw = draw
@@ -385,7 +385,7 @@ materialized_binary_analyses <- function() {
       c("time", "event", "treatment"),
       drop = FALSE
     ]
-    maximum <- materialize_predictive_draw_internal(
+    maximum <- complete_predictive_data_internal(
       data_in = imputation_data,
       imputations = binary_predictive_imputations,
       draw = draw,
@@ -430,7 +430,7 @@ materialized_binary_analyses <- function() {
 
 count_based_binary_analyses <- function() {
   result <- analyse_predictive_binary_counts_internal(
-    count_states = binary_count_states,
+    completed_counts = binary_counts,
     single_arm = FALSE,
     N_mcmc = 1L,
     method = "bayes-bin",
@@ -448,11 +448,11 @@ count_based_binary_analyses <- function() {
   )
 }
 
-if (!identical(materialized_binary_analyses(), count_based_binary_analyses())) {
-  stop("Binary count benchmark does not match its materialized reference.")
+if (!identical(data_frame_binary_analyses(), count_based_binary_analyses())) {
+  stop("Binary count benchmark does not match its patient-data reference.")
 }
 binary_reuse <- analyse_predictive_binary_counts_internal(
-  count_states = binary_count_states,
+  completed_counts = binary_counts,
   single_arm = FALSE,
   N_mcmc = 1L,
   method = "bayes-bin",
@@ -465,12 +465,12 @@ binary_reuse <- analyse_predictive_binary_counts_internal(
   mc_conf_level = 0.95
 )$reuse
 message(
-  "Binary count-state reuse: ",
-  binary_reuse$cache_hits,
+  "Binary count-summary reuse: ",
+  binary_reuse$reused_analyses,
   "/",
   binary_reuse$analysis_requests,
   " analyses (",
-  formatC(100 * binary_reuse$cache_hit_rate, digits = 1, format = "f"),
+  formatC(100 * binary_reuse$reused_analysis_rate, digits = 1, format = "f"),
   "%)"
 )
 
@@ -520,8 +520,8 @@ benchmark_results <- bench::mark(
       single_arm = FALSE
     )
   },
-  bayes_surv_effect_kernel_piecewise = {
-    bayes_surv_effect_draws_kernel_internal(
+  bayes_surv_effect_prepared = {
+    bayes_surv_effect_draws_internal(
       post_lambda = posterior_draws,
       interval_widths = analysis_interval_widths,
       single_arm = FALSE
@@ -546,9 +546,9 @@ benchmark_results <- bench::mark(
       single_arm = FALSE
     )
   },
-  posterior_from_stats_kernel = {
+  posterior_from_prepared_stats = {
     set.seed(1001)
-    posterior_from_sufficient_stats_kernel_internal(
+    posterior_from_prepared_stats_internal(
       data_summ = posterior_stats,
       prior_surv = posterior_prior,
       N_mcmc = 1000,
@@ -599,28 +599,28 @@ benchmark_results <- bench::mark(
       check_futility = TRUE
     )
   },
-  survival_completed_data_materialized_logrank = {
-    materialized_survival_analyses("logrank", 1L)
+  survival_completed_data_frame_logrank = {
+    data_frame_survival_analyses("logrank", 1L)
   },
-  survival_completed_data_vectors_logrank = {
-    vector_survival_analyses("logrank", 1L)
+  survival_completed_outcomes_logrank = {
+    outcome_survival_analyses("logrank", 1L)
   },
-  survival_completed_data_materialized_cox = {
-    materialized_survival_analyses("cox", 1L)
+  survival_completed_data_frame_cox = {
+    data_frame_survival_analyses("cox", 1L)
   },
-  survival_completed_data_vectors_cox = {
-    vector_survival_analyses("cox", 1L)
+  survival_completed_outcomes_cox = {
+    outcome_survival_analyses("cox", 1L)
   },
-  survival_completed_data_materialized_bayes = {
+  survival_completed_data_frame_bayes = {
     set.seed(1010)
-    materialized_survival_analyses("bayes-surv", 300L)
+    data_frame_survival_analyses("bayes-surv", 300L)
   },
-  survival_completed_data_vectors_bayes = {
+  survival_completed_outcomes_bayes = {
     set.seed(1010)
-    vector_survival_analyses("bayes-surv", 300L)
+    outcome_survival_analyses("bayes-surv", 300L)
   },
-  binary_completed_data_materialized = {
-    materialized_binary_analyses()
+  binary_completed_data_frame = {
+    data_frame_binary_analyses()
   },
   binary_completed_data_counts = {
     count_based_binary_analyses()

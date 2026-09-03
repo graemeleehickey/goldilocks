@@ -17,3 +17,4 @@ data-raw
 ^docs$
 ^benchmarks$
 ^air\.toml$
+^\.lintr$

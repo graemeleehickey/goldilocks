@@ -23,7 +23,7 @@
 #'
 #' @keywords internal
 #' @noRd
-evaluate_interim_core <- function(
+evaluate_interim_decision <- function(
   data_interim,
   look,
   planned_N,
@@ -144,14 +144,14 @@ evaluate_interim_core <- function(
   inner_mc_uncertain_max <- 0L
   binary_count_reuse <- NULL
   if (method %in% c("bayes-bin", "riskdiff")) {
-    count_states <- predictive_binary_count_states(
+    completed_counts <- predictive_binary_counts(
       data_in = data_interim,
       imputations = imputations,
       single_arm = single_arm,
       check_futility = check_futility
     )
     binary_result <- analyse_predictive_binary_counts(
-      count_states = count_states,
+      completed_counts = completed_counts,
       single_arm = single_arm,
       N_mcmc = N_mcmc,
       method = method,
@@ -169,15 +169,15 @@ evaluate_interim_core <- function(
     inner_mc_uncertain_max <- binary_result$inner_mc_uncertain_max
     binary_count_reuse <- binary_result$reuse
   } else {
-    analysis_state <- prepare_predictive_survival_state(
+    prepared_outcomes <- prepare_predictive_outcomes(
       data_in = data_interim,
       imputations = imputations,
       check_futility = check_futility
     )
     for (j in seq_len(N_impute)) {
       stop_check <- withCallingHandlers(
-        test_stop_success(
-          analysis_state = analysis_state,
+        analyse_predictive_survival(
+          prepared_outcomes = prepared_outcomes,
           imputations = imputations,
           draw = j,
           end_of_study = end_of_study,

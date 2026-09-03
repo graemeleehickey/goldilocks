@@ -66,7 +66,7 @@ binary_prediction_imputations <- function() {
   )
 }
 
-materialized_binary_reference <- function(
+data_frame_binary_reference <- function(
   data,
   imputations,
   method,
@@ -79,7 +79,7 @@ materialized_binary_reference <- function(
   uncertain_now <- 0L
   uncertain_max <- 0L
   for (draw in seq_len(imputations$n_draws)) {
-    current <- goldilocks:::materialize_predictive_draw(
+    current <- goldilocks:::complete_predictive_data(
       data_in = data,
       imputations = imputations,
       draw = draw
@@ -89,7 +89,7 @@ materialized_binary_reference <- function(
       c("time", "event", "treatment"),
       drop = FALSE
     ]
-    maximum <- goldilocks:::materialize_predictive_draw(
+    maximum <- goldilocks:::complete_predictive_data(
       data_in = data,
       imputations = imputations,
       draw = draw,
@@ -151,10 +151,10 @@ materialized_binary_reference <- function(
   )
 }
 
-test_that("predictive binary counts match materialized completed data", {
+test_that("predictive binary counts match completed patient data", {
   data <- binary_prediction_fixture()
   imputations <- binary_prediction_imputations()
-  states <- goldilocks:::predictive_binary_count_states(
+  counts <- goldilocks:::predictive_binary_counts(
     data,
     imputations,
     single_arm = FALSE,
@@ -162,13 +162,13 @@ test_that("predictive binary counts match materialized completed data", {
   )
 
   for (draw in seq_len(imputations$n_draws)) {
-    current <- goldilocks:::materialize_predictive_draw(
+    current <- goldilocks:::complete_predictive_data(
       data,
       imputations,
       draw
     )
     current <- current[current$subject_enrolled, ]
-    maximum <- goldilocks:::materialize_predictive_draw(
+    maximum <- goldilocks:::complete_predictive_data(
       data,
       imputations,
       draw,
@@ -187,8 +187,8 @@ test_that("predictive binary counts match materialized completed data", {
       n_treatment = sum(maximum$treatment == 1L)
     )
 
-    actual_current <- states$current[draw, , drop = FALSE]
-    actual_maximum <- states$maximum[draw, , drop = FALSE]
+    actual_current <- counts$current[draw, , drop = FALSE]
+    actual_maximum <- counts$maximum[draw, , drop = FALSE]
     rownames(actual_current) <- NULL
     rownames(actual_maximum) <- NULL
     expect_identical(actual_current, expected_current)
@@ -196,7 +196,7 @@ test_that("predictive binary counts match materialized completed data", {
   }
 })
 
-test_that("count kernels match checked analyses at sparse and boundary states", {
+test_that("count analyses match general analyses at sparse and boundary counts", {
   cases <- data.frame(
     events_control = c(0L, 0L, 1L, 9L, 10L),
     events_treatment = c(0L, 10L, 9L, 1L, 10L),
@@ -228,7 +228,7 @@ test_that("count kernels match checked analyses at sparse and boundary states", 
       )
       checked_seed <- .Random.seed
       set.seed(9100 + row)
-      counted <- goldilocks:::bayes_binomial_count_kernel(
+      counted <- goldilocks:::bayes_binomial_from_counts(
         events_control = cases$events_control[row],
         n_control = cases$n[row],
         events_treatment = cases$events_treatment[row],
@@ -265,7 +265,7 @@ test_that("count kernels match checked analyses at sparse and boundary states", 
       alternative = "two.sided",
       h0 = 0.1
     )
-    counted <- goldilocks:::risk_difference_wald_count_kernel(
+    counted <- goldilocks:::risk_difference_wald_from_counts(
       events_control = estimable$events_control[row],
       n_control = 10L,
       events_treatment = estimable$events_treatment[row],
@@ -277,10 +277,10 @@ test_that("count kernels match checked analyses at sparse and boundary states", 
   }
 })
 
-test_that("binary count prediction matches the materialized reference", {
+test_that("binary count prediction matches the patient-data reference", {
   data <- binary_prediction_fixture()
   imputations <- binary_prediction_imputations()
-  states <- goldilocks:::predictive_binary_count_states(
+  counts <- goldilocks:::predictive_binary_counts(
     data,
     imputations,
     single_arm = FALSE,
@@ -295,7 +295,7 @@ test_that("binary count prediction matches the materialized reference", {
 
   for (configuration in configurations) {
     set.seed(9201)
-    expected <- materialized_binary_reference(
+    expected <- data_frame_binary_reference(
       data = data,
       imputations = imputations,
       method = configuration$method,
@@ -306,7 +306,7 @@ test_that("binary count prediction matches the materialized reference", {
 
     set.seed(9201)
     actual <- goldilocks:::analyse_predictive_binary_counts(
-      count_states = states,
+      completed_counts = counts,
       single_arm = FALSE,
       N_mcmc = configuration$N_mcmc,
       method = configuration$method,
@@ -330,23 +330,23 @@ test_that("binary count prediction matches the materialized reference", {
       expected_seed,
       info = paste(configuration$method, configuration$bin_method)
     )
-    expect_gt(actual$reuse$repeated_count_states, 0)
+    expect_gt(actual$reuse$repeated_count_summaries, 0)
     if (
       configuration$method == "bayes-bin" &&
         configuration$bin_method == "mc"
     ) {
-      expect_false(actual$reuse$cache_enabled)
-      expect_identical(actual$reuse$cache_hits, 0L)
+      expect_false(actual$reuse$reuse_enabled)
+      expect_identical(actual$reuse$reused_analyses, 0L)
     } else {
-      expect_true(actual$reuse$cache_enabled)
-      expect_gt(actual$reuse$cache_hits, 0)
+      expect_true(actual$reuse$reuse_enabled)
+      expect_gt(actual$reuse$reused_analyses, 0)
     }
   }
 })
 
-test_that("binary count cache keys contain every analysis input", {
+test_that("binary analysis groups contain every analysis input", {
   base <- list(
-    states = data.frame(
+    counts = data.frame(
       events_control = 2L,
       n_control = 10L,
       events_treatment = 4L,
@@ -361,10 +361,10 @@ test_that("binary count cache keys contain every analysis input", {
     N_mcmc = 100L
   )
   variants <- list(
-    within(base, states$events_control <- 3L),
-    within(base, states$n_control <- 11L),
-    within(base, states$events_treatment <- 5L),
-    within(base, states$n_treatment <- 11L),
+    within(base, counts$events_control <- 3L),
+    within(base, counts$n_control <- 11L),
+    within(base, counts$events_treatment <- 5L),
+    within(base, counts$n_treatment <- 11L),
     within(base, method <- "riskdiff"),
     within(base, single_arm <- TRUE),
     within(base, alternative <- "less"),
@@ -376,7 +376,7 @@ test_that("binary count cache keys contain every analysis input", {
   keys <- vapply(
     c(list(base), variants),
     function(arguments) {
-      do.call(goldilocks:::binary_count_analysis_keys, arguments)
+      do.call(goldilocks:::group_binary_analyses, arguments)
     },
     character(1L)
   )
@@ -384,7 +384,7 @@ test_that("binary count cache keys contain every analysis input", {
   expect_length(unique(keys), length(keys))
 })
 
-test_that("binary interim diagnostics report bounded state reuse", {
+test_that("binary interim diagnostics report bounded summary reuse", {
   data <- data.frame(
     id = 1:8,
     treatment = c(0, 1, 0, 1, 0, 1, 0, 1),
@@ -418,14 +418,14 @@ test_that("binary interim diagnostics report bounded state reuse", {
   )
   reuse <- out$diagnostics$binary_count_reuse
 
-  expect_true(reuse$cache_enabled)
+  expect_true(reuse$reuse_enabled)
   expect_identical(reuse$analysis_requests, 40L)
   expect_identical(
     reuse$analysis_requests,
-    reuse$unique_count_states + reuse$cache_hits
+    reuse$unique_count_summaries + reuse$reused_analyses
   )
   expect_equal(
-    reuse$cache_hit_rate,
-    reuse$cache_hits / reuse$analysis_requests
+    reuse$reused_analysis_rate,
+    reuse$reused_analyses / reuse$analysis_requests
   )
 })

@@ -11,13 +11,13 @@ the requested number of enrollments.
 
 It also reports piecewise-exponential posterior sampling from a patient-level
 data frame and from precomputed sufficient statistics. The sufficient-statistic
-pair compares the general checked entry point with the trusted internal kernel
-used for canonical summaries generated inside Bayesian predictive imputation.
-Both receive the same normalized prior and reset to the same seed, isolating
-validation overhead without changing the Gamma posterior calculation.
+pair compares the general route with the prepared-data route used for summaries
+generated inside Bayesian predictive imputation. Both receive the same
+normalized prior and reset to the same seed, isolating validation overhead
+without changing the Gamma posterior calculation.
 
-The Bayesian-survival effect pair compares the checked `haz_to_prop()` route
-with the trusted completed-data kernel. The latter reuses fixed analysis-
+The Bayesian-survival effect pair compares the general `haz_to_prop()` route
+with the prepared completed-data calculation. The latter reuses fixed analysis-
 interval widths and returns treatment-effect draws directly, avoiding repeated
 cutpoint validation and temporary probability data frames. It deliberately
 retains the completed-data analysis loop; the separate predictive-imputation
@@ -31,21 +31,21 @@ need imputation. Both expressions reset to the same seed and use the documented
 draw, cohort, and arm order, so their generated outcomes can also be checked
 directly in unit tests.
 
-The survival completed-data pairs compare the retained materialized reference
-with the vector route used at interim looks. The reference copies the complete
-interim data frame for each current and maximum-sample analysis. The vector
-route prepares row positions once, copies only the follow-up and event vectors,
-and reuses treatment assignments. Separate pairs cover log-rank, Cox, and
-Bayesian piecewise-exponential analyses. The script checks identical results
-before timing them; for the Bayesian pair it also resets the seed so both paths
-receive the same Gamma posterior draws.
+The survival completed-data pairs compare the retained patient-data reference
+with the prepared-outcome route used at interim looks. The reference copies the
+complete interim data frame for each current and maximum-sample analysis. The
+prepared route records imputation positions once, copies only follow-up and
+event values, and reuses treatment assignments. Separate pairs cover log-rank,
+Cox, and Bayesian piecewise-exponential analyses. The script checks identical
+results before timing them; for the Bayesian pair it also resets the seed so
+both paths receive the same Gamma posterior draws.
 
 The binary completed-data pair starts from one common predictive-imputation
-batch. The materialized reference constructs a patient-level completed data
+batch. The patient-data reference constructs a completed data
 frame for every current and maximum-sample analysis. The count path instead
 uses arm-level event and subject totals and evaluates each distinct
-deterministic count state once. The script verifies identical classifications
-before timing the pair and prints the number and percentage of reused states.
+deterministic count summary once. The script verifies identical classifications
+before timing the pair and prints the number and percentage of reused summaries.
 The separate `survival_adapt_bayes_bin` row reports the complete trial runtime,
 including generation, posterior prediction, interim decisions, and final
 analysis.

@@ -1,0 +1,10 @@
+linters: linters_with_defaults(
+  commas_linter = NULL,
+  indentation_linter = NULL,
+  line_length_linter = NULL,
+  object_length_linter = NULL,
+  object_name_linter = NULL,
+  object_usage_linter = NULL,
+  return_linter = NULL
+  )
+encoding: "UTF-8"

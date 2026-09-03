@@ -468,7 +468,7 @@ test_that("prior-only empty-interval results are invariant to row ordering", {
   expect_identical(shuffled_post, ordered_post)
 })
 
-test_that("trusted posterior kernel exactly matches the checked path", {
+test_that("prepared posterior exactly matches the general route", {
   cases <- list(
     "two-arm" = list(
       data = data.frame(
@@ -526,20 +526,20 @@ test_that("trusted posterior kernel exactly matches the checked path", {
     checked_seed <- .Random.seed
 
     set.seed(8421)
-    kernel <- posterior_from_sufficient_stats_kernel(
+    prepared <- posterior_from_prepared_stats(
       data_summ = data_summ,
       prior_surv = prior,
       N_mcmc = 100,
       single_arm = case$single_arm
     )
-    kernel_seed <- .Random.seed
+    prepared_seed <- .Random.seed
 
-    expect_identical(kernel, checked, info = case_name)
-    expect_identical(kernel_seed, checked_seed, info = case_name)
+    expect_identical(prepared, checked, info = case_name)
+    expect_identical(prepared_seed, checked_seed, info = case_name)
   }
 })
 
-test_that("trusted posterior kernel preserves empty-interval policies", {
+test_that("prepared posterior preserves empty-interval policies", {
   data_summ <- data.frame(
     treatment = c(0, 0, 0, 1, 1, 1),
     interval = factor(rep(1:3, 2), levels = 1:3),
@@ -564,7 +564,7 @@ test_that("trusted posterior kernel preserves empty-interval policies", {
       empty_interval = policy
     ))
     set.seed(8422)
-    kernel <- suppressWarnings(posterior_from_sufficient_stats_kernel(
+    prepared <- suppressWarnings(posterior_from_prepared_stats(
       data_summ = data_summ,
       prior_surv = prior,
       N_mcmc = 100,
@@ -572,11 +572,11 @@ test_that("trusted posterior kernel preserves empty-interval policies", {
       empty_interval = policy
     ))
 
-    expect_identical(kernel, checked, info = policy)
+    expect_identical(prepared, checked, info = policy)
   }
 })
 
-test_that("trusted posterior kernel rejects violated invariants", {
+test_that("prepared posterior rejects violated assumptions", {
   data_summ <- posterior_sufficient_stats(
     data = data.frame(
       time = c(3, 8, 15, 4, 10, 18),
@@ -602,28 +602,28 @@ test_that("trusted posterior kernel rejects violated invariants", {
   shuffled_args <- args
   shuffled_args$data_summ <- data_summ[c(2, 1, 3:6), ]
   expect_error(
-    do.call(posterior_from_sufficient_stats_kernel, shuffled_args),
+    do.call(posterior_from_prepared_stats, shuffled_args),
     "non-canonical sufficient statistics"
   )
 
   prior_args <- args
   prior_args$prior_surv <- c(0.5, 0.25)
   expect_error(
-    do.call(posterior_from_sufficient_stats_kernel, prior_args),
+    do.call(posterior_from_prepared_stats, prior_args),
     "non-canonical survival prior"
   )
 
   statistic_args <- args
   statistic_args$data_summ$tot_time[1] <- -1
   expect_error(
-    do.call(posterior_from_sufficient_stats_kernel, statistic_args),
+    do.call(posterior_from_prepared_stats, statistic_args),
     "invalid sufficient statistics"
   )
 
   policy_args <- args
   policy_args$empty_interval <- "unknown"
   expect_error(
-    do.call(posterior_from_sufficient_stats_kernel, policy_args),
+    do.call(posterior_from_prepared_stats, policy_args),
     "invalid empty-interval policy"
   )
 })

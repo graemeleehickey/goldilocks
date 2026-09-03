@@ -304,7 +304,7 @@ test_that("external and simulated interim paths use the same calculation", {
   )
 
   set.seed(8406)
-  expected <- goldilocks:::evaluate_interim_core(
+  expected <- goldilocks:::evaluate_interim_decision(
     data_interim = simulated,
     look = 1,
     planned_N = look_N,

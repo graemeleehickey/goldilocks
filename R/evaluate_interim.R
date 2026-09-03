@@ -229,7 +229,7 @@ evaluate_interim <- function(
     set.seed(seed)
   }
 
-  core <- evaluate_interim_core(
+  evaluation <- evaluate_interim_decision(
     data_interim = prepared$data,
     look = look,
     planned_N = nrow(data),
@@ -260,13 +260,13 @@ evaluate_interim <- function(
       "success_if_stop_now",
       if (check_futility) "success_at_maximum" else character()
     ),
-    probability = core$monte_carlo$estimate,
-    threshold = core$monte_carlo$threshold,
-    direction = core$monte_carlo$direction,
-    threshold_crossed = core$monte_carlo$point_crossed,
+    probability = evaluation$monte_carlo$estimate,
+    threshold = evaluation$monte_carlo$threshold,
+    direction = evaluation$monte_carlo$direction,
+    threshold_crossed = evaluation$monte_carlo$point_crossed,
     stringsAsFactors = FALSE
   )
-  decision <- core$trace[
+  decision <- evaluation$trace[
     c(
       "look",
       "planned_N",
@@ -289,7 +289,7 @@ evaluate_interim <- function(
       current_allocation = prepared$current_allocation,
       potential_accruals = prepared$potential_accruals
     ),
-    core$diagnostics
+    evaluation$diagnostics
   )
   design <- list(
     look = as.integer(look),
@@ -317,14 +317,14 @@ evaluate_interim <- function(
   out <- list(
     decision = decision,
     probabilities = probabilities,
-    monte_carlo = core$monte_carlo,
+    monte_carlo = evaluation$monte_carlo,
     diagnostics = diagnostics,
-    trace = core$trace,
+    trace = evaluation$trace,
     metadata = list(
       package_version = as.character(utils::packageVersion("goldilocks")),
       call = Call,
       design = design,
-      prior_design = core$diagnostics$prior,
+      prior_design = evaluation$diagnostics$prior,
       data_cut = data_cut,
       time_origin = "first participant randomization (time 0)",
       rng = list(

@@ -70,7 +70,7 @@ test_that("prior_surv_final controls final-stage imputation", {
     subject_impute_success = TRUE
   )
   run_final <- function(prior_surv_final) {
-    test_final(
+    analyse_final(
       data_in = data_in,
       cutpoints = NULL,
       prior_surv_final = prior_surv_final,

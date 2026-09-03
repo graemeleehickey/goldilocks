@@ -84,7 +84,7 @@ randomization <- function(
   n_extra_blocks <- 0
   blocking_total <- sum(blocking)
 
-  for (k in 1:length(block)) {
+  for (k in seq_along(block)) {
     if ((blocking_total + block[k]) < N_total) {
       n_extra_blocks <- n_extra_blocks + 1
       extra_blocks[n_extra_blocks] <- block[k]

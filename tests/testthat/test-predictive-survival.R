@@ -1,4 +1,4 @@
-predictive_survival_vector_fixture <- function() {
+predictive_survival_fixture <- function() {
   data.frame(
     time = c(2, 0, 4, 6, 0, 3),
     event = c(1L, 0L, 0L, 1L, 0L, 0L),
@@ -9,7 +9,7 @@ predictive_survival_vector_fixture <- function() {
   )
 }
 
-predictive_survival_vector_imputations <- function() {
+predictive_survival_imputations <- function() {
   list(
     n_draws = 2L,
     current = list(
@@ -25,22 +25,22 @@ predictive_survival_vector_imputations <- function() {
   )
 }
 
-test_that("predictive survival vectors match materialized completed data", {
-  data <- predictive_survival_vector_fixture()
-  imputations <- predictive_survival_vector_imputations()
-  state <- goldilocks:::prepare_predictive_survival_state(
+test_that("prepared predictive outcomes match completed patient data", {
+  data <- predictive_survival_fixture()
+  imputations <- predictive_survival_imputations()
+  prepared <- goldilocks:::prepare_predictive_outcomes(
     data,
     imputations,
     check_futility = TRUE
   )
 
   for (draw in seq_len(imputations$n_draws)) {
-    actual_current <- goldilocks:::complete_predictive_survival_draw(
-      state,
+    actual_current <- goldilocks:::complete_predictive_outcomes(
+      prepared,
       imputations,
       draw
     )
-    expected_current <- goldilocks:::materialize_predictive_draw(
+    expected_current <- goldilocks:::complete_predictive_data(
       data,
       imputations,
       draw
@@ -55,13 +55,13 @@ test_that("predictive survival vectors match materialized completed data", {
     expect_identical(actual_current$event, expected_current$event)
     expect_identical(actual_current$treatment, expected_current$treatment)
 
-    actual_maximum <- goldilocks:::complete_predictive_survival_draw(
-      state,
+    actual_maximum <- goldilocks:::complete_predictive_outcomes(
+      prepared,
       imputations,
       draw,
       maximum = TRUE
     )
-    expected_maximum <- goldilocks:::materialize_predictive_draw(
+    expected_maximum <- goldilocks:::complete_predictive_data(
       data,
       imputations,
       draw,
@@ -74,28 +74,28 @@ test_that("predictive survival vectors match materialized completed data", {
   }
 })
 
-test_that("predictive survival state omits an unused maximum sample", {
-  data <- predictive_survival_vector_fixture()
-  imputations <- predictive_survival_vector_imputations()
-  state <- goldilocks:::prepare_predictive_survival_state(
+test_that("prepared outcomes omit an unused maximum sample", {
+  data <- predictive_survival_fixture()
+  imputations <- predictive_survival_imputations()
+  prepared <- goldilocks:::prepare_predictive_outcomes(
     data,
     imputations,
     check_futility = FALSE
   )
 
-  expect_null(state$maximum)
+  expect_null(prepared$maximum)
   expect_error(
-    goldilocks:::complete_predictive_survival_draw(
-      state,
+    goldilocks:::complete_predictive_outcomes(
+      prepared,
       imputations,
       draw = 1L,
       maximum = TRUE
     ),
-    "maximum state unavailable"
+    "maximum-sample outcomes unavailable"
   )
 })
 
-test_that("vector sufficient statistics match the checked data-frame route", {
+test_that("prepared sufficient statistics match the general route", {
   data <- data.frame(
     time = c(0, 4, 4.5, 8, 9, 12, 3, 7),
     event = c(0L, 1L, 0L, 1L, 0L, 1L, 1L, 0L),
@@ -109,7 +109,7 @@ test_that("vector sufficient statistics match the checked data-frame route", {
     single_arm = FALSE,
     rows = rows
   )
-  vectors <- goldilocks:::posterior_sufficient_stats_kernel(
+  prepared <- goldilocks:::summarise_survival_outcomes(
     time = data$time,
     event = data$event,
     treatment = data$treatment,
@@ -118,10 +118,10 @@ test_that("vector sufficient statistics match the checked data-frame route", {
     rows = rows
   )
 
-  expect_identical(vectors, checked)
+  expect_identical(prepared, checked)
 })
 
-test_that("vector survival analyses match completed data-frame analyses", {
+test_that("prepared survival analyses match completed data-frame analyses", {
   set.seed(3901)
   data <- data.frame(
     time = pmin(
@@ -156,7 +156,7 @@ test_that("vector survival analyses match completed data-frame analyses", {
       alternative = "less",
       h0 = 0
     )
-    vectors <- goldilocks:::analyse_completed_survival_vectors(
+    prepared <- goldilocks:::analyse_completed_survival(
       outcome = outcome,
       cutpoints = c(4, 8),
       end_of_study = 12,
@@ -170,7 +170,7 @@ test_that("vector survival analyses match completed data-frame analyses", {
       empty_interval = "prior"
     )
 
-    expect_identical(vectors, expected, info = method)
+    expect_identical(prepared, expected, info = method)
   }
 
   set.seed(3902)
@@ -189,7 +189,7 @@ test_that("vector survival analyses match completed data-frame analyses", {
   expected_seed <- .Random.seed
 
   set.seed(3902)
-  vectors_bayes <- goldilocks:::analyse_completed_survival_vectors(
+  prepared_bayes <- goldilocks:::analyse_completed_survival(
     outcome = outcome,
     cutpoints = c(4, 8),
     end_of_study = 12,
@@ -203,6 +203,6 @@ test_that("vector survival analyses match completed data-frame analyses", {
     empty_interval = "prior"
   )
 
-  expect_identical(vectors_bayes, expected_bayes)
+  expect_identical(prepared_bayes, expected_bayes)
   expect_identical(.Random.seed, expected_seed)
 })
