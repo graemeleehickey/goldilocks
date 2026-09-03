@@ -51,6 +51,18 @@ impute_predictive_draws_internal <- getFromNamespace(
   "impute_predictive_draws",
   "goldilocks"
 )
+predictive_binary_count_states_internal <- getFromNamespace(
+  "predictive_binary_count_states",
+  "goldilocks"
+)
+analyse_predictive_binary_counts_internal <- getFromNamespace(
+  "analyse_predictive_binary_counts",
+  "goldilocks"
+)
+test_stop_success_internal <- getFromNamespace(
+  "test_stop_success",
+  "goldilocks"
+)
 cumulative_hazard_to_probability_internal <- getFromNamespace(
   "cumulative_hazard_to_probability",
   "goldilocks"
@@ -182,6 +194,101 @@ scalar_predictive_imputations <- function() {
   list(current = current, maximum = maximum)
 }
 
+set.seed(1007)
+binary_predictive_imputations <- impute_predictive_draws_internal(
+  data_in = imputation_data,
+  hazards = imputation_hazards,
+  end_of_study = end_of_study,
+  cutpoints = cutpoints_piecewise,
+  single_arm = FALSE,
+  binary_imputation = "bernoulli",
+  check_futility = TRUE
+)
+binary_count_states <- predictive_binary_count_states_internal(
+  data_in = imputation_data,
+  imputations = binary_predictive_imputations,
+  single_arm = FALSE,
+  check_futility = TRUE
+)
+
+materialized_binary_analyses <- function() {
+  current_successes <- 0L
+  maximum_successes <- 0L
+  for (draw in seq_len(binary_predictive_imputations$n_draws)) {
+    result <- test_stop_success_internal(
+      data = imputation_data,
+      imputations = binary_predictive_imputations,
+      draw = draw,
+      end_of_study = end_of_study,
+      cutpoints = cutpoints_piecewise,
+      interval_widths = NULL,
+      single_arm = FALSE,
+      prior_surv = c(0.1, 0.1),
+      N_mcmc = 1L,
+      method = "bayes-bin",
+      alternative = "less",
+      h0 = 0,
+      prior_bin = c(1, 1),
+      bin_method = "quadrature",
+      empty_interval = "prior",
+      check_futility = TRUE,
+      prob_ha = 0.95,
+      mc_conf_level = 0.95
+    )
+    current_successes <- current_successes +
+      as.integer(result$classification_now$crossed)
+    maximum_successes <- maximum_successes +
+      as.integer(result$classification_max$crossed)
+  }
+  c(current = current_successes, maximum = maximum_successes)
+}
+
+count_based_binary_analyses <- function() {
+  result <- analyse_predictive_binary_counts_internal(
+    count_states = binary_count_states,
+    single_arm = FALSE,
+    N_mcmc = 1L,
+    method = "bayes-bin",
+    alternative = "less",
+    h0 = 0,
+    prior_bin = c(1, 1),
+    bin_method = "quadrature",
+    check_futility = TRUE,
+    prob_ha = 0.95,
+    mc_conf_level = 0.95
+  )
+  c(
+    current = result$current_successes,
+    maximum = result$maximum_successes
+  )
+}
+
+if (!identical(materialized_binary_analyses(), count_based_binary_analyses())) {
+  stop("Binary count benchmark does not match its materialized reference.")
+}
+binary_reuse <- analyse_predictive_binary_counts_internal(
+  count_states = binary_count_states,
+  single_arm = FALSE,
+  N_mcmc = 1L,
+  method = "bayes-bin",
+  alternative = "less",
+  h0 = 0,
+  prior_bin = c(1, 1),
+  bin_method = "quadrature",
+  check_futility = TRUE,
+  prob_ha = 0.95,
+  mc_conf_level = 0.95
+)$reuse
+message(
+  "Binary count-state reuse: ",
+  binary_reuse$cache_hits,
+  "/",
+  binary_reuse$analysis_requests,
+  " analyses (",
+  formatC(100 * binary_reuse$cache_hit_rate, digits = 1, format = "f"),
+  "%)"
+)
+
 trial_cutpoints <- c(4, 8)
 trial_hazard_control <- prop_to_haz(
   c(0.20, 0.30, 0.35),
@@ -307,6 +414,12 @@ benchmark_results <- bench::mark(
       check_futility = TRUE
     )
   },
+  binary_completed_data_materialized = {
+    materialized_binary_analyses()
+  },
+  binary_completed_data_counts = {
+    count_based_binary_analyses()
+  },
   survival_adapt_logrank = {
     set.seed(1005)
     survival_adapt(
@@ -359,12 +472,41 @@ benchmark_results <- bench::mark(
       imputed_final = TRUE
     )
   },
+  survival_adapt_bayes_bin = {
+    set.seed(1008)
+    survival_adapt(
+      hazard_treatment = trial_hazard_treatment,
+      hazard_control = trial_hazard_control,
+      cutpoints = trial_cutpoints,
+      N_total = 500,
+      lambda = 20,
+      lambda_time = NULL,
+      interim_look = c(250, 375),
+      end_of_study = end_of_study,
+      prior_surv = c(0.1, 0.1),
+      prior_bin = c(1, 1),
+      bin_method = "quadrature",
+      block = 2,
+      rand_ratio = c(1, 1),
+      prop_loss = 0.2,
+      alternative = "less",
+      h0 = 0,
+      Fn = 0.05,
+      Sn = 0.9,
+      prob_ha = 0.95,
+      N_impute = 100,
+      N_mcmc = 100,
+      method = "bayes-bin",
+      imputed_final = TRUE,
+      binary_imputation = "bernoulli"
+    )
+  },
   iterations = iterations,
   check = FALSE,
   filter_gc = FALSE
 )
 
-print(benchmark_results)
+print(benchmark_results, n = Inf)
 
 output_file <- Sys.getenv("GOLDILOCKS_BENCHMARK_OUT", "")
 if (nzchar(output_file)) {

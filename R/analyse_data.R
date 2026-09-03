@@ -481,14 +481,57 @@ bayes_binomial_test <- function(
     )
   }
 
-  # Keep the posterior arithmetic next to the analysis that consumes it; the
-  # two helpers capture the only non-trivial repeated calculations.
-  beta_binomial_stats <- function(event) {
-    if (length(event) == 0) {
-      stop("Bayesian binomial analysis requires at least one subject per arm")
-    }
-    alpha <- prior_bin[1] + sum(event)
-    beta <- prior_bin[2] + length(event) - sum(event)
+  treatment_event <- data$event[data$treatment == 1]
+  if (length(treatment_event) == 0L) {
+    stop("Bayesian binomial analysis requires at least one subject per arm")
+  }
+  control_event <- if (single_arm) {
+    numeric()
+  } else {
+    data$event[data$treatment == 0]
+  }
+  if (!single_arm && length(control_event) == 0L) {
+    stop("Bayesian binomial analysis requires at least one subject per arm")
+  }
+
+  bayes_binomial_count_kernel(
+    events_control = sum(control_event),
+    n_control = length(control_event),
+    events_treatment = sum(treatment_event),
+    n_treatment = length(treatment_event),
+    single_arm = single_arm,
+    alternative = alternative,
+    h0 = h0,
+    prior_bin = prior_bin,
+    bin_method = bin_method,
+    N_mcmc = N_mcmc
+  )
+}
+
+#' Analyze a complete binary endpoint from arm-level counts
+#'
+#' @description Applies the beta-binomial completed-data analysis to canonical
+#'   event and subject counts. Package-owned predictive calculations call this
+#'   kernel directly; the checked patient-level route above reduces its data to
+#'   the same counts before calling it.
+#'
+#' @keywords internal
+#' @noRd
+bayes_binomial_count_kernel <- function(
+  events_control,
+  n_control,
+  events_treatment,
+  n_treatment,
+  single_arm,
+  alternative,
+  h0,
+  prior_bin,
+  bin_method,
+  N_mcmc
+) {
+  beta_binomial_stats <- function(events, n) {
+    alpha <- prior_bin[1] + events
+    beta <- prior_bin[2] + n - events
     list(
       alpha = alpha,
       beta = beta,
@@ -513,7 +556,7 @@ bayes_binomial_test <- function(
     integrate(integrand, lower = 0, upper = 1)$value
   }
 
-  treatment_stats <- beta_binomial_stats(data$event[data$treatment == 1])
+  treatment_stats <- beta_binomial_stats(events_treatment, n_treatment)
 
   if (single_arm) {
     if (bin_method == "mc") {
@@ -557,7 +600,7 @@ bayes_binomial_test <- function(
     return(result)
   }
 
-  control_stats <- beta_binomial_stats(data$event[data$treatment == 0])
+  control_stats <- beta_binomial_stats(events_control, n_control)
 
   if (bin_method == "mc") {
     effect_draws <-
@@ -640,13 +683,31 @@ risk_difference_estimate_checked <- function(data, end_of_study) {
     stop("Risk-difference analysis requires at least one subject per arm")
   }
 
-  treatment_risk <- mean(treatment_event)
-  control_risk <- mean(control_event)
+  risk_difference_estimate_count_kernel(
+    events_control = sum(control_event),
+    n_control = length(control_event),
+    events_treatment = sum(treatment_event),
+    n_treatment = length(treatment_event)
+  )
+}
+
+#' Estimate a binary risk difference from arm-level counts
+#'
+#' @keywords internal
+#' @noRd
+risk_difference_estimate_count_kernel <- function(
+  events_control,
+  n_control,
+  events_treatment,
+  n_treatment
+) {
+  treatment_risk <- events_treatment / n_treatment
+  control_risk <- events_control / n_control
   estimate <- treatment_risk - control_risk
   variance <- treatment_risk *
     (1 - treatment_risk) /
-    length(treatment_event) +
-    control_risk * (1 - control_risk) / length(control_event)
+    n_treatment +
+    control_risk * (1 - control_risk) / n_control
 
   if (!is.finite(estimate) || !is.finite(variance) || variance < 0) {
     stop(
@@ -676,6 +737,35 @@ risk_difference_wald_test_checked <- function(
   h0
 ) {
   fit <- risk_difference_estimate_checked(data, end_of_study)
+  risk_difference_wald_from_estimate_kernel(fit, alternative, h0)
+}
+
+#' Test a binary risk difference from arm-level counts
+#'
+#' @keywords internal
+#' @noRd
+risk_difference_wald_count_kernel <- function(
+  events_control,
+  n_control,
+  events_treatment,
+  n_treatment,
+  alternative,
+  h0
+) {
+  fit <- risk_difference_estimate_count_kernel(
+    events_control = events_control,
+    n_control = n_control,
+    events_treatment = events_treatment,
+    n_treatment = n_treatment
+  )
+  risk_difference_wald_from_estimate_kernel(fit, alternative, h0)
+}
+
+#' Test a binary risk difference from an estimate and variance
+#'
+#' @keywords internal
+#' @noRd
+risk_difference_wald_from_estimate_kernel <- function(fit, alternative, h0) {
   if (fit$variance == 0) {
     stop(
       "Risk-difference analysis is non-estimable: the estimated variance is ",

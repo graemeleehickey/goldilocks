@@ -649,3 +649,111 @@ materialize_predictive_draw <- function(
   }
   data_out
 }
+
+#' Reduce predictive binary imputations to arm-level count states
+#'
+#' @description Combines fixed observed events with the event matrices for
+#'   pending and future subjects. Binary completed-data analyses depend only on
+#'   these event and subject counts, so they do not need one materialized data
+#'   frame per predictive draw.
+#'
+#' @param data_in A prepared interim data frame.
+#' @param imputations Predictive imputations from
+#'   `impute_predictive_draws()`.
+#' @param single_arm A single logical value indicating a one-arm design.
+#' @param check_futility A single logical value indicating whether maximum-
+#'   sample-size states are required.
+#'
+#' @return A list containing one current-state data frame per predictive draw
+#'   and, when requested, the corresponding maximum-sample-size states.
+#'
+#' @keywords internal
+#' @noRd
+predictive_binary_count_states <- function(
+  data_in,
+  imputations,
+  single_arm,
+  check_futility
+) {
+  n_draws <- imputations$n_draws
+  arm_values <- if (single_arm) 1L else c(0L, 1L)
+
+  block_event_counts <- function(block) {
+    counts <- matrix(
+      0L,
+      nrow = length(arm_values),
+      ncol = n_draws,
+      dimnames = list(as.character(arm_values), NULL)
+    )
+    if (length(block$rows) == 0L) {
+      return(counts)
+    }
+    block_treatment <- data_in$treatment[block$rows]
+    for (arm in arm_values) {
+      rows <- block_treatment == arm
+      if (any(rows)) {
+        counts[as.character(arm), ] <- colSums(
+          block$event[rows, , drop = FALSE]
+        )
+      }
+    }
+    counts
+  }
+
+  fixed_rows <- data_in$subject_enrolled &
+    !data_in$subject_impute_success
+  fixed_events <- vapply(
+    arm_values,
+    function(arm) {
+      sum(data_in$event[fixed_rows & data_in$treatment == arm])
+    },
+    numeric(1L)
+  )
+  names(fixed_events) <- as.character(arm_values)
+
+  current_events <- sweep(
+    block_event_counts(imputations$current),
+    MARGIN = 1L,
+    STATS = fixed_events,
+    FUN = `+`
+  )
+  count_frame <- function(events, maximum = FALSE) {
+    n_for_arm <- function(arm) {
+      rows <- data_in$treatment == arm
+      if (!maximum) {
+        rows <- rows & data_in$subject_enrolled
+      }
+      sum(rows)
+    }
+    data.frame(
+      events_control = if (single_arm) {
+        rep.int(0L, n_draws)
+      } else {
+        as.integer(events["0", ])
+      },
+      n_control = if (single_arm) {
+        rep.int(0L, n_draws)
+      } else {
+        rep.int(as.integer(n_for_arm(0L)), n_draws)
+      },
+      events_treatment = as.integer(events["1", ]),
+      n_treatment = rep.int(as.integer(n_for_arm(1L)), n_draws),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  current <- count_frame(current_events)
+  maximum <- if (check_futility) {
+    if (is.null(imputations$future)) {
+      stop("Internal imputation invariant failed: future draws unavailable")
+    }
+    count_frame(
+      current_events + block_event_counts(imputations$future),
+      maximum = TRUE
+    )
+  } else {
+    NULL
+  }
+
+  list(current = current, maximum = maximum)
+}

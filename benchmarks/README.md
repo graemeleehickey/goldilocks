@@ -31,6 +31,16 @@ need imputation. Both expressions reset to the same seed and use the documented
 draw, cohort, and arm order, so their generated outcomes can also be checked
 directly in unit tests.
 
+The binary completed-data pair starts from one common predictive-imputation
+batch. The materialized reference constructs a patient-level completed data
+frame for every current and maximum-sample analysis. The count path instead
+uses arm-level event and subject totals and evaluates each distinct
+deterministic count state once. The script verifies identical classifications
+before timing the pair and prints the number and percentage of reused states.
+The separate `survival_adapt_bayes_bin` row reports the complete trial runtime,
+including generation, posterior prediction, interim decisions, and final
+analysis.
+
 The stable cumulative-hazard/probability transformations are benchmarked over
 100,000 values spanning near-zero inputs through their mathematical
 boundaries. This guards the use of `expm1()` and `log1p()` against a material

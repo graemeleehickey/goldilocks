@@ -142,43 +142,71 @@ evaluate_interim_core <- function(
   current_successes <- 0L
   inner_mc_uncertain_now <- 0L
   inner_mc_uncertain_max <- 0L
-  for (j in seq_len(N_impute)) {
-    stop_check <- withCallingHandlers(
-      test_stop_success(
-        data = data_interim,
-        imputations = imputations,
-        draw = j,
-        end_of_study = end_of_study,
-        cutpoints = cutpoints,
-        interval_widths = interval_widths,
-        single_arm = single_arm,
-        prior_surv = prior_surv,
-        N_mcmc = N_mcmc,
-        method = method,
-        alternative = alternative,
-        h0 = h0,
-        prior_bin = prior_bin,
-        bin_method = bin_method,
-        empty_interval = empty_interval,
-        check_futility = check_futility,
-        mc_conf_level = mc_conf_level,
-        prob_ha = prob_ha
-      ),
-      warning = capture_warning,
-      goldilocks_empty_interval = capture_empty_interval
+  binary_count_reuse <- NULL
+  if (method %in% c("bayes-bin", "riskdiff")) {
+    count_states <- predictive_binary_count_states(
+      data_in = data_interim,
+      imputations = imputations,
+      single_arm = single_arm,
+      check_futility = check_futility
     )
+    binary_result <- analyse_predictive_binary_counts(
+      count_states = count_states,
+      single_arm = single_arm,
+      N_mcmc = N_mcmc,
+      method = method,
+      alternative = alternative,
+      h0 = h0,
+      prior_bin = prior_bin,
+      bin_method = bin_method,
+      check_futility = check_futility,
+      prob_ha = prob_ha,
+      mc_conf_level = mc_conf_level
+    )
+    current_successes <- binary_result$current_successes
+    maximum_successes <- binary_result$maximum_successes
+    inner_mc_uncertain_now <- binary_result$inner_mc_uncertain_now
+    inner_mc_uncertain_max <- binary_result$inner_mc_uncertain_max
+    binary_count_reuse <- binary_result$reuse
+  } else {
+    for (j in seq_len(N_impute)) {
+      stop_check <- withCallingHandlers(
+        test_stop_success(
+          data = data_interim,
+          imputations = imputations,
+          draw = j,
+          end_of_study = end_of_study,
+          cutpoints = cutpoints,
+          interval_widths = interval_widths,
+          single_arm = single_arm,
+          prior_surv = prior_surv,
+          N_mcmc = N_mcmc,
+          method = method,
+          alternative = alternative,
+          h0 = h0,
+          prior_bin = prior_bin,
+          bin_method = bin_method,
+          empty_interval = empty_interval,
+          check_futility = check_futility,
+          mc_conf_level = mc_conf_level,
+          prob_ha = prob_ha
+        ),
+        warning = capture_warning,
+        goldilocks_empty_interval = capture_empty_interval
+      )
 
-    analysis_now <- stop_check$classification_now
-    current_successes <- current_successes + as.integer(analysis_now$crossed)
-    inner_mc_uncertain_now <- inner_mc_uncertain_now +
-      as.integer(analysis_now$uncertain)
+      analysis_now <- stop_check$classification_now
+      current_successes <- current_successes + as.integer(analysis_now$crossed)
+      inner_mc_uncertain_now <- inner_mc_uncertain_now +
+        as.integer(analysis_now$uncertain)
 
-    if (check_futility) {
-      analysis_max <- stop_check$classification_max
-      maximum_successes <- maximum_successes +
-        as.integer(analysis_max$crossed)
-      inner_mc_uncertain_max <- inner_mc_uncertain_max +
-        as.integer(analysis_max$uncertain)
+      if (check_futility) {
+        analysis_max <- stop_check$classification_max
+        maximum_successes <- maximum_successes +
+          as.integer(analysis_max$crossed)
+        inner_mc_uncertain_max <- inner_mc_uncertain_max +
+          as.integer(analysis_max$uncertain)
+      }
     }
   }
 
@@ -348,6 +376,7 @@ evaluate_interim_core <- function(
       } else {
         NA_integer_
       },
+      binary_count_reuse = binary_count_reuse,
       empty_interval_fallbacks = warning_state$empty_interval_fallbacks,
       warnings = warning_state$messages,
       prior = gamma_prior_diagnostics(

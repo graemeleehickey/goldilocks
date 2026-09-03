@@ -192,3 +192,211 @@ test_stop_success <- function(
     classification_max = classification_max
   ))
 }
+
+#' Evaluate binary predictive completions from arm-level counts
+#'
+#' @description Applies a binary completed-data analysis directly to the event
+#'   and subject counts for every predictive draw. Deterministic analyses reuse
+#'   results for repeated count states within this interim look. Bayesian Monte
+#'   Carlo analyses deliberately evaluate every state independently so that
+#'   each predictive completion receives fresh posterior draws.
+#'
+#' @param count_states A list returned by
+#'   `predictive_binary_count_states()`.
+#' @inheritParams test_stop_success
+#'
+#' @return A list containing success and uncertainty totals together with
+#'   count-state reuse diagnostics.
+#'
+#' @keywords internal
+#' @noRd
+analyse_predictive_binary_counts <- function(
+  count_states,
+  single_arm,
+  N_mcmc,
+  method,
+  alternative,
+  h0,
+  prior_bin,
+  bin_method,
+  check_futility,
+  prob_ha,
+  mc_conf_level
+) {
+  n_draws <- nrow(count_states$current)
+  if (check_futility) {
+    combined <- rbind(count_states$current, count_states$maximum)
+    draw_order <- as.vector(rbind(
+      seq_len(n_draws),
+      n_draws + seq_len(n_draws)
+    ))
+    combined <- combined[draw_order, , drop = FALSE]
+    stage <- rep(c("current", "maximum"), n_draws)
+  } else {
+    combined <- count_states$current
+    stage <- rep.int("current", n_draws)
+  }
+  rownames(combined) <- NULL
+
+  keys <- binary_count_analysis_keys(
+    states = combined,
+    method = method,
+    single_arm = single_arm,
+    alternative = alternative,
+    h0 = h0,
+    prior_bin = prior_bin,
+    bin_method = bin_method,
+    N_mcmc = N_mcmc
+  )
+  deterministic <- method == "riskdiff" || bin_method != "mc"
+  unique_state <- !duplicated(keys)
+  analysis_rows <- if (deterministic) {
+    which(unique_state)
+  } else {
+    seq_len(nrow(combined))
+  }
+
+  analyses_unique <- lapply(analysis_rows, function(row) {
+    analyse_binary_count_state_kernel(
+      state = combined[row, , drop = FALSE],
+      single_arm = single_arm,
+      N_mcmc = N_mcmc,
+      method = method,
+      alternative = alternative,
+      h0 = h0,
+      prior_bin = prior_bin,
+      bin_method = bin_method
+    )
+  })
+  analyses <- if (deterministic) {
+    analyses_unique[match(keys, keys[unique_state])]
+  } else {
+    analyses_unique
+  }
+  classifications <- lapply(analyses, function(analysis) {
+    classify_completed_analysis(
+      analysis,
+      prob_ha = prob_ha,
+      mc_conf_level = mc_conf_level
+    )
+  })
+
+  crossed <- vapply(classifications, `[[`, logical(1L), "crossed")
+  uncertain <- vapply(classifications, `[[`, logical(1L), "uncertain")
+  current <- stage == "current"
+  maximum <- stage == "maximum"
+  unique_states <- sum(unique_state)
+  repeated_states <- length(keys) - unique_states
+
+  list(
+    current_successes = sum(crossed[current]),
+    maximum_successes = if (check_futility) {
+      sum(crossed[maximum])
+    } else {
+      0L
+    },
+    inner_mc_uncertain_now = sum(uncertain[current]),
+    inner_mc_uncertain_max = if (check_futility) {
+      sum(uncertain[maximum])
+    } else {
+      0L
+    },
+    reuse = data.frame(
+      method = method,
+      bin_method = if (method == "bayes-bin") bin_method else NA_character_,
+      cache_enabled = deterministic,
+      analysis_requests = length(keys),
+      unique_count_states = unique_states,
+      repeated_count_states = repeated_states,
+      repeated_state_rate = repeated_states / length(keys),
+      cache_hits = if (deterministic) repeated_states else 0L,
+      cache_hit_rate = if (deterministic) {
+        repeated_states / length(keys)
+      } else {
+        0
+      },
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+#' Construct complete keys for binary count analyses
+#'
+#' @description Includes every count and fixed setting used by the cached
+#'   completed-data analysis. Classification thresholds are applied after
+#'   lookup and are not part of the cached result.
+#'
+#' @keywords internal
+#' @noRd
+binary_count_analysis_keys <- function(
+  states,
+  method,
+  single_arm,
+  alternative,
+  h0,
+  prior_bin,
+  bin_method,
+  N_mcmc
+) {
+  numeric_key <- function(x) {
+    paste(sprintf("%.17g", x), collapse = ",")
+  }
+  settings <- paste(
+    method,
+    single_arm,
+    alternative,
+    numeric_key(h0),
+    numeric_key(prior_bin),
+    bin_method,
+    as.integer(N_mcmc),
+    sep = "\r"
+  )
+  paste(
+    settings,
+    states$events_control,
+    states$n_control,
+    states$events_treatment,
+    states$n_treatment,
+    sep = "\r"
+  )
+}
+
+#' Analyze one canonical binary count state
+#'
+#' @keywords internal
+#' @noRd
+analyse_binary_count_state_kernel <- function(
+  state,
+  single_arm,
+  N_mcmc,
+  method,
+  alternative,
+  h0,
+  prior_bin,
+  bin_method
+) {
+  if (method == "bayes-bin") {
+    return(bayes_binomial_count_kernel(
+      events_control = state$events_control,
+      n_control = state$n_control,
+      events_treatment = state$events_treatment,
+      n_treatment = state$n_treatment,
+      single_arm = single_arm,
+      alternative = alternative,
+      h0 = h0,
+      prior_bin = prior_bin,
+      bin_method = bin_method,
+      N_mcmc = N_mcmc
+    ))
+  }
+
+  fit <- risk_difference_wald_count_kernel(
+    events_control = state$events_control,
+    n_control = state$n_control,
+    events_treatment = state$events_treatment,
+    n_treatment = state$n_treatment,
+    alternative = alternative,
+    h0 = h0
+  )
+  list(success = fit$success, effect = fit$estimate)
+}

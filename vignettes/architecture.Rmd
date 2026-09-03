@@ -66,10 +66,12 @@ digraph trial_pipeline {
   posterior_complete [label = 'posterior()']
   impute_batch [label = 'impute_predictive_draws()\nvectorized PWE / Bernoulli sampling']
   materialize [label = 'materialize_predictive_draw()']
+  binary_counts [label = 'predictive_binary_count_states()\narm-level event / subject counts']
   impute_data [label = 'impute_data()\nscalar final/reference path']
   pwe_impute [label = 'pwe_impute()', fillcolor = '#dae8fc', color = '#6c8ebf']
   analyse_data [label = 'analyse_data()']
   bayes_kernel [label = 'Bayesian-survival kernels', fillcolor = '#fff2cc', color = '#d6b656']
+  binary_kernel [label = 'Binary count kernels\nstate reuse if deterministic', fillcolor = '#fff2cc', color = '#d6b656']
   rubin_pool [label = 'Cox / risk-difference fits + Rubin pooling']
   prop_to_haz [label = 'prop_to_haz()', fillcolor = '#dae8fc', color = '#6c8ebf']
 
@@ -92,11 +94,13 @@ digraph trial_pipeline {
   posterior_stats -> posterior_checked [label = 'observed sufficient statistics']
   posterior_checked -> impute_batch [label = 'N_impute hazard draws']
   interim_core -> impute_batch [label = 'one batch per look']
-  impute_batch -> materialize [label = 'time / event matrices']
+  impute_batch -> materialize [label = 'survival / regression methods']
   materialize -> test_stop [label = 'one column per analysis']
+  impute_batch -> binary_counts [label = 'fixed-horizon binary methods']
+  binary_counts -> binary_kernel [label = 'current + maximum states']
 
   test_stop -> bayes_kernel [label = 'bayes-surv']
-  test_stop -> analyse_data [label = 'other methods']
+  test_stop -> analyse_data [label = 'logrank / cox']
 
   test_final -> posterior_complete [label = 'if imputed_final']
   posterior_complete -> impute_data [label = 'N_impute hazard draws']
@@ -114,7 +118,9 @@ digraph trial_pipeline {
 
 At every simulated look, `survival_adapt()` prepares the observed data cut and calls `evaluate_interim_core()`. `evaluate_interim()` instead validates an external data cut, derives potential future allocation from `N_total` and `rand_ratio`, and then calls the same core function. Consequently, simulated and external interim decisions share posterior prediction, imputation, completed-data analysis, threshold comparisons, diagnostics, and trace construction.
 
-The core draws `N_impute` hazards from the observed-data posterior and passes the complete array to `impute_predictive_draws()`. That internal batch calculation generates subject-by-draw time and event matrices for currently pending follow-up and, when futility is enabled, future subjects through the maximum sample size. It stores only rows requiring imputation. `test_stop_success()` then materializes and analyzes one matrix column at a time, so the completed-data analysis models and decision rules remain unchanged. The scalar `impute_data()` helper remains in active use for final-analysis imputation and as the reference implementation.
+The core draws `N_impute` hazards from the observed-data posterior and passes the complete array to `impute_predictive_draws()`. That internal batch calculation generates subject-by-draw time and event matrices for currently pending follow-up and, when futility is enabled, future subjects through the maximum sample size. It stores only rows requiring imputation. Survival, log-rank, and Cox analyses materialize and analyze one matrix column at a time. Fixed-horizon binary analyses instead combine each column with the observed event counts and pass the resulting arm-level event and subject totals directly to the same risk-difference or beta-binomial kernels used by the checked patient-level analysis. The scalar `impute_data()` helper remains in active use for final-analysis imputation and as the reference implementation.
+
+For deterministic binary analyses, repeated current or maximum-sample count states within one interim look are analyzed once and the result is reused. The state identity contains the control and treatment event counts and sample sizes together with every fixed analysis setting. Its lifetime is limited to that look. Bayesian binary analysis with `bin_method = "mc"` does not reuse results: every predictive completion receives fresh beta-posterior draws in the established current-then-maximum order. The count path therefore changes only the computational representation, not the completed-data model or Monte Carlo procedure. `evaluate_interim()` reports the number of requested, distinct, repeated, and reused count states in `diagnostics$binary_count_reuse`.
 
 Within an interim batch, random inputs are generated in posterior-draw order; for each draw the order is current treatment, current control, future treatment, then future control. All predictive imputations are generated before completed-data analysis begins. This remains exactly reproducible under `set.seed()` and across supported serial and parallel backends. Because Bayesian completed-data analyses previously consumed random numbers between imputations, the same seed can produce different Bayesian results than in earlier package versions. The resulting success indicators estimate the predictive probabilities used for expected-success and futility decisions. Exact Monte Carlo bounds are retained as diagnostics; decisions use the point estimates.
 
@@ -202,7 +208,7 @@ These widths describe the fixed analysis horizon, not the maximum follow-up curr
 
 ## Completed-data analysis methods
 
-`analyse_data()` dispatches a completed dataset according to `method`. Interim prediction tests each completed dataset independently before averaging its binary success indicators.
+`analyse_data()` dispatches a completed dataset according to `method`. Interim prediction tests each completed dataset independently before averaging its binary success indicators. For fixed-horizon binary methods, event counts are sufficient for that test: the patient-level and optimized predictive routes delegate to common count kernels.
 
 | `method` | Completed-data analysis | `imputed_final = TRUE` | `imputed_final = FALSE` |
 |:--|:--|:--|:--|
@@ -270,7 +276,7 @@ The three main entry points retain enough information for audit and downstream d
 
 -   `survival_adapt()` returns the one-row trial summary and optionally a compact interim trace, with normalized arguments, decision design, prior diagnostics, enrollment design, and calendar metrics attached;
 -   `sim_trials()` returns successful trial summaries, isolated failure records, optional traces, RNG and parallel metadata, and the common retained design; and
--   `evaluate_interim()` returns the decision, predictive probabilities, Monte Carlo diagnostics, allocation and data-cut diagnostics, posterior diagnostics, and a compatible one-look trace.
+-   `evaluate_interim()` returns the decision, predictive probabilities, Monte Carlo diagnostics, allocation and data-cut diagnostics, posterior diagnostics, binary count-state reuse diagnostics when applicable, and a compatible one-look trace.
 
 Post-processing functions consume these retained results without rerunning the trial:
 
@@ -292,5 +298,5 @@ Several conventions link the layers above:
 -   `generation_cutpoints` governs event-time generation only, whereas `cutpoints` governs posterior estimation, predictive imputation, analysis priors, and endpoint probability calculations;
 -   analysis intervals follow the survival counting-process convention `(start, stop]` when observed events are assigned to sufficient statistics;
 -   outer predictive decisions use `N_impute`, completed-data Bayesian Monte Carlo uses `N_mcmc`, and exact bounds are diagnostic rather than decision-changing; and
--   interim RNG order is posterior hazards, the complete predictive-imputation batch in draw/current/future/arm order, and then completed-data analyses; and
+-   interim RNG order is posterior hazards, the complete predictive-imputation batch in draw/current/future/arm order, and then completed-data analyses; Bayesian binary Monte Carlo retains current-then-maximum order within each draw and does not reuse repeated states; and
 -   trusted kernels may bypass repeated rich-input validation only after package-owned callers have constructed canonical inputs. General entry points retain checked behavior.
