@@ -737,6 +737,50 @@ test_that("posterior returns positive draws", {
   expect_true(all(res > 0))
 })
 
+test_that("posterior draws have the conjugate Gamma moments", {
+  set.seed(803)
+  n_draws <- 50000L
+  prior_shape <- 2
+  prior_rate <- 5
+  events <- 6
+  exposure <- 80
+  posterior_shape <- prior_shape + events
+  posterior_rate <- prior_rate + exposure
+  expected_mean <- posterior_shape / posterior_rate
+  expected_variance <- posterior_shape / posterior_rate^2
+
+  data_summ <- data.frame(
+    treatment = 1,
+    interval = factor(1, levels = 1),
+    n = 20,
+    tot_time = exposure,
+    tot_events = events
+  )
+  posterior_draws <- posterior_from_sufficient_stats(
+    data_summ = data_summ,
+    prior_surv = c(prior_shape, prior_rate),
+    N_mcmc = n_draws,
+    single_arm = TRUE
+  )[, 1, 1]
+
+  expect_mc_close(
+    mean(posterior_draws),
+    expected_mean,
+    sqrt(expected_variance / n_draws),
+    "Gamma posterior mean hazard"
+  )
+  expect_mc_close(
+    stats::var(posterior_draws),
+    expected_variance,
+    gamma_variance_mcse(
+      shape = posterior_shape,
+      rate = posterior_rate,
+      n = n_draws
+    ),
+    "Gamma posterior hazard variance"
+  )
+})
+
 test_that("posterior applies independent arm-specific priors", {
   data <- data.frame(
     time = c(3, 8, 15, 4, 10, 18),

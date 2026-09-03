@@ -64,6 +64,40 @@ test_that("pwe_sim without maxtime marks all as events", {
   expect_true(all(out$event == 1))
 })
 
+test_that("pwe_sim follows the specified event-time distribution", {
+  set.seed(801)
+  n <- 20000L
+  hazard <- c(0.04, 0.015, 0.06)
+  cutpoints <- c(5, 12)
+  evaluation_times <- c(2, 5, 9, 12, 18)
+
+  simulated <- pwe_sim(
+    n = n,
+    hazard = hazard,
+    cutpoints = cutpoints,
+    maxtime = max(evaluation_times)
+  )
+
+  cumulative_hazard <- function(time) {
+    interval_lower <- c(0, cutpoints)
+    interval_upper <- c(cutpoints, Inf)
+    sum(
+      hazard *
+        pmax(0, pmin(time, interval_upper) - interval_lower)
+    )
+  }
+
+  for (time in evaluation_times) {
+    target <- -expm1(-cumulative_hazard(time))
+    observed_event <- simulated$event == 1 & simulated$time <= time
+    expect_mc_rate(
+      observed_event,
+      target,
+      sprintf("piecewise-exponential P(T <= %s)", time)
+    )
+  }
+})
+
 test_that("each cutpoint requires one additional hazard rate", {
   expect_no_error(pwe_sim(n = 2, hazard = 0.01))
   expect_no_error(pwe_sim(n = 2, hazard = c(0.01, 0.02), cutpoints = 5))
@@ -202,6 +236,48 @@ test_that("pwe_impute without maxtime marks all as events", {
     cutpoints = 12
   )
   expect_true(all(out$event == 1))
+})
+
+test_that("pwe_impute follows the conditional event-time distribution", {
+  set.seed(802)
+  n <- 20000L
+  hazard <- c(0.04, 0.015, 0.06)
+  cutpoints <- c(5, 12)
+  observed_time <- 7
+  evaluation_time <- 15
+  end_of_study <- 18
+
+  imputed <- pwe_impute(
+    time = rep(observed_time, n),
+    hazard = hazard,
+    cutpoints = cutpoints,
+    maxtime = end_of_study
+  )
+
+  cumulative_hazard <- function(time) {
+    interval_lower <- c(0, cutpoints)
+    interval_upper <- c(cutpoints, Inf)
+    sum(
+      hazard *
+        pmax(0, pmin(time, interval_upper) - interval_lower)
+    )
+  }
+  target <- -expm1(
+    -(cumulative_hazard(evaluation_time) -
+      cumulative_hazard(observed_time))
+  )
+
+  expect_mc_rate(
+    imputed$event == 1 & imputed$time <= evaluation_time,
+    target,
+    paste0(
+      "conditional piecewise-exponential P(T <= ",
+      evaluation_time,
+      " | T > ",
+      observed_time,
+      ")"
+    )
+  )
 })
 
 test_that("pwe utilities validate finite non-negative hazard rates", {

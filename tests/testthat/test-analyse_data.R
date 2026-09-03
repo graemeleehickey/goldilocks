@@ -695,12 +695,38 @@ test_that("analyse_data works with method = 'bayes-bin' and Monte Carlo", {
     prior_bin = c(1, 1),
     bin_method = "mc"
   )
+  reference <- analyse_data(
+    data = data,
+    cutpoints = NULL,
+    end_of_study = 36,
+    prior_surv = c(0.1, 0.1),
+    N_mcmc = 1,
+    single_arm = FALSE,
+    method = "bayes-bin",
+    alternative = "greater",
+    h0 = 0,
+    prior_bin = c(1, 1),
+    bin_method = "quadrature"
+  )
+  treatment_variance <- (31 * 21) / (52^2 * 53)
+  control_variance <- (11 * 41) / (52^2 * 53)
 
   expect_type(res, "list")
   expect_named(res, c("success", "effect"))
   expect_true(res$success >= 0 && res$success <= 1)
   expect_length(res$effect, 1)
-  expect_equal(res$effect, 20 / 52, tolerance = 0.02)
+  expect_mc_close(
+    res$effect,
+    20 / 52,
+    sqrt((treatment_variance + control_variance) / 5000),
+    "Bayesian binomial posterior mean risk difference"
+  )
+  expect_mc_close(
+    res$success,
+    reference$success,
+    sqrt(reference$success * (1 - reference$success) / 5000),
+    "Bayesian binomial posterior probability"
+  )
   expect_true(res$success > 0.9)
 })
 
@@ -760,7 +786,16 @@ test_that("analyse_data method = 'bayes-bin' engines agree on stable data", {
     c(args, bin_method = "quadrature")
   )
 
-  expect_equal(res_mc$success, res_quadrature$success, tolerance = 0.01)
+  expect_mc_close(
+    res_mc$success,
+    res_quadrature$success,
+    sqrt(
+      res_quadrature$success *
+        (1 - res_quadrature$success) /
+        args$N_mcmc
+    ),
+    "Bayesian binomial Monte Carlo posterior probability"
+  )
   expect_equal(res_normal$success, res_quadrature$success, tolerance = 0.02)
 })
 

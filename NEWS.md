@@ -2,6 +2,13 @@
 
 ## Improvements
 
+* Seeded statistical regression tests now validate piecewise-exponential event
+  and conditional-imputation distributions, conjugate Gamma posterior moments,
+  frequentist type-I error and confidence-interval coverage, and invariance to
+  changes of time unit. Non-CRAN reference tests also validate predictive
+  probabilities close to the futility and expected-success thresholds.
+  Simulation tolerances are derived from Monte Carlo uncertainty and report the
+  estimand, target, estimate, and uncertainty when a check fails.
 * Function documentation now states argument types, accepted lengths and
   ranges, defaults, and required inputs more consistently. Titles,
   descriptions, analysis-method explanations, and return-value descriptions
