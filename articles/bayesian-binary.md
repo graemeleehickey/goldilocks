@@ -108,12 +108,14 @@ out_two_arm <- do.call(survival_adapt, two_arm_args)
 out_two_arm
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          60        60        120   120
-#>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9178978 -0.1129032        0.85             0                     0
-#>       stopping_reason accrual_stop_time analysis_ready_time
-#> 1 maximum_sample_size            10.911              22.911
-#>   planned_completion_time followup_person_time peak_active_followup
-#> 1                  22.911             1193.166                  106
+#>   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success
+#> 1    0.9178978 -0.1129032        0.85             0                      0
+#>   stop_expected_success trial_success     stopping_reason decision_time
+#> 1                     0         FALSE maximum_sample_size        22.911
+#>   accrual_stop_time analysis_ready_time planned_completion_time
+#> 1            10.911              22.911                  22.911
+#>   followup_person_time peak_active_followup
+#> 1             1193.166                  106
 ```
 
 The output has the same structure as other
@@ -229,12 +231,14 @@ out_single_arm <- survival_adapt(
 out_single_arm
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95    0.3        less          50         0         50    80
-#>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9980375 0.1346154           1             0                     1
-#>    stopping_reason accrual_stop_time analysis_ready_time
-#> 1 expected_success           5.96506            17.96506
-#>   planned_completion_time followup_person_time peak_active_followup
-#> 1                17.96506             564.1026                   49
+#>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
+#> 1    0.9980375 0.1346154           1             0                      0
+#>   stop_expected_success trial_success  stopping_reason decision_time
+#> 1                     1          TRUE expected_success      17.96506
+#>   accrual_stop_time analysis_ready_time planned_completion_time
+#> 1           5.96506            17.96506                17.96506
+#>   followup_person_time peak_active_followup
+#> 1             564.1026                   49
 ```
 
 In this setting `est_final` is the posterior mean event probability in

@@ -280,12 +280,14 @@ anthem_trial <- do.call(survival_adapt, c(
 anthem_trial$summary
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.981      0        less         667       333       1000  1000
-#>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9568078        NA  0.07666667             0                     0
-#>       stopping_reason accrual_stop_time analysis_ready_time
-#> 1 maximum_sample_size          186.2259            255.5593
-#>   planned_completion_time followup_person_time peak_active_followup
-#> 1                255.5593             51978.65                  318
+#>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
+#> 1    0.9568078        NA  0.07666667             0                      0
+#>   stop_expected_success trial_success     stopping_reason decision_time
+#> 1                     0         FALSE maximum_sample_size      255.5593
+#>   accrual_stop_time analysis_ready_time planned_completion_time
+#> 1          186.2259            255.5593                255.5593
+#>   followup_person_time peak_active_followup
+#> 1             51978.65                  318
 ```
 
 The trace shows the predictive quantities only at looks reached before a

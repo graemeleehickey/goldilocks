@@ -171,12 +171,14 @@ p_{\text{control}}</span></p>
 <span><span class="va">out_two_arm</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95      0        less          60        60        120   120</span></span>
-<span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9178978 -0.1129032        0.85             0                     0</span></span>
-<span><span class="co">#&gt;       stopping_reason accrual_stop_time analysis_ready_time</span></span>
-<span><span class="co">#&gt; 1 maximum_sample_size            10.911              22.911</span></span>
-<span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1                  22.911             1193.166                  106</span></span></code></pre></div>
+<span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success</span></span>
+<span><span class="co">#&gt; 1    0.9178978 -0.1129032        0.85             0                      0</span></span>
+<span><span class="co">#&gt;   stop_expected_success trial_success     stopping_reason decision_time</span></span>
+<span><span class="co">#&gt; 1                     0         FALSE maximum_sample_size        22.911</span></span>
+<span><span class="co">#&gt;   accrual_stop_time analysis_ready_time planned_completion_time</span></span>
+<span><span class="co">#&gt; 1            10.911              22.911                  22.911</span></span>
+<span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
+<span><span class="co">#&gt; 1             1193.166                  106</span></span></code></pre></div>
 <p>The output has the same structure as other
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> analyses. For
 <code>method = "bayes-bin"</code>, <code>est_final</code> is the
@@ -292,12 +294,14 @@ exceeds <code>prob_ha</code>.</p>
 <span><span class="va">out_single_arm</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95    0.3        less          50         0         50    80</span></span>
-<span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9980375 0.1346154           1             0                     1</span></span>
-<span><span class="co">#&gt;    stopping_reason accrual_stop_time analysis_ready_time</span></span>
-<span><span class="co">#&gt; 1 expected_success           5.96506            17.96506</span></span>
-<span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1                17.96506             564.1026                   49</span></span></code></pre></div>
+<span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_immediate_success</span></span>
+<span><span class="co">#&gt; 1    0.9980375 0.1346154           1             0                      0</span></span>
+<span><span class="co">#&gt;   stop_expected_success trial_success  stopping_reason decision_time</span></span>
+<span><span class="co">#&gt; 1                     1          TRUE expected_success      17.96506</span></span>
+<span><span class="co">#&gt;   accrual_stop_time analysis_ready_time planned_completion_time</span></span>
+<span><span class="co">#&gt; 1           5.96506            17.96506                17.96506</span></span>
+<span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
+<span><span class="co">#&gt; 1             564.1026                   49</span></span></code></pre></div>
 <p>In this setting <code>est_final</code> is the posterior mean event
 probability in the single arm, and <code>post_prob_ha</code> is the
 posterior probability that this event probability is below the

@@ -4,14 +4,16 @@ trials. The horizontal axis is the predictive probability of success if
 enrollment continues to the maximum sample size, and the vertical axis is
 the predictive probability of success if enrollment stops at the current
 sample size. Shaded regions and dashed lines show the futility,
-continuation, and expected-success rules. Identical points are aggregated;
-point size indicates their frequency."><meta property="og:description" content="Draws one decision map per interim look across simulated
+continuation, stopping-accrual-for-expected-success, and immediate-success
+rules. Identical points are aggregated; point size indicates their
+frequency."><meta property="og:description" content="Draws one decision map per interim look across simulated
 trials. The horizontal axis is the predictive probability of success if
 enrollment continues to the maximum sample size, and the vertical axis is
 the predictive probability of success if enrollment stops at the current
 sample size. Shaded regions and dashed lines show the futility,
-continuation, and expected-success rules. Identical points are aggregated;
-point size indicates their frequency."></head><body>
+continuation, stopping-accrual-for-expected-success, and immediate-success
+rules. Identical points are aggregated; point size indicates their
+frequency."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -57,8 +59,9 @@ trials. The horizontal axis is the predictive probability of success if
 enrollment continues to the maximum sample size, and the vertical axis is
 the predictive probability of success if enrollment stops at the current
 sample size. Shaded regions and dashed lines show the futility,
-continuation, and expected-success rules. Identical points are aggregated;
-point size indicates their frequency.</p>
+continuation, stopping-accrual-for-expected-success, and immediate-success
+rules. Identical points are aggregated; point size indicates their
+frequency.</p>
     </div>
 
     <div class="section level2">
@@ -81,6 +84,16 @@ thresholds, and decisions.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>The simulation traces, invisibly.</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>The upper shaded region represents
+<code>ppp_stop_now &gt; immediate_success_threshold</code>; the middle region represents
+<code>success_threshold &lt; ppp_stop_now &lt;= immediate_success_threshold</code>.
+Futility applies below or at the expected-success threshold when the
+maximum-sample-size prediction is strictly below its threshold. A legacy
+trace without <code>immediate_success_threshold</code> is treated as if that threshold
+were one, which disables immediate success.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -90,6 +103,7 @@ thresholds, and decisions.</p></dd>
 <span class="r-in"><span>  planned_N <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">60</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  ppp_stop_now <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.96</span>, <span class="fl">0.4</span>, <span class="fl">0.2</span>, <span class="fl">0.92</span>, <span class="fl">0.5</span>, <span class="fl">0.1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  success_threshold <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">0.9</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  immediate_success_threshold <span class="op">=</span> <span class="fl">0.99</span>,</span></span>
 <span class="r-in"><span>  ppp_success_at_max <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.8</span>, <span class="fl">0.5</span>, <span class="fl">0.02</span>, <span class="fl">0.85</span>, <span class="fl">0.4</span>, <span class="fl">0.01</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  futility_threshold <span class="op">=</span> <span class="fl">0.05</span>,</span></span>
 <span class="r-in"><span>  decision <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>

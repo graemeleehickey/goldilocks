@@ -182,8 +182,12 @@ participant:</p>
 <span><span class="va">interim_result</span><span class="op">$</span><span class="va">decision</span></span>
 <span><span class="co">#&gt;   look planned_N calendar_time decision                 decision_reason</span></span>
 <span><span class="co">#&gt; 1    2         8             8 continue continue_thresholds_not_crossed</span></span>
-<span><span class="co">#&gt;   ppp_stop_now success_threshold ppp_success_at_max futility_threshold</span></span>
-<span><span class="co">#&gt; 1            0               0.9                0.2               0.05</span></span>
+<span><span class="co">#&gt;   ppp_stop_now success_threshold immediate_success_threshold</span></span>
+<span><span class="co">#&gt; 1            0               0.9                           1</span></span>
+<span><span class="co">#&gt;   immediate_success_crossed expected_success_crossed ppp_success_at_max</span></span>
+<span><span class="co">#&gt; 1                     FALSE                    FALSE                0.2</span></span>
+<span><span class="co">#&gt;   futility_threshold futility_crossed</span></span>
+<span><span class="co">#&gt; 1               0.05            FALSE</span></span>
 <span><span class="va">interim_result</span><span class="op">$</span><span class="va">monte_carlo</span></span>
 <span><span class="co">#&gt;              estimand successes draws estimate       mcse      lower     upper</span></span>
 <span><span class="co">#&gt; 1 success_if_stop_now         0    20      0.0 0.00000000 0.00000000 0.1391083</span></span>
@@ -231,12 +235,14 @@ existing helpers:</p>
 <span><span class="co">#&gt; 1                1              1         6              4            0</span></span>
 <span><span class="co">#&gt;   ppp_stop_now_mcse ppp_stop_now_lower ppp_stop_now_upper ppp_stop_now_draws</span></span>
 <span><span class="co">#&gt; 1                 0                  0          0.1391083                 20</span></span>
-<span><span class="co">#&gt;   success_threshold ppp_success_at_max ppp_success_at_max_mcse</span></span>
-<span><span class="co">#&gt; 1               0.9                0.2              0.08944272</span></span>
+<span><span class="co">#&gt;   success_threshold immediate_success_threshold immediate_success_crossed</span></span>
+<span><span class="co">#&gt; 1               0.9                           1                     FALSE</span></span>
+<span><span class="co">#&gt;   expected_success_crossed ppp_success_at_max ppp_success_at_max_mcse</span></span>
+<span><span class="co">#&gt; 1                    FALSE                0.2              0.08944272</span></span>
 <span><span class="co">#&gt;   ppp_success_at_max_lower ppp_success_at_max_upper ppp_success_at_max_draws</span></span>
 <span><span class="co">#&gt; 1               0.07135388                0.4010281                       20</span></span>
-<span><span class="co">#&gt;   futility_threshold inner_mc_uncertain_stop_now</span></span>
-<span><span class="co">#&gt; 1               0.05                           0</span></span>
+<span><span class="co">#&gt;   futility_threshold futility_crossed inner_mc_uncertain_stop_now</span></span>
+<span><span class="co">#&gt; 1               0.05            FALSE                           0</span></span>
 <span><span class="co">#&gt;   inner_mc_uncertain_success_at_max decision                 decision_reason</span></span>
 <span><span class="co">#&gt; 1                                 0 continue continue_thresholds_not_crossed</span></span>
 <span><span class="co">#&gt;   empty_interval_fallback_count empty_interval_fallbacks warning_count</span></span>

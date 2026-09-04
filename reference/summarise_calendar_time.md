@@ -39,7 +39,8 @@ data frames:
   overall row. It reports simulation denominators, stopping counts,
   sample size, accrual-stop time, analysis-ready time, planned
   completion time, total person-time under follow-up, and peak
-  concurrent follow-up.
+  concurrent follow-up. Newer results also report the time at which the
+  terminal decision was made.
 
 - `interim_timing`: one row per scenario and interim look. It reports
   how often the look was reached, its calendar time, and the number of

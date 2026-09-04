@@ -103,12 +103,14 @@ out <- survival_adapt(
 out
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95    0.3        less          80         0         80    80
-#>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1        0.991 0.1829128        0.08             0                     0
-#>       stopping_reason accrual_stop_time analysis_ready_time
-#> 1 maximum_sample_size          15.05894            39.05894
-#>   planned_completion_time followup_person_time peak_active_followup
-#> 1                39.05894             1672.471                   73
+#>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
+#> 1        0.991 0.1829128        0.08             0                      0
+#>   stop_expected_success trial_success     stopping_reason decision_time
+#> 1                     0          TRUE maximum_sample_size      39.05894
+#>   accrual_stop_time analysis_ready_time planned_completion_time
+#> 1          15.05894            39.05894                39.05894
+#>   followup_person_time peak_active_followup
+#> 1             1672.471                   73
 ```
 
 There is no need to supply `block` or `rand_ratio`: they are redundant

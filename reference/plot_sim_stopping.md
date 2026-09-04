@@ -1,12 +1,12 @@
 # Plot stopping outcomes from trial simulations
 
 Draws a stacked bar chart of stopping outcomes by enrolled sample size,
-with colours distinguishing expected-success, futility, and
-maximum-sample-size outcomes. The `type` argument controls whether the
-function draws marginal, conditional, or cumulative bars, or a flowchart
-through successive interim looks. Bar-chart subtitles state the
-denominator used by the selected view. The input can be the `sims`
-element returned by
+with colours distinguishing immediate success, stopping accrual for
+expected success, futility, and maximum-sample-size outcomes. The `type`
+argument controls whether the function draws marginal, conditional, or
+cumulative bars, or a flowchart through successive interim looks.
+Bar-chart subtitles state the denominator used by the selected view. The
+input can be the `sims` element returned by
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
 or the complete
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
@@ -39,8 +39,9 @@ plot_sim_stopping(
   `"cumulative"` shows the status of all simulated trials after each
   look; every bar sums to 100 percent and includes trials continuing to
   the next look. `"flowchart"` starts with all simulated trials and
-  branches at each look into futility, continued enrollment, and
-  expected-success nodes labelled with trial counts.
+  branches at each look into futility, continued enrollment,
+  expected-success, and immediate-success nodes labelled with trial
+  counts.
 
 ## Value
 

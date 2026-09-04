@@ -732,12 +732,14 @@ multiple trials.</p>
 <span><span class="va">advent_effectiveness</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1          0.956   0.15        less         225       225        450   750</span></span>
-<span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9973365 0.02061947           1             0                     1</span></span>
-<span><span class="co">#&gt;    stopping_reason accrual_stop_time analysis_ready_time</span></span>
-<span><span class="co">#&gt; 1 expected_success          556.0652            916.0652</span></span>
-<span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1                916.0652             123841.1                  285</span></span></code></pre></div>
+<span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success</span></span>
+<span><span class="co">#&gt; 1    0.9973365 0.02061947           1             0                      0</span></span>
+<span><span class="co">#&gt;   stop_expected_success trial_success  stopping_reason decision_time</span></span>
+<span><span class="co">#&gt; 1                     1          TRUE expected_success      916.0652</span></span>
+<span><span class="co">#&gt;   accrual_stop_time analysis_ready_time planned_completion_time</span></span>
+<span><span class="co">#&gt; 1          556.0652            916.0652                916.0652</span></span>
+<span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
+<span><span class="co">#&gt; 1             123841.1                  285</span></span></code></pre></div>
 <p>The most important columns are:</p>
 <ul>
 <li>
@@ -804,12 +806,14 @@ threshold. Success in the code means:</p>
 <span><span class="va">advent_safety</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1          0.966   0.08        less         275       275        550   750</span></span>
-<span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9964775 0.0184058        0.94             0                     1</span></span>
-<span><span class="co">#&gt;    stopping_reason accrual_stop_time analysis_ready_time</span></span>
-<span><span class="co">#&gt; 1 expected_success          612.6321            972.6321</span></span>
-<span><span class="co">#&gt;   planned_completion_time followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1                972.6321             180972.2                  371</span></span></code></pre></div>
+<span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_immediate_success</span></span>
+<span><span class="co">#&gt; 1    0.9964775 0.0184058        0.94             0                      0</span></span>
+<span><span class="co">#&gt;   stop_expected_success trial_success  stopping_reason decision_time</span></span>
+<span><span class="co">#&gt; 1                     1          TRUE expected_success      972.6321</span></span>
+<span><span class="co">#&gt;   accrual_stop_time analysis_ready_time planned_completion_time</span></span>
+<span><span class="co">#&gt; 1          612.6321            972.6321                972.6321</span></span>
+<span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
+<span><span class="co">#&gt; 1             180972.2                  371</span></span></code></pre></div>
 <p>In the published ADVENT design, a predicted-success stopping
 recommendation required high predictive probability for both endpoints.
 A futility recommendation could be triggered by low predictive
@@ -963,44 +967,52 @@ accidentally for safety, or vice versa.</p>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">oc_small</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
-<table style="width:100%;" class="table">
+<table class="table">
 <colgroup>
-<col width="4%">
+<col width="3%">
 <col width="1%">
 <col width="0%">
-<col width="2%">
 <col width="1%">
 <col width="1%">
 <col width="1%">
-<col width="2%">
-<col width="3%">
-<col width="3%">
-<col width="3%">
-<col width="1%">
+<col width="0%">
 <col width="1%">
 <col width="2%">
 <col width="2%">
 <col width="2%">
+<col width="0%">
+<col width="1%">
+<col width="1%">
+<col width="1%">
 <col width="3%">
-<col width="3%">
-<col width="3%">
-<col width="2%">
 <col width="3%">
 <col width="4%">
 <col width="4%">
 <col width="1%">
 <col width="2%">
+<col width="2%">
+<col width="2%">
+<col width="2%">
+<col width="2%">
+<col width="3%">
+<col width="3%">
+<col width="1%">
+<col width="2%">
 <col width="3%">
 <col width="3%">
 <col width="1%">
 <col width="2%">
 <col width="2%">
 <col width="2%">
+<col width="0%">
+<col width="1%">
+<col width="2%">
+<col width="2%">
+<col width="1%">
 <col width="1%">
 <col width="2%">
 <col width="3%">
-<col width="4%">
-<col width="4%">
+<col width="3%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">scenario</th>
@@ -1018,10 +1030,18 @@ accidentally for safety, or vice versa.</p>
 <th align="right">power_mcse</th>
 <th align="right">power_mc_lower</th>
 <th align="right">power_mc_upper</th>
+<th align="right">stop_immediate_success</th>
+<th align="right">stop_immediate_success_mcse</th>
+<th align="right">stop_immediate_success_mc_lower</th>
+<th align="right">stop_immediate_success_mc_upper</th>
 <th align="right">stop_success</th>
 <th align="right">stop_success_mcse</th>
 <th align="right">stop_success_mc_lower</th>
 <th align="right">stop_success_mc_upper</th>
+<th align="right">stop_any_success</th>
+<th align="right">stop_any_success_mcse</th>
+<th align="right">stop_any_success_mc_lower</th>
+<th align="right">stop_any_success_mc_upper</th>
 <th align="right">stop_futility</th>
 <th align="right">stop_futility_mcse</th>
 <th align="right">stop_futility_mc_lower</th>
@@ -1057,6 +1077,14 @@ accidentally for safety, or vice versa.</p>
 <td align="right">0.011</td>
 <td align="right">0.046</td>
 <td align="right">0.089</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.008</td>
+<td align="right">0.078</td>
+<td align="right">0.012</td>
+<td align="right">0.058</td>
+<td align="right">0.105</td>
 <td align="right">0.078</td>
 <td align="right">0.012</td>
 <td align="right">0.058</td>
@@ -1095,6 +1123,14 @@ accidentally for safety, or vice versa.</p>
 <td align="right">0.006</td>
 <td align="right">0.969</td>
 <td align="right">0.992</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.008</td>
+<td align="right">0.958</td>
+<td align="right">0.009</td>
+<td align="right">0.937</td>
+<td align="right">0.972</td>
 <td align="right">0.958</td>
 <td align="right">0.009</td>
 <td align="right">0.937</td>

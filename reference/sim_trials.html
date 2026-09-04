@@ -84,7 +84,8 @@ operating characteristics can be estimated.</p>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  binary_imputation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event-time"</span>, <span class="st">"bernoulli"</span><span class="op">)</span>,</span>
 <span>  prior_surv_final <span class="op">=</span> <span class="va">prior_surv</span>,</span>
-<span>  generation_cutpoints <span class="op">=</span> <span class="va">cutpoints</span></span>
+<span>  generation_cutpoints <span class="op">=</span> <span class="va">cutpoints</span>,</span>
+<span>  Qn <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -266,7 +267,7 @@ default is <code>0.05</code>.</p></dd>
 <dt id="arg-sn">Sn<a class="anchor" aria-label="anchor" href="#arg-sn"></a></dt>
 <dd><p>A numeric vector of probabilities in <code>[0, 1]</code>. Each value is the
 predictive-probability
-threshold to stop at the \(i\)-th look early for expected success. If
+threshold to stop accrual at the \(i\)-th look for expected success. If
 there are no interim looks (i.e. <code>interim_look = NULL</code>), then
 <code>Sn</code> is not used in the simulations or analysis. Supply either one value,
 which is repeated at every interim look, or exactly one value per
@@ -302,7 +303,8 @@ within each
 level for one-sided exact binomial bounds reported as diagnostics of
 finite Monte Carlo uncertainty. The bounds do not alter completed-data
 success classifications or interim decisions, which use strict point-
-estimate comparisons with <code>prob_ha</code>, <code>Sn</code>, and <code>Fn</code>. The default is <code>0.95</code>.</p></dd>
+estimate comparisons with <code>prob_ha</code>, <code>Qn</code>, <code>Sn</code>, and <code>Fn</code>. The default is
+<code>0.95</code>.</p></dd>
 
 
 <dt id="arg-n-trials">N_trials<a class="anchor" aria-label="anchor" href="#arg-n-trials"></a></dt>
@@ -407,6 +409,17 @@ follow-up times defining the piecewise-exponential model used to generate
 event times. <code>hazard_treatment</code> and <code>hazard_control</code> must each have one
 value per resulting interval. Defaults to <code>cutpoints</code>, preserving the
 historical behavior in which generation and analysis used one partition.</p></dd>
+
+
+<dt id="arg-qn">Qn<a class="anchor" aria-label="anchor" href="#arg-qn"></a></dt>
+<dd><p>A numeric vector of probabilities in <code>[0, 1]</code>. Each value is the
+upper predictive-probability threshold for declaring immediate trial
+success at the \(i\)-th look. If there are no interim looks (i.e.
+<code>interim_look = NULL</code>), then <code>Qn</code> is not used in the simulations or
+analysis. Supply either one value, which is repeated at every interim
+look, or exactly one value per <code>interim_look</code>; other lengths are rejected.
+<code>Qn</code> must be greater than or equal to <code>Sn</code> at every look. The default, <code>1</code>,
+disables immediate-success stopping.</p></dd>
 
 </dl></div>
     <div class="section level2">

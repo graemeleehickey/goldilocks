@@ -33,7 +33,8 @@ evaluate_interim(
   empty_interval = c("prior", "propagate", "error"),
   method = "logrank",
   binary_imputation = c("event-time", "bernoulli"),
-  seed = NULL
+  seed = NULL,
+  Qn = 1
 )
 ```
 
@@ -206,8 +207,8 @@ evaluate_interim(
   the confidence level for one-sided exact binomial bounds reported as
   diagnostics of finite Monte Carlo uncertainty. The bounds do not alter
   completed-data success classifications or interim decisions, which use
-  strict point- estimate comparisons with `prob_ha`, `Sn`, and `Fn`. The
-  default is `0.95`.
+  strict point- estimate comparisons with `prob_ha`, `Qn`, `Sn`, and
+  `Fn`. The default is `0.95`.
 
 - empty_interval:
 
@@ -254,6 +255,15 @@ evaluate_interim(
   With `seed = NULL`, the call uses and advances the current
   random-number state.
 
+- Qn:
+
+  A single numeric probability in `[0, 1]` giving the upper threshold
+  for declaring immediate trial success at this look. Immediate success
+  is declared when predictive success among the currently enrolled
+  participants is strictly greater than `Qn`. `Qn` must be greater than
+  or equal to `Sn`. The default, `1`, disables immediate-success
+  stopping.
+
 ## Value
 
 An object of class `goldilocks_interim`, containing:
@@ -294,13 +304,15 @@ an observed endpoint event, `"complete"` for event-free completion of
 `"censored"` for permanent early censoring. Pending and censored
 outcomes are predictively imputed conditional on `time`.
 
-`Sn` and `Fn` are scalar thresholds for this look. Expected success is
-declared when the estimated probability of completed-data success among
-the current participants is strictly greater than `Sn`. Futility is
-declared when the corresponding maximum-sample probability is strictly
-less than `Fn`. Set `Fn = 0` or `NULL` to disable futility. Exact
-one-sided Monte Carlo bounds are returned as diagnostics and do not
-drive either decision.
+`Qn`, `Sn`, and `Fn` are scalar thresholds for this look. Immediate
+success is declared when the estimated probability of completed-data
+success among the current participants is strictly greater than `Qn`.
+Otherwise, expected success stops accrual for planned follow-up when
+that probability is strictly greater than `Sn`. If neither success rule
+applies, futility is declared when the corresponding maximum-sample
+probability is strictly less than `Fn`. Set `Fn = 0` or `NULL` to
+disable futility. Exact one-sided Monte Carlo bounds are returned as
+diagnostics and do not drive any decision.
 
 The function requires treatment assignments to perform the arm-specific
 posterior and completed-data analyses. In a blinded trial, an

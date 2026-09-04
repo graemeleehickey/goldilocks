@@ -18,7 +18,9 @@ plot_sim_ocs(x, effect, xlab = "True treatment effect")
   A required data frame returned by
   [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md),
   with one row per simulation scenario and columns `power`,
-  `stop_success`, `stop_futility`, `stop_max_N`, and `mean_N`.
+  `stop_success`, `stop_futility`, `stop_max_N`, and `mean_N`. When
+  present, `stop_immediate_success` is plotted separately from
+  `stop_success`, which retains its historical expected-success meaning.
 
 - effect:
 

@@ -110,8 +110,12 @@ interim_result
 interim_result$decision
 #>   look planned_N calendar_time decision                 decision_reason
 #> 1    2         8             8 continue continue_thresholds_not_crossed
-#>   ppp_stop_now success_threshold ppp_success_at_max futility_threshold
-#> 1            0               0.9                0.2               0.05
+#>   ppp_stop_now success_threshold immediate_success_threshold
+#> 1            0               0.9                           1
+#>   immediate_success_crossed expected_success_crossed ppp_success_at_max
+#> 1                     FALSE                    FALSE                0.2
+#>   futility_threshold futility_crossed
+#> 1               0.05            FALSE
 interim_result$monte_carlo
 #>              estimand successes draws estimate       mcse      lower     upper
 #> 1 success_if_stop_now         0    20      0.0 0.00000000 0.00000000 0.1391083
@@ -166,12 +170,14 @@ interim_result$trace
 #> 1                1              1         6              4            0
 #>   ppp_stop_now_mcse ppp_stop_now_lower ppp_stop_now_upper ppp_stop_now_draws
 #> 1                 0                  0          0.1391083                 20
-#>   success_threshold ppp_success_at_max ppp_success_at_max_mcse
-#> 1               0.9                0.2              0.08944272
+#>   success_threshold immediate_success_threshold immediate_success_crossed
+#> 1               0.9                           1                     FALSE
+#>   expected_success_crossed ppp_success_at_max ppp_success_at_max_mcse
+#> 1                    FALSE                0.2              0.08944272
 #>   ppp_success_at_max_lower ppp_success_at_max_upper ppp_success_at_max_draws
 #> 1               0.07135388                0.4010281                       20
-#>   futility_threshold inner_mc_uncertain_stop_now
-#> 1               0.05                           0
+#>   futility_threshold futility_crossed inner_mc_uncertain_stop_now
+#> 1               0.05            FALSE                           0
 #>   inner_mc_uncertain_success_at_max decision                 decision_reason
 #> 1                                 0 continue continue_thresholds_not_crossed
 #>   empty_interval_fallback_count empty_interval_fallbacks warning_count

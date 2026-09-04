@@ -42,7 +42,8 @@ sim_trials(
   seed = NULL,
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
-  generation_cutpoints = cutpoints
+  generation_cutpoints = cutpoints,
+  Qn = 1
 )
 ```
 
@@ -226,7 +227,7 @@ sim_trials(
 - Sn:
 
   A numeric vector of probabilities in `[0, 1]`. Each value is the
-  predictive-probability threshold to stop at the \\i\\-th look early
+  predictive-probability threshold to stop accrual at the \\i\\-th look
   for expected success. If there are no interim looks (i.e.
   `interim_look = NULL`), then `Sn` is not used in the simulations or
   analysis. Supply either one value, which is repeated at every interim
@@ -259,8 +260,8 @@ sim_trials(
   the confidence level for one-sided exact binomial bounds reported as
   diagnostics of finite Monte Carlo uncertainty. The bounds do not alter
   completed-data success classifications or interim decisions, which use
-  strict point- estimate comparisons with `prob_ha`, `Sn`, and `Fn`. The
-  default is `0.95`.
+  strict point- estimate comparisons with `prob_ha`, `Qn`, `Sn`, and
+  `Fn`. The default is `0.95`.
 
 - N_trials:
 
@@ -366,6 +367,17 @@ sim_trials(
   each have one value per resulting interval. Defaults to `cutpoints`,
   preserving the historical behavior in which generation and analysis
   used one partition.
+
+- Qn:
+
+  A numeric vector of probabilities in `[0, 1]`. Each value is the upper
+  predictive-probability threshold for declaring immediate trial success
+  at the \\i\\-th look. If there are no interim looks (i.e.
+  `interim_look = NULL`), then `Qn` is not used in the simulations or
+  analysis. Supply either one value, which is repeated at every interim
+  look, or exactly one value per `interim_look`; other lengths are
+  rejected. `Qn` must be greater than or equal to `Sn` at every look.
+  The default, `1`, disables immediate-success stopping.
 
 ## Value
 

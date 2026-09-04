@@ -261,12 +261,14 @@ out <- survival_adapt(
 out
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less          50        50        100   100
-#>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1        0.968 -0.185951        0.12             0                     0
-#>       stopping_reason accrual_stop_time analysis_ready_time
-#> 1 maximum_sample_size           20.2688            43.91658
-#>   planned_completion_time followup_person_time peak_active_followup
-#> 1                 44.2688             1612.338                   71
+#>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
+#> 1        0.968 -0.185951        0.12             0                      0
+#>   stop_expected_success trial_success     stopping_reason decision_time
+#> 1                     0         FALSE maximum_sample_size      43.91658
+#>   accrual_stop_time analysis_ready_time planned_completion_time
+#> 1           20.2688            43.91658                 44.2688
+#>   followup_person_time peak_active_followup
+#> 1             1612.338                   71
 ```
 
 The output reports the posterior probability of the alternative at the

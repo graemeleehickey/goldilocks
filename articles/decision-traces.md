@@ -53,12 +53,14 @@ trial
 #> Goldilocks adaptive trial
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          40        40         80    80
-#>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
-#> 1          0.8 -0.08108357        0.45             0                     0
-#>       stopping_reason accrual_stop_time analysis_ready_time
-#> 1 maximum_sample_size          9.095155            33.09515
-#>   planned_completion_time followup_person_time peak_active_followup
-#> 1                33.09515             1643.469                   76
+#>   post_prob_ha   est_final ppp_success stop_futility stop_immediate_success
+#> 1          0.8 -0.08108357        0.45             0                      0
+#>   stop_expected_success trial_success     stopping_reason decision_time
+#> 1                     0         FALSE maximum_sample_size      33.09515
+#>   accrual_stop_time analysis_ready_time planned_completion_time
+#> 1          9.095155            33.09515                33.09515
+#>   followup_person_time peak_active_followup
+#> 1             1643.469                   76
 #> 
 #> Interim looks completed: 2
 ```
@@ -71,12 +73,14 @@ element is an audit trail of the interim path.
 trial$summary
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          40        40         80    80
-#>   post_prob_ha   est_final ppp_success stop_futility stop_expected_success
-#> 1          0.8 -0.08108357        0.45             0                     0
-#>       stopping_reason accrual_stop_time analysis_ready_time
-#> 1 maximum_sample_size          9.095155            33.09515
-#>   planned_completion_time followup_person_time peak_active_followup
-#> 1                33.09515             1643.469                   76
+#>   post_prob_ha   est_final ppp_success stop_futility stop_immediate_success
+#> 1          0.8 -0.08108357        0.45             0                      0
+#>   stop_expected_success trial_success     stopping_reason decision_time
+#> 1                     0         FALSE maximum_sample_size      33.09515
+#>   accrual_stop_time analysis_ready_time planned_completion_time
+#> 1          9.095155            33.09515                33.09515
+#>   followup_person_time peak_active_followup
+#> 1             1643.469                   76
 trial$trace
 #>   look planned_N calendar_time active_followup N_enrolled N_treatment N_control
 #> 1    1        40      4.238838              38         40          20        20
@@ -87,15 +91,18 @@ trial$trace
 #>   ppp_stop_now_mcse ppp_stop_now_lower ppp_stop_now_upper ppp_stop_now_draws
 #> 1         0.1095445          0.3935849          0.7829314                 20
 #> 2         0.1112430          0.2586506          0.6530686                 20
-#>   success_threshold ppp_success_at_max ppp_success_at_max_mcse
-#> 1              0.95                0.6               0.1095445
-#> 2              0.90                0.4               0.1095445
+#>   success_threshold immediate_success_threshold immediate_success_crossed
+#> 1              0.95                           1                     FALSE
+#> 2              0.90                           1                     FALSE
+#>   expected_success_crossed ppp_success_at_max ppp_success_at_max_mcse
+#> 1                    FALSE                0.6               0.1095445
+#> 2                    FALSE                0.4               0.1095445
 #>   ppp_success_at_max_lower ppp_success_at_max_upper ppp_success_at_max_draws
 #> 1                0.3935849                0.7829314                       20
 #> 2                0.2170686                0.6064151                       20
-#>   futility_threshold inner_mc_uncertain_stop_now
-#> 1               0.05                          12
-#> 2               0.05                           9
+#>   futility_threshold futility_crossed inner_mc_uncertain_stop_now
+#> 1               0.05            FALSE                          12
+#> 2               0.05            FALSE                           9
 #>   inner_mc_uncertain_success_at_max decision                 decision_reason
 #> 1                                12 continue continue_thresholds_not_crossed
 #> 2                                 8 continue continue_thresholds_not_crossed
@@ -111,8 +118,8 @@ trial$trace
 summarise_trial_trace(trial)
 #>   interim_looks_completed last_look last_decision final_N final_post_prob_ha
 #> 1                       2         2      continue      80                0.8
-#>   ppp_stop_now ppp_success_at_max warning_count
-#> 1         0.45                0.4             0
+#>   ppp_stop_now ppp_success_at_max warning_count trial_success
+#> 1         0.45                0.4             0         FALSE
 ```
 
 For each completed look, `ppp_stop_now` is the predictive probability of

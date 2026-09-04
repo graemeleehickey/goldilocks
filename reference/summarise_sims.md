@@ -24,7 +24,8 @@ summarise_sims(data, max_mcse = NULL)
 
   `NULL` (the default), or a named numeric vector of finite, positive
   values giving the largest acceptable Monte Carlo standard error for
-  selected estimands. Supported names are `power`, `stop_success`,
+  selected estimands. Supported names are `power`,
+  `stop_immediate_success`, `stop_success`, `stop_any_success`,
   `stop_futility`, `stop_max_N`, `mean_N`, `stop_and_fail`, and
   `failure_rate`. A warning identifies every scenario and estimand whose
   Monte Carlo standard error exceeds its target.
@@ -33,10 +34,13 @@ summarise_sims(data, max_mcse = NULL)
 
 A data frame reporting the operating characteristics, including the
 power (which will be equal to the type I error in the null case); the
-proportion of trials that stopped for early expected success, futility,
-or went to the maximum sample size. The average stopping sample size
-(and standard deviation) are also recorded. The proportion of trials
-that stopped early for expected success, yet went on to fail, is also
+proportion of trials that declared immediate success, stopped accrual
+for expected success, stopped for futility, or went to the maximum
+sample size. `stop_success` retains its historical meaning of stopping
+accrual for expected success; `stop_any_success` combines both
+success-stopping decisions. The average stopping sample size (and
+standard deviation) are also recorded. The proportion of trials that
+stopped accrual for expected success, yet went on to fail, is also
 reported. Each probability and mean is accompanied by its Monte Carlo
 standard error and 95% Monte Carlo confidence limits, with columns
 ending in `_mcse`, `_mc_lower`, and `_mc_upper`. Probability intervals

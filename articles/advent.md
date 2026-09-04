@@ -505,12 +505,14 @@ advent_effectiveness <- survival_adapt(
 advent_effectiveness
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.956   0.15        less         225       225        450   750
-#>   post_prob_ha  est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9973365 0.02061947           1             0                     1
-#>    stopping_reason accrual_stop_time analysis_ready_time
-#> 1 expected_success          556.0652            916.0652
-#>   planned_completion_time followup_person_time peak_active_followup
-#> 1                916.0652             123841.1                  285
+#>   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success
+#> 1    0.9973365 0.02061947           1             0                      0
+#>   stop_expected_success trial_success  stopping_reason decision_time
+#> 1                     1          TRUE expected_success      916.0652
+#>   accrual_stop_time analysis_ready_time planned_completion_time
+#> 1          556.0652            916.0652                916.0652
+#>   followup_person_time peak_active_followup
+#> 1             123841.1                  285
 ```
 
 The most important columns are:
@@ -574,12 +576,14 @@ advent_safety <- survival_adapt(
 advent_safety
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.966   0.08        less         275       275        550   750
-#>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9964775 0.0184058        0.94             0                     1
-#>    stopping_reason accrual_stop_time analysis_ready_time
-#> 1 expected_success          612.6321            972.6321
-#>   planned_completion_time followup_person_time peak_active_followup
-#> 1                972.6321             180972.2                  371
+#>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
+#> 1    0.9964775 0.0184058        0.94             0                      0
+#>   stop_expected_success trial_success  stopping_reason decision_time
+#> 1                     1          TRUE expected_success      972.6321
+#>   accrual_stop_time analysis_ready_time planned_completion_time
+#> 1          612.6321            972.6321                972.6321
+#>   followup_person_time peak_active_followup
+#> 1             180972.2                  371
 ```
 
 In the published ADVENT design, a predicted-success stopping
@@ -742,10 +746,10 @@ oc_small <- summarise_sims(list(
 knitr::kable(oc_small, digits = 3)
 ```
 
-| scenario | backend | seed | n_requested | n_analyzed | n_failed | n_used | failure_rate | failure_rate_mcse | failure_rate_mc_lower | failure_rate_mc_upper | power | power_mcse | power_mc_lower | power_mc_upper | stop_success | stop_success_mcse | stop_success_mc_lower | stop_success_mc_upper | stop_futility | stop_futility_mcse | stop_futility_mc_lower | stop_futility_mc_upper | stop_max_N | stop_max_N_mcse | stop_max_N_mc_lower | stop_max_N_mc_upper | mean_N | mean_N_mcse | mean_N_mc_lower | mean_N_mc_upper | sd_N | stop_and_fail | stop_and_fail_mcse | stop_and_fail_mc_lower | stop_and_fail_mc_upper |
-|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.064 | 0.011 | 0.046 | 0.089 | 0.078 | 0.012 | 0.058 | 0.105 | 0.65 | 0.021 | 0.607 | 0.691 | 0.272 | 0.020 | 0.235 | 0.313 | 555.8 | 6.698 | 542.640 | 568.960 | 149.771 | 0.038 | 0.009 | 0.024 | 0.059 |
-| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.984 | 0.006 | 0.969 | 0.992 | 0.958 | 0.009 | 0.937 | 0.972 | 0.00 | 0.000 | 0.000 | 0.008 | 0.042 | 0.009 | 0.028 | 0.063 | 469.0 | 4.957 | 459.262 | 478.738 | 110.831 | 0.012 | 0.005 | 0.006 | 0.026 |
+| scenario | backend | seed | n_requested | n_analyzed | n_failed | n_used | failure_rate | failure_rate_mcse | failure_rate_mc_lower | failure_rate_mc_upper | power | power_mcse | power_mc_lower | power_mc_upper | stop_immediate_success | stop_immediate_success_mcse | stop_immediate_success_mc_lower | stop_immediate_success_mc_upper | stop_success | stop_success_mcse | stop_success_mc_lower | stop_success_mc_upper | stop_any_success | stop_any_success_mcse | stop_any_success_mc_lower | stop_any_success_mc_upper | stop_futility | stop_futility_mcse | stop_futility_mc_lower | stop_futility_mc_upper | stop_max_N | stop_max_N_mcse | stop_max_N_mc_lower | stop_max_N_mc_upper | mean_N | mean_N_mcse | mean_N_mc_lower | mean_N_mc_upper | sd_N | stop_and_fail | stop_and_fail_mcse | stop_and_fail_mc_lower | stop_and_fail_mc_upper |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.064 | 0.011 | 0.046 | 0.089 | 0 | 0 | 0 | 0.008 | 0.078 | 0.012 | 0.058 | 0.105 | 0.078 | 0.012 | 0.058 | 0.105 | 0.65 | 0.021 | 0.607 | 0.691 | 0.272 | 0.020 | 0.235 | 0.313 | 555.8 | 6.698 | 542.640 | 568.960 | 149.771 | 0.038 | 0.009 | 0.024 | 0.059 |
+| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.984 | 0.006 | 0.969 | 0.992 | 0 | 0 | 0 | 0.008 | 0.958 | 0.009 | 0.937 | 0.972 | 0.958 | 0.009 | 0.937 | 0.972 | 0.00 | 0.000 | 0.000 | 0.008 | 0.042 | 0.009 | 0.028 | 0.063 | 469.0 | 4.957 | 459.262 | 478.738 | 110.831 | 0.012 | 0.005 | 0.006 | 0.026 |
 
 Each scenario uses 500 simulated trials and two cores. This remains a
 workflow demonstration rather than a definitive estimate of power or

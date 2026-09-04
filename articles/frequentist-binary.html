@@ -142,10 +142,12 @@ alternative:</p>
 <span><span class="va">result</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1          0.975      0        less          20        20         40    80</span></span>
-<span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_expected_success</span></span>
-<span><span class="co">#&gt; 1    0.9266035      -0.1           0             1                     0</span></span>
-<span><span class="co">#&gt;   stopping_reason accrual_stop_time analysis_ready_time planned_completion_time</span></span>
-<span><span class="co">#&gt; 1        futility          4.643332            16.64333                16.64333</span></span>
+<span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_immediate_success</span></span>
+<span><span class="co">#&gt; 1    0.9266035      -0.1           0             1                      0</span></span>
+<span><span class="co">#&gt;   stop_expected_success trial_success stopping_reason decision_time</span></span>
+<span><span class="co">#&gt; 1                     0         FALSE        futility      4.643332</span></span>
+<span><span class="co">#&gt;   accrual_stop_time analysis_ready_time planned_completion_time</span></span>
+<span><span class="co">#&gt; 1          4.643332            16.64333                16.64333</span></span>
 <span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
 <span><span class="co">#&gt; 1             465.9974                   40</span></span></code></pre></div>
 <p>For a non-inferiority design, <code>h0</code> can be a nonzero

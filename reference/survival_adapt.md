@@ -2,8 +2,9 @@
 
 Simulates one single-arm or randomized two-arm trial under a Goldilocks
 sample-size design. At each planned interim look, posterior predictive
-probabilities determine whether to stop accrual for expected success,
-stop for futility, or continue toward the maximum sample size.
+probabilities determine whether to declare immediate success, stop
+accrual for expected success, stop for futility, or continue toward the
+maximum sample size.
 
 ## Usage
 
@@ -37,7 +38,8 @@ survival_adapt(
   return_trace = FALSE,
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
-  generation_cutpoints = cutpoints
+  generation_cutpoints = cutpoints,
+  Qn = 1
 )
 ```
 
@@ -221,7 +223,7 @@ survival_adapt(
 - Sn:
 
   A numeric vector of probabilities in `[0, 1]`. Each value is the
-  predictive-probability threshold to stop at the \\i\\-th look early
+  predictive-probability threshold to stop accrual at the \\i\\-th look
   for expected success. If there are no interim looks (i.e.
   `interim_look = NULL`), then `Sn` is not used in the simulations or
   analysis. Supply either one value, which is repeated at every interim
@@ -254,8 +256,8 @@ survival_adapt(
   the confidence level for one-sided exact binomial bounds reported as
   diagnostics of finite Monte Carlo uncertainty. The bounds do not alter
   completed-data success classifications or interim decisions, which use
-  strict point- estimate comparisons with `prob_ha`, `Sn`, and `Fn`. The
-  default is `0.95`.
+  strict point- estimate comparisons with `prob_ha`, `Qn`, `Sn`, and
+  `Fn`. The default is `0.95`.
 
 - empty_interval:
 
@@ -333,6 +335,17 @@ survival_adapt(
   preserving the historical behavior in which generation and analysis
   used one partition.
 
+- Qn:
+
+  A numeric vector of probabilities in `[0, 1]`. Each value is the upper
+  predictive-probability threshold for declaring immediate trial success
+  at the \\i\\-th look. If there are no interim looks (i.e.
+  `interim_look = NULL`), then `Qn` is not used in the simulations or
+  analysis. Supply either one value, which is repeated at every interim
+  look, or exactly one value per `interim_look`; other lengths are
+  rejected. `Qn` must be greater than or equal to `Sn` at every look.
+  The default, `1`, disables immediate-success stopping.
+
 ## Value
 
 With `return_trace = FALSE` (the default), a one-row data frame
@@ -346,7 +359,9 @@ containing the evaluated design and final trial results, including:
   final analysis occurs when either the maximum sample size is reached
   and follow-up is complete, or the interim analysis triggered early
   stopping of enrollment/accrual and follow-up for those subjects is
-  complete.
+  complete. It is `NA` after an immediate-success decision, for which no
+  later analysis is required, or when the optional diagnostic analysis
+  after binding futility cannot be computed.
 
 - `post_prob_ha`: Posterior probability from the final analysis. If a
   Bayesian method uses `imputed_final = TRUE`, this is calculated for
@@ -354,16 +369,30 @@ containing the evaluated design and final trial results, including:
   imputations. For an imputed Cox analysis it is \\1 - P\\ from the
   Rubin-pooled Wald test. The same interpretation applies to imputed
   risk-difference analyses. For non-imputed frequentist analyses it is
-  \\1 - P\\ from the corresponding test.
+  \\1 - P\\ from the corresponding test. It is `NA` after an
+  immediate-success decision, for which no later analysis is required,
+  or when the optional diagnostic analysis after binding futility cannot
+  be computed.
 
 - `stop_futility`: Logical indicator of whether the trial stopped early
-  for futility.
+  for binding futility.
+
+- `stop_immediate_success`: Logical indicator of whether the trial
+  stopped and declared immediate success at an interim look.
 
 - `stop_expected_success`: Logical indicator of whether the trial
-  stopped early for expected success.
+  stopped accruing for expected success and continued planned follow-up.
 
-- `stopping_reason`: One of `"expected_success"`, `"futility"`, or
-  `"maximum_sample_size"`.
+- `trial_success`: Logical indicator of the trial's official success
+  outcome. An immediate-success decision is final at the interim look;
+  binding futility is a final failure.
+
+- `stopping_reason`: One of `"immediate_success"`, `"expected_success"`,
+  `"futility"`, or `"maximum_sample_size"`.
+
+- `decision_time`: Calendar time at which the trial decision becomes
+  final. This is the interim look time for immediate success or
+  futility, and the analysis-ready time otherwise.
 
 - `accrual_stop_time`: Calendar time of the last enrollment in the
   trial.
@@ -386,11 +415,11 @@ zero. Times use the same units as `lambda_time`, `cutpoints`,
 `generation_cutpoints`, and `end_of_study`.
 
 The returned object has a `decision_design` attribute containing
-`interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
-this information are stored as one value per interim look (and have
-length zero when no interim looks are planned). A `prior_design`
-attribute contains the resolved Gamma shape, rate, mean hazard, and
-standard deviation for every stage, arm, and interval.
+`interim_look`, `Fn`, `Sn`, `Qn`, and the Monte Carlo settings.
+Thresholds in this information are stored as one value per interim look
+(and have length zero when no interim looks are planned). A
+`prior_design` attribute contains the resolved Gamma shape, rate, mean
+hazard, and standard deviation for every stage, arm, and interval.
 
 Both return forms have an `arguments` attribute containing a named list
 of the evaluated argument values, including defaults. It can be saved
@@ -427,11 +456,12 @@ Implements the Goldilocks design method described in Broglio et al.
 1.  **The posterior predictive probability of eventual success.** This
     is calculated as the proportion of imputed datasets at the *current*
     sample size that satisfy the completed-data success criterion. At
-    each interim analysis this proportion is compared to the
-    corresponding element of `Sn`, and if it exceeds the threshold,
-    accrual/enrollment is suspended and the outstanding follow-up
-    allowed to complete before conducting the pre-specified final
-    analysis.
+    each interim analysis this proportion is first compared to the
+    corresponding element of `Qn`. If it is strictly greater than `Qn`,
+    the trial stops and declares immediate success. Otherwise, if it is
+    strictly greater than `Sn`, accrual/enrollment is suspended and the
+    outstanding follow-up is allowed to complete before conducting the
+    pre-specified final analysis.
 
 2.  **The posterior predictive probability of success at the maximum
     sample size.** This is calculated as the proportion of imputed
@@ -442,13 +472,17 @@ Implements the Goldilocks design method described in Broglio et al.
     this would be a binding decision. If it is not a binding decision,
     then one should also explore the simulations with `Fn = 0`.
 
-Hence, each interim look has three possible decisions:
+Hence, each interim look has four possible decisions, applied in this
+order:
 
-1.  **Stop for expected success**
+1.  **Stop and declare immediate success** when \\P\_{n,l} \> Q_l\\.
 
-2.  **Stop for futility**
+2.  **Stop accruing for expected success and follow** when \\S_l \<
+    P\_{n,l} \le Q_l\\.
 
-3.  **Continue to enroll** new subjects, or if at maximum sample size,
+3.  **Stop for futility** when \\P\_{n\_{max},l} \< F_l\\.
+
+4.  **Continue to enroll** new subjects, or if at maximum sample size,
     proceed to final analysis.
 
 The following completed-data analysis methods are available at interim
@@ -637,10 +671,12 @@ survival_adapt(
  method = "bayes-surv")
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less         300       300        600   600
-#>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1            1 -0.105519         0.8             0                     0
-#>       stopping_reason accrual_stop_time analysis_ready_time
-#> 1 maximum_sample_size          27.54104            63.52808
-#>   planned_completion_time followup_person_time peak_active_followup
-#> 1                63.54104             16439.45                  480
+#>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
+#> 1            1 -0.105519         0.8             0                      0
+#>   stop_expected_success trial_success     stopping_reason decision_time
+#> 1                     0          TRUE maximum_sample_size      63.52808
+#>   accrual_stop_time analysis_ready_time planned_completion_time
+#> 1          27.54104            63.52808                63.54104
+#>   followup_person_time peak_active_followup
+#> 1             16439.45                  480
 ```

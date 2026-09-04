@@ -80,7 +80,8 @@ according to <code>N_total</code>, the observed arm counts, and <code>rand_ratio
 <span>  empty_interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"prior"</span>, <span class="st">"propagate"</span>, <span class="st">"error"</span><span class="op">)</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"logrank"</span>,</span>
 <span>  binary_imputation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event-time"</span>, <span class="st">"bernoulli"</span><span class="op">)</span>,</span>
-<span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  Qn <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -256,7 +257,8 @@ within each
 level for one-sided exact binomial bounds reported as diagnostics of
 finite Monte Carlo uncertainty. The bounds do not alter completed-data
 success classifications or interim decisions, which use strict point-
-estimate comparisons with <code>prob_ha</code>, <code>Sn</code>, and <code>Fn</code>. The default is <code>0.95</code>.</p></dd>
+estimate comparisons with <code>prob_ha</code>, <code>Qn</code>, <code>Sn</code>, and <code>Fn</code>. The default is
+<code>0.95</code>.</p></dd>
 
 
 <dt id="arg-empty-interval">empty_interval<a class="anchor" aria-label="anchor" href="#arg-empty-interval"></a></dt>
@@ -303,6 +305,14 @@ Carlo calculation. A supplied seed makes the result reproducible and
 leaves the existing random-number state unchanged. With <code>seed = NULL</code>, the call
 uses and advances the current random-number state.</p></dd>
 
+
+<dt id="arg-qn">Qn<a class="anchor" aria-label="anchor" href="#arg-qn"></a></dt>
+<dd><p>A single numeric probability in <code>[0, 1]</code> giving the upper threshold
+for declaring immediate trial success at this look. Immediate success is
+declared when predictive success among the currently enrolled participants
+is strictly greater than <code>Qn</code>. <code>Qn</code> must be greater than or equal to <code>Sn</code>.
+The default, <code>1</code>, disables immediate-success stopping.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -332,13 +342,15 @@ observed endpoint event, <code>"complete"</code> for event-free completion of
 <code>end_of_study</code>, <code>"pending"</code> for a subject still under follow-up, and
 <code>"censored"</code> for permanent early censoring. Pending and censored outcomes
 are predictively imputed conditional on <code>time</code>.</p>
-<p><code>Sn</code> and <code>Fn</code> are scalar thresholds for this look. Expected success is
-declared when the estimated probability of completed-data success among
-the current participants is strictly greater than <code>Sn</code>. Futility is
+<p><code>Qn</code>, <code>Sn</code>, and <code>Fn</code> are scalar thresholds for this look. Immediate success
+is declared when the estimated probability of completed-data success among
+the current participants is strictly greater than <code>Qn</code>. Otherwise,
+expected success stops accrual for planned follow-up when that probability
+is strictly greater than <code>Sn</code>. If neither success rule applies, futility is
 declared when the corresponding maximum-sample probability is strictly
-less than <code>Fn</code>. Set <code>Fn = 0</code> or <code>NULL</code> to disable futility. Exact
-one-sided Monte Carlo bounds are returned as diagnostics and do not drive
-either decision.</p>
+less than <code>Fn</code>. Set <code>Fn = 0</code> or <code>NULL</code> to disable futility. Exact one-sided
+Monte Carlo bounds are returned as diagnostics and do not drive any
+decision.</p>
 <p>The function requires treatment assignments to perform the arm-specific
 posterior and completed-data analyses. In a blinded trial, an independent
 unblinded statistician or service should join the treatment assignments,

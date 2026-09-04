@@ -76,10 +76,12 @@ result <- survival_adapt(
 result
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less          20        20         40    80
-#>   post_prob_ha est_final ppp_success stop_futility stop_expected_success
-#> 1    0.9266035      -0.1           0             1                     0
-#>   stopping_reason accrual_stop_time analysis_ready_time planned_completion_time
-#> 1        futility          4.643332            16.64333                16.64333
+#>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
+#> 1    0.9266035      -0.1           0             1                      0
+#>   stop_expected_success trial_success stopping_reason decision_time
+#> 1                     0         FALSE        futility      4.643332
+#>   accrual_stop_time analysis_ready_time planned_completion_time
+#> 1          4.643332            16.64333                16.64333
 #>   followup_person_time peak_active_followup
 #> 1             465.9974                   40
 ```
