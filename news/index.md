@@ -4,6 +4,16 @@
 
 ### Improvements
 
+- Frequentist binary analyses now require an explicit choice between
+  `method = "riskdiff-fm"`, a Farrington-Manning score test that remains
+  defined for sparse boundary tables, and `method = "riskdiff-wald"`,
+  the previous plug-in Wald test. The former `method = "riskdiff"`
+  remains as a deprecated alias for `"riskdiff-wald"` and emits a
+  warning. Both explicit methods support nonzero risk-difference margins
+  and all three alternatives. Imputed final risk-difference analyses
+  continue to use Rubin’s scalar pooling rules and now define the
+  zero-total-variance case rather than aborting
+  ([\#63](https://github.com/graemeleehickey/goldilocks/issues/63)).
 - For fixed-time binary endpoints, each completed predictive replicate
   is now summarized by the event count and sample size in each arm.
   These are the sufficient statistics for the risk-difference and

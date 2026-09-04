@@ -175,11 +175,11 @@ sim_trials(
   must be one of `"greater"` (the default), `"less"`, or `"two.sided"`.
   One-sided alternatives (`"greater"` and `"less"`) are supported for
   `method = "bayes-surv"` and `method = "bayes-bin"`. All three options
-  are supported for `method = "logrank"`, `method = "cox"`, and
-  `method = "riskdiff"`. For survival outcomes, `"less"` corresponds to
-  the treatment arm having a lower cumulative incidence (i.e., treatment
-  is beneficial), and `"greater"` corresponds to the treatment arm
-  having a higher cumulative incidence.
+  are supported for `method = "logrank"`, `method = "cox"`,
+  `method = "riskdiff-wald"`, and `method = "riskdiff-fm"`. For survival
+  outcomes, `"less"` corresponds to the treatment arm having a lower
+  cumulative incidence (i.e., treatment is beneficial), and `"greater"`
+  corresponds to the treatment arm having a higher cumulative incidence.
 
 - h0:
 
@@ -203,9 +203,9 @@ sim_trials(
     as a hazard ratio. A Cox non-inferiority test should usually use
     `alternative = "less"`.
 
-  - When `method = "riskdiff"`, `h0` is the null value of
-    \\p\_\textrm{treatment} - p\_\textrm{control}\\ and must lie in
-    `[-1, 1]`.
+  - When `method = "riskdiff-wald"` or `method = "riskdiff-fm"`, `h0` is
+    the null value of \\p\_\textrm{treatment} - p\_\textrm{control}\\
+    and must lie in `[-1, 1]`.
 
   - When `method = "logrank"`, only `h0 = 0` is supported; this denotes
     the usual equal-survival null. Nonzero values are rejected because
@@ -274,9 +274,12 @@ sim_trials(
   test, Cox proportional hazards regression model Wald test
   (`method = "cox"`), a fully-Bayesian piecewise-exponential analysis
   (`method = "bayes-surv"`), a Bayesian beta-binomial analysis of
-  complete binary outcomes (`method = "bayes-bin"`), or a frequentist
-  risk-difference Wald test of complete binary outcomes
-  (`method = "riskdiff"`). The default is `"logrank"`. See Details.
+  complete binary outcomes (`method = "bayes-bin"`), a frequentist
+  risk-difference Wald test (`method = "riskdiff-wald"`), or a
+  Farrington-Manning score test (`method = "riskdiff-fm"`) of complete
+  binary outcomes. The deprecated `method = "riskdiff"` is accepted as
+  an alias for `"riskdiff-wald"` with a warning. The default is
+  `"logrank"`. See Details.
 
 - imputed_final:
 
@@ -284,11 +287,13 @@ sim_trials(
   based on imputed outcomes for subjects who were LTFU (i.e.
   right-censored with time less than `end_of_study`). The default is
   `FALSE`, which means that the final analysis incorporates
-  right-censoring. With `method = "cox"` or `method = "riskdiff"`,
-  setting this to `TRUE` analyzes each imputed dataset and pools the
-  scalar treatment effects and variances using Rubin's rules; this
-  requires `N_impute >= 2`. Imputed final analyses remain unavailable
-  for `method = "logrank"`.
+  right-censoring. With `method = "cox"`, `method = "riskdiff-wald"`, or
+  `method = "riskdiff-fm"`, setting this to `TRUE` analyzes each imputed
+  dataset and pools the scalar treatment effects and variances using
+  Rubin's rules; this requires `N_impute >= 2`. The pooled
+  risk-difference analysis is a Wald test rather than a
+  Farrington-Manning test. Imputed final analyses remain unavailable for
+  `method = "logrank"`.
 
 - empty_interval:
 
@@ -338,11 +343,12 @@ sim_trials(
 - binary_imputation:
 
   A single character string selecting the predictive imputation approach
-  for `method = "bayes-bin"` or `method = "riskdiff"`. `"event-time"`
-  (the default) draws a conditional piecewise-exponential event time and
-  reduces it to event status at `end_of_study`. `"bernoulli"` draws the
-  endpoint status directly from its conditional event probability. This
-  argument is ignored for time-to-event analysis methods.
+  for `method = "bayes-bin"`, `method = "riskdiff-wald"`, or
+  `method = "riskdiff-fm"`. `"event-time"` (the default) draws a
+  conditional piecewise-exponential event time and reduces it to event
+  status at `end_of_study`. `"bernoulli"` draws the endpoint status
+  directly from its conditional event probability. This argument is
+  ignored for time-to-event analysis methods.
 
 - prior_surv_final:
 

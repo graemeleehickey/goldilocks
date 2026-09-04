@@ -160,7 +160,8 @@ calculations.
 | `bayes-surv` | Gamma piecewise-exponential posterior; effect is the treatment-minus-control event probability, or the treatment probability in a single-arm design | Analyze each completed imputation through the prepared sufficient-statistics and effect calculations, then average posterior summaries | Analyze observed right-censored data through the general route |
 | `bayes-bin` | Beta-binomial posterior for completed binary endpoint status | Analyze each completed imputation and average posterior summaries | Exclude subjects lost before complete endpoint ascertainment |
 | `cox` | Cox Wald test for the log hazard ratio | Pool estimates and within-imputation variances using Rubin’s rules | Analyze observed right-censored data |
-| `riskdiff` | Wald test for the treatment-minus-control event-risk difference | Pool estimates and within-imputation variances using Rubin’s rules | Exclude subjects lost before complete endpoint ascertainment |
+| `riskdiff-wald` | Wald test for the treatment-minus-control event-risk difference | Pool estimates and within-imputation variances using Rubin’s rules | Exclude subjects lost before complete endpoint ascertainment |
+| `riskdiff-fm` | Farrington-Manning score test for the treatment-minus-control event-risk difference | Pool estimates and within-imputation variances using Rubin’s rules, giving a pooled Wald test | Exclude subjects lost before complete endpoint ascertainment |
 | `logrank` | Log-rank test | Not supported because no imputation-pooling rule is implemented | Analyze observed right-censored data |
 
 The posterior-imputation model and completed-data analysis model are

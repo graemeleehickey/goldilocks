@@ -8,11 +8,12 @@ articles:
   bayes-piecewise: bayes-piecewise.html
   bayesian-binary: bayesian-binary.html
   decision-traces: decision-traces.html
+  frequentist-binary: frequentist-binary.html
   interim-data: interim-data.html
   single-arm: single-arm.html
   technical-methods: technical-methods.html
   two-arm: two-arm.html
-last_built: 2026-09-03T21:28Z
+last_built: 2026-09-04T12:07Z
 urls:
   reference: https://graemeleehickey.github.io/goldilocks/reference
   article: https://graemeleehickey.github.io/goldilocks/articles

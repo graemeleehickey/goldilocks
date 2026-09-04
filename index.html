@@ -72,9 +72,11 @@
 <li><p><code>"logrank"</code>: log-rank test for a two-arm time-to-event endpoint</p></li>
 <li><p><code>"cox"</code>: Cox model Wald test for a two-arm time-to-event endpoint</p></li>
 <li><p><code>"bayes-surv"</code>: Bayesian piecewise-exponential analysis for one- or two-arm time-to-event endpoints</p></li>
-<li><p><code>"riskdiff"</code>: frequentist Wald test for a two-arm fixed-time binary event-risk difference</p></li>
+<li><p><code>"riskdiff-wald"</code>: frequentist Wald test for a two-arm fixed-time binary event-risk difference</p></li>
+<li><p><code>"riskdiff-fm"</code>: Farrington-Manning score test for a two-arm fixed-time binary event-risk difference, including sparse outcomes</p></li>
 <li><p><code>"bayes-bin"</code>: Bayesian beta-binomial analysis for one- or two-arm fixed-time binary endpoints</p></li>
 </ul>
+<p>The former <code>"riskdiff"</code> option remains available as a deprecated alias for <code>"riskdiff-wald"</code> and emits a warning.</p>
 <p>See the package vignettes for worked two-arm, single-arm, piecewise survival, and Bayesian binary examples.</p>
 </div>
 <div class="section level2">

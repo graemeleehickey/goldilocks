@@ -218,8 +218,8 @@ follow-up.</p></dd>
 hypothesis. It must be one of <code>"greater"</code> (the default), <code>"less"</code>, or
 <code>"two.sided"</code>. One-sided alternatives (<code>"greater"</code> and <code>"less"</code>) are
 supported for <code>method = "bayes-surv"</code> and <code>method = "bayes-bin"</code>. All three
-options are supported for <code>method = "logrank"</code>, <code>method = "cox"</code>, and
-<code>method = "riskdiff"</code>. For
+options are supported for <code>method = "logrank"</code>, <code>method = "cox"</code>,
+<code>method = "riskdiff-wald"</code>, and <code>method = "riskdiff-fm"</code>. For
 survival outcomes, <code>"less"</code> corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and <code>"greater"</code>
 corresponds to the treatment arm having a higher cumulative incidence.</p></dd>
@@ -241,7 +241,8 @@ treatment versus control. Use <code>h0 = 0</code> for the usual hazard ratio
 of 1 null, or <code>h0 = log(margin)</code> for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use <code>alternative = "less"</code>.</p></li>
-<li><p>When <code>method = "riskdiff"</code>, <code>h0</code> is the null value of
+<li><p>When <code>method = "riskdiff-wald"</code> or <code>method = "riskdiff-fm"</code>, <code>h0</code> is the
+null value of
 \(p_\textrm{treatment} - p_\textrm{control}\) and must lie in
 <code>[-1, 1]</code>.</p></li>
 <li><p>When <code>method = "logrank"</code>, only <code>h0 = 0</code> is supported; this denotes the
@@ -315,8 +316,12 @@ final analysis. Available choices are a log-rank
 (<code>method = "logrank"</code>) test, Cox proportional hazards regression model
 Wald test (<code>method = "cox"</code>), a fully-Bayesian piecewise-exponential
 analysis (<code>method = "bayes-surv"</code>), a Bayesian beta-binomial analysis of
-complete binary outcomes (<code>method = "bayes-bin"</code>), or a frequentist
-risk-difference Wald test of complete binary outcomes (<code>method = "riskdiff"</code>). The default is <code>"logrank"</code>. See Details.</p></dd>
+complete binary outcomes (<code>method = "bayes-bin"</code>), a frequentist
+risk-difference Wald test (<code>method = "riskdiff-wald"</code>), or a
+Farrington-Manning score test (<code>method = "riskdiff-fm"</code>) of complete
+binary outcomes. The deprecated <code>method = "riskdiff"</code> is accepted as an
+alias for <code>"riskdiff-wald"</code> with a warning. The default is <code>"logrank"</code>.
+See Details.</p></dd>
 
 
 <dt id="arg-imputed-final">imputed_final<a class="anchor" aria-label="anchor" href="#arg-imputed-final"></a></dt>
@@ -324,10 +329,11 @@ risk-difference Wald test of complete binary outcomes (<code>method = "riskdiff"
 analysis should be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 <code>end_of_study</code>). The default is <code>FALSE</code>, which means that the final analysis
-incorporates right-censoring. With <code>method = "cox"</code> or <code>method = "riskdiff"</code>, setting this to <code>TRUE</code> analyzes each imputed dataset and pools
-the scalar treatment effects and variances using Rubin's rules; this
-requires <code>N_impute &gt;= 2</code>. Imputed final analyses remain unavailable for
-<code>method = "logrank"</code>.</p></dd>
+incorporates right-censoring. With <code>method = "cox"</code>, <code>method = "riskdiff-wald"</code>, or <code>method = "riskdiff-fm"</code>, setting this to <code>TRUE</code>
+analyzes each imputed dataset and pools the scalar treatment effects and
+variances using Rubin's rules; this requires <code>N_impute &gt;= 2</code>. The pooled
+risk-difference analysis is a Wald test rather than a Farrington-Manning
+test. Imputed final analyses remain unavailable for <code>method = "logrank"</code>.</p></dd>
 
 
 <dt id="arg-empty-interval">empty_interval<a class="anchor" aria-label="anchor" href="#arg-empty-interval"></a></dt>
@@ -379,11 +385,11 @@ random-number state unchanged.</p></dd>
 <dt id="arg-binary-imputation">binary_imputation<a class="anchor" aria-label="anchor" href="#arg-binary-imputation"></a></dt>
 <dd><p>A single character string selecting the predictive
 imputation approach for
-<code>method = "bayes-bin"</code> or <code>method = "riskdiff"</code>. <code>"event-time"</code> (the default)
-draws a conditional piecewise-exponential event time and reduces it to
-event status at <code>end_of_study</code>. <code>"bernoulli"</code> draws the endpoint status
-directly from its conditional event probability. This argument is ignored
-for time-to-event analysis methods.</p></dd>
+<code>method = "bayes-bin"</code>, <code>method = "riskdiff-wald"</code>, or <code>method = "riskdiff-fm"</code>. <code>"event-time"</code> (the default) draws a conditional
+piecewise-exponential event time and reduces it to event status at
+<code>end_of_study</code>. <code>"bernoulli"</code> draws the endpoint status directly from its
+conditional event probability. This argument is ignored for time-to-event
+analysis methods.</p></dd>
 
 
 <dt id="arg-prior-surv-final">prior_surv_final<a class="anchor" aria-label="anchor" href="#arg-prior-surv-final"></a></dt>

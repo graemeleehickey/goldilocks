@@ -204,10 +204,12 @@ the 0.025 level, we would set:</p>
 <span>  alternative <span class="op">=</span> <span class="st">"less"</span>,</span>
 <span>  prob_ha <span class="op">=</span> <span class="fl">0.975</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>The frequentist binary risk-difference analysis
-(<code>method = "riskdiff"</code>) supports all three alternatives and
-compares <span class="math inline">p_\textrm{treatment} -
-p_\textrm{control}</span> with <code>h0</code> using a Wald test. The
+<p>The frequentist binary risk-difference analyses support all three
+alternatives and compare <span class="math inline">p_\textrm{treatment}
+- p_\textrm{control}</span> with <code>h0</code>. Use
+<code>method = "riskdiff-fm"</code> for a Farrington-Manning score test
+that remains defined for sparse boundary tables, or
+<code>method = "riskdiff-wald"</code> for the plug-in Wald test. The
 Bayesian test (<code>method = "bayes-surv"</code>) requires a one-sided
 alternative (<code>"less"</code> or <code>"greater"</code>), and
 <code>"two.sided"</code> raises an error. For the Bayesian test the
@@ -258,10 +260,12 @@ when using a log-rank test, meaning we do not need to enter a value for
 this argument. Since we do not allow for attrition, the data at the
 final analysis will be complete, and we can set
 <code>imputed_final = FALSE</code>. If attrition occurred and
-<code>method = "cox"</code> or <code>method = "riskdiff"</code> were
-selected, <code>imputed_final = TRUE</code> would analyze each completed
-dataset and pool the scalar estimates and variances using Rubin’s rules;
-at least two imputations are required. Imputed final analyses are not
+<code>method = "cox"</code>, <code>method = "riskdiff-wald"</code>, or
+<code>method = "riskdiff-fm"</code> were selected,
+<code>imputed_final = TRUE</code> would analyze each completed dataset
+and pool the scalar estimates and variances using Rubin’s rules; at
+least two imputations are required. This produces a pooled Wald analysis
+for either risk-difference setting. Imputed final analyses are not
 available for <code>method = "logrank"</code>.</p>
 <p>Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is

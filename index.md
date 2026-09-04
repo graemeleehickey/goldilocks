@@ -36,11 +36,17 @@ final analysis:
 - `"bayes-surv"`: Bayesian piecewise-exponential analysis for one- or
   two-arm time-to-event endpoints
 
-- `"riskdiff"`: frequentist Wald test for a two-arm fixed-time binary
-  event-risk difference
+- `"riskdiff-wald"`: frequentist Wald test for a two-arm fixed-time
+  binary event-risk difference
+
+- `"riskdiff-fm"`: Farrington-Manning score test for a two-arm
+  fixed-time binary event-risk difference, including sparse outcomes
 
 - `"bayes-bin"`: Bayesian beta-binomial analysis for one- or two-arm
   fixed-time binary endpoints
+
+The former `"riskdiff"` option remains available as a deprecated alias
+for `"riskdiff-wald"` and emits a warning.
 
 See the package vignettes for worked two-arm, single-arm, piecewise
 survival, and Bayesian binary examples.

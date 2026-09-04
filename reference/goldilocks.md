@@ -6,7 +6,7 @@ generated with an underlying piecewise-exponential event-time model.
 Final analyses may retain the time-to-event outcome
 (`method = "logrank"`, `"cox"`, or `"bayes-surv"`) or reduce complete
 follow-up to event status at a fixed endpoint time
-(`method = "riskdiff"` or `"bayes-bin"`).
+(`method = "riskdiff-wald"`, `"riskdiff-fm"`, or `"bayes-bin"`).
 
 The method can be used for a confirmatory trial to select a sample size
 based on accumulating data. During accrual, predictive probabilities are

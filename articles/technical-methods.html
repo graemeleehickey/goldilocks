@@ -414,7 +414,8 @@ conditional on those hazards. For survival, log-rank, and Cox methods,
 each replicate is represented by completed follow-up, event, and
 treatment vectors. The treatment assignments are fixed across
 replicates; only follow-up and event values requiring imputation are
-replaced. For <code>method = "riskdiff"</code> and
+replaced. For <code>method = "riskdiff-wald"</code>,
+<code>method = "riskdiff-fm"</code>, and
 <code>method = "bayes-bin"</code>, the package instead carries forward
 the completed event and subject counts by arm because these are
 sufficient for the fixed-horizon binary analysis. Both representations
@@ -475,7 +476,7 @@ P-value, with one-sided variants defined in Section 7.1</td>
 </tr>
 <tr class="odd">
 <td>Two-arm randomized trial</td>
-<td><code>riskdiff</code></td>
+<td><code>riskdiff-wald</code></td>
 <td>
 <span class="math inline">1-p(\mathcal{D})</span>, where <span class="math inline">p(\mathcal{D})</span> is the Wald-test P-value for
 the treatment-control event-risk difference</td>
@@ -485,6 +486,17 @@ the treatment-control event-risk difference</td>
 </td>
 </tr>
 <tr class="even">
+<td>Two-arm randomized trial</td>
+<td><code>riskdiff-fm</code></td>
+<td>
+<span class="math inline">1-p(\mathcal{D})</span>, where <span class="math inline">p(\mathcal{D})</span> is the Farrington-Manning
+score-test P-value for the treatment-control event-risk difference</td>
+<td>
+<code>"less"</code>, <code>"greater"</code>,
+<code>"two.sided"</code>
+</td>
+</tr>
+<tr class="odd">
 <td>Two-arm randomized trial</td>
 <td><code>bayes-surv</code></td>
 <td>
@@ -496,7 +508,7 @@ the treatment-control event-risk difference</td>
 <code>"less"</code>, <code>"greater"</code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Single-arm trial</td>
 <td><code>bayes-surv</code></td>
 <td>
@@ -508,7 +520,7 @@ the treatment-control event-risk difference</td>
 <code>"less"</code>, <code>"greater"</code>
 </td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Two-arm randomized trial</td>
 <td><code>bayes-bin</code></td>
 <td>
@@ -520,7 +532,7 @@ the treatment-control event-risk difference</td>
 <code>"less"</code>, <code>"greater"</code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Single-arm trial</td>
 <td><code>bayes-bin</code></td>
 <td>
@@ -663,15 +675,18 @@ calculations.</p>
 </h3>
 <p>For <code>method = "logrank"</code>, success is based on a log-rank
 test. For <code>method = "cox"</code>, success is based on the Wald test
-from a Cox proportional hazards regression. For
-<code>method = "riskdiff"</code>, success is based on a Wald test for
-the treatment-control difference in binary event risks at
-<code>end_of_study</code>. For these methods, <code>goldilocks</code>
-stores <span class="math inline">1-p</span> in
-<code>post_prob_ha</code>; this is not a posterior probability, but it
-puts frequentist and Bayesian rules on a common “larger is stronger
-evidence” scale. For example, a one-sided test at <span class="math inline">\alpha = 0.025</span> corresponds to
+from a Cox proportional hazards regression. For a treatment-control
+difference in binary event risks at <code>end_of_study</code>,
+<code>method = "riskdiff-wald"</code> uses a Wald test and
+<code>method = "riskdiff-fm"</code> uses a Farrington-Manning score
+test. For these methods, <code>goldilocks</code> stores <span class="math inline">1-p</span> in <code>post_prob_ha</code>; this is not
+a posterior probability, but it puts frequentist and Bayesian rules on a
+common “larger is stronger evidence” scale. For example, a one-sided
+test at <span class="math inline">\alpha = 0.025</span> corresponds to
 <code>prob_ha = 0.975</code>.</p>
+<p>The deprecated <code>method = "riskdiff"</code> is normalized to
+<code>"riskdiff-wald"</code> with a warning. The retained design
+arguments record the canonical <code>"riskdiff-wald"</code> name.</p>
 <p>For the log-rank option, let <span class="math inline">Z_{\mathrm{LR}}</span> denote the signed log-rank
 statistic, with positive values corresponding to excess events in the
 control arm under the package convention. Let <span class="math inline">p_{\mathrm{LR}}</span> denote the traditional
@@ -692,17 +707,37 @@ corresponds to <span class="math inline">Z_{\mathrm{Cox}} &lt; 0</span>.
 Let <span class="math inline">p_{\mathrm{Cox}}</span> denote the
 two-sided Wald-test P-value relative to <code>h0</code>. The package
 uses the following method-specific definitions of <span class="math inline">Q(\mathcal{D})</span>:</p>
-<p>For the risk-difference option, let <span class="math inline">\widehat p_1</span> and <span class="math inline">\widehat p_0</span> be the observed event
+<p>For the risk-difference options, let <span class="math inline">\widehat p_1</span> and <span class="math inline">\widehat p_0</span> be the observed event
 proportions in the treatment and control arms, with sample sizes <span class="math inline">n_1</span> and <span class="math inline">n_0</span>.
-The estimated effect and its unpooled binomial variance are</p>
+Both report the estimated effect</p>
 <p><span class="math display">\widehat\Delta = \widehat p_1 - \widehat
 p_0,</span></p>
+<p>and test <span class="math inline">H_0: p_1-p_0=h_0</span>. The Wald
+method uses the unpooled plug-in variance</p>
 <p><span class="math display">U_{\Delta} =
   \frac{\widehat p_1(1-\widehat p_1)}{n_1} +
   \frac{\widehat p_0(1-\widehat p_0)}{n_0}.</span></p>
 <p>The complete-data Wald statistic is</p>
-<p><span class="math display">Z_{\mathrm{RD}} =
+<p><span class="math display">Z_{\mathrm{Wald}} =
   \frac{\widehat\Delta-h_0}{\sqrt{U_{\Delta}}}.</span></p>
+<p>For <code>riskdiff-fm</code>, let <span class="math inline">\widetilde p_0</span> and <span class="math inline">\widetilde p_1</span> be the joint binomial maximum
+likelihood estimates constrained so that <span class="math inline">\widetilde p_1-\widetilde p_0=h_0</span>. The
+package obtains these estimates by maximizing the one-dimensional
+likelihood over</p>
+<p><span class="math display">\max(0,-h_0) \leq \widetilde p_0 \leq
+\min(1,1-h_0),</span></p>
+<p>with <span class="math inline">\widetilde p_1=\widetilde
+p_0+h_0</span>. The Farrington-Manning statistic is</p>
+<p><span class="math display">Z_{\mathrm{FM}} =
+  \frac{\widehat\Delta-h_0}
+  {\sqrt{\widetilde p_1(1-\widetilde p_1)/n_1 +
+         \widetilde p_0(1-\widetilde p_0)/n_0}}.</span></p>
+<p>No continuity correction is applied. If the constrained variance is
+zero, the statistic is defined as zero when <span class="math inline">\widehat\Delta=h_0</span>, positive infinity when
+<span class="math inline">\widehat\Delta&gt;h_0</span>, and negative
+infinity otherwise. Consequently, equal-arm all-zero and all-one tables
+under <span class="math inline">h_0=0</span> give a neutral one-sided
+result rather than an error.</p>
 <table class="table">
 <thead><tr class="header">
 <th>Method</th>
@@ -741,19 +776,35 @@ p_0,</span></p>
 <td><span class="math inline">1 - p_{\mathrm{Cox}}</span></td>
 </tr>
 <tr class="odd">
-<td><code>riskdiff</code></td>
+<td><code>riskdiff-wald</code></td>
 <td><code>"less"</code></td>
-<td><span class="math inline">1 - \Phi(Z_{\mathrm{RD}})</span></td>
+<td><span class="math inline">1 - \Phi(Z_{\mathrm{Wald}})</span></td>
 </tr>
 <tr class="even">
-<td><code>riskdiff</code></td>
+<td><code>riskdiff-wald</code></td>
 <td><code>"greater"</code></td>
-<td><span class="math inline">\Phi(Z_{\mathrm{RD}})</span></td>
+<td><span class="math inline">\Phi(Z_{\mathrm{Wald}})</span></td>
 </tr>
 <tr class="odd">
-<td><code>riskdiff</code></td>
+<td><code>riskdiff-wald</code></td>
 <td><code>"two.sided"</code></td>
-<td><span class="math inline">1 - 2\Phi(-|Z_{\mathrm{RD}}|)</span></td>
+<td><span class="math inline">1 -
+2\Phi(-|Z_{\mathrm{Wald}}|)</span></td>
+</tr>
+<tr class="even">
+<td><code>riskdiff-fm</code></td>
+<td><code>"less"</code></td>
+<td><span class="math inline">1 - \Phi(Z_{\mathrm{FM}})</span></td>
+</tr>
+<tr class="odd">
+<td><code>riskdiff-fm</code></td>
+<td><code>"greater"</code></td>
+<td><span class="math inline">\Phi(Z_{\mathrm{FM}})</span></td>
+</tr>
+<tr class="even">
+<td><code>riskdiff-fm</code></td>
+<td><code>"two.sided"</code></td>
+<td><span class="math inline">1 - 2\Phi(-|Z_{\mathrm{FM}}|)</span></td>
 </tr>
 </tbody>
 </table>
@@ -784,10 +835,15 @@ large-sample degrees of freedom</p>
 \qquad
 r = \frac{(1 + 1/M)B}{\bar{U}}.</span></p>
 <p>When <span class="math inline">B = 0</span>, <span class="math inline">\nu = \infty</span> and the reference distribution
-reduces to the standard normal distribution. At least two imputations
+reduces to the standard normal distribution. If both the within- and
+between-imputation variances are zero, the same neutral-or-directional
+boundary convention described above is used. At least two imputations
 are therefore required. The returned <code>est_final</code> is <span class="math inline">\bar{\theta}</span>, while <code>post_prob_ha</code>
 is <span class="math inline">1-p</span> from this pooled test with the
-direction determined by <code>alternative</code>.</p>
+direction determined by <code>alternative</code>. This
+multiple-imputation result is a pooled Wald analysis for both
+risk-difference method settings; it is not described as a
+Farrington-Manning test.</p>
 </div>
 <div class="section level3">
 <h3 id="bayesian-survival-final-test">7.2 Bayesian survival final test<a class="anchor" aria-label="anchor" href="#bayesian-survival-final-test"></a>
@@ -913,13 +969,13 @@ pooling rule is implemented for that test.</p>
 <p>If <code>imputed_final = FALSE</code>, the final analysis uses
 observed right-censored data for methods that can handle censoring
 (<code>logrank</code>, <code>cox</code>, and <code>bayes-surv</code>).
-For <code>riskdiff</code> and <code>bayes-bin</code>, lost-to-follow-up
-subjects are excluded because these methods require complete binary
-outcomes and have no mechanism for right-censored observations. Rubin
-pooling applies to imputed Cox and risk-difference final analyses; it
-does not alter the interim posterior-predictive calculation, where each
-simulated completed trial is tested separately before the success
-indicators are averaged.</p>
+For <code>riskdiff-wald</code>, <code>riskdiff-fm</code>, and
+<code>bayes-bin</code>, lost-to-follow-up subjects are excluded because
+these methods require complete binary outcomes and have no mechanism for
+right-censored observations. Rubin pooling applies to imputed Cox and
+risk-difference final analyses; it does not alter the interim
+posterior-predictive calculation, where each simulated completed trial
+is tested separately before the success indicators are averaged.</p>
 <p>The loss-to-follow-up mechanism in the simulator is non-informative.
 Designs where dropout may depend on prognosis should be assessed with
 sensitivity analyses outside the default data-generating mechanism.</p>
@@ -1188,6 +1244,10 @@ audited.</p>
 Goldilocks approach to sample size selection. <em>Journal of
 Biopharmaceutical Statistics</em>, 2014; <strong>24(3)</strong>:
 685-705. <a href="doi:10.1080/10543406.2014.888569" class="uri">doi:10.1080/10543406.2014.888569</a>.</p>
+<p>Farrington CP, Manning G. Test statistics and sample size formulae
+for comparative binomial trials with null hypothesis of non-zero risk
+difference or non-unity relative risk. <em>Statistics in Medicine</em>,
+1990; <strong>9</strong>: 1447-1454. <a href="doi:10.1002/sim.4780091208" class="uri">doi:10.1002/sim.4780091208</a>.</p>
 <p>U.S. Food and Drug Administration. <em>Adaptive Design Clinical
 Trials for Drugs and Biologics Guidance for Industry</em>. December
 2019. <a href="https://www.fda.gov/regulatory-information/search-fda-guidance-documents/adaptive-design-clinical-trials-drugs-and-biologics-guidance-industry" class="external-link uri">https://www.fda.gov/regulatory-information/search-fda-guidance-documents/adaptive-design-clinical-trials-drugs-and-biologics-guidance-industry</a>.</p>

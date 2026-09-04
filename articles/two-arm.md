@@ -121,9 +121,11 @@ out_power_1sided <- update(
 )
 ```
 
-The frequentist binary risk-difference analysis (`method = "riskdiff"`)
-supports all three alternatives and compares p\_\textrm{treatment} -
-p\_\textrm{control} with `h0` using a Wald test. The Bayesian test
+The frequentist binary risk-difference analyses support all three
+alternatives and compare p\_\textrm{treatment} - p\_\textrm{control}
+with `h0`. Use `method = "riskdiff-fm"` for a Farrington-Manning score
+test that remains defined for sparse boundary tables, or
+`method = "riskdiff-wald"` for the plug-in Wald test. The Bayesian test
 (`method = "bayes-surv"`) requires a one-sided alternative (`"less"` or
 `"greater"`), and `"two.sided"` raises an error. For the Bayesian test
 the effect is measured on the cumulative-failure-probability scale,
@@ -164,11 +166,12 @@ Similar to above, the parameter `N_mcmc` is not required when using a
 log-rank test, meaning we do not need to enter a value for this
 argument. Since we do not allow for attrition, the data at the final
 analysis will be complete, and we can set `imputed_final = FALSE`. If
-attrition occurred and `method = "cox"` or `method = "riskdiff"` were
-selected, `imputed_final = TRUE` would analyze each completed dataset
-and pool the scalar estimates and variances using Rubin’s rules; at
-least two imputations are required. Imputed final analyses are not
-available for `method = "logrank"`.
+attrition occurred and `method = "cox"`, `method = "riskdiff-wald"`, or
+`method = "riskdiff-fm"` were selected, `imputed_final = TRUE` would
+analyze each completed dataset and pool the scalar estimates and
+variances using Rubin’s rules; at least two imputations are required.
+This produces a pooled Wald analysis for either risk-difference setting.
+Imputed final analyses are not available for `method = "logrank"`.
 
 Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is
