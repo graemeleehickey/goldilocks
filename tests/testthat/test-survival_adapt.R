@@ -181,7 +181,7 @@ test_that("survival_adapt-cox", {
   expect_true(!is.na(out$est_final))
 })
 
-test_that("survival_adapt-riskdiff", {
+test_that("survival_adapt-riskdiff-wald", {
   set.seed(1)
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
@@ -203,14 +203,14 @@ test_that("survival_adapt-riskdiff", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "riskdiff"
+    method = "riskdiff-wald"
   )
 
   expect_s3_class(out, "data.frame")
   expect_true(!is.na(out$est_final))
 })
 
-test_that("survival_adapt-riskdiff excludes LTFU when imputed_final = FALSE", {
+test_that("survival_adapt riskdiff-wald excludes LTFU without imputation", {
   set.seed(3927)
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
@@ -232,7 +232,7 @@ test_that("survival_adapt-riskdiff excludes LTFU when imputed_final = FALSE", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "riskdiff",
+    method = "riskdiff-wald",
     imputed_final = FALSE
   )
 
@@ -269,32 +269,38 @@ test_that("survival_adapt pools imputed Cox final analyses", {
 })
 
 test_that("survival_adapt pools imputed risk-difference final analyses", {
-  set.seed(2084)
-  out <- survival_adapt(
-    hazard_treatment = -log(0.85) / 36,
-    hazard_control = -log(0.7) / 36,
-    cutpoints = NULL,
-    N_total = 200,
-    lambda = 20,
-    lambda_time = NULL,
-    interim_look = NULL,
-    end_of_study = 36,
-    prop_loss = 0.30,
-    alternative = "less",
-    h0 = 0,
-    prob_ha = 0.95,
-    N_impute = 5,
-    method = "riskdiff",
-    imputed_final = TRUE
-  )
+  run_analysis <- function(method) {
+    set.seed(2084)
+    survival_adapt(
+      hazard_treatment = -log(0.85) / 36,
+      hazard_control = -log(0.7) / 36,
+      cutpoints = NULL,
+      N_total = 200,
+      lambda = 20,
+      lambda_time = NULL,
+      interim_look = NULL,
+      end_of_study = 36,
+      prop_loss = 0.30,
+      alternative = "less",
+      h0 = 0,
+      prob_ha = 0.95,
+      N_impute = 5,
+      method = method,
+      imputed_final = TRUE
+    )
+  }
+  wald <- run_analysis("riskdiff-wald")
+  fm <- run_analysis("riskdiff-fm")
 
-  expect_s3_class(out, "data.frame")
-  expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
-  expect_true(is.finite(out$est_final))
+  expect_s3_class(wald, "data.frame")
+  expect_true(wald$post_prob_ha >= 0 && wald$post_prob_ha <= 1)
+  expect_true(is.finite(wald$est_final))
+  expect_equal(fm$post_prob_ha, wald$post_prob_ha)
+  expect_equal(fm$est_final, wald$est_final)
 })
 
 test_that("survival_adapt requires multiple imputations for Rubin pooling", {
-  for (method in c("cox", "riskdiff")) {
+  for (method in c("cox", "riskdiff-wald", "riskdiff-fm")) {
     expect_error(
       survival_adapt(
         hazard_treatment = -log(0.85) / 36,
@@ -773,7 +779,7 @@ test_that("survival_adapt-cox-one-sided-greater", {
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
 })
 
-test_that("survival_adapt-riskdiff supports one-sided margins", {
+test_that("survival_adapt riskdiff-wald supports one-sided margins", {
   set.seed(908)
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
@@ -795,7 +801,7 @@ test_that("survival_adapt-riskdiff supports one-sided margins", {
     prob_ha = 0.975,
     N_impute = 2,
     N_mcmc = 2,
-    method = "riskdiff"
+    method = "riskdiff-wald"
   )
 
   expect_s3_class(out, "data.frame")
@@ -812,8 +818,33 @@ test_that("survival_adapt no longer accepts method = 'chisq'", {
       end_of_study = 36,
       method = "chisq"
     ),
-    "or 'riskdiff'"
+    "'riskdiff-wald', or 'riskdiff-fm'",
+    fixed = TRUE
   )
+})
+
+test_that("survival_adapt maps deprecated riskdiff to riskdiff-wald", {
+  arguments <- list(
+    hazard_treatment = prop_to_haz(0.2, endtime = 1),
+    hazard_control = prop_to_haz(0.4, endtime = 1),
+    N_total = 40,
+    lambda = 100,
+    end_of_study = 1,
+    alternative = "less",
+    method = "riskdiff"
+  )
+
+  set.seed(6310)
+  expect_warning(
+    deprecated <- do.call(survival_adapt, arguments),
+    "deprecated; use `method = \"riskdiff-wald\"`"
+  )
+  arguments$method <- "riskdiff-wald"
+  set.seed(6310)
+  explicit <- do.call(survival_adapt, arguments)
+
+  expect_equal(deprecated, explicit)
+  expect_identical(attr(deprecated, "arguments")$method, "riskdiff-wald")
 })
 
 test_that("survival_adapt validates risk-difference margins", {
@@ -823,7 +854,7 @@ test_that("survival_adapt validates risk-difference margins", {
       hazard_control = -log(0.7) / 36,
       N_total = 100,
       end_of_study = 36,
-      method = "riskdiff",
+      method = "riskdiff-wald",
       h0 = 1.1
     ),
     "\\[-1, 1\\]"

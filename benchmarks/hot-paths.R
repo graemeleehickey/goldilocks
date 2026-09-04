@@ -76,6 +76,14 @@ analyse_predictive_binary_counts_internal <- getFromNamespace(
   "analyse_predictive_binary_counts",
   "goldilocks"
 )
+risk_difference_wald_from_counts_internal <- getFromNamespace(
+  "risk_difference_wald_from_counts",
+  "goldilocks"
+)
+risk_difference_fm_from_counts_internal <- getFromNamespace(
+  "risk_difference_fm_from_counts",
+  "goldilocks"
+)
 cumulative_hazard_to_probability_internal <- getFromNamespace(
   "cumulative_hazard_to_probability",
   "goldilocks"
@@ -223,6 +231,53 @@ binary_counts <- predictive_binary_counts_internal(
   single_arm = FALSE,
   check_futility = TRUE
 )
+
+set.seed(1012)
+n_risk_difference_cases <- 1000L
+risk_difference_cases <- data.frame(
+  n_control = sample(20:100, n_risk_difference_cases, replace = TRUE),
+  n_treatment = sample(20:100, n_risk_difference_cases, replace = TRUE)
+)
+risk_difference_cases$events_control <- stats::rbinom(
+  n_risk_difference_cases,
+  size = risk_difference_cases$n_control,
+  prob = 0.05
+)
+risk_difference_cases$events_control <- pmax(
+  1L,
+  pmin(
+    risk_difference_cases$n_control - 1L,
+    risk_difference_cases$events_control
+  )
+)
+risk_difference_cases$events_treatment <- stats::rbinom(
+  n_risk_difference_cases,
+  size = risk_difference_cases$n_treatment,
+  prob = 0.10
+)
+risk_difference_cases$events_treatment <- pmax(
+  1L,
+  pmin(
+    risk_difference_cases$n_treatment - 1L,
+    risk_difference_cases$events_treatment
+  )
+)
+risk_difference_analyses <- function(analysis) {
+  vapply(
+    seq_len(n_risk_difference_cases),
+    function(index) {
+      analysis(
+        events_control = risk_difference_cases$events_control[[index]],
+        n_control = risk_difference_cases$n_control[[index]],
+        events_treatment = risk_difference_cases$events_treatment[[index]],
+        n_treatment = risk_difference_cases$n_treatment[[index]],
+        alternative = "greater",
+        h0 = 0.05
+      )$success
+    },
+    numeric(1)
+  )
+}
 
 prepared_survival_outcomes <- prepare_predictive_outcomes_internal(
   data_in = imputation_data,
@@ -624,6 +679,12 @@ benchmark_results <- bench::mark(
   },
   binary_completed_data_counts = {
     count_based_binary_analyses()
+  },
+  risk_difference_wald_counts = {
+    risk_difference_analyses(risk_difference_wald_from_counts_internal)
+  },
+  risk_difference_fm_counts = {
+    risk_difference_analyses(risk_difference_fm_from_counts_internal)
   },
   survival_adapt_logrank = {
     set.seed(1005)

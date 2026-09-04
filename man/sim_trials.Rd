@@ -138,8 +138,8 @@ follow-up.}
 hypothesis. It must be one of \code{"greater"} (the default), \code{"less"}, or
 \code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
 supported for \code{method = "bayes-surv"} and \code{method = "bayes-bin"}. All three
-options are supported for \code{method = "logrank"}, \code{method = "cox"}, and
-\code{method = "riskdiff"}. For
+options are supported for \code{method = "logrank"}, \code{method = "cox"},
+\code{method = "riskdiff-wald"}, and \code{method = "riskdiff-fm"}. For
 survival outcomes, \code{"less"} corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
 corresponds to the treatment arm having a higher cumulative incidence.}
@@ -161,7 +161,8 @@ treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
 of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use \code{alternative = "less"}.
-\item When \code{method = "riskdiff"}, \code{h0} is the null value of
+\item When \code{method = "riskdiff-wald"} or \code{method = "riskdiff-fm"}, \code{h0} is the
+null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
 \verb{[-1, 1]}.
 \item When \code{method = "logrank"}, only \code{h0 = 0} is supported; this denotes the
@@ -219,17 +220,22 @@ final analysis. Available choices are a log-rank
 (\code{method = "logrank"}) test, Cox proportional hazards regression model
 Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
-complete binary outcomes (\code{method = "bayes-bin"}), or a frequentist
-risk-difference Wald test of complete binary outcomes (\code{method = "riskdiff"}). The default is \code{"logrank"}. See Details.}
+complete binary outcomes (\code{method = "bayes-bin"}), a frequentist
+risk-difference Wald test (\code{method = "riskdiff-wald"}), or a
+Farrington-Manning score test (\code{method = "riskdiff-fm"}) of complete
+binary outcomes. The deprecated \code{method = "riskdiff"} is accepted as an
+alias for \code{"riskdiff-wald"} with a warning. The default is \code{"logrank"}.
+See Details.}
 
 \item{imputed_final}{A single logical value indicating whether the final
 analysis should be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 \code{end_of_study}). The default is \code{FALSE}, which means that the final analysis
-incorporates right-censoring. With \code{method = "cox"} or \code{method = "riskdiff"}, setting this to \code{TRUE} analyzes each imputed dataset and pools
-the scalar treatment effects and variances using Rubin's rules; this
-requires \code{N_impute >= 2}. Imputed final analyses remain unavailable for
-\code{method = "logrank"}.}
+incorporates right-censoring. With \code{method = "cox"}, \code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}, setting this to \code{TRUE}
+analyzes each imputed dataset and pools the scalar treatment effects and
+variances using Rubin's rules; this requires \code{N_impute >= 2}. The pooled
+risk-difference analysis is a Wald test rather than a Farrington-Manning
+test. Imputed final analyses remain unavailable for \code{method = "logrank"}.}
 
 \item{empty_interval}{A single character string specifying how to handle
 empty piecewise-exponential intervals when updating Gamma hazard models for
@@ -269,11 +275,11 @@ random-number state unchanged.}
 
 \item{binary_imputation}{A single character string selecting the predictive
 imputation approach for
-\code{method = "bayes-bin"} or \code{method = "riskdiff"}. \code{"event-time"} (the default)
-draws a conditional piecewise-exponential event time and reduces it to
-event status at \code{end_of_study}. \code{"bernoulli"} draws the endpoint status
-directly from its conditional event probability. This argument is ignored
-for time-to-event analysis methods.}
+\code{method = "bayes-bin"}, \code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}. \code{"event-time"} (the default) draws a conditional
+piecewise-exponential event time and reduces it to event status at
+\code{end_of_study}. \code{"bernoulli"} draws the endpoint status directly from its
+conditional event probability. This argument is ignored for time-to-event
+analysis methods.}
 
 \item{prior_surv_final}{A numeric vector, matrix, or named list specifying
 the Gamma prior

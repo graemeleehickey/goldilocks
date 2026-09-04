@@ -29,13 +29,16 @@
 #'       binary event proportions (two-arm) is greater than `h0` when
 #'       `alternative = "greater"`, or less than `h0` when
 #'       `alternative = "less"`;
-#'     - if `method = "riskdiff"`, 1 minus the Wald-test *P*-value for the
+#'     - if `method = "riskdiff-wald"`, 1 minus the Wald-test *P*-value for the
 #'       treatment-control difference in binary event proportions compared
-#'       with `h0`.
+#'       with `h0`;
+#'     - if `method = "riskdiff-fm"`, 1 minus the Farrington-Manning score-test
+#'       *P*-value for the same risk difference.
 #'   - `effect`: Posterior mean effect for `method = "bayes-surv"` or
 #'     `method = "bayes-bin"`, the estimated log hazard ratio for `method =
 #'     "cox"`, the estimated treatment-control event-proportion difference for
-#'     `method = "riskdiff"`, or `NA` for `method = "logrank"`.
+#'     `method = "riskdiff-wald"` or `"riskdiff-fm"`, or `NA` for `method =
+#'     "logrank"`.
 #'
 #' @importFrom stats dbeta integrate pbeta pnorm rbeta
 #' @import Rcpp
@@ -142,8 +145,19 @@ analyse_data <- function(
   ### Frequentist risk-difference test
   ####################################################
 
-  if (method == "riskdiff") {
+  if (method == "riskdiff-wald") {
     fit_riskdiff <- risk_difference_wald_test_checked(
+      data = data,
+      end_of_study = end_of_study,
+      alternative = alternative,
+      h0 = h0
+    )
+    success <- fit_riskdiff$success
+    effect <- fit_riskdiff$estimate
+  }
+
+  if (method == "riskdiff-fm") {
+    fit_riskdiff <- risk_difference_fm_test_checked(
       data = data,
       end_of_study = end_of_study,
       alternative = alternative,

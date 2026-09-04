@@ -18,10 +18,10 @@
 #'   yet observed. At the final analysis, `imputed_final = TRUE` likewise
 #'   imputes outcomes for subjects lost to follow-up before `end_of_study`.
 #'   With `imputed_final = FALSE`, time-to-event analyses retain their observed
-#'   right-censoring, whereas binary analyses (`method = "riskdiff"` or
-#'   `"bayes-bin"`) exclude subjects without complete endpoint status. Design
-#'   evaluations should prespecify this choice and assess sensitivity to it when
-#'   appreciable loss to follow-up is expected.
+#'   right-censoring, whereas binary analyses (`method = "riskdiff-wald"`,
+#'   `"riskdiff-fm"`, or `"bayes-bin"`) exclude subjects without complete
+#'   endpoint status. Design evaluations should prespecify this choice and
+#'   assess sensitivity to it when appreciable loss to follow-up is expected.
 #'
 #' @return A length-two numeric vector containing the posterior probability (or
 #'   `1 - P` for a frequentist analysis) for the alternative hypothesis,
@@ -62,7 +62,7 @@ analyse_final <- function(
   }
 
   if (imputed_final) {
-    if (method %in% c("cox", "riskdiff") && N_impute < 2) {
+    if (method %in% c("cox", "riskdiff-wald", "riskdiff-fm") && N_impute < 2) {
       stop(
         "Frequentist final-analysis imputation requires at least two ",
         "imputations ",
@@ -140,7 +140,7 @@ analyse_final <- function(
         fit_cox <- cox_wald_test_checked(data)
         effect_final[j] <- fit_cox$estimate
         variance_final[j] <- fit_cox$std_error^2
-      } else if (method == "riskdiff") {
+      } else if (method %in% c("riskdiff-wald", "riskdiff-fm")) {
         fit_riskdiff <- risk_difference_estimate_checked(
           data = data,
           end_of_study = end_of_study
@@ -171,7 +171,7 @@ analyse_final <- function(
       }
     }
 
-    if (method %in% c("cox", "riskdiff")) {
+    if (method %in% c("cox", "riskdiff-wald", "riskdiff-fm")) {
       pooled <- pool_rubin_scalar(
         estimates = effect_final,
         variances = variance_final,
@@ -190,7 +190,9 @@ analyse_final <- function(
     # Risk-difference and Bayesian binomial analyses cannot handle censored
     # (LTFU) subjects, so exclude them.
     if (
-      method %in% c("riskdiff", "bayes-bin") && "loss_to_fu" %in% names(data_in)
+      method %in%
+        c("riskdiff-wald", "riskdiff-fm", "bayes-bin") &&
+        "loss_to_fu" %in% names(data_in)
     ) {
       data_in <- data_in[!data_in$loss_to_fu, ]
     }
@@ -254,8 +256,22 @@ pool_rubin_scalar <- function(estimates, variances, alternative, h0) {
   within_variance <- mean(variances)
   between_variance <- var(estimates)
   total_variance <- within_variance + (1 + 1 / m) * between_variance
-  if (!is.finite(total_variance) || total_variance <= 0) {
-    stop("Rubin pooling requires a finite positive total variance")
+  if (!is.finite(total_variance) || total_variance < 0) {
+    stop("Rubin pooling requires a finite non-negative total variance")
+  }
+  if (total_variance == 0) {
+    difference_from_null <- estimate - h0
+    statistic <- if (difference_from_null == 0) {
+      0
+    } else {
+      sign(difference_from_null) * Inf
+    }
+    return(list(
+      success = normal_test_success(statistic, alternative),
+      estimate = estimate,
+      std_error = 0,
+      degrees_freedom = Inf
+    ))
   }
 
   relative_increase <- if (within_variance == 0) {

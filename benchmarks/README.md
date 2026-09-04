@@ -50,6 +50,12 @@ The separate `survival_adapt_bayes_bin` row reports the complete trial runtime,
 including generation, posterior prediction, interim decisions, and final
 analysis.
 
+The risk-difference rows apply the Wald and Farrington-Manning calculations to
+the same 1,000 low-event-rate, non-boundary count tables with a nonzero null
+difference. They make the cost of the constrained one-dimensional likelihood
+calculation visible without mixing it with predictive imputation or trial
+generation.
+
 The stable cumulative-hazard/probability transformations are benchmarked over
 100,000 values spanning near-zero inputs through their mathematical
 boundaries. This guards the use of `expm1()` and `log1p()` against a material

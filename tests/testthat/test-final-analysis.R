@@ -62,6 +62,26 @@ test_that("pool_rubin_scalar can use between-imputation variance alone", {
   expect_equal(pooled$estimate, 0)
 })
 
+test_that("pool_rubin_scalar defines zero-information boundary results", {
+  neutral <- pool_rubin_scalar(
+    estimates = c(0, 0),
+    variances = c(0, 0),
+    alternative = "greater",
+    h0 = 0
+  )
+  above_null <- pool_rubin_scalar(
+    estimates = c(0, 0),
+    variances = c(0, 0),
+    alternative = "less",
+    h0 = -0.1
+  )
+
+  expect_equal(neutral$success, 0.5)
+  expect_identical(neutral$std_error, 0)
+  expect_identical(neutral$degrees_freedom, Inf)
+  expect_identical(above_null$success, 0)
+})
+
 test_that("prior_surv_final controls final-stage imputation", {
   data_in <- data.frame(
     time = rep(0.1, 20),

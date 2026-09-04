@@ -288,7 +288,7 @@ $$p(\mathcal{D}^{\mathrm{mis}} \mid \mathcal{D}_{\ell}^{\mathrm{obs}})
   \pi(\boldsymbol{\lambda} \mid \mathcal{D}_{\ell}^{\mathrm{obs}})
   d\boldsymbol{\lambda}.$$
 
-This density is the mathematical target, not an object that the package evaluates in closed form. In the shared interim implementation, `posterior_from_sufficient_stats()` draws $\boldsymbol{\lambda}$ and `impute_predictive_draws()` draws all completed outcomes conditional on those hazards. For survival, log-rank, and Cox methods, each replicate is represented by completed follow-up, event, and treatment vectors. The treatment assignments are fixed across replicates; only follow-up and event values requiring imputation are replaced. For `method = "riskdiff"` and `method = "bayes-bin"`, the package instead carries forward the completed event and subject counts by arm because these are sufficient for the fixed-horizon binary analysis. Both representations apply the same completed-data analysis and average the same replicate-level success indicators.
+This density is the mathematical target, not an object that the package evaluates in closed form. In the shared interim implementation, `posterior_from_sufficient_stats()` draws $\boldsymbol{\lambda}$ and `impute_predictive_draws()` draws all completed outcomes conditional on those hazards. For survival, log-rank, and Cox methods, each replicate is represented by completed follow-up, event, and treatment vectors. The treatment assignments are fixed across replicates; only follow-up and event values requiring imputation are replaced. For `method = "riskdiff-wald"`, `method = "riskdiff-fm"`, and `method = "bayes-bin"`, the package instead carries forward the completed event and subject counts by arm because these are sufficient for the fixed-horizon binary analysis. Both representations apply the same completed-data analysis and average the same replicate-level success indicators.
 
 ## 6. Interim decision algorithm
 
@@ -305,7 +305,8 @@ where $Q(\mathcal{D})$ is the final analysis quantity and $c$ is the success thr
 |------------------|------------------|------------------|------------------|
 | Two-arm randomized trial | `logrank` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the traditional log-rank test P-value, with one-sided variants defined in Section 7.1 | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `cox` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the traditional Wald-test P-value, with one-sided variants defined in Section 7.1 | `"less"`, `"greater"`, `"two.sided"` |
-| Two-arm randomized trial | `riskdiff` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the Wald-test P-value for the treatment-control event-risk difference | `"less"`, `"greater"`, `"two.sided"` |
+| Two-arm randomized trial | `riskdiff-wald` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the Wald-test P-value for the treatment-control event-risk difference | `"less"`, `"greater"`, `"two.sided"` |
+| Two-arm randomized trial | `riskdiff-fm` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the Farrington-Manning score-test P-value for the treatment-control event-risk difference | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `bayes-surv` | $\Pr(\Delta < h_0 \mid \mathcal{D})$ or $\Pr(\Delta > h_0 \mid \mathcal{D})$ | `"less"`, `"greater"` |
 | Single-arm trial | `bayes-surv` | $\Pr(p_1(\tau) < h_0 \mid \mathcal{D})$ or $\Pr(p_1(\tau) > h_0 \mid \mathcal{D})$ | `"less"`, `"greater"` |
 | Two-arm randomized trial | `bayes-bin` | $\Pr(\Delta_{\mathrm{bin}} < h_0 \mid \mathcal{D})$ or $\Pr(\Delta_{\mathrm{bin}} > h_0 \mid \mathcal{D})$ | `"less"`, `"greater"` |
@@ -425,7 +426,9 @@ The final analysis is conducted after accrual has stopped and the relevant follo
 
 ### 7.1 Frequentist final tests
 
-For `method = "logrank"`, success is based on a log-rank test. For `method = "cox"`, success is based on the Wald test from a Cox proportional hazards regression. For `method = "riskdiff"`, success is based on a Wald test for the treatment-control difference in binary event risks at `end_of_study`. For these methods, `goldilocks` stores $1-p$ in `post_prob_ha`; this is not a posterior probability, but it puts frequentist and Bayesian rules on a common "larger is stronger evidence" scale. For example, a one-sided test at $\alpha = 0.025$ corresponds to `prob_ha = 0.975`.
+For `method = "logrank"`, success is based on a log-rank test. For `method = "cox"`, success is based on the Wald test from a Cox proportional hazards regression. For a treatment-control difference in binary event risks at `end_of_study`, `method = "riskdiff-wald"` uses a Wald test and `method = "riskdiff-fm"` uses a Farrington-Manning score test. For these methods, `goldilocks` stores $1-p$ in `post_prob_ha`; this is not a posterior probability, but it puts frequentist and Bayesian rules on a common "larger is stronger evidence" scale. For example, a one-sided test at $\alpha = 0.025$ corresponds to `prob_ha = 0.975`.
+
+The deprecated `method = "riskdiff"` is normalized to `"riskdiff-wald"` with a warning. The retained design arguments record the canonical `"riskdiff-wald"` name.
 
 For the log-rank option, let $Z_{\mathrm{LR}}$ denote the signed log-rank statistic, with positive values corresponding to excess events in the control arm under the package convention. Let $p_{\mathrm{LR}}$ denote the traditional two-sided log-rank test P-value. The log-rank method supports only `h0 = 0`, denoting equal survival distributions; a nonzero margin is rejected rather than silently ignored. For the Cox option, let $\widehat{\eta}$ be the estimated log hazard ratio for treatment versus control. For Cox analysis, `h0` is on the log-hazard-ratio scale, so the package uses
 
@@ -434,9 +437,11 @@ $$Z_{\mathrm{Cox}} = \frac{\widehat{\eta} - h_0}
 
 When `h0 = 0`, this is the usual hazard-ratio-equals-1 null. A non-inferiority margin specified as a hazard ratio can be supplied as `h0 = log(margin)`. Here, lower treatment hazard corresponds to $Z_{\mathrm{Cox}} < 0$. Let $p_{\mathrm{Cox}}$ denote the two-sided Wald-test P-value relative to `h0`. The package uses the following method-specific definitions of $Q(\mathcal{D})$:
 
-For the risk-difference option, let $\widehat p_1$ and $\widehat p_0$ be the observed event proportions in the treatment and control arms, with sample sizes $n_1$ and $n_0$. The estimated effect and its unpooled binomial variance are
+For the risk-difference options, let $\widehat p_1$ and $\widehat p_0$ be the observed event proportions in the treatment and control arms, with sample sizes $n_1$ and $n_0$. Both report the estimated effect
 
 $$\widehat\Delta = \widehat p_1 - \widehat p_0,$$
+
+and test $H_0: p_1-p_0=h_0$. The Wald method uses the unpooled plug-in variance
 
 $$U_{\Delta} =
   \frac{\widehat p_1(1-\widehat p_1)}{n_1} +
@@ -444,8 +449,21 @@ $$U_{\Delta} =
 
 The complete-data Wald statistic is
 
-$$Z_{\mathrm{RD}} =
+$$Z_{\mathrm{Wald}} =
   \frac{\widehat\Delta-h_0}{\sqrt{U_{\Delta}}}.$$
+
+For `riskdiff-fm`, let $\widetilde p_0$ and $\widetilde p_1$ be the joint binomial maximum likelihood estimates constrained so that $\widetilde p_1-\widetilde p_0=h_0$. The package obtains these estimates by maximizing the one-dimensional likelihood over
+
+$$\max(0,-h_0) \leq \widetilde p_0 \leq \min(1,1-h_0),$$
+
+with $\widetilde p_1=\widetilde p_0+h_0$. The Farrington-Manning statistic is
+
+$$Z_{\mathrm{FM}} =
+  \frac{\widehat\Delta-h_0}
+  {\sqrt{\widetilde p_1(1-\widetilde p_1)/n_1 +
+         \widetilde p_0(1-\widetilde p_0)/n_0}}.$$
+
+No continuity correction is applied. If the constrained variance is zero, the statistic is defined as zero when $\widehat\Delta=h_0$, positive infinity when $\widehat\Delta>h_0$, and negative infinity otherwise. Consequently, equal-arm all-zero and all-one tables under $h_0=0$ give a neutral one-sided result rather than an error.
 
 | Method    | Alternative   | $Q(\mathcal{D})$              |
 |-----------|---------------|-------------------------------|
@@ -455,9 +473,12 @@ $$Z_{\mathrm{RD}} =
 | `cox`     | `"less"`      | $1 - \Phi(Z_{\mathrm{Cox}})$ |
 | `cox`     | `"greater"`   | $\Phi(Z_{\mathrm{Cox}})$     |
 | `cox`     | `"two.sided"` | $1 - p_{\mathrm{Cox}}$       |
-| `riskdiff` | `"less"`      | $1 - \Phi(Z_{\mathrm{RD}})$  |
-| `riskdiff` | `"greater"`   | $\Phi(Z_{\mathrm{RD}})$      |
-| `riskdiff` | `"two.sided"` | $1 - 2\Phi(-|Z_{\mathrm{RD}}|)$ |
+| `riskdiff-wald` | `"less"`      | $1 - \Phi(Z_{\mathrm{Wald}})$  |
+| `riskdiff-wald` | `"greater"`   | $\Phi(Z_{\mathrm{Wald}})$      |
+| `riskdiff-wald` | `"two.sided"` | $1 - 2\Phi(-|Z_{\mathrm{Wald}}|)$ |
+| `riskdiff-fm` | `"less"`      | $1 - \Phi(Z_{\mathrm{FM}})$  |
+| `riskdiff-fm` | `"greater"`   | $\Phi(Z_{\mathrm{FM}})$      |
+| `riskdiff-fm` | `"two.sided"` | $1 - 2\Phi(-|Z_{\mathrm{FM}}|)$ |
 
 The one-sided directions differ between the log-rank rows and the model-based rows because of the sign convention of the package's log-rank statistic.
 
@@ -477,7 +498,7 @@ The pooled Wald statistic is $(\bar{\theta} - h_0) / \sqrt{T}$. Its P-value uses
 $$\nu = (M-1)\left(1 + \frac{1}{r}\right)^2, \qquad
 r = \frac{(1 + 1/M)B}{\bar{U}}.$$
 
-When $B = 0$, $\nu = \infty$ and the reference distribution reduces to the standard normal distribution. At least two imputations are therefore required. The returned `est_final` is $\bar{\theta}$, while `post_prob_ha` is $1-p$ from this pooled test with the direction determined by `alternative`.
+When $B = 0$, $\nu = \infty$ and the reference distribution reduces to the standard normal distribution. If both the within- and between-imputation variances are zero, the same neutral-or-directional boundary convention described above is used. At least two imputations are therefore required. The returned `est_final` is $\bar{\theta}$, while `post_prob_ha` is $1-p$ from this pooled test with the direction determined by `alternative`. This multiple-imputation result is a pooled Wald analysis for both risk-difference method settings; it is not described as a Farrington-Manning test.
 
 ### 7.2 Bayesian survival final test
 
@@ -563,7 +584,7 @@ Interim predictions impute outcomes that are not yet known. At the final analysi
 
 If `imputed_final = TRUE`, Bayesian methods (`method = "bayes-surv"` or `method = "bayes-bin"`) analyze each imputed completed dataset and average the resulting posterior summaries. Cox regression and risk-difference analyses instead pool completed-data scalar estimates and variances using Rubin's rules as described above; `N_impute` must be at least two. Imputed final analyses remain unavailable for `method = "logrank"` because no pooling rule is implemented for that test.
 
-If `imputed_final = FALSE`, the final analysis uses observed right-censored data for methods that can handle censoring (`logrank`, `cox`, and `bayes-surv`). For `riskdiff` and `bayes-bin`, lost-to-follow-up subjects are excluded because these methods require complete binary outcomes and have no mechanism for right-censored observations. Rubin pooling applies to imputed Cox and risk-difference final analyses; it does not alter the interim posterior-predictive calculation, where each simulated completed trial is tested separately before the success indicators are averaged.
+If `imputed_final = FALSE`, the final analysis uses observed right-censored data for methods that can handle censoring (`logrank`, `cox`, and `bayes-surv`). For `riskdiff-wald`, `riskdiff-fm`, and `bayes-bin`, lost-to-follow-up subjects are excluded because these methods require complete binary outcomes and have no mechanism for right-censored observations. Rubin pooling applies to imputed Cox and risk-difference final analyses; it does not alter the interim posterior-predictive calculation, where each simulated completed trial is tested separately before the success indicators are averaged.
 
 The loss-to-follow-up mechanism in the simulator is non-informative. Designs where dropout may depend on prognosis should be assessed with sensitivity analyses outside the default data-generating mechanism.
 
@@ -729,6 +750,8 @@ For complete binary endpoints, `method = "bayes-bin"` replaces the piecewise-exp
 ## References
 
 Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks approach to sample size selection. *Journal of Biopharmaceutical Statistics*, 2014; **24(3)**: 685-705. doi:10.1080/10543406.2014.888569.
+
+Farrington CP, Manning G. Test statistics and sample size formulae for comparative binomial trials with null hypothesis of non-zero risk difference or non-unity relative risk. *Statistics in Medicine*, 1990; **9**: 1447-1454. doi:10.1002/sim.4780091208.
 
 U.S. Food and Drug Administration. *Adaptive Design Clinical Trials for Drugs and Biologics Guidance for Industry*. December 2019. <https://www.fda.gov/regulatory-information/search-fda-guidance-documents/adaptive-design-clinical-trials-drugs-and-biologics-guidance-industry>.
 

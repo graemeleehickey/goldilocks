@@ -287,7 +287,8 @@ test_that("binary count prediction matches the patient-data reference", {
     check_futility = TRUE
   )
   configurations <- list(
-    list(method = "riskdiff", bin_method = "mc", N_mcmc = 1L),
+    list(method = "riskdiff-wald", bin_method = "mc", N_mcmc = 1L),
+    list(method = "riskdiff-fm", bin_method = "mc", N_mcmc = 1L),
     list(method = "bayes-bin", bin_method = "normal", N_mcmc = 1L),
     list(method = "bayes-bin", bin_method = "quadrature", N_mcmc = 1L),
     list(method = "bayes-bin", bin_method = "mc", N_mcmc = 40L)
@@ -365,7 +366,8 @@ test_that("binary analysis groups contain every analysis input", {
     within(base, counts$n_control <- 11L),
     within(base, counts$events_treatment <- 5L),
     within(base, counts$n_treatment <- 11L),
-    within(base, method <- "riskdiff"),
+    within(base, method <- "riskdiff-wald"),
+    within(base, method <- "riskdiff-fm"),
     within(base, single_arm <- TRUE),
     within(base, alternative <- "less"),
     within(base, h0 <- 0.1),

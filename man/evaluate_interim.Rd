@@ -99,8 +99,8 @@ one treatment arm and no control arm. The default is \code{FALSE}.}
 hypothesis. It must be one of \code{"greater"} (the default), \code{"less"}, or
 \code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
 supported for \code{method = "bayes-surv"} and \code{method = "bayes-bin"}. All three
-options are supported for \code{method = "logrank"}, \code{method = "cox"}, and
-\code{method = "riskdiff"}. For
+options are supported for \code{method = "logrank"}, \code{method = "cox"},
+\code{method = "riskdiff-wald"}, and \code{method = "riskdiff-fm"}. For
 survival outcomes, \code{"less"} corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
 corresponds to the treatment arm having a higher cumulative incidence.}
@@ -122,7 +122,8 @@ treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
 of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use \code{alternative = "less"}.
-\item When \code{method = "riskdiff"}, \code{h0} is the null value of
+\item When \code{method = "riskdiff-wald"} or \code{method = "riskdiff-fm"}, \code{h0} is the
+null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
 \verb{[-1, 1]}.
 \item When \code{method = "logrank"}, only \code{h0 = 0} is supported; this denotes the
@@ -181,16 +182,20 @@ final analysis. Available choices are a log-rank
 (\code{method = "logrank"}) test, Cox proportional hazards regression model
 Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
-complete binary outcomes (\code{method = "bayes-bin"}), or a frequentist
-risk-difference Wald test of complete binary outcomes (\code{method = "riskdiff"}). The default is \code{"logrank"}. See Details.}
+complete binary outcomes (\code{method = "bayes-bin"}), a frequentist
+risk-difference Wald test (\code{method = "riskdiff-wald"}), or a
+Farrington-Manning score test (\code{method = "riskdiff-fm"}) of complete
+binary outcomes. The deprecated \code{method = "riskdiff"} is accepted as an
+alias for \code{"riskdiff-wald"} with a warning. The default is \code{"logrank"}.
+See Details.}
 
 \item{binary_imputation}{A single character string selecting the predictive
 imputation approach for
-\code{method = "bayes-bin"} or \code{method = "riskdiff"}. \code{"event-time"} (the default)
-draws a conditional piecewise-exponential event time and reduces it to
-event status at \code{end_of_study}. \code{"bernoulli"} draws the endpoint status
-directly from its conditional event probability. This argument is ignored
-for time-to-event analysis methods.}
+\code{method = "bayes-bin"}, \code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}. \code{"event-time"} (the default) draws a conditional
+piecewise-exponential event time and reduces it to event status at
+\code{end_of_study}. \code{"bernoulli"} draws the endpoint status directly from its
+conditional event probability. This argument is ignored for time-to-event
+analysis methods.}
 
 \item{seed}{\code{NULL} (the default), or a single non-negative integer used for
 the predictive Monte

@@ -123,7 +123,9 @@ evaluate_interim_decision <- function(
   } else {
     NULL
   }
-  predictive_binary_imputation <- if (method %in% c("bayes-bin", "riskdiff")) {
+  predictive_binary_imputation <- if (
+    method %in% c("bayes-bin", "riskdiff-wald", "riskdiff-fm")
+  ) {
     binary_imputation
   } else {
     "event-time"
@@ -143,7 +145,7 @@ evaluate_interim_decision <- function(
   inner_mc_uncertain_now <- 0L
   inner_mc_uncertain_max <- 0L
   binary_count_reuse <- NULL
-  if (method %in% c("bayes-bin", "riskdiff")) {
+  if (method %in% c("bayes-bin", "riskdiff-wald", "riskdiff-fm")) {
     completed_counts <- predictive_binary_counts(
       data_in = data_interim,
       imputations = imputations,

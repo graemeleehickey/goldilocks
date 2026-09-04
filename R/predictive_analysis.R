@@ -131,7 +131,8 @@ analyse_predictive_survival <- function(
 #' @param single_arm A single logical value indicating a one-arm design.
 #' @param N_mcmc A positive integer giving the number of beta-posterior draws
 #'   for `method = "bayes-bin"` and `bin_method = "mc"`.
-#' @param method A character value specifying `"riskdiff"` or `"bayes-bin"`.
+#' @param method A character value specifying `"riskdiff-wald"`,
+#'   `"riskdiff-fm"`, or `"bayes-bin"`.
 #' @param alternative A character value giving the direction of the alternative
 #'   hypothesis.
 #' @param h0 A finite numeric value giving the null event-probability difference
@@ -192,7 +193,7 @@ analyse_predictive_binary_counts <- function(
     bin_method = bin_method,
     N_mcmc = N_mcmc
   )
-  deterministic <- method == "riskdiff" || bin_method != "mc"
+  deterministic <- method != "bayes-bin" || bin_method != "mc"
   first_in_group <- !duplicated(analysis_groups)
   analysis_rows <- if (deterministic) {
     which(first_in_group)
@@ -352,7 +353,12 @@ analyse_binary_counts <- function(
     ))
   }
 
-  fit <- risk_difference_wald_from_counts(
+  risk_difference_analysis <- if (method == "riskdiff-fm") {
+    risk_difference_fm_from_counts
+  } else {
+    risk_difference_wald_from_counts
+  }
+  fit <- risk_difference_analysis(
     events_control = counts$events_control,
     n_control = counts$n_control,
     events_treatment = counts$events_treatment,

@@ -142,6 +142,7 @@ evaluate_interim <- function(
 ) {
   Call <- match.call()
   caller_rng_kind <- RNGkind()
+  method <- normalize_analysis_method(method)
   empty_interval <- match.arg(empty_interval)
   binary_imputation <- match.arg(binary_imputation)
 

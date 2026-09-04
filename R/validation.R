@@ -821,7 +821,10 @@ validate_h0 <- function(h0, method, single_arm) {
     )
   }
 
-  if (method %in% c("bayes-surv", "bayes-bin", "riskdiff")) {
+  if (
+    method %in%
+      c("bayes-surv", "bayes-bin", "riskdiff-wald", "riskdiff-fm")
+  ) {
     lower <- if (single_arm) 0 else -1
     upper <- 1
     if (h0 < lower || h0 > upper) {
@@ -832,7 +835,7 @@ validate_h0 <- function(h0, method, single_arm) {
         upper,
         "] for ",
         if (single_arm) "single-arm" else "two-arm",
-        if (method == "riskdiff") {
+        if (method %in% c("riskdiff-wald", "riskdiff-fm")) {
           " risk-difference analyses"
         } else {
           " Bayesian analyses"
@@ -899,6 +902,29 @@ normalize_interim_threshold <- function(
   as.numeric(threshold)
 }
 
+#' @title Normalize a deprecated analysis-method name
+#'
+#' @description Maps the deprecated `"riskdiff"` method to its explicit
+#'   `"riskdiff-wald"` replacement and warns once at the public entry point.
+#'
+#' @param method A single character string naming the analysis method.
+#'
+#' @return The canonical method name.
+#'
+#' @noRd
+normalize_analysis_method <- function(method) {
+  if (identical(method, "riskdiff")) {
+    warning(
+      "`method = \"riskdiff\"` is deprecated; use ",
+      "`method = \"riskdiff-wald\"` instead.",
+      call. = FALSE
+    )
+    return("riskdiff-wald")
+  }
+
+  method
+}
+
 #' @title Validate analysis-method configuration
 #'
 #' @description Checks the mutually compatible analysis settings shared by
@@ -938,12 +964,13 @@ validate_analysis_configuration <- function(
           "bayes-bin",
           "logrank",
           "cox",
-          "riskdiff"
+          "riskdiff-wald",
+          "riskdiff-fm"
         )
   ) {
     stop(
       "'method' must be one of 'bayes-surv', 'bayes-bin', 'logrank', 'cox', ",
-      "or 'riskdiff'"
+      "'riskdiff-wald', or 'riskdiff-fm'"
     )
   }
 
@@ -964,7 +991,10 @@ validate_analysis_configuration <- function(
     )
   }
 
-  if (single_arm && method %in% c("logrank", "cox", "riskdiff")) {
+  if (
+    single_arm &&
+      method %in% c("logrank", "cox", "riskdiff-wald", "riskdiff-fm")
+  ) {
     stop("The selected method can only be used for two-armed trials")
   }
 

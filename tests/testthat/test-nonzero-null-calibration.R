@@ -41,7 +41,7 @@ test_that("risk-difference nonzero-null simulations control type-I error", {
     N_impute = 1,
     N_mcmc = 1,
     N_trials = 500,
-    method = "riskdiff",
+    method = "riskdiff-wald",
     backend = "sequential",
     seed = 7375
   )

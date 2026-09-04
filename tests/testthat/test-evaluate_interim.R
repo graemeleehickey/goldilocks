@@ -187,7 +187,14 @@ test_that("evaluate_interim supports single-arm Bayesian analyses", {
 })
 
 test_that("evaluate_interim supports every two-arm analysis method", {
-  methods <- c("logrank", "cox", "riskdiff", "bayes-surv", "bayes-bin")
+  methods <- c(
+    "logrank",
+    "cox",
+    "riskdiff-wald",
+    "riskdiff-fm",
+    "bayes-surv",
+    "bayes-bin"
+  )
   results <- lapply(seq_along(methods), function(index) {
     evaluate_interim(
       data = interim_fixture(),
@@ -210,6 +217,27 @@ test_that("evaluate_interim supports every two-arm analysis method", {
     function(result) nrow(result$trace) == 1L,
     logical(1)
   )))
+})
+
+test_that("evaluate_interim maps deprecated riskdiff to riskdiff-wald", {
+  expect_warning(
+    result <- evaluate_interim(
+      data = interim_fixture(),
+      data_cut = 8,
+      look = 1,
+      N_total = 12,
+      end_of_study = 10,
+      rand_ratio = c(control = 1, treatment = 1),
+      alternative = "less",
+      method = "riskdiff",
+      N_impute = 2,
+      N_mcmc = 1,
+      seed = 8463
+    ),
+    "deprecated; use `method = \"riskdiff-wald\"`"
+  )
+
+  expect_identical(result$metadata$design$method, "riskdiff-wald")
 })
 
 test_that("Fn zero disables the maximum-sample calculation", {

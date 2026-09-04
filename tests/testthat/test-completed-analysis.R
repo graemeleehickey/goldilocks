@@ -57,7 +57,7 @@ test_that("binary analyses reject missing and non-binary event indicators", {
     prior_surv = c(0.1, 0.1),
     N_mcmc = 10,
     single_arm = FALSE,
-    method = "riskdiff",
+    method = "riskdiff-wald",
     alternative = "two.sided",
     h0 = 0
   )
@@ -592,7 +592,7 @@ test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less
   expect_equal(res_greater$success + res_less$success, 1, tolerance = 0.05)
 })
 
-test_that("analyse_data works with method = 'riskdiff'", {
+test_that("analyse_data works with method = 'riskdiff-wald'", {
   event <- c(rep(1, 10), rep(0, 40), rep(1, 20), rep(0, 30))
   data <- data.frame(
     time = rep(36, 100),
@@ -606,7 +606,7 @@ test_that("analyse_data works with method = 'riskdiff'", {
     prior_surv = c(0.1, 0.1),
     N_mcmc = 10,
     single_arm = FALSE,
-    method = "riskdiff",
+    method = "riskdiff-wald",
     alternative = "greater",
     h0 = 0
   )
@@ -639,7 +639,7 @@ test_that("analyse_data risk-difference alternatives preserve direction", {
     prior_surv = c(0.1, 0.1),
     N_mcmc = 10,
     single_arm = FALSE,
-    method = "riskdiff",
+    method = "riskdiff-wald",
     h0 = 0.1
   )
 
@@ -651,7 +651,7 @@ test_that("analyse_data risk-difference alternatives preserve direction", {
   expect_gt(greater$success, 0.5)
 })
 
-test_that("analyse_data method = 'riskdiff' rejects incomplete censored outcomes", {
+test_that("riskdiff-wald rejects incomplete censored outcomes", {
   data <- data.frame(
     time = c(5, 36, 7, 36),
     event = c(0, 0, 1, 1),
@@ -666,7 +666,7 @@ test_that("analyse_data method = 'riskdiff' rejects incomplete censored outcomes
       prior_surv = c(0.1, 0.1),
       N_mcmc = 10,
       single_arm = FALSE,
-      method = "riskdiff",
+      method = "riskdiff-wald",
       alternative = "two.sided",
       h0 = 0
     ),

@@ -151,6 +151,8 @@ sim_trials <- function(
 ) {
   Call <- match.call()
   Arguments <- capture_arguments(sim_trials, environment())
+  method <- normalize_analysis_method(method)
+  Arguments$method <- method
   empty_interval <- match.arg(empty_interval)
   binary_imputation <- match.arg(binary_imputation)
   backend <- match.arg(backend)

@@ -134,8 +134,8 @@ follow-up.}
 hypothesis. It must be one of \code{"greater"} (the default), \code{"less"}, or
 \code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
 supported for \code{method = "bayes-surv"} and \code{method = "bayes-bin"}. All three
-options are supported for \code{method = "logrank"}, \code{method = "cox"}, and
-\code{method = "riskdiff"}. For
+options are supported for \code{method = "logrank"}, \code{method = "cox"},
+\code{method = "riskdiff-wald"}, and \code{method = "riskdiff-fm"}. For
 survival outcomes, \code{"less"} corresponds to the treatment arm having a lower
 cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
 corresponds to the treatment arm having a higher cumulative incidence.}
@@ -157,7 +157,8 @@ treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
 of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use \code{alternative = "less"}.
-\item When \code{method = "riskdiff"}, \code{h0} is the null value of
+\item When \code{method = "riskdiff-wald"} or \code{method = "riskdiff-fm"}, \code{h0} is the
+null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
 \verb{[-1, 1]}.
 \item When \code{method = "logrank"}, only \code{h0 = 0} is supported; this denotes the
@@ -223,17 +224,22 @@ final analysis. Available choices are a log-rank
 (\code{method = "logrank"}) test, Cox proportional hazards regression model
 Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
-complete binary outcomes (\code{method = "bayes-bin"}), or a frequentist
-risk-difference Wald test of complete binary outcomes (\code{method = "riskdiff"}). The default is \code{"logrank"}. See Details.}
+complete binary outcomes (\code{method = "bayes-bin"}), a frequentist
+risk-difference Wald test (\code{method = "riskdiff-wald"}), or a
+Farrington-Manning score test (\code{method = "riskdiff-fm"}) of complete
+binary outcomes. The deprecated \code{method = "riskdiff"} is accepted as an
+alias for \code{"riskdiff-wald"} with a warning. The default is \code{"logrank"}.
+See Details.}
 
 \item{imputed_final}{A single logical value indicating whether the final
 analysis should be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 \code{end_of_study}). The default is \code{FALSE}, which means that the final analysis
-incorporates right-censoring. With \code{method = "cox"} or \code{method = "riskdiff"}, setting this to \code{TRUE} analyzes each imputed dataset and pools
-the scalar treatment effects and variances using Rubin's rules; this
-requires \code{N_impute >= 2}. Imputed final analyses remain unavailable for
-\code{method = "logrank"}.}
+incorporates right-censoring. With \code{method = "cox"}, \code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}, setting this to \code{TRUE}
+analyzes each imputed dataset and pools the scalar treatment effects and
+variances using Rubin's rules; this requires \code{N_impute >= 2}. The pooled
+risk-difference analysis is a Wald test rather than a Farrington-Manning
+test. Imputed final analyses remain unavailable for \code{method = "logrank"}.}
 
 \item{return_trace}{A single logical value indicating whether the interim
 decision path should be returned in addition to the usual final summary.
@@ -243,11 +249,11 @@ diagnostics, and call elements.}
 
 \item{binary_imputation}{A single character string selecting the predictive
 imputation approach for
-\code{method = "bayes-bin"} or \code{method = "riskdiff"}. \code{"event-time"} (the default)
-draws a conditional piecewise-exponential event time and reduces it to
-event status at \code{end_of_study}. \code{"bernoulli"} draws the endpoint status
-directly from its conditional event probability. This argument is ignored
-for time-to-event analysis methods.}
+\code{method = "bayes-bin"}, \code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}. \code{"event-time"} (the default) draws a conditional
+piecewise-exponential event time and reduces it to event status at
+\code{end_of_study}. \code{"bernoulli"} draws the endpoint status directly from its
+conditional event probability. This argument is ignored for time-to-event
+analysis methods.}
 
 \item{prior_surv_final}{A numeric vector, matrix, or named list specifying
 the Gamma prior
@@ -457,16 +463,22 @@ Because no precise event time is generated, the imputed \code{time} is set
 to \code{end_of_study} and only the binary \code{event} status is analyzed. Each
 imputation still uses a sampled posterior hazard draw, so uncertainty
 in the piecewise-exponential model is retained.
-\item Frequentist risk difference (\code{method = "riskdiff"}).
+\item Frequentist risk difference (\code{method = "riskdiff-wald"} or
+\code{"riskdiff-fm"}).
 Each complete or imputed dataset is reduced to binary event outcomes at
 \code{end_of_study}. The estimated treatment effect is
-\eqn{p_\textrm{treatment} - p_\textrm{control}}, with an unpooled
-binomial variance. A Wald test compares this estimate with \code{h0}, and
-\eqn{1 - P} is reported in \code{post_prob_ha}. All three alternatives are
-supported. Because the test requires complete binary outcomes,
-lost-to-follow-up subjects are excluded when \code{imputed_final = FALSE}.
-When \code{imputed_final = TRUE}, estimates and within-imputation variances
-from at least two completed datasets are combined using Rubin's rules.
+\eqn{p_\textrm{treatment} - p_\textrm{control}}. \code{"riskdiff-wald"}
+uses the observed arm risks in an unpooled Wald variance.
+\code{"riskdiff-fm"} instead uses maximum likelihood arm risks constrained
+by the null difference \code{h0} in a Farrington-Manning score variance. The
+latter remains defined for common sparse tables, including equal-arm
+all-zero and all-one outcomes. Both methods report \eqn{1 - P} in
+\code{post_prob_ha} and support all three alternatives. Because they require
+complete binary outcomes, lost-to-follow-up subjects are excluded when
+\code{imputed_final = FALSE}. When \code{imputed_final = TRUE}, estimates and
+within-imputation variances from at least two completed datasets are
+combined using Rubin's rules, producing a pooled Wald analysis for
+either method setting.
 \item Imputed final analysis (\code{imputed_final}).
 The overall final analysis conducted after accrual is suspended and
 follow-up is complete can be analyzed on imputed datasets for Bayesian
@@ -503,9 +515,9 @@ piecewise-exponential prediction model and do not change this separation.
 For \code{method = "bayes-surv"}, the second analysis instead forms a fresh
 piecewise-exponential posterior from the completed data and the original
 survival prior. For frequentist methods (\code{"logrank"}, \code{"cox"},
-\code{"riskdiff"}), each completed dataset uses a standard test rather than a
-posterior. Imputed Cox and risk-difference final analyses pool estimates
-and variances using Rubin's rules.
+\code{"riskdiff-wald"}, and \code{"riskdiff-fm"}), each completed dataset uses a
+standard test rather than a posterior. Imputed Cox and risk-difference
+final analyses pool estimates and variances using Rubin's rules.
 
 At each interim look, follow-up times are masked (censored) to reflect
 the calendar time of the analysis. The package treats enrollment and

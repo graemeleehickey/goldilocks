@@ -69,6 +69,7 @@ articles:
       - advent
       - bayes-piecewise
       - bayesian-binary
+      - frequentist-binary
       - single-arm
       - decision-traces
       - interim-data
