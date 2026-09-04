@@ -65,6 +65,7 @@ articles:
   - title: Getting started
     contents:
       - two-arm
+      - thermocool-af
       - anthem-hfref
       - advent
       - bayes-piecewise

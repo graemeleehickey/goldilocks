@@ -452,6 +452,33 @@ test_that("sim_trials uses survival_adapt decision-rule defaults", {
     formals(survival_adapt)$alternative
   )
   expect_identical(formals(sim_trials)$Fn, formals(survival_adapt)$Fn)
+  expect_identical(formals(sim_trials)$Qn, formals(survival_adapt)$Qn)
+})
+
+test_that("sim_trials forwards the immediate-success boundary", {
+  out <- sim_trials(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    N_total = 40,
+    lambda = 20,
+    interim_look = 20,
+    end_of_study = 36,
+    alternative = "two.sided",
+    Fn = 0,
+    Sn = 0,
+    prob_ha = 0,
+    N_impute = 2,
+    N_mcmc = 2,
+    N_trials = 1,
+    ncores = 1,
+    seed = 1,
+    Qn = 0
+  )
+
+  expect_equal(out$sims$stop_immediate_success, 1)
+  expect_true(out$sims$trial_success)
+  expect_identical(attr(out, "decision_design")$Qn, 0)
+  expect_identical(attr(out, "arguments")$Qn, 0)
 })
 
 test_that("sim_trials validates N_trials", {

@@ -9,7 +9,9 @@ plot_sim_ocs(x, effect, xlab = "True treatment effect")
 \arguments{
 \item{x}{A required data frame returned by \code{\link[=summarise_sims]{summarise_sims()}}, with one row
 per simulation scenario and columns \code{power}, \code{stop_success},
-\code{stop_futility}, \code{stop_max_N}, and \code{mean_N}.}
+\code{stop_futility}, \code{stop_max_N}, and \code{mean_N}. When present,
+\code{stop_immediate_success} is plotted separately from \code{stop_success}, which
+retains its historical expected-success meaning.}
 
 \item{effect}{A required numeric vector containing one finite treatment-effect
 value per row of \code{x}, or a single character string naming such a numeric

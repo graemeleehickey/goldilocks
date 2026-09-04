@@ -941,8 +941,11 @@ test_that("survival_adapt works with no interim looks and default thresholds", {
   expect_s3_class(out, "data.frame")
   expect_equal(out$N_enrolled, 200)
   expect_equal(out$stop_futility, 0)
+  expect_equal(out$stop_immediate_success, 0)
   expect_equal(out$stop_expected_success, 0)
+  expect_identical(attr(out, "decision_design")$Qn, numeric())
   expect_true(is.na(out$ppp_success))
+  expect_equal(out$decision_time, out$analysis_ready_time)
 })
 
 test_that("survival_adapt validates probability, count, and prior arguments", {
@@ -976,6 +979,17 @@ test_that("survival_adapt validates probability, count, and prior arguments", {
   expect_error(
     do.call(survival_adapt, modifyList(common_args, list(Sn = 1.2))),
     "Sn"
+  )
+  expect_error(
+    do.call(survival_adapt, modifyList(common_args, list(Qn = 1.2))),
+    "Qn"
+  )
+  expect_error(
+    do.call(
+      survival_adapt,
+      modifyList(common_args, list(Sn = 0.9, Qn = 0.8))
+    ),
+    "Sn.*less than or equal to.*Qn"
   )
   expect_error(
     do.call(
@@ -1248,32 +1262,199 @@ test_that("survival_adapt keeps futility disabled when Fn = 0", {
 
   expect_s3_class(out, "data.frame")
   expect_equal(out$stop_futility, 0)
+  expect_identical(attr(out, "decision_design")$Qn, c(1, 1))
+})
+
+test_that("survival_adapt can declare immediate success from Pn", {
+  set.seed(1)
+  out <- survival_adapt(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    N_total = 40,
+    lambda = 20,
+    interim_look = 20,
+    end_of_study = 36,
+    alternative = "two.sided",
+    Fn = 0,
+    Sn = 0,
+    prob_ha = 0,
+    N_impute = 2,
+    N_mcmc = 2,
+    return_trace = TRUE,
+    Qn = 0
+  )
+
+  expect_equal(out$summary$stop_immediate_success, 1)
+  expect_equal(out$summary$stop_expected_success, 0)
+  expect_equal(out$summary$stop_futility, 0)
+  expect_true(out$summary$trial_success)
+  expect_identical(out$summary$stopping_reason, "immediate_success")
+  expect_equal(out$summary$decision_time, out$trace$calendar_time)
+  expect_lt(out$summary$decision_time, out$summary$analysis_ready_time)
+  expect_identical(out$trace$decision, "stop_immediate_success")
+  expect_true(out$trace$immediate_success_crossed)
+  expect_false(out$trace$expected_success_crossed)
+  expect_identical(attr(out, "decision_design")$Qn, 0)
+})
+
+test_that("terminal interim decisions remain official without a final result", {
+  common_args <- list(
+    hazard_treatment = 0.0001,
+    hazard_control = 0.0001,
+    N_total = 20,
+    lambda = 100,
+    interim_look = 10,
+    end_of_study = 1,
+    block = 2,
+    rand_ratio = c(control = 1, treatment = 1),
+    prop_loss = 0,
+    alternative = "two.sided",
+    N_impute = 1,
+    N_mcmc = 1,
+    method = "logrank",
+    return_trace = TRUE
+  )
+
+  set.seed(2)
+  immediate <- do.call(
+    survival_adapt,
+    c(common_args, list(Fn = 0, Sn = 0, Qn = 0, prob_ha = 0))
+  )
+  expect_equal(immediate$summary$stop_immediate_success, 1)
+  expect_true(immediate$summary$trial_success)
+  expect_true(is.na(immediate$summary$post_prob_ha))
+  expect_true(is.na(immediate$summary$est_final))
+
+  set.seed(3)
+  futile <- do.call(
+    survival_adapt,
+    c(common_args, list(Fn = 1, Sn = 1, Qn = 1, prob_ha = 0.999))
+  )
+  expect_equal(futile$summary$stop_futility, 1)
+  expect_false(futile$summary$trial_success)
+  expect_true(is.na(futile$summary$post_prob_ha))
+  expect_true(is.na(futile$summary$est_final))
+
+  set.seed(12)
+  high_loss <- survival_adapt(
+    hazard_treatment = 0.1,
+    hazard_control = 0.1,
+    N_total = 20,
+    lambda = 100,
+    interim_look = 10,
+    end_of_study = 1,
+    block = 2,
+    rand_ratio = c(control = 1, treatment = 1),
+    prop_loss = 1,
+    alternative = "less",
+    Fn = 0,
+    Sn = 0,
+    Qn = 0,
+    prob_ha = 0,
+    N_impute = 2,
+    N_mcmc = 2,
+    method = "bayes-bin",
+    bin_method = "quadrature",
+    imputed_final = FALSE,
+    return_trace = TRUE
+  )
+  expect_equal(high_loss$summary$stop_immediate_success, 1)
+  expect_true(high_loss$summary$trial_success)
+  expect_true(is.na(high_loss$summary$post_prob_ha))
+  expect_true(is.na(high_loss$summary$est_final))
+})
+
+test_that("survival_adapt applies Qn separately at each interim look", {
+  set.seed(7622)
+  out <- survival_adapt(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    N_total = 40,
+    lambda = 20,
+    interim_look = c(20, 30),
+    end_of_study = 36,
+    alternative = "less",
+    Fn = 0,
+    Sn = c(1, 0),
+    Qn = c(1, 0),
+    prob_ha = 0,
+    N_impute = 2,
+    N_mcmc = 2,
+    method = "bayes-bin",
+    return_trace = TRUE
+  )
+
+  expect_identical(
+    out$trace$decision,
+    c(
+      "continue",
+      "stop_immediate_success"
+    )
+  )
+  expect_identical(out$trace$immediate_success_threshold, c(1, 0))
+  expect_identical(attr(out, "decision_design")$Qn, c(1, 0))
+})
+
+test_that("Qn = 1 preserves disabled-rule results and RNG use", {
+  args <- list(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    N_total = 40,
+    lambda = 20,
+    interim_look = 20,
+    end_of_study = 36,
+    alternative = "two.sided",
+    Fn = 0.05,
+    Sn = 0.9,
+    prob_ha = 0.975,
+    N_impute = 2,
+    N_mcmc = 2
+  )
+
+  set.seed(1)
+  default <- do.call(survival_adapt, args)
+  seed_after_default <- .Random.seed
+  set.seed(1)
+  explicit <- do.call(survival_adapt, c(args, list(Qn = 1)))
+  seed_after_explicit <- .Random.seed
+
+  expect_identical(default, explicit)
+  expect_identical(seed_after_default, seed_after_explicit)
 })
 
 test_that("error-prob-thresholds-length_v2", {
+  args <- list(
+    hazard_treatment = -log(0.85) / 36,
+    hazard_control = -log(0.7) / 36,
+    cutpoints = NULL,
+    N_total = 400,
+    lambda = 20,
+    lambda_time = NULL,
+    interim_look = c(100, 200),
+    end_of_study = 36,
+    prior_surv = c(0.1, 0.1),
+    block = 2,
+    rand_ratio = c(1, 1),
+    prop_loss = 0.30,
+    alternative = "two.sided",
+    h0 = 0,
+    prob_ha = 0.975,
+    N_impute = 2,
+    N_mcmc = 2,
+    method = "logrank"
+  )
+
   expect_error(
-    out <- survival_adapt(
-      hazard_treatment = -log(0.85) / 36,
-      hazard_control = -log(0.7) / 36,
-      cutpoints = NULL,
-      N_total = 400,
-      lambda = 20,
-      lambda_time = NULL,
-      interim_look = c(100, 200),
-      end_of_study = 36,
-      prior_surv = c(0.1, 0.1),
-      block = 2,
-      rand_ratio = c(1, 1),
-      prop_loss = 0.30,
-      alternative = "two.sided",
-      h0 = 0,
-      Fn = c(0.05, 0.05, 0.05),
-      Sn = c(0.99, 0.99, 0.99),
-      prob_ha = 0.975,
-      N_impute = 2,
-      N_mcmc = 2,
-      method = "logrank"
-    )
+    do.call(survival_adapt, c(args, list(Sn = rep(0.99, 3)))),
+    "'Sn' has too many values"
+  )
+  expect_error(
+    do.call(survival_adapt, c(args, list(Sn = 0.9, Qn = rep(0.99, 3)))),
+    "'Qn' has too many values"
+  )
+  expect_error(
+    do.call(survival_adapt, c(args, list(Fn = rep(0.05, 3), Sn = 0.9))),
+    "'Fn' has too many values"
   )
 })
 
@@ -1285,6 +1466,10 @@ test_that("interim thresholds use a scalar-or-exact-length contract", {
   expect_equal(
     normalize_interim_threshold(c(0.95, 0.9, 0.85, 0.8), 4, "Sn"),
     c(0.95, 0.9, 0.85, 0.8)
+  )
+  expect_equal(
+    normalize_interim_threshold(1, 4, "Qn"),
+    rep(1, 4)
   )
   expect_equal(
     normalize_interim_threshold(NULL, 4, "Fn", null_disables = TRUE),
@@ -1307,5 +1492,14 @@ test_that("interim thresholds use a scalar-or-exact-length contract", {
   expect_error(
     normalize_interim_threshold(numeric(), 4, "Fn"),
     "'Fn' has too few values: expected 1 or 4.*observed 0"
+  )
+
+  expect_true(validate_success_threshold_order(
+    c(0.9, 0.95),
+    c(0.9, 1)
+  ))
+  expect_error(
+    validate_success_threshold_order(c(0.9, 0.95), c(1, 0.9)),
+    "look\\(s\\): 2"
   )
 })

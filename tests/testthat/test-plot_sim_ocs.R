@@ -64,6 +64,38 @@ test_that("operating-characteristic plot accepts an effect vector", {
   )
 })
 
+test_that("operating-characteristic plot separates immediate success", {
+  operating_characteristics <- sim_oc_data()
+  operating_characteristics$stop_immediate_success <- c(0.4, 0.001, 0.1)
+  file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(file)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  captured <- new.env(parent = emptyenv())
+  local_mocked_bindings(
+    matplot = function(x, y, ...) {
+      captured$probabilities <- y
+    },
+    legend = function(...) invisible(NULL),
+    .package = "graphics"
+  )
+
+  expect_silent(plot_sim_ocs(operating_characteristics, "effect"))
+  expect_identical(
+    colnames(captured$probabilities),
+    c(
+      "power",
+      "stop_immediate_success",
+      "stop_success",
+      "stop_futility",
+      "stop_max_N"
+    )
+  )
+  expect_equal(
+    unname(captured$probabilities[, "stop_immediate_success"]),
+    c(0.4, 0.1, 0.001)
+  )
+})
+
 test_that("operating-characteristic plot validates its inputs", {
   operating_characteristics <- sim_oc_data()
 

@@ -850,8 +850,9 @@ validate_h0 <- function(h0, method, single_arm) {
 #' @title Normalize an interim decision threshold
 #'
 #' @description Applies the shared scalar-or-one-per-look contract used by
-#'   futility and expected-success thresholds. A scalar is broadcast to every
-#'   interim look; any non-scalar vector must have exactly one value per look.
+#'   futility, expected-success, and immediate-success thresholds. A scalar is
+#'   broadcast to every interim look; any non-scalar vector must have exactly
+#'   one value per look.
 #'
 #' @param threshold `NULL`, or a numeric vector of decision thresholds.
 #' @param n_interims A non-negative integer giving the number of interim looks.
@@ -900,6 +901,35 @@ normalize_interim_threshold <- function(
   }
 
   as.numeric(threshold)
+}
+
+#' @title Validate ordered interim success thresholds
+#'
+#' @description Checks that the expected-success boundary does not exceed the
+#'   immediate-success boundary at any interim look.
+#'
+#' @param Sn A normalized numeric vector of expected-success thresholds.
+#' @param Qn A normalized numeric vector of immediate-success thresholds.
+#'
+#' @return `TRUE`, invisibly.
+#'
+#' @keywords internal
+#' @noRd
+validate_success_threshold_order <- function(Sn, Qn) {
+  if (length(Sn) != length(Qn)) {
+    stop("Internal error: 'Sn' and 'Qn' must have the same length")
+  }
+
+  invalid <- which(Sn > Qn)
+  if (length(invalid) > 0L) {
+    stop(
+      "'Sn' must be less than or equal to 'Qn' at every interim look; ",
+      "Sn > Qn at look(s): ",
+      paste(invalid, collapse = ", ")
+    )
+  }
+
+  invisible(TRUE)
 }
 
 #' @title Normalize a deprecated analysis-method name

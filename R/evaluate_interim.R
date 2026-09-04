@@ -42,6 +42,11 @@
 #'   this look. Expected success is declared when predictive success among the
 #'   currently enrolled participants is strictly greater than `Sn`. The default
 #'   is `0.9`.
+#' @param Qn A single numeric probability in `[0, 1]` giving the upper threshold
+#'   for declaring immediate trial success at this look. Immediate success is
+#'   declared when predictive success among the currently enrolled participants
+#'   is strictly greater than `Qn`. `Qn` must be greater than or equal to `Sn`.
+#'   The default, `1`, disables immediate-success stopping.
 #' @param seed `NULL` (the default), or a single non-negative integer used for
 #'   the predictive Monte
 #'   Carlo calculation. A supplied seed makes the result reproducible and
@@ -62,13 +67,15 @@
 #'   `"censored"` for permanent early censoring. Pending and censored outcomes
 #'   are predictively imputed conditional on `time`.
 #'
-#'   `Sn` and `Fn` are scalar thresholds for this look. Expected success is
-#'   declared when the estimated probability of completed-data success among
-#'   the current participants is strictly greater than `Sn`. Futility is
+#'   `Qn`, `Sn`, and `Fn` are scalar thresholds for this look. Immediate success
+#'   is declared when the estimated probability of completed-data success among
+#'   the current participants is strictly greater than `Qn`. Otherwise,
+#'   expected success stops accrual for planned follow-up when that probability
+#'   is strictly greater than `Sn`. If neither success rule applies, futility is
 #'   declared when the corresponding maximum-sample probability is strictly
-#'   less than `Fn`. Set `Fn = 0` or `NULL` to disable futility. Exact
-#'   one-sided Monte Carlo bounds are returned as diagnostics and do not drive
-#'   either decision.
+#'   less than `Fn`. Set `Fn = 0` or `NULL` to disable futility. Exact one-sided
+#'   Monte Carlo bounds are returned as diagnostics and do not drive any
+#'   decision.
 #'
 #'   The function requires treatment assignments to perform the arm-specific
 #'   posterior and completed-data analyses. In a blinded trial, an independent
@@ -138,7 +145,8 @@ evaluate_interim <- function(
   empty_interval = c("prior", "propagate", "error"),
   method = "logrank",
   binary_imputation = c("event-time", "bernoulli"),
-  seed = NULL
+  seed = NULL,
+  Qn = 1
 ) {
   Call <- match.call()
   caller_rng_kind <- RNGkind()
@@ -174,6 +182,8 @@ evaluate_interim <- function(
   }
 
   Sn <- normalize_interim_threshold(Sn, 1L, "Sn")[[1L]]
+  Qn <- normalize_interim_threshold(Qn, 1L, "Qn")[[1L]]
+  validate_success_threshold_order(Sn, Qn)
   Fn <- normalize_interim_threshold(
     Fn,
     1L,
@@ -253,7 +263,8 @@ evaluate_interim <- function(
     empty_interval = empty_interval,
     method = method,
     binary_imputation = binary_imputation,
-    check_futility = check_futility
+    check_futility = check_futility,
+    Qn = Qn
   )
 
   probabilities <- data.frame(
@@ -276,8 +287,12 @@ evaluate_interim <- function(
       "decision_reason",
       "ppp_stop_now",
       "success_threshold",
+      "immediate_success_threshold",
+      "immediate_success_crossed",
+      "expected_success_crossed",
       "ppp_success_at_max",
-      "futility_threshold"
+      "futility_threshold",
+      "futility_crossed"
     )
   ]
 
@@ -306,6 +321,7 @@ evaluate_interim <- function(
     h0 = h0,
     Fn = Fn,
     Sn = Sn,
+    Qn = Qn,
     prob_ha = prob_ha,
     N_impute = as.integer(N_impute),
     N_mcmc = as.integer(requested_N_mcmc),

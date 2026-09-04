@@ -147,7 +147,8 @@ sim_trials <- function(
   seed = NULL,
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
-  generation_cutpoints = cutpoints
+  generation_cutpoints = cutpoints,
+  Qn = 1
 ) {
   Call <- match.call()
   Arguments <- capture_arguments(sim_trials, environment())
@@ -297,6 +298,7 @@ sim_trials <- function(
           h0 = h0,
           Fn = Fn,
           Sn = Sn,
+          Qn = Qn,
           prob_ha = prob_ha,
           N_impute = N_impute,
           N_mcmc = N_mcmc,

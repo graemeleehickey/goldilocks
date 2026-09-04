@@ -25,7 +25,8 @@
 #'   - `trial_duration`: one row per scenario and stopping reason, plus an
 #'     overall row. It reports simulation denominators, stopping counts, sample
 #'     size, accrual-stop time, analysis-ready time, planned completion time,
-#'     total person-time under follow-up, and peak concurrent follow-up.
+#'     total person-time under follow-up, and peak concurrent follow-up. Newer
+#'     results also report the time at which the terminal decision was made.
 #'   - `interim_timing`: one row per scenario and interim look. It reports how
 #'     often the look was reached, its calendar time, and the number of subjects
 #'     actively under follow-up. This table has zero rows when traces are not
@@ -58,7 +59,16 @@ summarise_calendar_time <- function(data) {
     )
   }
 
-  if (!"stopping_reason" %in% names(sims)) {
+  has_stopping_reason <- "stopping_reason" %in% names(sims)
+  if (has_stopping_reason) {
+    sims$stopping_reason <- as.character(sims$stopping_reason)
+  }
+  missing_stopping_reason <- if (has_stopping_reason) {
+    is.na(sims$stopping_reason) | !nzchar(sims$stopping_reason)
+  } else {
+    rep.int(TRUE, nrow(sims))
+  }
+  if (any(missing_stopping_reason)) {
     stopping_columns <- c("stop_futility", "stop_expected_success")
     missing_stopping <- setdiff(stopping_columns, names(sims))
     if (length(missing_stopping) > 0L) {
@@ -68,10 +78,39 @@ summarise_calendar_time <- function(data) {
         call. = FALSE
       )
     }
-    sims$stopping_reason <- calendar_stopping_reason(
+    derived_stopping_reason <- calendar_stopping_reason(
       sims$stop_futility,
-      sims$stop_expected_success
+      sims$stop_expected_success,
+      if ("stop_immediate_success" %in% names(sims)) {
+        sims$stop_immediate_success
+      } else {
+        rep.int(FALSE, nrow(sims))
+      }
     )
+    if (has_stopping_reason) {
+      sims$stopping_reason[missing_stopping_reason] <-
+        derived_stopping_reason[missing_stopping_reason]
+    } else {
+      sims$stopping_reason <- derived_stopping_reason
+    }
+  }
+
+  include_decision_time <-
+    "decision_time" %in%
+    names(sims) ||
+    "stop_immediate_success" %in% names(sims) ||
+    any(sims$stopping_reason == "immediate_success", na.rm = TRUE)
+  derived_decision_time <- ifelse(
+    sims$stopping_reason %in% c("immediate_success", "futility"),
+    sims$accrual_stop_time,
+    sims$analysis_ready_time
+  )
+  if ("decision_time" %in% names(sims)) {
+    missing_decision_time <- is.na(sims$decision_time)
+    sims$decision_time[missing_decision_time] <-
+      derived_decision_time[missing_decision_time]
+  } else {
+    sims$decision_time <- derived_decision_time
   }
 
   group_columns <- unique(c(normalized$group_vars, "scenario"))
@@ -107,10 +146,18 @@ summarise_calendar_time <- function(data) {
       accrual_stop_p10 = calendar_quantile(.data$accrual_stop_time, 0.10),
       accrual_stop_median = calendar_quantile(.data$accrual_stop_time, 0.50),
       accrual_stop_p90 = calendar_quantile(.data$accrual_stop_time, 0.90),
+      decision_time_mean = mean(.data$decision_time),
+      decision_time_se = calendar_se(.data$decision_time),
+      decision_time_p10 = calendar_quantile(.data$decision_time, 0.10),
+      decision_time_median = calendar_quantile(.data$decision_time, 0.50),
+      decision_time_p90 = calendar_quantile(.data$decision_time, 0.90),
       analysis_ready_mean = mean(.data$analysis_ready_time),
       analysis_ready_se = calendar_se(.data$analysis_ready_time),
       analysis_ready_p10 = calendar_quantile(.data$analysis_ready_time, 0.10),
-      analysis_ready_median = calendar_quantile(.data$analysis_ready_time, 0.50),
+      analysis_ready_median = calendar_quantile(
+        .data$analysis_ready_time,
+        0.50
+      ),
       analysis_ready_p90 = calendar_quantile(.data$analysis_ready_time, 0.90),
       planned_completion_mean = mean(.data$planned_completion_time),
       planned_completion_se = calendar_se(.data$planned_completion_time),
@@ -159,17 +206,28 @@ summarise_calendar_time <- function(data) {
   duration$stopping_reason <- factor(
     duration$stopping_reason,
     levels = c(
+      "immediate_success",
       "expected_success",
       "futility",
       "maximum_sample_size",
       "overall"
     )
   )
-  duration <- duration[do.call(order, duration[c(
-    group_columns,
-    "stopping_reason"
-  )]), , drop = FALSE]
+  duration <- duration[
+    do.call(
+      order,
+      duration[c(
+        group_columns,
+        "stopping_reason"
+      )]
+    ),
+    ,
+    drop = FALSE
+  ]
   duration$stopping_reason <- as.character(duration$stopping_reason)
+  if (!include_decision_time) {
+    duration[grep("^decision_time_", names(duration))] <- NULL
+  }
   rownames(duration) <- NULL
 
   trace_input <- normalize_calendar_trace_input(data)
@@ -249,11 +307,24 @@ active_followup_at <- function(data, calendar_time) {
 }
 
 #' @noRd
-calendar_stopping_reason <- function(stop_futility, stop_expected_success) {
+calendar_stopping_reason <- function(
+  stop_futility,
+  stop_expected_success,
+  stop_immediate_success = FALSE
+) {
+  immediate_success <- !is.na(stop_immediate_success) &
+    stop_immediate_success != 0
+  expected_success <- !is.na(stop_expected_success) &
+    stop_expected_success != 0
+  futility <- !is.na(stop_futility) & stop_futility != 0
   ifelse(
-    stop_expected_success != 0,
-    "expected_success",
-    ifelse(stop_futility != 0, "futility", "maximum_sample_size")
+    immediate_success,
+    "immediate_success",
+    ifelse(
+      expected_success,
+      "expected_success",
+      ifelse(futility, "futility", "maximum_sample_size")
+    )
   )
 }
 
@@ -423,6 +494,14 @@ calendar_duration_display <- function(data, digits) {
     data$accrual_stop_p90,
     digits
   )
+  if ("decision_time_median" %in% names(data)) {
+    out$decision_time <- calendar_interval(
+      data$decision_time_median,
+      data$decision_time_p10,
+      data$decision_time_p90,
+      digits
+    )
+  }
   out$analysis_ready <- calendar_interval(
     data$analysis_ready_median,
     data$analysis_ready_p10,
@@ -433,8 +512,14 @@ calendar_duration_display <- function(data, digits) {
   out$mean_peak_followup <- round(data$peak_active_followup_mean, digits)
   names(out)[names(out) == "stopping_reason"] <- "stopping reason"
   names(out)[names(out) == "mean_enrolled"] <- "mean enrolled"
-  names(out)[names(out) == "accrual_stopped"] <- "accrual stopped, median [P10-P90]"
-  names(out)[names(out) == "analysis_ready"] <- "analysis ready, median [P10-P90]"
+  names(out)[
+    names(out) == "accrual_stopped"
+  ] <- "accrual stopped, median [P10-P90]"
+  names(out)[names(out) == "decision_time"] <-
+    "decision time, median [P10-P90]"
+  names(out)[
+    names(out) == "analysis_ready"
+  ] <- "analysis ready, median [P10-P90]"
   names(out)[names(out) == "mean_person_time"] <- "mean person-time"
   names(out)[names(out) == "mean_peak_followup"] <- "mean peak follow-up"
   out
@@ -462,7 +547,9 @@ calendar_interim_display <- function(data, digits) {
   )
   names(out)[names(out) == "planned_N"] <- "planned N"
   names(out)[names(out) == "calendar_time"] <- "calendar time, median [P10-P90]"
-  names(out)[names(out) == "active_followup"] <- "active follow-up, median [P10-P90]"
+  names(out)[
+    names(out) == "active_followup"
+  ] <- "active follow-up, median [P10-P90]"
   out
 }
 

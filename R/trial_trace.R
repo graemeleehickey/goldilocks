@@ -34,12 +34,16 @@ new_trial_trace <- function(rows) {
     ppp_stop_now_upper = numeric(),
     ppp_stop_now_draws = integer(),
     success_threshold = numeric(),
+    immediate_success_threshold = numeric(),
+    immediate_success_crossed = logical(),
+    expected_success_crossed = logical(),
     ppp_success_at_max = numeric(),
     ppp_success_at_max_mcse = numeric(),
     ppp_success_at_max_lower = numeric(),
     ppp_success_at_max_upper = numeric(),
     ppp_success_at_max_draws = integer(),
     futility_threshold = numeric(),
+    futility_crossed = logical(),
     inner_mc_uncertain_stop_now = integer(),
     inner_mc_uncertain_success_at_max = integer(),
     decision = character(),
@@ -118,7 +122,7 @@ summarise_trial_trace <- function(x) {
   summary <- if (inherits(x, "goldilocks_trial")) x$summary else NULL
 
   if (nrow(trace) == 0) {
-    return(data.frame(
+    out <- data.frame(
       interim_looks_completed = 0L,
       last_look = NA_integer_,
       last_decision = "no_interim_looks",
@@ -129,11 +133,15 @@ summarise_trial_trace <- function(x) {
         summary$post_prob_ha
       },
       stringsAsFactors = FALSE
-    ))
+    )
+    if (!is.null(summary) && "trial_success" %in% names(summary)) {
+      out$trial_success <- summary$trial_success
+    }
+    return(out)
   }
 
   last <- trace[nrow(trace), , drop = FALSE]
-  data.frame(
+  out <- data.frame(
     interim_looks_completed = nrow(trace),
     last_look = last$look,
     last_decision = last$decision,
@@ -148,6 +156,10 @@ summarise_trial_trace <- function(x) {
     warning_count = sum(trace$warning_count),
     stringsAsFactors = FALSE
   )
+  if (!is.null(summary) && "trial_success" %in% names(summary)) {
+    out$trial_success <- summary$trial_success
+  }
+  out
 }
 
 #' @title Plot predictive probabilities and enrollment at interim looks
@@ -180,9 +192,20 @@ plot_trial_trace <- function(x) {
   graphics::par(mfrow = c(3, 1), mar = c(5.1, 4, 2.5, 1))
 
   look <- trace$look
+  immediate_success_threshold <- if (
+    "immediate_success_threshold" %in% names(trace)
+  ) {
+    trace$immediate_success_threshold
+  } else {
+    rep.int(1, nrow(trace))
+  }
   xlim <- if (length(look) == 1) look + c(-0.5, 0.5) else range(look)
   x_ticks <- seq.int(ceiling(xlim[1]), floor(xlim[2]))
-  stop_rows <- trace$decision != "continue"
+  immediate_stop_rows <- trace$decision == "stop_immediate_success"
+  expected_stop_rows <- trace$decision == "stop_expected_success"
+  other_stop_rows <- trace$decision != "continue" &
+    !immediate_stop_rows &
+    !expected_stop_rows
 
   graphics::plot(
     look,
@@ -206,20 +229,57 @@ plot_trial_trace <- function(x) {
     pch = 1,
     lty = 2
   )
+  graphics::lines(
+    look,
+    immediate_success_threshold,
+    type = "b",
+    col = "#CC79A7",
+    pch = 2,
+    lty = 3
+  )
   graphics::points(
-    look[stop_rows],
-    trace$ppp_stop_now[stop_rows],
+    look[expected_stop_rows],
+    trace$ppp_stop_now[expected_stop_rows],
     col = "#009E73",
     pch = 17,
     cex = 1.2
   )
+  graphics::points(
+    look[immediate_stop_rows],
+    trace$ppp_stop_now[immediate_stop_rows],
+    col = "#CC79A7",
+    pch = 8,
+    cex = 1.2
+  )
+  graphics::points(
+    look[other_stop_rows],
+    trace$ppp_stop_now[other_stop_rows],
+    col = "#D55E00",
+    pch = 4,
+    cex = 1.2
+  )
   graphics::legend(
     "bottomright",
-    legend = c("Predictive probability", "Success threshold", "Stopping look"),
-    col = c("#0072B2", "#D55E00", "#009E73"),
-    pch = c(16, 1, 17),
-    lty = c(1, 2, NA),
-    bty = "n"
+    legend = c(
+      "Predictive probability",
+      "Expected-success threshold",
+      "Immediate-success threshold",
+      "Stop accrual for expected success",
+      "Declare immediate success",
+      "Other stopping look"
+    ),
+    col = c(
+      "#0072B2",
+      "#D55E00",
+      "#CC79A7",
+      "#009E73",
+      "#CC79A7",
+      "#D55E00"
+    ),
+    pch = c(16, 1, 2, 17, 8, 4),
+    lty = c(1, 2, 3, NA, NA, NA),
+    bty = "n",
+    cex = 0.8
   )
 
   graphics::plot(
@@ -323,8 +383,9 @@ plot_trial_trace <- function(x) {
 #' @title Plot stopping outcomes from trial simulations
 #'
 #' @description Draws a stacked bar chart of stopping outcomes by enrolled
-#'   sample size, with colours distinguishing expected-success, futility, and
-#'   maximum-sample-size outcomes. The `type` argument controls whether the
+#'   sample size, with colours distinguishing immediate success, stopping
+#'   accrual for expected success, futility, and maximum-sample-size outcomes.
+#'   The `type` argument controls whether the
 #'   function draws marginal, conditional, or cumulative bars, or a flowchart
 #'   through successive interim looks. Bar-chart subtitles state the
 #'   denominator used by the selected view. The input can be the `sims` element
@@ -340,8 +401,8 @@ plot_trial_trace <- function(x) {
 #'   that look. `"cumulative"` shows the status of all simulated trials after
 #'   each look; every bar sums to 100 percent and includes trials continuing to
 #'   the next look. `"flowchart"` starts with all simulated trials and branches
-#'   at each look into futility, continued enrollment, and expected-success
-#'   nodes labelled with trial counts.
+#'   at each look into futility, continued enrollment, expected-success, and
+#'   immediate-success nodes labelled with trial counts.
 #'
 #' @details The marginal view uses terminal sample sizes observed in
 #'   `N_enrolled`. When the complete result from
@@ -371,19 +432,39 @@ plot_sim_stopping <- function(
     )
   }
   trace_sizes <- sim_stopping_trace_sizes(x)
+  has_immediate_success <- "stop_immediate_success" %in% names(sims)
+  stop_immediate_success <- if (has_immediate_success) {
+    !is.na(sims$stop_immediate_success) & sims$stop_immediate_success != 0
+  } else {
+    rep.int(FALSE, nrow(sims))
+  }
 
   if (type == "flowchart") {
-    return(plot_sim_stopping_flowchart(sims, trace_sizes = trace_sizes))
+    return(plot_sim_stopping_flowchart(
+      sims,
+      trace_sizes = trace_sizes,
+      include_immediate_success = has_immediate_success
+    ))
   }
 
   outcome <- ifelse(
-    sims$stop_expected_success,
-    "Expected success",
-    ifelse(sims$stop_futility, "Futility", "Maximum sample size")
+    stop_immediate_success,
+    "Immediate success",
+    ifelse(
+      sims$stop_expected_success,
+      "Stop accrual for expected success",
+      ifelse(sims$stop_futility, "Futility", "Maximum sample size")
+    )
+  )
+  outcome_levels <- c(
+    if (has_immediate_success) "Immediate success" else character(),
+    "Stop accrual for expected success",
+    "Futility",
+    "Maximum sample size"
   )
   outcome <- factor(
     outcome,
-    levels = c("Expected success", "Futility", "Maximum sample size")
+    levels = outcome_levels
   )
   sample_sizes <- if (type == "marginal") {
     sort(unique(sims$N_enrolled))
@@ -438,7 +519,14 @@ plot_sim_stopping <- function(
     main <- "Cumulative stopping outcomes by sample size"
   }
 
-  bar_colours <- c("#009E73", "#D55E00", "#999999", "#56B4E9")
+  stopping_colours <- c(
+    "Immediate success" = "#CC79A7",
+    "Stop accrual for expected success" = "#009E73",
+    "Futility" = "#D55E00",
+    "Maximum sample size" = "#999999",
+    "Continue to next look" = "#56B4E9"
+  )
+  bar_colours <- unname(stopping_colours[rownames(probabilities)])
   percentage_cex <- 0.75
   legend_order <- rev(seq_len(nrow(probabilities)))
   legend_cex <- 0.9
@@ -542,11 +630,17 @@ sim_stopping_trace_sizes <- function(simulation_result) {
 #'   outcomes.
 #' @param trace_sizes A numeric vector of sample sizes observed in retained
 #'   interim traces.
+#' @param include_immediate_success Whether to include the immediate-success
+#'   branch. Legacy results without that stopping indicator omit the branch.
 #'
 #' @return A `DiagrammeR` `grViz` htmlwidget.
 #'
 #' @noRd
-plot_sim_stopping_flowchart <- function(sims, trace_sizes) {
+plot_sim_stopping_flowchart <- function(
+  sims,
+  trace_sizes,
+  include_immediate_success = "stop_immediate_success" %in% names(sims)
+) {
   if (!requireNamespace("DiagrammeR", quietly = TRUE)) {
     stop(
       "Package 'DiagrammeR' is required for type = 'flowchart'. ",
@@ -575,11 +669,20 @@ plot_sim_stopping_flowchart <- function(sims, trace_sizes) {
     stop("interim sample sizes cannot exceed N_max")
   }
 
-  reached_max <- !sims$stop_expected_success & !sims$stop_futility
+  stop_immediate_success <- if (include_immediate_success) {
+    !is.na(sims$stop_immediate_success) & sims$stop_immediate_success != 0
+  } else {
+    rep.int(FALSE, nrow(sims))
+  }
+  reached_max <- !stop_immediate_success &
+    !sims$stop_expected_success &
+    !sims$stop_futility
   if (any(sims$N_enrolled[reached_max] != planned_max)) {
     stop("maximum-sample-size outcomes must share the same N_max")
   }
-  stopped_early <- sims$stop_expected_success | sims$stop_futility
+  stopped_early <- stop_immediate_success |
+    sims$stop_expected_success |
+    sims$stop_futility
   if (any(sims$N_enrolled[stopped_early] >= planned_max)) {
     stop("early-stopping outcomes must occur before N_max")
   }
@@ -606,11 +709,16 @@ plot_sim_stopping_flowchart <- function(sims, trace_sizes) {
     stopped_success <- sum(
       sims$N_enrolled == sample_size & sims$stop_expected_success
     )
+    stopped_immediate_success <- sum(
+      sims$N_enrolled == sample_size & stop_immediate_success
+    )
     center_count <- sum(sims$N_enrolled > sample_size)
 
     futility_id <- paste0("futility_", look_index)
     continue_id <- paste0("continue_", look_index)
     success_id <- paste0("success_", look_index)
+    immediate_success_id <- paste0("immediate_success_", look_index)
+    look_nodes <- c(futility_id, continue_id, success_id)
     node_statements <- c(
       node_statements,
       sprintf(
@@ -638,7 +746,8 @@ plot_sim_stopping_flowchart <- function(sims, trace_sizes) {
       ),
       sprintf(
         paste0(
-          "%s [label=\"%s (N = %s)\\nStop for early success\\nn = %d\", ",
+          "%s [label=\"%s (N = %s)\\n",
+          "Stop accrual for expected success\\nn = %d\", ",
           "fillcolor=\"#D5F1E7\", color=\"#009E73\"]"
         ),
         success_id,
@@ -647,25 +756,40 @@ plot_sim_stopping_flowchart <- function(sims, trace_sizes) {
         stopped_success
       )
     )
+    if (include_immediate_success) {
+      node_statements <- c(
+        node_statements,
+        sprintf(
+          paste0(
+            "%s [label=\"%s (N = %s)\\nDeclare immediate success",
+            "\\nn = %d\", fillcolor=\"#EFDEF0\", color=\"#CC79A7\"]"
+          ),
+          immediate_success_id,
+          look_label,
+          size_label,
+          stopped_immediate_success
+        )
+      )
+      look_nodes <- c(look_nodes, immediate_success_id)
+    }
     edge_statements <- c(
       edge_statements,
       sprintf(
-        "%s -> {%s %s %s}",
+        "%s -> {%s}",
         previous_continue,
-        futility_id,
-        continue_id,
-        success_id
+        paste(look_nodes, collapse = " ")
       ),
-      sprintf("%s -> %s [style=invis]", futility_id, continue_id),
-      sprintf("%s -> %s [style=invis]", continue_id, success_id)
+      sprintf(
+        "%s -> %s [style=invis]",
+        look_nodes[-length(look_nodes)],
+        look_nodes[-1L]
+      )
     )
     rank_statements <- c(
       rank_statements,
       sprintf(
-        "{rank=same; %s; %s; %s}",
-        futility_id,
-        continue_id,
-        success_id
+        "{rank=same; %s}",
+        paste(look_nodes, collapse = "; ")
       )
     )
     previous_continue <- continue_id

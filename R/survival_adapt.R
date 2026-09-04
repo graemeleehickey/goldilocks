@@ -2,8 +2,9 @@
 #'
 #' @description Simulates one single-arm or randomized two-arm trial under a
 #'   Goldilocks sample-size design. At each planned interim look, posterior
-#'   predictive probabilities determine whether to stop accrual for expected
-#'   success, stop for futility, or continue toward the maximum sample size.
+#'   predictive probabilities determine whether to declare immediate success,
+#'   stop accrual for expected success, stop for futility, or continue toward
+#'   the maximum sample size.
 #'
 #' @inheritParams sim_comp_data
 #' @param cutpoints `NULL` (the default), or a numeric vector of finite,
@@ -108,12 +109,20 @@
 #'   default is `0.05`.
 #' @param Sn A numeric vector of probabilities in `[0, 1]`. Each value is the
 #'   predictive-probability
-#'   threshold to stop at the \eqn{i}-th look early for expected success. If
+#'   threshold to stop accrual at the \eqn{i}-th look for expected success. If
 #'   there are no interim looks (i.e. `interim_look = NULL`), then
 #'   `Sn` is not used in the simulations or analysis. Supply either one value,
 #'   which is repeated at every interim look, or exactly one value per
 #'   `interim_look`. Other lengths are rejected rather than recycled. The
 #'   default is `0.9`.
+#' @param Qn A numeric vector of probabilities in `[0, 1]`. Each value is the
+#'   upper predictive-probability threshold for declaring immediate trial
+#'   success at the \eqn{i}-th look. If there are no interim looks (i.e.
+#'   `interim_look = NULL`), then `Qn` is not used in the simulations or
+#'   analysis. Supply either one value, which is repeated at every interim
+#'   look, or exactly one value per `interim_look`; other lengths are rejected.
+#'   `Qn` must be greater than or equal to `Sn` at every look. The default, `1`,
+#'   disables immediate-success stopping.
 #' @param prob_ha A single numeric probability in `[0, 1]` defining success in
 #'   each completed-data analysis. For Bayesian methods this is compared with
 #'   the posterior probability of the alternative; for frequentist methods it
@@ -132,7 +141,8 @@
 #'   level for one-sided exact binomial bounds reported as diagnostics of
 #'   finite Monte Carlo uncertainty. The bounds do not alter completed-data
 #'   success classifications or interim decisions, which use strict point-
-#'   estimate comparisons with `prob_ha`, `Sn`, and `Fn`. The default is `0.95`.
+#'   estimate comparisons with `prob_ha`, `Qn`, `Sn`, and `Fn`. The default is
+#'   `0.95`.
 #' @param empty_interval A single character string specifying how to handle
 #'   empty piecewise-exponential intervals when updating Gamma hazard models for
 #'   predictive imputation and Bayesian survival analysis. An empty
@@ -176,10 +186,12 @@
 #'   1. **The posterior predictive probability of eventual success.** This is
 #'      calculated as the proportion of imputed datasets at the *current* sample
 #'      size that satisfy the completed-data success criterion. At each
-#'      interim analysis this proportion is compared to the corresponding
-#'      element of `Sn`, and if it exceeds the threshold,
-#'      accrual/enrollment is suspended and the outstanding follow-up allowed to
-#'      complete before conducting the pre-specified final analysis.
+#'      interim analysis this proportion is first compared to the corresponding
+#'      element of `Qn`. If it is strictly greater than `Qn`, the trial stops
+#'      and declares immediate success. Otherwise, if it is strictly greater
+#'      than `Sn`, accrual/enrollment is suspended and the outstanding follow-up
+#'      is allowed to complete before conducting the pre-specified final
+#'      analysis.
 #'
 #'   2. **The posterior predictive probability of success at the maximum sample
 #'      size.** This is
@@ -191,11 +203,14 @@
 #'      not a binding decision, then one should also explore the simulations
 #'      with `Fn = 0`.
 #'
-#'   Hence, each interim look has three possible decisions:
+#'   Hence, each interim look has four possible decisions, applied in this
+#'   order:
 #'
-#'   1. **Stop for expected success**
-#'   2. **Stop for futility**
-#'   3. **Continue to enroll** new subjects, or if at maximum sample size,
+#'   1. **Stop and declare immediate success** when \eqn{P_{n,l} > Q_l}.
+#'   2. **Stop accruing for expected success and follow** when
+#'      \eqn{S_l < P_{n,l} \le Q_l}.
+#'   3. **Stop for futility** when \eqn{P_{n_{max},l} < F_l}.
+#'   4. **Continue to enroll** new subjects, or if at maximum sample size,
 #'      proceed to final analysis.
 #'
 #'   The following completed-data analysis methods are available at interim and
@@ -361,20 +376,34 @@
 #'   - `est_final`: Treatment effect estimated at the final analysis. The final
 #'     analysis occurs when either the maximum sample size is reached and
 #'     follow-up is complete, or the interim analysis triggered early stopping
-#'     of enrollment/accrual and follow-up for those subjects is complete.
+#'     of enrollment/accrual and follow-up for those subjects is complete. It is
+#'     `NA` after an immediate-success decision, for which no later analysis is
+#'     required, or when the optional diagnostic analysis after binding
+#'     futility cannot be computed.
 #'   - `post_prob_ha`: Posterior probability from the final analysis. If
 #'     a Bayesian method uses `imputed_final = TRUE`, this is calculated for
 #'     each imputed final-analysis dataset and averaged over `N_impute`
 #'     imputations. For an imputed Cox analysis it is \eqn{1 - P} from the
 #'     Rubin-pooled Wald test. The same interpretation applies to imputed
 #'     risk-difference analyses. For non-imputed frequentist analyses it is
-#'     \eqn{1 - P} from the corresponding test.
+#'     \eqn{1 - P} from the corresponding test. It is `NA` after an
+#'     immediate-success decision, for which no later analysis is required, or
+#'     when the optional diagnostic analysis after binding futility cannot be
+#'     computed.
 #'   - `stop_futility`: Logical indicator of whether the trial stopped early for
-#'     futility.
+#'     binding futility.
+#'   - `stop_immediate_success`: Logical indicator of whether the trial stopped
+#'     and declared immediate success at an interim look.
 #'   - `stop_expected_success`: Logical indicator of whether the trial stopped
-#'     early for expected success.
-#'   - `stopping_reason`: One of `"expected_success"`, `"futility"`, or
-#'     `"maximum_sample_size"`.
+#'     accruing for expected success and continued planned follow-up.
+#'   - `trial_success`: Logical indicator of the trial's official success
+#'     outcome. An immediate-success decision is final at the interim look;
+#'     binding futility is a final failure.
+#'   - `stopping_reason`: One of `"immediate_success"`, `"expected_success"`,
+#'     `"futility"`, or `"maximum_sample_size"`.
+#'   - `decision_time`: Calendar time at which the trial decision becomes
+#'     final. This is the interim look time for immediate success or futility,
+#'     and the analysis-ready time otherwise.
 #'   - `accrual_stop_time`: Calendar time of the last enrollment in the trial.
 #'   - `analysis_ready_time`: Calendar time at which the last enrolled
 #'     subject's observed event or censoring becomes available. This excludes
@@ -391,8 +420,8 @@
 #'   `generation_cutpoints`, and `end_of_study`.
 #'
 #'   The returned object has a `decision_design` attribute containing
-#'   `interim_look`, `Fn`, `Sn`, and the Monte Carlo settings. Thresholds in
-#'   this information are stored as one value per interim look (and have
+#'   `interim_look`, `Fn`, `Sn`, `Qn`, and the Monte Carlo settings. Thresholds
+#'   in this information are stored as one value per interim look (and have
 #'   length zero when no interim looks are planned).
 #'   A `prior_design` attribute contains the resolved Gamma shape, rate,
 #'   mean hazard, and standard deviation for every stage, arm, and interval.
@@ -485,7 +514,8 @@ survival_adapt <- function(
   return_trace = FALSE,
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
-  generation_cutpoints = cutpoints
+  generation_cutpoints = cutpoints,
+  Qn = 1
 ) {
   Call <- match.call()
   Arguments <- capture_arguments(survival_adapt, environment())
@@ -601,10 +631,12 @@ survival_adapt <- function(
   }
 
   # A scalar threshold is broadcast; any non-scalar must supply exactly one
-  # value per interim look. This normalization is shared by both decision rules
-  # and retained in the returned design metadata.
+  # value per interim look. This normalization is shared by all three stopping
+  # rules and retained in the returned design metadata.
   N_interims <- N_looks - 1L
   Sn <- normalize_interim_threshold(Sn, N_interims, "Sn")
+  Qn <- normalize_interim_threshold(Qn, N_interims, "Qn")
+  validate_success_threshold_order(Sn, Qn)
   Fn <- normalize_interim_threshold(
     Fn,
     N_interims,
@@ -616,6 +648,7 @@ survival_adapt <- function(
     interim_look = interim_look,
     Fn = Fn,
     Sn = Sn,
+    Qn = Qn,
     N_impute = N_impute,
     N_mcmc = N_mcmc,
     mc_conf_level = mc_conf_level
@@ -647,9 +680,11 @@ survival_adapt <- function(
   ### Evaluate trial at each interim analysis
   ##############################################################################
 
-  # Assigning stop_futility and stop_expected_success
+  # Assign the mutually exclusive interim stopping indicators.
   stop_futility <- 0
   stop_expected_success <- 0
+  stop_immediate_success <- 0
+  interim_decision_time <- NA_real_
   trace_rows <- if (return_trace) {
     vector("list", max(N_looks - 1L, 0L))
   } else {
@@ -724,7 +759,8 @@ survival_adapt <- function(
         empty_interval = empty_interval,
         method = method,
         binary_imputation = binary_imputation,
-        check_futility = check_futility
+        check_futility = check_futility,
+        Qn = Qn[i]
       )
       ppp_success <- interim_result$ppp_success
       ppp_success_at_max <- interim_result$ppp_success_at_max
@@ -750,8 +786,16 @@ survival_adapt <- function(
         )]
       }
 
+      if (decision == "stop_immediate_success") {
+        stop_immediate_success <- 1
+        interim_decision_time <- look_time
+        stage_trial_stopped <- analysis_at_enrollnumber[i]
+        break # No further sample-size looks
+      }
+
       if (decision == "stop_expected_success") {
         stop_expected_success <- 1
+        interim_decision_time <- look_time
         stage_trial_stopped <- analysis_at_enrollnumber[i]
         break # No further SS looks
       }
@@ -759,6 +803,7 @@ survival_adapt <- function(
       # Test if futility success criteria is met
       if (decision == "stop_futility") {
         stop_futility <- 1
+        interim_decision_time <- look_time
         stage_trial_stopped <- analysis_at_enrollnumber[i]
         break # No further SS looks
       }
@@ -778,11 +823,12 @@ survival_adapt <- function(
     stage_trial_stopped <- N_total
     stop_futility <- 0
     stop_expected_success <- 0
+    stop_immediate_success <- 0
     ppp_success <- NA
   }
 
   ##############################################################################
-  ### Final analysis (after enrollment complete)
+  ### Required final analysis or optional futility diagnostic
   ##############################################################################
 
   # All patients that have made it to the end of study
@@ -793,29 +839,44 @@ survival_adapt <- function(
     subject_impute_success <- ((event == 0) & (time < end_of_study))
   })
 
-  results_final <- analyse_final(
-    data_in = data_final,
-    cutpoints = cutpoints,
-    prior_surv_final = prior_surv_final,
-    N_mcmc = N_mcmc,
-    single_arm = single_arm,
-    imputed_final = imputed_final,
-    method = method,
-    N_impute = N_impute,
-    alternative = alternative,
-    h0 = h0,
-    prior_bin = prior_bin,
-    bin_method = bin_method,
-    binary_imputation = if (
-      method %in% c("bayes-bin", "riskdiff-wald", "riskdiff-fm")
-    ) {
-      binary_imputation
-    } else {
-      "event-time"
-    },
-    empty_interval = empty_interval,
-    end_of_study = end_of_study
-  )
+  run_final_analysis <- function() {
+    analyse_final(
+      data_in = data_final,
+      cutpoints = cutpoints,
+      prior_surv_final = prior_surv_final,
+      N_mcmc = N_mcmc,
+      single_arm = single_arm,
+      imputed_final = imputed_final,
+      method = method,
+      N_impute = N_impute,
+      alternative = alternative,
+      h0 = h0,
+      prior_bin = prior_bin,
+      bin_method = bin_method,
+      binary_imputation = if (
+        method %in% c("bayes-bin", "riskdiff-wald", "riskdiff-fm")
+      ) {
+        binary_imputation
+      } else {
+        "event-time"
+      },
+      empty_interval = empty_interval,
+      end_of_study = end_of_study
+    )
+  }
+  results_final <- if (stop_immediate_success != 0) {
+    c(NA_real_, NA_real_)
+  } else if (stop_futility != 0) {
+    tryCatch(
+      run_final_analysis(),
+      error = function(cnd) {
+        # A diagnostic failure cannot reverse a binding futility decision.
+        c(NA_real_, NA_real_)
+      }
+    )
+  } else {
+    run_final_analysis()
+  }
 
   post_paa <- results_final[1]
   est_final <- results_final[2]
@@ -825,8 +886,21 @@ survival_adapt <- function(
   calendar_metrics <- trial_calendar_metrics(data_final, end_of_study)
   stopping_reason <- calendar_stopping_reason(
     stop_futility,
-    stop_expected_success
+    stop_expected_success,
+    stop_immediate_success
   )
+  trial_success <- if (stop_immediate_success != 0) {
+    TRUE
+  } else if (stop_futility != 0) {
+    FALSE
+  } else {
+    post_paa > prob_ha
+  }
+  decision_time <- if (stop_immediate_success != 0 || stop_futility != 0) {
+    interim_decision_time
+  } else {
+    calendar_metrics$analysis_ready_time
+  }
 
   ##############################################################################
   ### Output
@@ -844,8 +918,11 @@ survival_adapt <- function(
     est_final = est_final,
     ppp_success = ppp_success,
     stop_futility = stop_futility,
+    stop_immediate_success = stop_immediate_success,
     stop_expected_success = stop_expected_success,
+    trial_success = trial_success,
     stopping_reason = stopping_reason,
+    decision_time = decision_time,
     accrual_stop_time = calendar_metrics$accrual_stop_time,
     analysis_ready_time = calendar_metrics$analysis_ready_time,
     planned_completion_time = calendar_metrics$planned_completion_time,

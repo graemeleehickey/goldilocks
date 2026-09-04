@@ -21,8 +21,18 @@ trials. The horizontal axis is the predictive probability of success if
 enrollment continues to the maximum sample size, and the vertical axis is
 the predictive probability of success if enrollment stops at the current
 sample size. Shaded regions and dashed lines show the futility,
-continuation, and expected-success rules. Identical points are aggregated;
-point size indicates their frequency.
+continuation, stopping-accrual-for-expected-success, and immediate-success
+rules. Identical points are aggregated; point size indicates their
+frequency.
+}
+\details{
+The upper shaded region represents
+\code{ppp_stop_now > immediate_success_threshold}; the middle region represents
+\verb{success_threshold < ppp_stop_now <= immediate_success_threshold}.
+Futility applies below or at the expected-success threshold when the
+maximum-sample-size prediction is strictly below its threshold. A legacy
+trace without \code{immediate_success_threshold} is treated as if that threshold
+were one, which disables immediate success.
 }
 \examples{
 traces <- data.frame(
@@ -31,6 +41,7 @@ traces <- data.frame(
   planned_N = rep(c(40, 60), each = 3),
   ppp_stop_now = c(0.96, 0.4, 0.2, 0.92, 0.5, 0.1),
   success_threshold = rep(c(0.95, 0.9), each = 3),
+  immediate_success_threshold = 0.99,
   ppp_success_at_max = c(0.8, 0.5, 0.02, 0.85, 0.4, 0.01),
   futility_threshold = 0.05,
   decision = c(

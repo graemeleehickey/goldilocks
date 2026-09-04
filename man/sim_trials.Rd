@@ -37,7 +37,8 @@ sim_trials(
   seed = NULL,
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
-  generation_cutpoints = cutpoints
+  generation_cutpoints = cutpoints,
+  Qn = 1
 )
 }
 \arguments{
@@ -182,7 +183,7 @@ default is \code{0.05}.}
 
 \item{Sn}{A numeric vector of probabilities in \verb{[0, 1]}. Each value is the
 predictive-probability
-threshold to stop at the \eqn{i}-th look early for expected success. If
+threshold to stop accrual at the \eqn{i}-th look for expected success. If
 there are no interim looks (i.e. \code{interim_look = NULL}), then
 \code{Sn} is not used in the simulations or analysis. Supply either one value,
 which is repeated at every interim look, or exactly one value per
@@ -210,7 +211,8 @@ within each
 level for one-sided exact binomial bounds reported as diagnostics of
 finite Monte Carlo uncertainty. The bounds do not alter completed-data
 success classifications or interim decisions, which use strict point-
-estimate comparisons with \code{prob_ha}, \code{Sn}, and \code{Fn}. The default is \code{0.95}.}
+estimate comparisons with \code{prob_ha}, \code{Qn}, \code{Sn}, and \code{Fn}. The default is
+\code{0.95}.}
 
 \item{N_trials}{A positive integer giving the number of independent trials
 to simulate. The default is \code{10}.}
@@ -293,6 +295,15 @@ follow-up times defining the piecewise-exponential model used to generate
 event times. \code{hazard_treatment} and \code{hazard_control} must each have one
 value per resulting interval. Defaults to \code{cutpoints}, preserving the
 historical behavior in which generation and analysis used one partition.}
+
+\item{Qn}{A numeric vector of probabilities in \verb{[0, 1]}. Each value is the
+upper predictive-probability threshold for declaring immediate trial
+success at the \eqn{i}-th look. If there are no interim looks (i.e.
+\code{interim_look = NULL}), then \code{Qn} is not used in the simulations or
+analysis. Supply either one value, which is repeated at every interim
+look, or exactly one value per \code{interim_look}; other lengths are rejected.
+\code{Qn} must be greater than or equal to \code{Sn} at every look. The default, \code{1},
+disables immediate-success stopping.}
 }
 \value{
 A list containing \code{sims}, a data frame with one row per successfully

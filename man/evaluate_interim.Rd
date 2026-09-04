@@ -27,7 +27,8 @@ evaluate_interim(
   empty_interval = c("prior", "propagate", "error"),
   method = "logrank",
   binary_imputation = c("event-time", "bernoulli"),
-  seed = NULL
+  seed = NULL,
+  Qn = 1
 )
 }
 \arguments{
@@ -164,7 +165,8 @@ within each
 level for one-sided exact binomial bounds reported as diagnostics of
 finite Monte Carlo uncertainty. The bounds do not alter completed-data
 success classifications or interim decisions, which use strict point-
-estimate comparisons with \code{prob_ha}, \code{Sn}, and \code{Fn}. The default is \code{0.95}.}
+estimate comparisons with \code{prob_ha}, \code{Qn}, \code{Sn}, and \code{Fn}. The default is
+\code{0.95}.}
 
 \item{empty_interval}{A single character string specifying how to handle
 empty piecewise-exponential intervals when updating Gamma hazard models for
@@ -202,6 +204,12 @@ the predictive Monte
 Carlo calculation. A supplied seed makes the result reproducible and
 leaves the existing random-number state unchanged. With \code{seed = NULL}, the call
 uses and advances the current random-number state.}
+
+\item{Qn}{A single numeric probability in \verb{[0, 1]} giving the upper threshold
+for declaring immediate trial success at this look. Immediate success is
+declared when predictive success among the currently enrolled participants
+is strictly greater than \code{Qn}. \code{Qn} must be greater than or equal to \code{Sn}.
+The default, \code{1}, disables immediate-success stopping.}
 }
 \value{
 An object of class \code{goldilocks_interim}, containing:
@@ -241,13 +249,15 @@ observed endpoint event, \code{"complete"} for event-free completion of
 \code{"censored"} for permanent early censoring. Pending and censored outcomes
 are predictively imputed conditional on \code{time}.
 
-\code{Sn} and \code{Fn} are scalar thresholds for this look. Expected success is
-declared when the estimated probability of completed-data success among
-the current participants is strictly greater than \code{Sn}. Futility is
+\code{Qn}, \code{Sn}, and \code{Fn} are scalar thresholds for this look. Immediate success
+is declared when the estimated probability of completed-data success among
+the current participants is strictly greater than \code{Qn}. Otherwise,
+expected success stops accrual for planned follow-up when that probability
+is strictly greater than \code{Sn}. If neither success rule applies, futility is
 declared when the corresponding maximum-sample probability is strictly
-less than \code{Fn}. Set \code{Fn = 0} or \code{NULL} to disable futility. Exact
-one-sided Monte Carlo bounds are returned as diagnostics and do not drive
-either decision.
+less than \code{Fn}. Set \code{Fn = 0} or \code{NULL} to disable futility. Exact one-sided
+Monte Carlo bounds are returned as diagnostics and do not drive any
+decision.
 
 The function requires treatment assignments to perform the arm-specific
 posterior and completed-data analyses. In a blinded trial, an independent

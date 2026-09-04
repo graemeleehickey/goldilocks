@@ -1,8 +1,8 @@
 #' Evaluate one prepared interim analysis
 #'
 #' @description Calculates posterior predictive probabilities and applies the
-#'   expected-success and futility rules for one interim data cut, whether the
-#'   data arose from a simulated or ongoing trial.
+#'   immediate-success, expected-success, and futility rules for one interim
+#'   data cut, whether the data arose from a simulated or ongoing trial.
 #'
 #' @param data_interim A data frame containing `time`, `event`, `treatment`,
 #'   `subject_enrolled`, `subject_impute_success`, and
@@ -46,7 +46,8 @@ evaluate_interim_decision <- function(
   empty_interval,
   method,
   binary_imputation,
-  check_futility
+  check_futility,
+  Qn = 1
 ) {
   required_columns <- c(
     "time",
@@ -234,20 +235,20 @@ evaluate_interim_decision <- function(
     NULL
   }
 
-  decision <- if (ppp_now_mc$point_crossed) {
-    "stop_expected_success"
-  } else if (check_futility && ppp_max_mc$point_crossed) {
-    "stop_futility"
-  } else {
-    "continue"
-  }
-  decision_reason <- if (decision == "stop_expected_success") {
-    "expected_success_estimate_above_threshold"
-  } else if (decision == "stop_futility") {
-    "futility_estimate_below_threshold"
-  } else {
-    "continue_thresholds_not_crossed"
-  }
+  decision_result <- select_interim_decision(
+    ppp_success = ppp_now_mc$estimate,
+    ppp_success_at_max = if (check_futility) {
+      ppp_max_mc$estimate
+    } else {
+      NA_real_
+    },
+    Sn = Sn,
+    Qn = Qn,
+    Fn = Fn,
+    check_futility = check_futility
+  )
+  decision <- decision_result$decision
+  decision_reason <- decision_result$decision_reason
 
   trace <- data.frame(
     look = as.integer(look),
@@ -270,6 +271,9 @@ evaluate_interim_decision <- function(
     ppp_stop_now_upper = ppp_now_mc$upper,
     ppp_stop_now_draws = ppp_now_mc$draws,
     success_threshold = Sn,
+    immediate_success_threshold = Qn,
+    immediate_success_crossed = decision_result$immediate_success_crossed,
+    expected_success_crossed = decision_result$expected_success_crossed,
     ppp_success_at_max = if (check_futility) {
       ppp_max_mc$estimate
     } else {
@@ -296,6 +300,7 @@ evaluate_interim_decision <- function(
       NA_integer_
     },
     futility_threshold = if (check_futility) Fn else NA_real_,
+    futility_crossed = decision_result$futility_crossed,
     inner_mc_uncertain_stop_now = inner_mc_uncertain_now,
     inner_mc_uncertain_success_at_max = if (check_futility) {
       inner_mc_uncertain_max
@@ -394,6 +399,68 @@ evaluate_interim_decision <- function(
       posterior = posterior_diagnostics
     ),
     trace = trace
+  )
+}
+
+#' Select an interim decision from predictive probabilities
+#'
+#' @description Applies the prespecified hierarchy to the posterior predictive
+#'   probabilities without performing any additional simulation. Success among
+#'   currently enrolled participants is tested first against the upper
+#'   immediate-success boundary and then against the expected-success boundary;
+#'   binding futility is tested only when neither success decision applies.
+#'
+#' @param ppp_success Predictive probability of completed-data success among
+#'   currently enrolled participants.
+#' @param ppp_success_at_max Predictive probability of success at the maximum
+#'   sample size, or `NA` when futility is disabled.
+#' @param Sn Expected-success threshold.
+#' @param Qn Immediate-success threshold.
+#' @param Fn Futility threshold.
+#' @param check_futility Whether the futility calculation was requested.
+#'
+#' @return A list containing the selected decision, its reason, and mutually
+#'   exclusive indicators for the three stopping regions.
+#'
+#' @keywords internal
+#' @noRd
+select_interim_decision <- function(
+  ppp_success,
+  ppp_success_at_max,
+  Sn,
+  Qn,
+  Fn,
+  check_futility
+) {
+  immediate_success_crossed <- ppp_success > Qn
+  expected_success_crossed <- ppp_success > Sn && ppp_success <= Qn
+  futility_crossed <- !immediate_success_crossed &&
+    !expected_success_crossed &&
+    isTRUE(check_futility && ppp_success_at_max < Fn)
+
+  decision <- if (immediate_success_crossed) {
+    "stop_immediate_success"
+  } else if (expected_success_crossed) {
+    "stop_expected_success"
+  } else if (futility_crossed) {
+    "stop_futility"
+  } else {
+    "continue"
+  }
+  decision_reason <- switch(
+    decision,
+    stop_immediate_success = "immediate_success_estimate_above_threshold",
+    stop_expected_success = "expected_success_estimate_above_threshold",
+    stop_futility = "futility_estimate_below_threshold",
+    continue = "continue_thresholds_not_crossed"
+  )
+
+  list(
+    decision = decision,
+    decision_reason = decision_reason,
+    immediate_success_crossed = immediate_success_crossed,
+    expected_success_crossed = expected_success_crossed,
+    futility_crossed = futility_crossed
   )
 }
 

@@ -11,17 +11,21 @@
 #' @param max_mcse `NULL` (the default), or a named numeric vector of finite,
 #'   positive values giving the largest acceptable
 #'   Monte Carlo standard error for selected estimands. Supported names are
-#'   `power`, `stop_success`, `stop_futility`, `stop_max_N`, `mean_N`,
-#'   `stop_and_fail`, and `failure_rate`. A warning identifies every scenario
-#'   and estimand whose Monte Carlo standard error exceeds its target.
+#'   `power`, `stop_immediate_success`, `stop_success`, `stop_any_success`,
+#'   `stop_futility`, `stop_max_N`, `mean_N`, `stop_and_fail`, and
+#'   `failure_rate`. A warning identifies every scenario and estimand whose
+#'   Monte Carlo standard error exceeds its target.
 #'
 #' @return A data frame reporting the operating characteristics, including the
 #'   power (which will be equal to the type I error in the null case); the
-#'   proportion of trials that stopped for early expected success, futility, or
-#'   went to the maximum sample size. The average stopping sample size (and
-#'   standard deviation) are also recorded. The proportion of trials that
-#'   stopped early for expected success, yet went on to fail, is also
-#'   reported. Each probability and mean is accompanied by its Monte Carlo
+#'   proportion of trials that declared immediate success, stopped accrual for
+#'   expected success, stopped for futility, or went to the maximum sample
+#'   size. `stop_success` retains its historical meaning of stopping accrual
+#'   for expected success; `stop_any_success` combines both success-stopping
+#'   decisions. The average stopping sample size (and standard deviation) are
+#'   also recorded. The proportion of trials that stopped accrual for expected
+#'   success, yet went on to fail, is also reported. Each probability and mean
+#'   is accompanied by its Monte Carlo
 #'   standard error and 95% Monte Carlo confidence limits, with columns ending
 #'   in `_mcse`, `_mc_lower`, and `_mc_upper`. Probability intervals use the
 #'   Wilson method; the mean sample-size interval uses a t distribution.
@@ -62,29 +66,74 @@ summarise_sims <- function(data, max_mcse = NULL) {
     )
   }
 
-  probability_metrics <- c(
+  legacy_probability_metrics <- c(
     "power",
     "stop_success",
     "stop_futility",
     "stop_max_N",
     "stop_and_fail"
   )
-  precision_metrics <- c(probability_metrics, "mean_N", "failure_rate")
-  validate_max_mcse(max_mcse, precision_metrics)
-
-  data$.goldilocks_power <- with(
-    data,
-    !stop_futility & post_prob_ha > prob_threshold
+  immediate_probability_metrics <- c(
+    "stop_immediate_success",
+    "stop_any_success"
   )
+  precision_metrics <- c(
+    legacy_probability_metrics,
+    immediate_probability_metrics,
+    "mean_N",
+    "failure_rate"
+  )
+  validate_max_mcse(max_mcse, precision_metrics)
+  include_immediate_metrics <-
+    "stop_immediate_success" %in%
+    names(data) ||
+    any(names(max_mcse) %in% immediate_probability_metrics)
+  probability_metrics <- c(
+    "power",
+    if (include_immediate_metrics) "stop_immediate_success" else character(),
+    "stop_success",
+    if (include_immediate_metrics) "stop_any_success" else character(),
+    "stop_futility",
+    "stop_max_N",
+    "stop_and_fail"
+  )
+
+  data$.goldilocks_stop_immediate_success <- if (
+    "stop_immediate_success" %in% names(data)
+  ) {
+    !is.na(data$stop_immediate_success) & data$stop_immediate_success != 0
+  } else {
+    rep.int(FALSE, nrow(data))
+  }
   data$.goldilocks_stop_success <- data$stop_expected_success != 0
   data$.goldilocks_stop_futility <- data$stop_futility != 0
+  data$.goldilocks_stop_any_success <- with(
+    data,
+    .goldilocks_stop_immediate_success | .goldilocks_stop_success
+  )
+  fallback_power <- with(
+    data,
+    .goldilocks_stop_immediate_success |
+      (!.goldilocks_stop_futility & post_prob_ha > prob_threshold)
+  )
+  data$.goldilocks_power <- if ("trial_success" %in% names(data)) {
+    ifelse(
+      is.na(data$trial_success),
+      fallback_power,
+      data$trial_success != 0
+    )
+  } else {
+    fallback_power
+  }
   data$.goldilocks_stop_max_N <- with(
     data,
-    !.goldilocks_stop_success & !.goldilocks_stop_futility
+    !.goldilocks_stop_any_success & !.goldilocks_stop_futility
   )
   data$.goldilocks_stop_and_fail <- with(
     data,
-    .goldilocks_stop_success & post_prob_ha <= prob_threshold
+    !.goldilocks_stop_immediate_success &
+      .goldilocks_stop_success &
+      post_prob_ha <= prob_threshold
   )
 
   group_columns <- unique(c(normalized$group_vars, "scenario"))
@@ -93,7 +142,11 @@ summarise_sims <- function(data, max_mcse = NULL) {
     group_by(!!!rlang::syms(group_columns)) |>
     summarise(
       "power" = mean(.data$.goldilocks_power),
+      "stop_immediate_success" = mean(
+        .data$.goldilocks_stop_immediate_success
+      ),
       "stop_success" = mean(.data$.goldilocks_stop_success),
+      "stop_any_success" = mean(.data$.goldilocks_stop_any_success),
       "stop_futility" = mean(.data$.goldilocks_stop_futility),
       "stop_max_N" = mean(.data$.goldilocks_stop_max_N),
       "mean_N" = mean(.data$N_enrolled),
@@ -285,9 +338,11 @@ binomial_mc_uncertainty <- function(estimate, denominator) {
   z <- stats::qnorm(0.975)
   adjustment <- 1 + z^2 / n
   center <- (probability + z^2 / (2 * n)) / adjustment
-  half_width <- z / adjustment * sqrt(
-    probability * (1 - probability) / n + z^2 / (4 * n^2)
-  )
+  half_width <- z /
+    adjustment *
+    sqrt(
+      probability * (1 - probability) / n + z^2 / (4 * n^2)
+    )
   out$mcse[valid] <- sqrt(probability * (1 - probability) / n)
   out$lower[valid] <- pmax(0, center - half_width)
   out$upper[valid] <- pmin(1, center + half_width)

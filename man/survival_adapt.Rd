@@ -33,7 +33,8 @@ survival_adapt(
   return_trace = FALSE,
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
-  generation_cutpoints = cutpoints
+  generation_cutpoints = cutpoints,
+  Qn = 1
 )
 }
 \arguments{
@@ -178,7 +179,7 @@ default is \code{0.05}.}
 
 \item{Sn}{A numeric vector of probabilities in \verb{[0, 1]}. Each value is the
 predictive-probability
-threshold to stop at the \eqn{i}-th look early for expected success. If
+threshold to stop accrual at the \eqn{i}-th look for expected success. If
 there are no interim looks (i.e. \code{interim_look = NULL}), then
 \code{Sn} is not used in the simulations or analysis. Supply either one value,
 which is repeated at every interim look, or exactly one value per
@@ -206,7 +207,8 @@ within each
 level for one-sided exact binomial bounds reported as diagnostics of
 finite Monte Carlo uncertainty. The bounds do not alter completed-data
 success classifications or interim decisions, which use strict point-
-estimate comparisons with \code{prob_ha}, \code{Sn}, and \code{Fn}. The default is \code{0.95}.}
+estimate comparisons with \code{prob_ha}, \code{Qn}, \code{Sn}, and \code{Fn}. The default is
+\code{0.95}.}
 
 \item{empty_interval}{A single character string specifying how to handle
 empty piecewise-exponential intervals when updating Gamma hazard models for
@@ -267,6 +269,15 @@ follow-up times defining the piecewise-exponential model used to generate
 event times. \code{hazard_treatment} and \code{hazard_control} must each have one
 value per resulting interval. Defaults to \code{cutpoints}, preserving the
 historical behavior in which generation and analysis used one partition.}
+
+\item{Qn}{A numeric vector of probabilities in \verb{[0, 1]}. Each value is the
+upper predictive-probability threshold for declaring immediate trial
+success at the \eqn{i}-th look. If there are no interim looks (i.e.
+\code{interim_look = NULL}), then \code{Qn} is not used in the simulations or
+analysis. Supply either one value, which is repeated at every interim
+look, or exactly one value per \code{interim_look}; other lengths are rejected.
+\code{Qn} must be greater than or equal to \code{Sn} at every look. The default, \code{1},
+disables immediate-success stopping.}
 }
 \value{
 With \code{return_trace = FALSE} (the default), a one-row data frame
@@ -277,20 +288,34 @@ containing the evaluated design and final trial results, including:
 \item \code{est_final}: Treatment effect estimated at the final analysis. The final
 analysis occurs when either the maximum sample size is reached and
 follow-up is complete, or the interim analysis triggered early stopping
-of enrollment/accrual and follow-up for those subjects is complete.
+of enrollment/accrual and follow-up for those subjects is complete. It is
+\code{NA} after an immediate-success decision, for which no later analysis is
+required, or when the optional diagnostic analysis after binding
+futility cannot be computed.
 \item \code{post_prob_ha}: Posterior probability from the final analysis. If
 a Bayesian method uses \code{imputed_final = TRUE}, this is calculated for
 each imputed final-analysis dataset and averaged over \code{N_impute}
 imputations. For an imputed Cox analysis it is \eqn{1 - P} from the
 Rubin-pooled Wald test. The same interpretation applies to imputed
 risk-difference analyses. For non-imputed frequentist analyses it is
-\eqn{1 - P} from the corresponding test.
+\eqn{1 - P} from the corresponding test. It is \code{NA} after an
+immediate-success decision, for which no later analysis is required, or
+when the optional diagnostic analysis after binding futility cannot be
+computed.
 \item \code{stop_futility}: Logical indicator of whether the trial stopped early for
-futility.
+binding futility.
+\item \code{stop_immediate_success}: Logical indicator of whether the trial stopped
+and declared immediate success at an interim look.
 \item \code{stop_expected_success}: Logical indicator of whether the trial stopped
-early for expected success.
-\item \code{stopping_reason}: One of \code{"expected_success"}, \code{"futility"}, or
-\code{"maximum_sample_size"}.
+accruing for expected success and continued planned follow-up.
+\item \code{trial_success}: Logical indicator of the trial's official success
+outcome. An immediate-success decision is final at the interim look;
+binding futility is a final failure.
+\item \code{stopping_reason}: One of \code{"immediate_success"}, \code{"expected_success"},
+\code{"futility"}, or \code{"maximum_sample_size"}.
+\item \code{decision_time}: Calendar time at which the trial decision becomes
+final. This is the interim look time for immediate success or futility,
+and the analysis-ready time otherwise.
 \item \code{accrual_stop_time}: Calendar time of the last enrollment in the trial.
 \item \code{analysis_ready_time}: Calendar time at which the last enrolled
 subject's observed event or censoring becomes available. This excludes
@@ -308,8 +333,8 @@ zero. Times use the same units as \code{lambda_time}, \code{cutpoints},
 \code{generation_cutpoints}, and \code{end_of_study}.
 
 The returned object has a \code{decision_design} attribute containing
-\code{interim_look}, \code{Fn}, \code{Sn}, and the Monte Carlo settings. Thresholds in
-this information are stored as one value per interim look (and have
+\code{interim_look}, \code{Fn}, \code{Sn}, \code{Qn}, and the Monte Carlo settings. Thresholds
+in this information are stored as one value per interim look (and have
 length zero when no interim looks are planned).
 A \code{prior_design} attribute contains the resolved Gamma shape, rate,
 mean hazard, and standard deviation for every stage, arm, and interval.
@@ -343,8 +368,9 @@ excludes imputed data sets and posterior draws to keep the output compact.
 \description{
 Simulates one single-arm or randomized two-arm trial under a
 Goldilocks sample-size design. At each planned interim look, posterior
-predictive probabilities determine whether to stop accrual for expected
-success, stop for futility, or continue toward the maximum sample size.
+predictive probabilities determine whether to declare immediate success,
+stop accrual for expected success, stop for futility, or continue toward
+the maximum sample size.
 }
 \details{
 Implements the Goldilocks design method described in Broglio et al.
@@ -353,10 +379,12 @@ Implements the Goldilocks design method described in Broglio et al.
 \item \strong{The posterior predictive probability of eventual success.} This is
 calculated as the proportion of imputed datasets at the \emph{current} sample
 size that satisfy the completed-data success criterion. At each
-interim analysis this proportion is compared to the corresponding
-element of \code{Sn}, and if it exceeds the threshold,
-accrual/enrollment is suspended and the outstanding follow-up allowed to
-complete before conducting the pre-specified final analysis.
+interim analysis this proportion is first compared to the corresponding
+element of \code{Qn}. If it is strictly greater than \code{Qn}, the trial stops
+and declares immediate success. Otherwise, if it is strictly greater
+than \code{Sn}, accrual/enrollment is suspended and the outstanding follow-up
+is allowed to complete before conducting the pre-specified final
+analysis.
 \item \strong{The posterior predictive probability of success at the maximum sample
 size.} This is
 calculated as the proportion of imputed datasets at the \emph{maximum}
@@ -368,10 +396,13 @@ not a binding decision, then one should also explore the simulations
 with \code{Fn = 0}.
 }
 
-Hence, each interim look has three possible decisions:
+Hence, each interim look has four possible decisions, applied in this
+order:
 \enumerate{
-\item \strong{Stop for expected success}
-\item \strong{Stop for futility}
+\item \strong{Stop and declare immediate success} when \eqn{P_{n,l} > Q_l}.
+\item \strong{Stop accruing for expected success and follow} when
+\eqn{S_l < P_{n,l} \le Q_l}.
+\item \strong{Stop for futility} when \eqn{P_{n_{max},l} < F_l}.
 \item \strong{Continue to enroll} new subjects, or if at maximum sample size,
 proceed to final analysis.
 }

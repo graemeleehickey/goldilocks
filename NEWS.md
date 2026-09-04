@@ -2,6 +2,15 @@
 
 ## Improvements
 
+* Interim monitoring now supports an immediate-success boundary, `Qn`, on the
+  same predictive probability used to stop accrual for expected success.
+  At each look, the trial declares immediate success when that probability is
+  above `Qn`; otherwise it stops accrual and follows enrolled participants when
+  it is above `Sn`, stops for futility when the predictive probability at the
+  maximum sample size is below `Fn`, or continues. The default `Qn = 1`
+  preserves the previous three-decision design. A new ThermoCool AF vignette
+  illustrates the four-decision design without adding it to the existing
+  worked examples (#16).
 * Frequentist binary analyses now require an explicit choice between
   `method = "riskdiff-fm"`, a Farrington-Manning score test that remains
   defined for sparse boundary tables, and `method = "riskdiff-wald"`, the

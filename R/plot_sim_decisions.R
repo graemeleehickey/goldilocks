@@ -5,13 +5,22 @@
 #'   enrollment continues to the maximum sample size, and the vertical axis is
 #'   the predictive probability of success if enrollment stops at the current
 #'   sample size. Shaded regions and dashed lines show the futility,
-#'   continuation, and expected-success rules. Identical points are aggregated;
-#'   point size indicates their frequency.
+#'   continuation, stopping-accrual-for-expected-success, and immediate-success
+#'   rules. Identical points are aggregated; point size indicates their
+#'   frequency.
 #'
 #' @param x A required result returned by [sim_trials()] with
 #'   `return_trace = TRUE`, or the corresponding `traces` data frame. The trace
 #'   must contain interim-look numbers, predictive probabilities, decision
 #'   thresholds, and decisions.
+#'
+#' @details The upper shaded region represents
+#'   `ppp_stop_now > immediate_success_threshold`; the middle region represents
+#'   `success_threshold < ppp_stop_now <= immediate_success_threshold`.
+#'   Futility applies below or at the expected-success threshold when the
+#'   maximum-sample-size prediction is strictly below its threshold. A legacy
+#'   trace without `immediate_success_threshold` is treated as if that threshold
+#'   were one, which disables immediate success.
 #'
 #' @return The simulation traces, invisibly.
 #'
@@ -22,6 +31,7 @@
 #'   planned_N = rep(c(40, 60), each = 3),
 #'   ppp_stop_now = c(0.96, 0.4, 0.2, 0.92, 0.5, 0.1),
 #'   success_threshold = rep(c(0.95, 0.9), each = 3),
+#'   immediate_success_threshold = 0.99,
 #'   ppp_success_at_max = c(0.8, 0.5, 0.02, 0.85, 0.4, 0.01),
 #'   futility_threshold = 0.05,
 #'   decision = c(
@@ -57,6 +67,10 @@ plot_sim_decisions <- function(x) {
     graphics::title(main = "No interim decisions were simulated")
     return(invisible(traces))
   }
+  returned_traces <- traces
+  if (!"immediate_success_threshold" %in% names(traces)) {
+    traces$immediate_success_threshold <- rep.int(1, nrow(traces))
+  }
 
   finite_probability <- function(value) {
     is.numeric(value) &&
@@ -74,6 +88,7 @@ plot_sim_decisions <- function(x) {
   if (
     !finite_probability(traces$ppp_stop_now) ||
       !finite_probability(traces$success_threshold) ||
+      !finite_probability(traces$immediate_success_threshold) ||
       !optional_probability(traces$ppp_success_at_max) ||
       !optional_probability(traces$futility_threshold)
   ) {
@@ -81,6 +96,7 @@ plot_sim_decisions <- function(x) {
   }
   allowed_decisions <- c(
     "continue",
+    "stop_immediate_success",
     "stop_expected_success",
     "stop_futility"
   )
@@ -105,14 +121,27 @@ plot_sim_decisions <- function(x) {
   looks <- sort(unique(traces$look))
   panel_columns <- ceiling(sqrt(length(looks)))
   panel_rows <- ceiling(length(looks) / panel_columns)
-  decision_labels <- c("Continue", "Expected success", "Futility")
-  decision_colours <- c("#0072B2", "#009E73", "#D55E00")
+  decision_labels <- c(
+    "Continue",
+    "Immediate success",
+    "Stop accrual for expected success",
+    "Futility"
+  )
+  decision_colours <- c("#0072B2", "#CC79A7", "#009E73", "#D55E00")
   names(decision_colours) <- allowed_decisions
 
   for (look in looks) {
     rows <- traces[traces$look == look, , drop = FALSE]
     if (length(unique(rows$success_threshold)) != 1L) {
       stop("success thresholds must be constant within each interim look")
+    }
+    if (length(unique(rows$immediate_success_threshold)) != 1L) {
+      stop(
+        "immediate-success thresholds must be constant within each interim look"
+      )
+    }
+    if (any(rows$success_threshold > rows$immediate_success_threshold)) {
+      stop("immediate-success thresholds cannot be below success thresholds")
     }
     look_has_futility <- futility_available[traces$look == look]
     if (any(look_has_futility) && !all(look_has_futility)) {
@@ -137,6 +166,9 @@ plot_sim_decisions <- function(x) {
     look <- looks[i]
     rows <- traces[traces$look == look, , drop = FALSE]
     success_threshold <- unique(rows$success_threshold)
+    immediate_success_threshold <- unique(
+      rows$immediate_success_threshold
+    )
     look_has_futility <- futility_available[traces$look == look]
 
     planned_N <- if (
@@ -152,13 +184,12 @@ plot_sim_decisions <- function(x) {
       sprintf("Interim look %s", look)
     }
 
-    if (!any(look_has_futility)) {
-      graphics::plot.new()
-      graphics::title(main = panel_title)
-      graphics::text(0.5, 0.5, labels = "Futility monitoring disabled")
-      next
+    futility_enabled <- any(look_has_futility)
+    futility_threshold <- if (futility_enabled) {
+      unique(rows$futility_threshold)
+    } else {
+      NA_real_
     }
-    futility_threshold <- unique(rows$futility_threshold)
 
     graphics::plot(
       NA_real_,
@@ -166,7 +197,11 @@ plot_sim_decisions <- function(x) {
       type = "n",
       xlim = c(0, 1),
       ylim = c(0, 1),
-      xlab = "Success probability at maximum sample size",
+      xlab = if (futility_enabled) {
+        "Success probability at maximum sample size"
+      } else {
+        "Futility disabled (horizontal position arbitrary)"
+      },
       ylab = "Success probability if enrollment stops now",
       main = panel_title
     )
@@ -178,20 +213,30 @@ plot_sim_decisions <- function(x) {
       col = grDevices::adjustcolor("#0072B2", alpha.f = 0.06),
       border = NA
     )
+    if (futility_enabled) {
+      graphics::rect(
+        0,
+        0,
+        futility_threshold,
+        success_threshold,
+        col = grDevices::adjustcolor("#D55E00", alpha.f = 0.14),
+        border = NA
+      )
+    }
     graphics::rect(
       0,
-      0,
-      futility_threshold,
       success_threshold,
-      col = grDevices::adjustcolor("#D55E00", alpha.f = 0.14),
+      1,
+      immediate_success_threshold,
+      col = grDevices::adjustcolor("#009E73", alpha.f = 0.14),
       border = NA
     )
     graphics::rect(
       0,
-      success_threshold,
+      immediate_success_threshold,
       1,
       1,
-      col = grDevices::adjustcolor("#009E73", alpha.f = 0.14),
+      col = grDevices::adjustcolor("#CC79A7", alpha.f = 0.14),
       border = NA
     )
     graphics::abline(
@@ -200,15 +245,27 @@ plot_sim_decisions <- function(x) {
       lty = 2
     )
     graphics::abline(
-      v = futility_threshold,
-      col = "#D55E00",
-      lty = 2
+      h = immediate_success_threshold,
+      col = "#CC79A7",
+      lty = 3
     )
+    if (futility_enabled) {
+      graphics::abline(
+        v = futility_threshold,
+        col = "#D55E00",
+        lty = 2
+      )
+    }
 
+    point_x <- if (futility_enabled) {
+      rows$ppp_success_at_max
+    } else {
+      rep.int(0.5, nrow(rows))
+    }
     point_data <- stats::aggregate(
       list(count = rep.int(1L, nrow(rows))),
       by = list(
-        ppp_success_at_max = rows$ppp_success_at_max,
+        ppp_success_at_max = point_x,
         ppp_stop_now = rows$ppp_stop_now,
         decision = rows$decision
       ),
@@ -237,5 +294,5 @@ plot_sim_decisions <- function(x) {
     }
   }
 
-  invisible(traces)
+  invisible(returned_traces)
 }

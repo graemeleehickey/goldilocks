@@ -134,6 +134,93 @@ test_that("maximum sample size is calculated from trial-level indicators", {
   )
 })
 
+test_that("immediate success is a distinct terminal outcome and powers success", {
+  df <- data.frame(
+    stop_futility = c(FALSE, FALSE, TRUE, FALSE, FALSE),
+    stop_immediate_success = c(TRUE, FALSE, FALSE, FALSE, FALSE),
+    stop_expected_success = c(FALSE, TRUE, FALSE, FALSE, FALSE),
+    trial_success = c(TRUE, FALSE, FALSE, TRUE, FALSE),
+    post_prob_ha = c(0.10, 0.80, 0.20, 0.99, 0.20),
+    prob_threshold = rep(0.95, 5),
+    N_enrolled = c(100, 120, 140, 200, 200)
+  )
+
+  out <- summarise_sims(df)
+
+  expect_equal(out$power, 2 / 5)
+  expect_equal(out$stop_immediate_success, 1 / 5)
+  expect_equal(out$stop_success, 1 / 5)
+  expect_equal(out$stop_any_success, 2 / 5)
+  expect_equal(out$stop_futility, 1 / 5)
+  expect_equal(out$stop_max_N, 2 / 5)
+  expect_equal(out$stop_and_fail, 1 / 5)
+  expect_equal(
+    out$stop_immediate_success +
+      out$stop_success +
+      out$stop_futility +
+      out$stop_max_N,
+    1
+  )
+})
+
+test_that("immediate success is included in fallback power", {
+  df <- data.frame(
+    stop_futility = c(FALSE, FALSE),
+    stop_immediate_success = c(TRUE, FALSE),
+    stop_expected_success = c(FALSE, FALSE),
+    post_prob_ha = c(0.10, 0.99),
+    prob_threshold = c(0.95, 0.95),
+    N_enrolled = c(100, 200)
+  )
+
+  out <- summarise_sims(df)
+
+  expect_equal(out$power, 1)
+  expect_equal(out$stop_max_N, 0.5)
+})
+
+test_that("legacy inputs retain their operating-characteristic schema", {
+  df <- data.frame(
+    stop_futility = c(FALSE, TRUE),
+    stop_expected_success = c(TRUE, FALSE),
+    post_prob_ha = c(0.99, 0.10),
+    prob_threshold = c(0.95, 0.95),
+    N_enrolled = c(100, 200)
+  )
+
+  out <- summarise_sims(df)
+
+  expect_false("stop_immediate_success" %in% names(out))
+  expect_false("stop_any_success" %in% names(out))
+  expect_equal(out$power, 0.5)
+  expect_equal(out$stop_success, 0.5)
+})
+
+test_that("legacy sim_trials-shaped results remain summarizable", {
+  legacy <- list(
+    sims = data.frame(
+      stop_futility = c(FALSE, TRUE),
+      stop_expected_success = c(TRUE, FALSE),
+      post_prob_ha = c(0.99, 0.10),
+      prob_threshold = c(0.95, 0.95),
+      N_enrolled = c(100, 200)
+    ),
+    failures = data.frame(
+      trial = integer(),
+      error_class = character(),
+      message = character()
+    ),
+    call = quote(sim_trials(N_trials = 2))
+  )
+
+  out <- summarise_sims(legacy)
+
+  expect_equal(out$power, 0.5)
+  expect_identical(out$n_requested, 2L)
+  expect_false("stop_immediate_success" %in% names(out))
+  expect_false("stop_any_success" %in% names(out))
+})
+
 test_that("summarise_sims accepts a complete sim_trials result", {
   simulations <- sim_trials(
     hazard_treatment = 0.02,
@@ -151,7 +238,9 @@ test_that("summarise_sims accepts a complete sim_trials result", {
   legacy <- summarise_sims(simulations$sims)
   metric_columns <- c(
     "power",
+    "stop_immediate_success",
     "stop_success",
+    "stop_any_success",
     "stop_futility",
     "stop_max_N",
     "mean_N",
@@ -169,14 +258,17 @@ test_that("summarise_sims accepts a complete sim_trials result", {
   expect_identical(direct$n_failed, 0L)
   expect_identical(direct$n_used, 3L)
   expect_equal(direct$failure_rate, 0)
-  expect_true(all(c(
-    "power_mcse",
-    "power_mc_lower",
-    "power_mc_upper",
-    "mean_N_mcse",
-    "mean_N_mc_lower",
-    "mean_N_mc_upper"
-  ) %in% names(direct)))
+  expect_true(all(
+    c(
+      "power_mcse",
+      "power_mc_lower",
+      "power_mc_upper",
+      "mean_N_mcse",
+      "mean_N_mc_lower",
+      "mean_N_mc_upper"
+    ) %in%
+      names(direct)
+  ))
   expect_identical(
     attr(direct, "enrollment_design", exact = TRUE),
     attr(simulations, "enrollment_design", exact = TRUE)
@@ -277,6 +369,7 @@ test_that("summarise_sims reports failures separately from estimand denominators
   simulations$sims$stop_expected_success <- c(TRUE, FALSE)
   simulations$sims$post_prob_ha <- c(0.99, 0.10)
   simulations$sims$prob_threshold <- c(0.95, 0.95)
+  simulations$sims$trial_success <- c(TRUE, FALSE)
   simulations$failures <- data.frame(
     trial = 3:4,
     message = c("failure one", "failure two")
@@ -286,10 +379,7 @@ test_that("summarise_sims reports failures separately from estimand denominators
   attr(simulations, "parallel_metadata") <- parallel_metadata
 
   out <- summarise_sims(simulations)
-  successful <- with(
-    simulations$sims,
-    !stop_futility & post_prob_ha > prob_threshold
-  )
+  successful <- simulations$sims$trial_success
 
   expect_identical(out$n_requested, 4L)
   expect_identical(out$n_analyzed, 2L)

@@ -251,6 +251,93 @@ test_that("Fn zero disables the maximum-sample calculation", {
   expect_true(is.na(out$trace$futility_threshold))
 })
 
+test_that("interim decisions use the ordered Qn, Sn, and Fn regions", {
+  decide <- function(
+    ppp_success,
+    ppp_success_at_max = 0.5,
+    Sn = 0.8,
+    Qn = 0.95,
+    Fn = 0.1
+  ) {
+    goldilocks:::select_interim_decision(
+      ppp_success = ppp_success,
+      ppp_success_at_max = ppp_success_at_max,
+      Sn = Sn,
+      Qn = Qn,
+      Fn = Fn,
+      check_futility = TRUE
+    )
+  }
+
+  immediate <- decide(0.96, ppp_success_at_max = 0)
+  expect_identical(immediate$decision, "stop_immediate_success")
+  expect_true(immediate$immediate_success_crossed)
+  expect_false(immediate$expected_success_crossed)
+  expect_false(immediate$futility_crossed)
+
+  expected <- decide(0.9, ppp_success_at_max = 0)
+  expect_identical(expected$decision, "stop_expected_success")
+  expect_false(expected$immediate_success_crossed)
+  expect_true(expected$expected_success_crossed)
+  expect_false(expected$futility_crossed)
+
+  futility <- decide(0.8, ppp_success_at_max = 0.09)
+  expect_identical(futility$decision, "stop_futility")
+  expect_true(futility$futility_crossed)
+
+  continuing <- decide(0.8, ppp_success_at_max = 0.1)
+  expect_identical(continuing$decision, "continue")
+
+  at_upper_boundary <- decide(0.95)
+  expect_identical(at_upper_boundary$decision, "stop_expected_success")
+  expect_true(at_upper_boundary$expected_success_crossed)
+
+  collapsed_at_boundary <- decide(0.9, Sn = 0.9, Qn = 0.9)
+  expect_identical(collapsed_at_boundary$decision, "continue")
+  collapsed_above_boundary <- decide(0.91, Sn = 0.9, Qn = 0.9)
+  expect_identical(
+    collapsed_above_boundary$decision,
+    "stop_immediate_success"
+  )
+})
+
+test_that("evaluate_interim declares immediate success from the existing PPP", {
+  args <- interim_args()
+  args$alternative <- "greater"
+  args$prob_ha <- 0
+  args$Fn <- 0
+  args$Sn <- 0
+  args$Qn <- 0
+
+  out <- do.call(evaluate_interim, args)
+
+  expect_identical(out$decision$decision, "stop_immediate_success")
+  expect_identical(
+    out$decision$decision_reason,
+    "immediate_success_estimate_above_threshold"
+  )
+  expect_equal(out$decision$ppp_stop_now, 1)
+  expect_equal(out$decision$immediate_success_threshold, 0)
+  expect_true(out$decision$immediate_success_crossed)
+  expect_false(out$decision$expected_success_crossed)
+  expect_false(out$decision$futility_crossed)
+  expect_identical(out$metadata$design$Qn, 0)
+  expect_equal(nrow(out$probabilities), 1)
+})
+
+test_that("evaluate_interim validates the ordered success thresholds", {
+  args <- interim_args()
+
+  expect_error(
+    do.call(evaluate_interim, modifyList(args, list(Qn = 1.1))),
+    "Qn"
+  )
+  expect_error(
+    do.call(evaluate_interim, modifyList(args, list(Sn = 0.9, Qn = 0.8))),
+    "Sn.*less than or equal to.*Qn"
+  )
+})
+
 test_that("evaluate_interim permits an already reached maximum sample size", {
   out <- evaluate_interim(
     data = interim_fixture(),

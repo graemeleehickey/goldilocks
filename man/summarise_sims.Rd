@@ -15,18 +15,22 @@ preserved.}
 \item{max_mcse}{\code{NULL} (the default), or a named numeric vector of finite,
 positive values giving the largest acceptable
 Monte Carlo standard error for selected estimands. Supported names are
-\code{power}, \code{stop_success}, \code{stop_futility}, \code{stop_max_N}, \code{mean_N},
-\code{stop_and_fail}, and \code{failure_rate}. A warning identifies every scenario
-and estimand whose Monte Carlo standard error exceeds its target.}
+\code{power}, \code{stop_immediate_success}, \code{stop_success}, \code{stop_any_success},
+\code{stop_futility}, \code{stop_max_N}, \code{mean_N}, \code{stop_and_fail}, and
+\code{failure_rate}. A warning identifies every scenario and estimand whose
+Monte Carlo standard error exceeds its target.}
 }
 \value{
 A data frame reporting the operating characteristics, including the
 power (which will be equal to the type I error in the null case); the
-proportion of trials that stopped for early expected success, futility, or
-went to the maximum sample size. The average stopping sample size (and
-standard deviation) are also recorded. The proportion of trials that
-stopped early for expected success, yet went on to fail, is also
-reported. Each probability and mean is accompanied by its Monte Carlo
+proportion of trials that declared immediate success, stopped accrual for
+expected success, stopped for futility, or went to the maximum sample
+size. \code{stop_success} retains its historical meaning of stopping accrual
+for expected success; \code{stop_any_success} combines both success-stopping
+decisions. The average stopping sample size (and standard deviation) are
+also recorded. The proportion of trials that stopped accrual for expected
+success, yet went on to fail, is also reported. Each probability and mean
+is accompanied by its Monte Carlo
 standard error and 95\% Monte Carlo confidence limits, with columns ending
 in \verb{_mcse}, \verb{_mc_lower}, and \verb{_mc_upper}. Probability intervals use the
 Wilson method; the mean sample-size interval uses a t distribution.
