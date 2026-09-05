@@ -65,6 +65,7 @@ articles:
   - title: Getting started
     contents:
       - two-arm
+      - calibrating-prob-ha
       - thermocool-af
       - anthem-hfref
       - advent
@@ -74,7 +75,7 @@ articles:
       - single-arm
       - decision-traces
       - interim-data
-  - title: Developer
+  - title: Statistical methods and reproducibility
     contents:
       - architecture
       - technical-methods

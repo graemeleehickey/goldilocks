@@ -107,7 +107,9 @@ d_\ell =
 \text{immediate success}, & P_{n,\ell} > Q_\ell, \\
 \text{stop accrual for expected success},
   & S_\ell < P_{n,\ell} \le Q_\ell, \\
-\text{binding futility}, & P_{n_{\max},\ell} < F_\ell, \\
+\text{binding futility},
+  & P_{n,\ell} \le S_\ell
+    \text{ and } P_{n_{\max},\ell} < F_\ell, \\
 \text{continue}, & \text{otherwise.}
 \end{cases}
 $$
@@ -254,10 +256,10 @@ input_audit <- data.frame(
     "Derived from FDA's 11 patients after year 1, 53 after year 2, and 160 near year 3; not a protocol accrual generator",
     "Derived from the FDA SSED Table 8; descriptive observed-data scenario, not a planning assumption",
     "Public materials state that operating characteristics were simulated but redact or omit enough inputs to prevent exact reproduction",
-    "Runtime example; the package's random censoring is not equivalent to the eight randomized patients who did not receive assigned treatment",
-    "JAMA reports multiple imputation for incomplete outcomes; package implementation is an approximation",
-    "Runtime choices; the sponsor's predictive draw count is unavailable",
-    "Runtime choice; the sponsor briefing reports 10,000 simulated trials per scenario"
+    "Illustrative assumption; random censoring is not equivalent to the eight randomized patients who did not receive assigned treatment",
+    "JAMA reports multiple imputation for incomplete outcomes; the available package analysis is an approximation",
+    "Illustrative choices; the sponsor's predictive draw count is unavailable",
+    "Illustrative choice; the sponsor briefing reports 10,000 simulated trials per scenario"
   ),
   check.names = FALSE
 )
@@ -395,8 +397,8 @@ look.
 
 ## One simulated trial
 
-The following call simulates one trial under the descriptive FDA-rate scenario.
-It uses only 100 predictive imputations so the vignette remains quick to build.
+The following analysis simulates one trial replicate under the descriptive
+FDA-rate scenario. It uses only 100 predictive imputations for illustration.
 That is too few for regulatory calibration of boundaries as extreme as 0.99
 and 0.01.
 
@@ -453,7 +455,8 @@ wait for a later completed-follow-up analysis, so `post_prob_ha` and the final
 effect estimate are `NA`. Binding futility is likewise an official terminal
 failure. For compatibility, the package still attempts its historical
 completed-follow-up diagnostic after futility; if that diagnostic cannot be
-computed, its two fields are `NA` and `trial_success` remains `FALSE`.
+computed, `post_prob_ha` and `est_final` are `NA` and `trial_success` remains
+`FALSE`.
 
 The trace makes the ordered rule auditable:
 
@@ -553,12 +556,12 @@ names(oc_display)[names(oc_display) == "stop_success"] <-
 knitr::kable(oc_display, digits = 3)
 ```
 
-With only 50 trials and 40 imputations per look, these estimates have substantial
-Monte Carlo error. They demonstrate the workflow and the mutually exclusive
-stopping categories; they do not estimate the trial's reported operating
-characteristics. `summarise_sims()` retains the historical name `stop_success`
-for stopping accrual for expected success and reports immediate success
-separately as `stop_immediate_success`.
+With only 50 trials and 40 imputations per look, these estimates have
+substantial Monte Carlo error. They illustrate the mutually exclusive stopping
+categories; they do not estimate the trial's reported operating
+characteristics. `summarise_sims()` uses `stop_success` for stopping accrual for
+expected success and reports immediate success separately as
+`stop_immediate_success`.
 
 The no-effect scenario provides a more informative view of the four decision
 regions than the deliberately strong FDA-rate scenario:
@@ -576,7 +579,7 @@ Observations above `Qn` are immediate successes. Observations between `Sn` and
 `Qn` stop accrual for expected success. At or below `Sn`, `Fn` separates binding
 futility from continued accrual.
 
-## Design validation template
+## Operating-characteristic evaluation
 
 A design that permits immediate declaration of success must be calibrated as a
 whole. Neither `Qn = 0.99` nor `prob_ha = 0.98` automatically controls type I
@@ -656,8 +659,8 @@ The example preserves the central statistical idea:
 -   `Fn` acts on predictive success at the maximum sample size; and
 -   all thresholds are evaluated in a prespecified order.
 
-It does not reproduce the sponsor's source code, hierarchical hazard prior,
-simulation scenarios, treatment-specific evaluation-window origins,
+It does not reproduce the sponsor's complete analysis, hierarchical hazard
+prior, simulation scenarios, treatment-specific evaluation-window origins,
 site-stratified randomization sequences, protocol deviations, crossover,
 analysis-population exclusions, operational overrun, or the original
 two-predictive-probability futility requirement. It also does not recreate the
