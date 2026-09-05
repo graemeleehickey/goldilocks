@@ -164,7 +164,7 @@ from the analysis population are ignored. The simulation starts directly
 with the modeled 1:1 analysis population.</p>
 </div>
 <div class="section level2">
-<h2 id="the-goldilocks-flow">The Goldilocks flow<a class="anchor" aria-label="anchor" href="#the-goldilocks-flow"></a>
+<h2 id="adaptive-decision-process">Adaptive decision process<a class="anchor" aria-label="anchor" href="#adaptive-decision-process"></a>
 </h2>
 <p>The ADVENT design paper includes a flowchart for the adaptive sample
 size algorithm. The chart below recreates the logic in package terms
@@ -300,15 +300,12 @@ Historical results that used neighboring-interval propagation can be
 reproduced with the legacy <code>empty_interval = "propagate"</code>
 option.</p>
 <p>The SAP reports <span class="math inline">M = 5000</span> completed
-datasets for its predictive-probability and multiple-imputation
-calculations. The evaluated parts of this vignette deliberately use
-fewer imputations: 50 for the worked single trials and 30 for the
-operating-characteristic example. We do not use <span class="math inline">M = 5000</span> in evaluated code in order to keep
-vignette computation time to a minimum. The unevaluated fuller template
-does use <span class="math inline">M = 5000</span> to show the ADVENT
-setting. Consequently, the numerical results shown in the vignette are
-demonstrations of package workflow rather than reproductions of the
-ADVENT calibration.</p>
+data sets for its predictive-probability and multiple-imputation
+calculations. The evaluated examples deliberately use fewer imputations:
+50 for the single-trial analyses and 30 for the operating-
+characteristic example. The fuller, unevaluated specification uses <span class="math inline">M = 5000</span> to represent the ADVENT setting.
+Consequently, the numerical results shown here illustrate the analysis
+but do not reproduce the ADVENT calibration.</p>
 </div>
 <div class="section level2">
 <h2 id="sap-event-time-models-and-time-units">SAP event-time models and time units<a class="anchor" aria-label="anchor" href="#sap-event-time-models-and-time-units"></a>
@@ -340,14 +337,11 @@ as 360 days.</p>
 <span><span class="va">event_free_at_interval_end</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">hazard</span>, <span class="va">interval_end</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">hazard</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">j</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">cutpoints</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="va">j</span> <span class="op">==</span> <span class="fl">1L</span><span class="op">)</span> <span class="cn">NULL</span> <span class="kw">else</span> <span class="va">interval_end</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">j</span> <span class="op">-</span> <span class="fl">1L</span><span class="op">)</span><span class="op">]</span></span>
-<span>    <span class="va">post</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">hazard</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">j</span><span class="op">)</span><span class="op">]</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="va">j</span>, <span class="fl">1L</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>    <span class="fl">1</span> <span class="op">-</span> <span class="fu">goldilocks</span><span class="fu">:::</span><span class="fu">haz_to_prop</span><span class="op">(</span></span>
-<span>      post <span class="op">=</span> <span class="va">post</span>,</span>
+<span>    <span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="../reference/ppwe.html">ppwe</a></span><span class="op">(</span></span>
+<span>      hazard <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">hazard</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">j</span><span class="op">)</span><span class="op">]</span>, nrow <span class="op">=</span> <span class="fl">1L</span><span class="op">)</span>,</span>
 <span>      cutpoints <span class="op">=</span> <span class="va">cutpoints</span>,</span>
-<span>      end_of_study <span class="op">=</span> <span class="va">interval_end</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>,</span>
-<span>      single_arm <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span>    <span class="op">)</span><span class="op">$</span><span class="va">p_treatment</span></span>
+<span>      end_of_study <span class="op">=</span> <span class="va">interval_end</span><span class="op">[</span><span class="va">j</span><span class="op">]</span></span>
+<span>    <span class="op">)</span></span>
 <span>  <span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -694,10 +688,10 @@ follow-up horizon is also per subject, not the total duration of the
 trial. Accrual speed remains worth sensitivity checking: faster accrual
 reduces the amount of observed endpoint information available at interim
 looks.</p>
-<p>The following <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> call simulates and
-analyzes the effectiveness endpoint for <strong>one simulated
-trial</strong>. It does not estimate operating characteristics over
-multiple trials.</p>
+<p>The following <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> analysis simulates and
+evaluates the effectiveness endpoint for <strong>one trial
+replicate</strong>. It does not estimate operating characteristics over
+repeated trials.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4601</span><span class="op">)</span></span>
 <span></span>
@@ -740,7 +734,7 @@ multiple trials.</p>
 <span><span class="co">#&gt; 1          556.0652            916.0652                916.0652</span></span>
 <span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
 <span><span class="co">#&gt; 1             123841.1                  285</span></span></code></pre></div>
-<p>The most important columns are:</p>
+<p>The principal trial-level quantities are:</p>
 <ul>
 <li>
 <code>N_enrolled</code>: the selected sample size for this simulated
@@ -770,8 +764,8 @@ threshold. Success in the code means:</p>
 0.08
 \mid \text{data}) &gt; 0.966.
 </span></p>
-<p>This <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> call likewise represents
-<strong>one simulated trial</strong> for the safety endpoint.</p>
+<p>This <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> analysis likewise represents
+<strong>one trial replicate</strong> for the safety endpoint.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4602</span><span class="op">)</span></span>
 <span></span>
@@ -823,13 +817,13 @@ endpoint-specific Bayesian rule maps to
 <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>.</p>
 </div>
 <div class="section level2">
-<h2 id="a-compact-design-object">A compact design object<a class="anchor" aria-label="anchor" href="#a-compact-design-object"></a>
+<h2 id="a-reusable-design-specification">A reusable design specification<a class="anchor" aria-label="anchor" href="#a-reusable-design-specification"></a>
 </h2>
-<p>For simulations, it is helpful to collect the settings that genuinely
-are common and then add endpoint-specific cut-points and designated
-missingness fractions. Keeping those endpoint-specific arguments out of
-the common object prevents an effectiveness setting from being reused
-accidentally for safety, or vice versa.</p>
+<p>For simulations, it is helpful to collect the assumptions that
+genuinely are common and then add endpoint-specific cut-points and
+missingness proportions. Keeping endpoint-specific assumptions separate
+reduces the risk of applying an effectiveness assumption to the safety
+endpoint, or vice versa.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">advent_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  N_total <span class="op">=</span> <span class="va">N_total</span>,</span>
@@ -932,7 +926,8 @@ accidentally for safety, or vice versa.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $prop_loss</span></span>
 <span><span class="co">#&gt; [1] 0.075</span></span></code></pre></div>
-<p>Then the endpoint-specific simulation calls become short:</p>
+<p>The endpoint-specific simulations can then reuse the common
+specification:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4610</span><span class="op">)</span></span>
 <span></span>
@@ -1155,16 +1150,17 @@ accidentally for safety, or vice versa.</p>
 </tr>
 </tbody>
 </table>
-<p>Each scenario uses 500 simulated trials and two cores. This remains a
-workflow demonstration rather than a definitive estimate of power or
-type I error. For design work, increase <code>N_trials</code>, increase
-<code>N_impute</code>, and run sensitivity analyses over accrual speed,
-loss to follow-up, event rates, and the imputation hazard model.</p>
+<p>Each scenario uses 500 simulated trials and two cores. These results
+are illustrative rather than definitive estimates of power or type I
+error. A design evaluation should increase <code>N_trials</code> and
+<code>N_impute</code> as needed for Monte Carlo precision and examine
+sensitivity to accrual, loss to follow-up, event rates, and the
+imputation hazard model.</p>
 </div>
 <div class="section level2">
-<h2 id="visualizing-the-simulated-design">Visualizing the simulated design<a class="anchor" aria-label="anchor" href="#visualizing-the-simulated-design"></a>
+<h2 id="graphical-assessment-of-the-simulated-design">Graphical assessment of the simulated design<a class="anchor" aria-label="anchor" href="#graphical-assessment-of-the-simulated-design"></a>
 </h2>
-<p>The plotting helpers answer complementary design questions. First,
+<p>The plots answer complementary design questions. First,
 <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code> compares operating characteristics across
 the target and noninferiority-margin scenarios. The true PFA event
 probability is supplied as the effect scale.</p>
@@ -1194,8 +1190,9 @@ trials.</p>
 <div class="section level2">
 <h2 id="a-fuller-simulation-template">A fuller simulation template<a class="anchor" aria-label="anchor" href="#a-fuller-simulation-template"></a>
 </h2>
-<p>The following code is closer to what one would run outside the
-vignette build. It is not evaluated here.</p>
+<p>The following larger simulation uses the ADVENT values of
+<code>N_trials</code> and <code>N_impute</code>. It is provided as a
+template and is not evaluated here.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">advent_effectiveness_full_args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">advent_effectiveness_args</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  N_impute <span class="op">=</span> <span class="fl">5000</span>,</span>
@@ -1300,7 +1297,7 @@ equal-arm target scenario.</li>
 set to <code>c(0.007327613, 0.000122991, 0.0000600610)</code> in its
 equal-arm target scenario.</li>
 </ul>
-<p>The three alternative event-time generators deliberately use
+<p>The three alternative event-time models deliberately use
 data-generating partitions that differ from the principal analysis
 partitions. They can be represented by changing
 <code>generation_cutpoints</code> and the hazard vectors while retaining
@@ -1309,8 +1306,8 @@ model. The SAP also planned an imputation-model sensitivity with six
 pieces: day 90 followed by five post-90-day intervals containing
 approximately equal event counts, potentially with different cut-points
 by arm. <code>goldilocks</code> uses one analysis partition shared by
-both arms, so arm-specific predictive cut-points remain outside the
-current API.</p>
+both arms, so this arm-specific predictive model cannot currently be
+represented.</p>
 <p>The SAP supplies quantitative reference results based on 10,000
 simulated trials per scenario and <span class="math inline">M=5000</span> predictive draws or imputations:</p>
 <table class="table">

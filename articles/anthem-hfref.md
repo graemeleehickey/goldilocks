@@ -16,13 +16,14 @@ by Konstam et al. (2026).
 
 This vignette maps the morbidity and mortality component of the planned
 design to `goldilocks`. It is an explicit approximation, not a
-reconstruction or validation of the sponsor’s implementation. The public
-protocol, statistical analysis plan (SAP), and Adaptive Design Report
-(ADR) disclose substantially more detail than the journal articles
-alone, including the predictive model, priors, simulation profiles, and
-reference operating characteristics. Even with those documents,
-differences between the sponsor’s algorithm and the current package API
-remain important and are identified below.
+reconstruction or independent validation of the sponsor’s analysis. The
+public protocol, statistical analysis plan (SAP), and Adaptive Design
+Report (ADR) disclose substantially more detail than the journal
+articles alone, including the predictive model, priors, simulation
+profiles, and reference operating characteristics. Even with those
+documents, differences between the sponsor’s design and the analyses
+currently available in `goldilocks` remain important and are identified
+below.
 
 ## Clinical question and planned analysis
 
@@ -89,7 +90,7 @@ The status labels have the following meanings:
 | `interim_look` | 400, 500, 600, 700, 800, 900 | reported | ADR Section 3; maximum N is not an `interim_look` in `goldilocks` |
 | `end_of_study` | 16 months (69.33 weeks) | reported | ADR Sections 1.4.1 and 3.3 |
 | `rand_ratio` | 1 control : 2 treatment | reported | ADR Section 1.2; named package values identify control and treatment |
-| `block` | 3 | assumed | ADR reports varying blocks of 3, 6, or 9; fixed 3 is the closest API setting |
+| `block` | 3 | assumed | ADR reports varying blocks of 3, 6, or 9; a fixed block of 3 is the closest available specification |
 | `lambda`, `lambda_time` | Six-step ramp to 26 patients/month | inferred | ADR Sections 5.2 and 7 report a six-month ramp to a peak of 26/month |
 | `cutpoints` | 6 and 12 months | reported | ADR Section 2.1 reports 0-6, 6-12, 12-18, and \>18 month intervals; the 16-month package horizon uses the first two cut-points |
 | `generation_cutpoints` | 12 months | reported | ADR Table 5 uses 0-12, 12-24, and \>24 month generating intervals; only the 12-month cut-point precedes the 16-month horizon |
@@ -104,8 +105,8 @@ The status labels have the following meanings:
 | `prob_ha` | 0.981 | inferred | 1 minus the reported one-sided P-value threshold of 0.019 |
 | `method` | logrank | reported | ADR Section 1.4.1 |
 | `imputed_final` | FALSE | inferred | The reported final analysis uses observed right-censored data |
-| `N_impute` | 300 evaluated | assumed | Runtime setting chosen to keep the example manageable; ADR Section 2.3.3 specifies at least 10,000 draws for actual interim analyses and 1,000 within design simulations |
-| `N_trials` | 20 per evaluated scenario | assumed | This vignette uses 20 per scenario so it renders in a reasonable time; ADR Section 5.5 used 1,000 trials per treatment-benefit scenario and 10,000 per null scenario |
+| `N_impute` | 300 evaluated | assumed | Illustrative setting; ADR Section 2.3.3 specifies at least 10,000 draws for actual interim analyses and 1,000 within design simulations |
+| `N_trials` | 20 per evaluated scenario | assumed | Illustrative study uses 20 per scenario; ADR Section 5.5 used 1,000 trials per treatment-benefit scenario and 10,000 per null scenario |
 
 ## Event-time and accrual assumptions
 
@@ -222,7 +223,7 @@ plot_enrollment(
 
 ![](anthem-hfref_files/figure-html/accrual-projection-1.png)
 
-## Runnable `survival_adapt()` approximation
+## A one-trial `goldilocks` approximation
 
 The expected-success threshold is set to 1 at the 400-patient look.
 Since the package stops only when its predictive-probability point
@@ -348,18 +349,17 @@ final result are random and are not estimates of power or type I error.
 
 The next two scenarios are intentionally small illustrative simulations:
 20 trials under the null hazard ratio of 1 and 20 under the target
-hazard ratio of 0.70. This keeps the vignette runtime reasonable. The
-summary reports a Monte Carlo standard error and 95% Monte Carlo
-interval for every probability, making the numerical imprecision
-visible.
+hazard ratio of 0.70. The summary reports a Monte Carlo standard error
+and 95% Monte Carlo interval for every probability, making the numerical
+imprecision visible.
 
 The evaluated design uses 300 predictive draws per look to keep the
-vignette runtime manageable. This is not a precision recommendation: it
-gives the predictive-probability estimate a resolution of about 0.0033.
-The sponsor used 1,000 draws per look in its operating-characteristic
-simulations and at least 10,000 for actual interim analyses. The package
-reports exact bounds and Monte Carlo standard errors as diagnostics, but
-decisions use the point estimate.
+vignette computation manageable. This is not a precision recommendation:
+it gives the predictive-probability estimate a resolution of about
+0.0033. The sponsor used 1,000 draws per look in its
+operating-characteristic simulations and at least 10,000 for actual
+interim analyses. The package reports exact bounds and Monte Carlo
+standard errors as diagnostics, but decisions use the point estimate.
 
 ``` r
 
@@ -415,8 +415,8 @@ For the corresponding sponsor scenario - 35% control event probability
 at one year, hazard ratio 0.70, peak accrual 26/month, and 10% dropout -
 the ADR reported power 0.836 and mean sample size 833. Under the null
 with the same control profile it reported type I error 0.021 and mean
-sample size 748. Those results came from a modified FACTS
-implementation, 1,000 alternative trials, 10,000 null trials, and 1,000
+sample size 748. Those results came from the sponsor’s modified FACTS
+analysis, 1,000 alternative trials, 10,000 null trials, and 1,000
 predictive iterations per simulated interim. They are reference targets,
 not values that a 20-trial vignette simulation can meaningfully
 validate.
@@ -427,7 +427,7 @@ event rate of about 43%, 26 patients/month, and 10% dropout. The small
 package results may differ because of Monte Carlo error and the
 structural approximations described next.
 
-## Why this is not a bit-for-bit reconstruction
+## Differences from the sponsor’s design
 
 Several distinctions are consequential:
 
@@ -465,9 +465,9 @@ Several distinctions are consequential:
     Carlo standard errors and exact one-sided bounds in the decision
     trace, but these are diagnostic only.
 
-These are API limitations rather than undocumented choices hidden in the
-code. They are why the vignette compares broad behavior and workflow
-without claiming exact calibration.
+These differences concern the statistical and operational scope of the
+two designs. They are why the vignette compares broad behavior and
+operating characteristics without claiming exact calibration.
 
 ## References
 

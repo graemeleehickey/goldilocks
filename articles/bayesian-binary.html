@@ -102,11 +102,12 @@ whenever outcomes require imputation. Choosing
 <code>binary_imputation = "bernoulli"</code> rather than
 <code>"event-time"</code> does not remove the distinction: both options
 use the same piecewise-exponential prediction model.</p>
-<p>The returned <code>arguments</code> metadata records
-<code>prior_surv</code>, <code>prior_surv_final</code>,
-<code>prior_bin</code>, and <code>end_of_study</code>; the separate
-<code>prior_design</code> metadata contains the resolved Gamma
-parameters by stage, arm, and interval.</p>
+<p>The saved analysis specification records <code>prior_surv</code>,
+<code>prior_surv_final</code>, <code>prior_bin</code>, and
+<code>end_of_study</code>, together with the Gamma prior parameters by
+analysis stage, arm, and interval. These values should be included in
+the simulation report because both prior families can affect interim
+decisions.</p>
 <p>For the examples below, we use the default weakly informative <span class="math inline">\operatorname{Gamma}(0.1, 0.1)</span> hazard prior
 and a uniform <span class="math inline">\operatorname{Beta}(1, 1)</span>
 binary-endpoint prior:</p>
@@ -179,12 +180,10 @@ p_{\text{control}}</span></p>
 <span><span class="co">#&gt; 1            10.911              22.911                  22.911</span></span>
 <span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
 <span><span class="co">#&gt; 1             1193.166                  106</span></span></code></pre></div>
-<p>The output has the same structure as other
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> analyses. For
-<code>method = "bayes-bin"</code>, <code>est_final</code> is the
+<p>For <code>method = "bayes-bin"</code>, <code>est_final</code> is the
 posterior mean binary effect: the treatment event probability minus the
-control event probability. The <code>post_prob_ha</code> value is the
-posterior probability that this difference is below <code>h0</code> when
+control event probability. <code>post_prob_ha</code> is the posterior
+probability that this difference is below <code>h0</code> when
 <code>alternative = "less"</code>.</p>
 </div>
 <div class="section level2">
@@ -212,11 +211,11 @@ enrolled, <span class="math inline">T=0</span>. Observed events are not
 imputed. Each completed dataset still uses a sampled posterior hazard,
 so both approaches retain uncertainty in the predictive
 piecewise-exponential model.</p>
-<p>The approaches have the same endpoint distribution. They can
-nevertheless produce different Monte Carlo realizations if their
-random-number streams differ, so operating characteristics should be
-compared using enough trials and imputations. The following small seeded
-comparison uses the same design and random-number stream:</p>
+<p>The two approaches imply the same endpoint distribution. Finite Monte
+Carlo estimates can nevertheless differ, so comparisons should use
+adequate numbers of trials and imputations. The following small
+comparison uses a common seed to make the numerical results
+reproducible:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">compare_binary_imputation</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">imputation</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2101</span><span class="op">)</span></span>
@@ -234,23 +233,17 @@ comparison uses the same design and random-number stream:</p>
 <span><span class="co">#&gt;                         ppp_success post_prob_ha  est_final</span></span>
 <span><span class="co">#&gt; conditional event time            0    0.4042967 0.02380952</span></span>
 <span><span class="co">#&gt; direct Bernoulli status           0    0.4042967 0.02380952</span></span></code></pre></div>
-<p>The direct Bernoulli calculation is also more stable in extreme tails
-because it evaluates the remaining cumulative hazard through
-<code>-expm1(-(H(T^*) - H(T)))</code>, rather than subtracting two
-survival probabilities that may both round to zero.</p>
+<p>The direct Bernoulli calculation can also be more numerically stable
+for very small survival probabilities because it works from the
+remaining cumulative hazard rather than subtracting two nearly zero
+survival probabilities.</p>
 <p>Whichever imputation approach is selected, the completed
-beta-binomial analysis needs only the number of events and subjects in
-each arm. Interim prediction therefore derives those counts directly
-from the imputed event matrices rather than rebuilding a patient-level
-data frame for every predictive replicate. With
-<code>bin_method = "normal"</code> or <code>"quadrature"</code>, an
-identical count summary within the same interim look has an identical
-result and is evaluated once. With <code>bin_method = "mc"</code>, every
-replicate is still analyzed with fresh <code>N_mcmc</code>
-beta-posterior draws; repeated summaries are not reused. This
-computational shortcut does not change the imputation model,
-beta-binomial posterior, predictive sample size, or stopping
-thresholds.</p>
+beta-binomial analysis depends only on the event count and denominator
+in each arm. With <code>bin_method = "mc"</code>, each predictive
+replicate receives an independent set of <code>N_mcmc</code>
+beta-posterior draws. Thus, the number of predictive imputations and the
+number of posterior draws represent distinct sources of Monte Carlo
+error.</p>
 </div>
 <div class="section level2">
 <h2 id="single-arm-design">Single-arm design<a class="anchor" aria-label="anchor" href="#single-arm-design"></a>
@@ -335,12 +328,9 @@ sample sizes are small or event probabilities are near 0 or 1.</p>
 <h2 id="operating-characteristics">Operating characteristics<a class="anchor" aria-label="anchor" href="#operating-characteristics"></a>
 </h2>
 <p>As with the survival methods, operating characteristics should be
-evaluated by simulation. The <code>seed</code> argument makes the
-simulation reproducible, including when <code>ncores</code> is greater
-than 1. With <code>backend = "auto"</code>, <code><a href="../reference/sim_trials.html">sim_trials()</a></code>
-keeps workloads smaller than four trials serial and otherwise uses at
-least two trials per worker, selecting forked workers on Unix-like
-platforms and PSOCK workers on Windows.</p>
+evaluated by simulation under clinically relevant null and alternative
+scenarios. The <code>seed</code> argument makes the Monte Carlo study
+reproducible, including when <code>ncores</code> is greater than 1.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  N_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
@@ -392,8 +382,8 @@ characteristics change with the true binary event probability, where
 enrollment stops within one scenario, and how the pair of predictive
 probabilities drives each interim decision. Set
 <code>return_trace = TRUE</code> only for scenarios where the decision
-map is needed; it does not change the compact <code>sims</code>
-summary.</p>
+map is needed; it does not change the estimated operating
+characteristics.</p>
 <p>The binary endpoint model is still calibrated through the event-time
 simulator. When the binary endpoint corresponds to event status by
 <code>end_of_study</code>, choose hazards that reproduce clinically

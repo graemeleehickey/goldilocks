@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Package architecture • goldilocks</title>
+<title>Statistical workflow and reproducibility • goldilocks</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Package architecture">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Statistical workflow and reproducibility">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -60,7 +60,7 @@
 <script src="architecture_files/grViz-binding-1.0.12/grViz.js"></script><div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Package architecture</h1>
+      <h1>Statistical workflow and reproducibility</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/graemeleehickey/goldilocks/blob/main/vignettes/architecture.Rmd" class="external-link"><code>vignettes/architecture.Rmd</code></a></small>
@@ -72,153 +72,133 @@
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>The <code>goldilocks</code> package has three ways into the adaptive
-calculation:</p>
+<p>This vignette describes how the statistical components of a
+<code>goldilocks</code> design fit together. Its purpose is to support
+protocol development, simulation reports, and independent review: the
+assumptions used to generate trial data, the models used for interim
+prediction, the decision thresholds, and the final analysis should be
+distinguishable and prespecified.</p>
+<p>The package supports three related analyses:</p>
 <ol style="list-style-type: decimal">
 <li>
-<code><a href="../reference/sim_trials.html">sim_trials()</a></code> simulates many independent trials and
-delegates each one to <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>;</li>
+<code><a href="../reference/sim_trials.html">sim_trials()</a></code> simulates repeated trials to estimate
+operating characteristics;</li>
 <li>
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> generates and evaluates one complete
-simulated trial; and</li>
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> simulates and evaluates one adaptive
+trial; and</li>
 <li>
-<code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> applies the same interim decision
-calculation to an externally observed data cut.</li>
+<code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> applies the prespecified interim
+rule to an observed trial data cut.</li>
 </ol>
-<p>All three routes ultimately use the same interim decision
-calculation. This vignette separates the package-level flow from the
-more detailed Bayesian-survival calculation so that the performance
-paths do not obscure the statistical model.</p>
-<p>In the diagrams, <strong>blue</strong> nodes are exported functions,
-<strong>grey</strong> nodes are general internal calculations, and
-<strong>gold</strong> nodes are repeated calculations that receive data
-already prepared and validated by <code>goldilocks</code>. The gold and
-grey routes implement the same statistical analysis.</p>
+<p>The same posterior-predictive calculation and ordered stopping rule
+are used for simulated and observed interim analyses.</p>
 </div>
 <div class="section level2">
-<h2 id="trial-simulation-and-interim-evaluation">Trial simulation and interim evaluation<a class="anchor" aria-label="anchor" href="#trial-simulation-and-interim-evaluation"></a>
+<h2 id="from-assumptions-to-operating-characteristics">From assumptions to operating characteristics<a class="anchor" aria-label="anchor" href="#from-assumptions-to-operating-characteristics"></a>
 </h2>
 <div class="grViz html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:960px;height:595.2px;"></div>
-<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\ndigraph trial_pipeline {\n\n  graph [rankdir = TB, fontsize = 12, nodesep = 0.28, ranksep = 0.48]\n  node [shape = box, style = \"filled,rounded\", fontname = Helvetica, fontsize = 9, fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  edge [fontname = Helvetica, fontsize = 8, color = \"#666666\"]\n\n  subgraph cluster_entry {\n    label = \"Entry points\"\n    color = \"#cccccc\"\n    style = \"rounded,dashed\"\n    sim_trials      [label = \"sim_trials()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    survival_adapt  [label = \"survival_adapt()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    evaluate_interim [label = \"evaluate_interim()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  }\n\n  execution_plan [label = \"backend plan + per-trial RNG streams\"]\n  prepare_external [label = \"prepare_external_interim_data()\"]\n  interim_decision [label = \"evaluate_interim_decision()\"]\n  predictive_survival [label = \"analyse_predictive_survival()\"]\n  analyse_final [label = \"analyse_final()\"]\n\n  subgraph cluster_generation {\n    label = \"Trial generation\"\n    color = \"#cccccc\"\n    style = \"rounded,dashed\"\n    sim_comp_data [label = \"sim_comp_data()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    enrollment [label = \"enrollment()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    randomization [label = \"randomization()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n    pwe_sim [label = \"pwe_sim()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  }\n\n  posterior_stats [label = \"posterior_sufficient_stats()\"]\n  posterior_general [label = \"posterior_from_sufficient_stats()\"]\n  posterior_complete [label = \"posterior()\"]\n  impute_batch [label = \"impute_predictive_draws()\nPWE / Bernoulli sampling across imputations\"]\n  prepared_outcomes [label = \"prepare_predictive_outcomes()\nfixed outcomes + imputation positions\"]\n  patient_reference [label = \"complete_predictive_data()\nreference comparisons\"]\n  binary_counts [label = \"predictive_binary_counts()\narm-level event / subject counts\"]\n  impute_data [label = \"impute_data()\nscalar final/reference path\"]\n  pwe_impute [label = \"pwe_impute()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  analyse_data [label = \"analyse_data()\"]\n  bayes_prepared [label = \"Prepared Bayesian-survival analysis\", fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n  survival_tests [label = \"Completed log-rank / Cox analyses\", fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n  binary_analyses [label = \"Binary count analyses\nreuse identical summaries\", fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n  rubin_pool [label = \"Cox / risk-difference fits + Rubin pooling\"]\n  prop_to_haz [label = \"prop_to_haz()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n  sim_trials -> execution_plan\n  execution_plan -> survival_adapt [label = \"once per trial\"]\n\n  survival_adapt -> sim_comp_data\n  survival_adapt -> interim_decision [label = \"each interim look\"]\n  survival_adapt -> analyse_final [label = \"stopped or maximum N\"]\n\n  evaluate_interim -> prepare_external\n  prepare_external -> interim_decision\n\n  sim_comp_data -> enrollment\n  sim_comp_data -> randomization\n  sim_comp_data -> pwe_sim [label = \"generation_cutpoints\"]\n  prop_to_haz -> sim_comp_data [label = \"optional design conversion\", style = dashed]\n\n  interim_decision -> posterior_stats [label = \"observed data\"]\n  posterior_stats -> posterior_general [label = \"observed sufficient statistics\"]\n  posterior_general -> impute_batch [label = \"N_impute hazard draws\"]\n  interim_decision -> impute_batch [label = \"one batch per look\"]\n  interim_decision -> prepared_outcomes [label = \"observed outcomes\"]\n  impute_batch -> prepared_outcomes [label = \"survival / regression methods\"]\n  prepared_outcomes -> predictive_survival [label = \"one completed outcome per draw\"]\n  impute_batch -> patient_reference [label = \"reference checks\", style = dashed]\n  impute_batch -> binary_counts [label = \"fixed-horizon binary methods\"]\n  binary_counts -> binary_analyses [label = \"current + maximum summaries\"]\n\n  predictive_survival -> bayes_prepared [label = \"bayes-surv\"]\n  predictive_survival -> survival_tests [label = \"logrank / cox\"]\n\n  analyse_final -> posterior_complete [label = \"if imputed_final\"]\n  posterior_complete -> impute_data [label = \"N_impute hazard draws\"]\n  impute_data -> pwe_impute [label = \"pending follow-up\"]\n  analyse_final -> bayes_prepared [label = \"imputed bayes-surv\"]\n  analyse_final -> analyse_data [label = \"observed / bayes-bin\"]\n  analyse_final -> rubin_pool [label = \"imputed cox / risk difference\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p><code><a href="../reference/sim_trials.html">sim_trials()</a></code> first resolves sequential, fork, or PSOCK
-execution and, when a seed is supplied, constructs an independent
-<code>"L'Ecuyer-CMRG"</code> stream for every requested trial.
-Trial-level errors are isolated and retained in the returned failure
-table. Each successful task calls <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> with the
-same normalized design but its own random-number stream.</p>
-<p><code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> calls <code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code> to
-generate enrollment, treatment assignments, event times, and loss to
-follow-up. <code>generation_cutpoints</code> defines only the event-time
-data-generating partition. The separate <code>cutpoints</code> argument
-defines posterior estimation, predictive imputation, and
-Bayesian-survival analysis.</p>
-<p>At every simulated look, <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> prepares the
-observed data cut and calls <code>evaluate_interim_decision()</code>.
-<code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> instead validates an external data cut,
-derives potential future allocation from <code>N_total</code> and
-<code>rand_ratio</code>, and then calls the same decision function.
-Consequently, simulated and external interim decisions share posterior
-prediction, imputation, completed-data analysis, threshold comparisons,
-diagnostics, and trace construction.</p>
-<p>The interim calculation draws <code>N_impute</code> hazards from the
-observed-data posterior and passes the complete array to
-<code>impute_predictive_draws()</code>. That function generates
-subject-by-draw time and event matrices for currently pending follow-up
-and, when futility is enabled, future subjects through the maximum
-sample size. It stores only rows requiring imputation. For survival,
-log-rank, and Cox analyses, the observed outcomes and imputation
-positions are prepared once per look. Each matrix column is then
-inserted into copies of the follow-up and event values; fixed treatment
-assignments are reused. The completed outcomes enter the same log-rank,
-Cox, or Bayesian-survival calculation used for an ordinary completed
-dataset. Fixed-horizon binary analyses instead combine each column with
-the observed event counts and pass the resulting arm-level event and
-subject totals directly to the same risk-difference or beta-binomial
-calculations used by the general patient-level analysis. The scalar
-<code>impute_data()</code> helper remains in active use for
-final-analysis imputation and as the reference implementation, while
-<code>complete_predictive_data()</code> provides a patient-level
-reference for regression tests.</p>
-<p>For deterministic binary analyses, repeated current or maximum-sample
-count summaries within one interim look are analyzed once and the result
-is reused. Two summaries match when their control and treatment event
-counts, sample sizes, and fixed analysis settings all match. Bayesian
-binary analysis with <code>bin_method = "mc"</code> does not reuse
-results: every predictive completion receives fresh beta-posterior draws
-in the established current-then-maximum order. The count-based route
-therefore changes only the representation, not the completed-data model
-or Monte Carlo procedure. <code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> reports the
-number of requested, distinct, repeated, and reused count summaries in
-<code>diagnostics$binary_count_reuse</code>.</p>
-<p>Within an interim batch, random inputs are generated in
-posterior-draw order; for each draw the order is current treatment,
-current control, future treatment, then future control. All predictive
-imputations are generated before completed-data analysis begins. This
-remains exactly reproducible under <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code> and across
-supported serial and parallel backends. Because Bayesian completed-data
-analyses previously consumed random numbers between imputations, the
-same seed can produce different Bayesian results than in earlier package
-versions. The resulting success indicators estimate the predictive
-probabilities used for expected-success and futility decisions. Exact
-Monte Carlo bounds are retained as diagnostics; decisions use the point
-estimates.</p>
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\ndigraph statistical_workflow {\n  graph [rankdir = TB, fontsize = 12, nodesep = 0.32, ranksep = 0.48]\n  node [shape = box, style = \"filled,rounded\", fontname = Helvetica,\n        fontsize = 10, fillcolor = \"#f5f5f5\", color = \"#777777\"]\n  edge [fontname = Helvetica, fontsize = 9, color = \"#666666\"]\n\n  assumptions [label = \"Prespecified assumptions\nendpoint, accrual, treatment effect, missingness\",\n               fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  simulated [label = \"Simulated trial data\"]\n  observed [label = \"Observed interim data cut\"]\n  posterior [label = \"Posterior distribution of event-time hazards\"]\n  current [label = \"Predict success after follow-up\nof currently enrolled participants\"]\n  maximum [label = \"Predict success after enrollment\nto the maximum sample size\"]\n  decision [label = \"Apply Qn, Sn, and Fn\nimmediate success / expected success / futility / continue\",\n            fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n  final [label = \"Prespecified final analysis\nwhen required\"]\n  repeated [label = \"Repeat under null and alternative scenarios\"]\n  oc [label = \"Operating characteristics\ntype I error, power, stopping, sample size, duration\",\n      fillcolor = \"#d5e8d4\", color = \"#82b366\"]\n\n  assumptions -> simulated\n  assumptions -> posterior [style = dashed, label = \"analysis priors\"]\n  simulated -> posterior [label = \"interim data\"]\n  observed -> posterior\n  posterior -> current\n  posterior -> maximum\n  current -> decision\n  maximum -> decision\n  decision -> final [label = \"expected success or maximum N\"]\n  decision -> repeated [label = \"terminal trial result\"]\n  final -> repeated\n  repeated -> oc\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><div class="section level3">
+<h3 id="data-generating-assumptions">Data-generating assumptions<a class="anchor" aria-label="anchor" href="#data-generating-assumptions"></a>
+</h3>
+<p>For simulation, <code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code> generates enrollment
+times, randomized treatment assignments, event times, and loss to
+follow-up. The first participant enrolls at time zero; subsequent
+enrollment follows a piecewise-constant Poisson process. Event times
+follow arm-specific piecewise-exponential distributions.</p>
+<p>The event-time distribution used to simulate trials need not equal
+the model used for interim prediction. <code>generation_cutpoints</code>
+defines the data-generating hazard intervals, whereas
+<code>cutpoints</code> defines the intervals used for posterior
+estimation, predictive imputation, and Bayesian survival analysis. This
+separation permits sensitivity analyses for model misspecification
+without changing the prespecified analysis model.</p>
+</div>
+<div class="section level3">
+<h3 id="interim-prediction">Interim prediction<a class="anchor" aria-label="anchor" href="#interim-prediction"></a>
+</h3>
+<p>At look <span class="math inline">\ell</span>, let <span class="math inline">n_\ell</span> be the number enrolled and let <span class="math inline">N_{\max}</span> be the maximum sample size. The
+observed interim data update the Gamma priors for the
+piecewise-exponential hazards. Posterior-predictive simulation then
+estimates</p>
+<p><span class="math display">P_{n_\ell}
+  = \Pr(\text{final success after follow-up of the current cohort}
+    \mid \mathcal{D}^{\mathrm{obs}}_\ell)</span></p>
+<p>and</p>
+<p><span class="math display">P_{\max,\ell}
+  = \Pr(\text{final success after enrollment to } N_{\max}
+    \mid \mathcal{D}^{\mathrm{obs}}_\ell).</span></p>
+<p>Each predictive replicate completes pending outcomes under a
+posterior draw of the event-time hazards and applies the prespecified
+completed-data analysis. The proportions of successful replicates
+estimate <span class="math inline">P_{n_\ell}</span> and <span class="math inline">P_{\max,\ell}</span>.</p>
+<p>The ordered decision rule is</p>
+<p><span class="math display">
+d_\ell =
+\begin{cases}
+\text{declare immediate success}, &amp;
+  \widehat{P}_{n_\ell} &gt; Q_\ell, \\
+\text{stop accrual for expected success}, &amp;
+  S_\ell &lt; \widehat{P}_{n_\ell} \le Q_\ell, \\
+\text{declare binding futility}, &amp;
+  \widehat{P}_{n_\ell} \le S_\ell
+  \text{ and } \widehat{P}_{\max,\ell} &lt; F_\ell, \\
+\text{continue enrollment}, &amp; \text{otherwise.}
+\end{cases}
+</span></p>
+<p>The package requires <span class="math inline">Q_\ell \ge
+S_\ell</span>. With the default <span class="math inline">Q_\ell =
+1</span>, immediate success is disabled. All comparisons are strict, so
+equality with a boundary does not cross it.</p>
+<p><code>N_impute</code> controls the number of posterior-predictive
+replicates. For Bayesian completed-data analyses, <code>N_mcmc</code>
+controls the posterior draws within each replicate. The reported Monte
+Carlo standard errors and exact binomial bounds describe numerical
+uncertainty in the predictive probabilities; the interim decision itself
+uses the point estimate.</p>
+<p>For fixed-horizon binary analyses, event counts and denominators by
+treatment arm are sufficient statistics. Carrying these sufficient
+statistics into the completed-data analysis gives the same
+risk-difference or beta-binomial analysis as participant-level endpoint
+records.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="general-and-prepared-bayesian-survival-routes">General and prepared Bayesian-survival routes<a class="anchor" aria-label="anchor" href="#general-and-prepared-bayesian-survival-routes"></a>
+<h2 id="bayesian-survival-calculation">Bayesian survival calculation<a class="anchor" aria-label="anchor" href="#bayesian-survival-calculation"></a>
 </h2>
-<p>Bayesian-survival analysis uses the same Gamma piecewise-exponential
-model on both routes below. The difference is where validation occurs
-and which intermediate results are constructed.</p>
-<div class="grViz html-widget html-fill-item" id="htmlwidget-e5c8c404fe174e4c81bd" style="width:960px;height:595.2px;"></div>
-<script type="application/json" data-for="htmlwidget-e5c8c404fe174e4c81bd">{"x":{"diagram":"\ndigraph bayes_survival {\n\n  graph [rankdir = TB, fontsize = 12, nodesep = 0.35, ranksep = 0.38]\n  node [shape = box, style = \"filled,rounded\", fontname = Helvetica, fontsize = 9]\n  edge [fontname = Helvetica, fontsize = 8, color = \"#666666\"]\n\n  summary [label = \"summarise_bayes_surv_effect_draws()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n\n  subgraph cluster_general {\n    label = \"General route\"\n    color = \"#6c8ebf\"\n    style = \"rounded,dashed\"\n    analyse_data [label = \"analyse_data()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n    general_stats [label = \"posterior_sufficient_stats()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n    analyse_general [label = \"analyse_bayes_surv_sufficient_stats()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n    posterior_general [label = \"posterior_from_sufficient_stats()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n    general_gamma [label = \"draw_gamma_posterior()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n    posterior_draws [label = \"analyse_bayes_surv_posterior_draws()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n    haz_to_prop [label = \"haz_to_prop()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n    ppwe [label = \"ppwe()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n    analyse_data -> general_stats\n    general_stats -> analyse_general [label = \"validated and normalized\"]\n    analyse_general -> posterior_general\n    posterior_general -> general_gamma\n    general_gamma -> posterior_draws\n    posterior_draws -> haz_to_prop\n    haz_to_prop -> ppwe [label = \"piecewise hazards\"]\n  }\n\n  subgraph cluster_prepared {\n    label = \"Prepared repeated route\"\n    color = \"#d6b656\"\n    style = \"rounded,dashed\"\n    prepared_callers [label = \"analyse_predictive_survival() / analyse_final()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n    prepared_stats [label = \"summarise_survival_outcomes()\nor general data-frame function\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n    analyse_prepared [label = \"analyse_prepared_bayes_surv()\", fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n    posterior_prepared [label = \"posterior_from_prepared_stats()\", fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n    prepared_gamma [label = \"draw_gamma_posterior()\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n    effect_prepared [label = \"bayes_surv_effect_draws()\", fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n    interval_widths [label = \"endpoint_interval_widths()\", fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n\n    prepared_callers -> prepared_stats [label = \"completed outcome vectors / data\"]\n    prepared_stats -> analyse_prepared\n    analyse_prepared -> posterior_prepared\n    posterior_prepared -> prepared_gamma\n    prepared_gamma -> effect_prepared\n    interval_widths -> effect_prepared [label = \"fixed horizon\"]\n  }\n\n  haz_to_prop -> summary [label = \"effect draws\"]\n  effect_prepared -> summary [label = \"effect draws\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>The general route accepts the package’s supported prior
-specifications and verifies sufficient-statistic columns, arm-interval
-combinations, counts, and empty intervals while normalizing arbitrary
-valid row order. It remains the route used by ordinary
-<code>analyse_data()</code> calls, including observed-data
-Bayesian-survival final analyses. <code>haz_to_prop()</code> returns
-treatment, control, and effect draws and uses the exported
-<code><a href="../reference/ppwe.html">ppwe()</a></code> calculation for piecewise hazards.</p>
-<p>The prepared route is used only after <code>goldilocks</code> has
-produced validated completed outcomes and normalized the Gamma priors.
-At interim looks, <code>summarise_survival_outcomes()</code> calculates
-arm-by-interval events and exposure directly from the completed
-outcomes. Imputed final analyses use the general data-frame function to
-produce the same sufficient-statistic layout. Both then retain
-inexpensive consistency checks, draw from exactly the same Gamma
-posterior, and consume random numbers in exactly the same order as the
-general route. The prepared calculation returns only the
-treatment-effect draws needed by the decision rule, avoiding repeated
-validation and temporary probability data frames.</p>
-<p>For analysis cutpoints <span class="math inline">0 &lt; c_1 &lt;
-\cdots &lt; c_{J-1} &lt; \tau</span>, where <span class="math inline">\tau</span> is <code>end_of_study</code>,
-<code>endpoint_interval_widths()</code> returns</p>
-<p><span class="math display">
-\mathbf{w} = (c_1,\ c_2-c_1,\ \ldots,\ \tau-c_{J-1}).
-</span></p>
-<p>For arm <span class="math inline">a</span>, a posterior hazard draw
-is converted to cumulative hazard and event probability using</p>
-<p><span class="math display">
-H_a(\tau) = \sum_{j=1}^{J}\lambda_{aj}w_j,
+<p>Let <span class="math inline">d_{aj}</span> and <span class="math inline">y_{aj}</span> denote the observed event count and
+person-time in arm <span class="math inline">a</span> and interval <span class="math inline">j</span>. With the independent prior</p>
+<p><span class="math display">\lambda_{aj} \sim
+  \operatorname{Gamma}(\alpha_{0aj},\beta_{0aj}),</span></p>
+<p>Gamma-exponential conjugacy gives</p>
+<p><span class="math display">\lambda_{aj} \mid
+\mathcal{D}^{\mathrm{obs}}_\ell
+  \sim \operatorname{Gamma}(
+    \alpha_{0aj}+d_{aj},
+    \beta_{0aj}+y_{aj}
+  ).</span></p>
+<p>For analysis cut-points <span class="math inline">0&lt;c_1&lt;\cdots&lt;c_{J-1}&lt;\tau</span>, define
+interval widths</p>
+<p><span class="math display">\mathbf{w} =
+(c_1,c_2-c_1,\ldots,\tau-c_{J-1}).</span></p>
+<p>A posterior hazard draw implies cumulative hazard and event
+probability</p>
+<p><span class="math display">H_a(\tau)=\sum_{j=1}^{J}\lambda_{aj}w_j,
 \qquad
-p_a(\tau) = 1 - \exp\{-H_a(\tau)\}.
-</span></p>
-<p>These widths describe the fixed analysis horizon, not the maximum
-follow-up currently observed. Observed events and person-time enter
-separately through the sufficient statistics used in the Gamma
-posterior. If nobody has entered a late interval,
-<code>empty_interval = "prior"</code> leaves that interval prior-driven;
-<code>"propagate"</code> applies the configured adjacent-interval rule;
-and <code>"error"</code> stops. Shortening <span class="math inline">\mathbf{w}</span> to observed follow-up would change
-the estimand rather than correct the cumulative-hazard calculation.</p>
+p_a(\tau)=1-\exp\{-H_a(\tau)\}.</span></p>
+<p>These widths span the fixed endpoint horizon
+<code>end_of_study</code>; they are not shortened to the longest
+follow-up observed at an interim look. If no participant has contributed
+information to a later interval, <code>empty_interval = "prior"</code>
+leaves its posterior equal to its prior. This makes prior-predictive
+assessment particularly important when little late follow-up is expected
+at early looks.</p>
 </div>
 <div class="section level2">
-<h2 id="completed-data-analysis-methods">Completed-data analysis methods<a class="anchor" aria-label="anchor" href="#completed-data-analysis-methods"></a>
+<h2 id="completed-data-analysis">Completed-data analysis<a class="anchor" aria-label="anchor" href="#completed-data-analysis"></a>
 </h2>
-<p><code>analyse_data()</code> applies the selected <code>method</code>
-to a completed dataset. Interim prediction analyzes each completed
-dataset independently before averaging its binary success indicators.
-For fixed-horizon binary methods, event counts are sufficient for that
-analysis: the patient-level and count-based predictive routes use the
-same count calculations.</p>
+<p>The completed-data method determines whether each predictive
+replicate, and when required the final trial data, meets the success
+criterion.</p>
 <table class="table">
 <colgroup>
 <col width="25%">
@@ -228,177 +208,120 @@ same count calculations.</p>
 </colgroup>
 <thead><tr class="header">
 <th align="left"><code>method</code></th>
-<th align="left">Completed-data analysis</th>
-<th align="left"><code>imputed_final = TRUE</code></th>
-<th align="left"><code>imputed_final = FALSE</code></th>
+<th align="left">Estimand and analysis</th>
+<th align="left">With imputation at the final analysis</th>
+<th align="left">Without final imputation</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left"><code>bayes-surv</code></td>
-<td align="left">Gamma piecewise-exponential posterior; effect is the
-treatment-minus-control event probability, or the treatment probability
-in a single-arm design</td>
-<td align="left">Analyze each completed imputation through the prepared
-sufficient-statistics and effect calculations, then average posterior
-summaries</td>
-<td align="left">Analyze observed right-censored data through the
-general route</td>
+<td align="left">Posterior treatment-minus-control event probability, or
+the treatment event probability in a single-arm design</td>
+<td align="left">Average posterior summaries across completed
+imputations</td>
+<td align="left">Analyze observed right-censored follow-up</td>
 </tr>
 <tr class="even">
 <td align="left"><code>bayes-bin</code></td>
-<td align="left">Beta-binomial posterior for completed binary endpoint
+<td align="left">Beta-binomial posterior for fixed-horizon event
 status</td>
-<td align="left">Analyze each completed imputation and average posterior
-summaries</td>
-<td align="left">Exclude subjects lost before complete endpoint
+<td align="left">Average posterior summaries across completed
+imputations</td>
+<td align="left">Exclude participants without complete endpoint
 ascertainment</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>cox</code></td>
-<td align="left">Cox Wald test for the log hazard ratio</td>
-<td align="left">Pool estimates and within-imputation variances using
-Rubin’s rules</td>
-<td align="left">Analyze observed right-censored data</td>
+<td align="left">Log hazard ratio from a Cox model</td>
+<td align="left">Pool estimates and variances using Rubin’s rules</td>
+<td align="left">Analyze observed right-censored follow-up</td>
 </tr>
 <tr class="even">
 <td align="left"><code>riskdiff-wald</code></td>
-<td align="left">Wald test for the treatment-minus-control event-risk
-difference</td>
-<td align="left">Pool estimates and within-imputation variances using
-Rubin’s rules</td>
-<td align="left">Exclude subjects lost before complete endpoint
+<td align="left">Treatment-minus-control event-risk difference using a
+Wald test</td>
+<td align="left">Pool estimates and variances using Rubin’s rules</td>
+<td align="left">Exclude participants without complete endpoint
 ascertainment</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>riskdiff-fm</code></td>
-<td align="left">Farrington-Manning score test for the
-treatment-minus-control event-risk difference</td>
-<td align="left">Pool estimates and within-imputation variances using
-Rubin’s rules, giving a pooled Wald test</td>
-<td align="left">Exclude subjects lost before complete endpoint
+<td align="left">Treatment-minus-control event-risk difference using a
+Farrington-Manning score test</td>
+<td align="left">Pool estimates and variances using Rubin’s rules,
+yielding a pooled Wald analysis</td>
+<td align="left">Exclude participants without complete endpoint
 ascertainment</td>
 </tr>
 <tr class="even">
 <td align="left"><code>logrank</code></td>
-<td align="left">Log-rank test</td>
-<td align="left">Not supported because no imputation-pooling rule is
-implemented</td>
-<td align="left">Analyze observed right-censored data</td>
+<td align="left">Difference between survival distributions using a
+log-rank test</td>
+<td align="left">Not available because an imputation-pooling rule has
+not been specified</td>
+<td align="left">Analyze observed right-censored follow-up</td>
 </tr>
 </tbody>
 </table>
-<p>The posterior-imputation model and completed-data analysis model are
-deliberately modular. In particular, <code>method = "bayes-bin"</code>
-still uses the piecewise-exponential Gamma model to impute pending
-outcomes, then applies the separate beta-binomial model to completed
-endpoint statuses.</p>
+<p>For a frequentist method, the success measure is <span class="math inline">1-p</span>; for a Bayesian method, it is the
+posterior probability of the prespecified alternative. In both cases,
+success requires the measure to be strictly greater than
+<code>prob_ha</code>.</p>
+<p>The imputation model and completed-data analysis model are
+deliberately distinct. For example, <code>method = "bayes-bin"</code>
+uses the piecewise-exponential model to impute endpoint status for
+participants whose endpoint is pending, then applies a beta-binomial
+model to the completed binary outcomes. Both sets of assumptions should
+therefore be examined in sensitivity analyses.</p>
 </div>
 <div class="section level2">
-<h2 id="results-and-post-processing">Results and post-processing<a class="anchor" aria-label="anchor" href="#results-and-post-processing"></a>
+<h2 id="summaries-for-design-evaluation">Summaries for design evaluation<a class="anchor" aria-label="anchor" href="#summaries-for-design-evaluation"></a>
 </h2>
-<div class="grViz html-widget html-fill-item" id="htmlwidget-36aa3d2a04d42bbc2145" style="width:960px;height:403.2px;"></div>
-<script type="application/json" data-for="htmlwidget-36aa3d2a04d42bbc2145">{"x":{"diagram":"\ndigraph results {\n\n  graph [rankdir = TB, fontsize = 12, nodesep = 0.25, ranksep = 0.48]\n  node [shape = box, style = \"filled,rounded\", fontname = Helvetica, fontsize = 9]\n  edge [fontname = Helvetica, fontsize = 8, color = \"#666666\"]\n\n  survival_adapt [label = \"survival_adapt()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  evaluate_interim [label = \"evaluate_interim()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  sim_trials [label = \"sim_trials()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n  trial_result [label = \"trial summary + optional trace\nretained design and diagnostics\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  interim_result [label = \"decision + predictive probabilities\ndiagnostics + one-look trace\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  sim_result [label = \"trial summaries + failures + optional traces\nRNG, parallel, timing, and design metadata\", fillcolor = \"#f5f5f5\", color = \"#999999\"]\n  oc_summary [label = \"summarise_sims()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n  trace_outputs [label = \"summarise_trial_trace()\nplot_trial_trace()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  enrollment_plot [label = \"plot_enrollment()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  calendar_summary [label = \"summarise_calendar_time()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  sim_plots [label = \"plot_sim_stopping()\nplot_sim_decisions()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  oc_plot [label = \"plot_sim_ocs()\", fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n  survival_adapt -> trial_result\n  evaluate_interim -> interim_result\n  sim_trials -> sim_result\n\n  trial_result -> trace_outputs\n  interim_result -> trace_outputs\n  trial_result -> enrollment_plot\n  sim_result -> enrollment_plot\n  sim_result -> calendar_summary\n  sim_result -> sim_plots\n  sim_result -> oc_summary\n  oc_summary -> oc_plot\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-e5c8c404fe174e4c81bd" style="width:960px;height:441.6px;"></div>
+<script type="application/json" data-for="htmlwidget-e5c8c404fe174e4c81bd">{"x":{"diagram":"\ndigraph summaries {\n  graph [rankdir = LR, fontsize = 12, nodesep = 0.28, ranksep = 0.45]\n  node [shape = box, style = \"filled,rounded\", fontname = Helvetica,\n        fontsize = 9, fillcolor = \"#f5f5f5\", color = \"#777777\"]\n  edge [fontname = Helvetica, fontsize = 8, color = \"#666666\"]\n\n  one [label = \"One simulated trial\nsurvival_adapt()\",\n       fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  many [label = \"Repeated simulated trials\nsim_trials()\",\n        fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  observed [label = \"Observed interim data\nevaluate_interim()\",\n            fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n  trace [label = \"Interim decision history\nsummarise_trial_trace() / plot_trial_trace()\"]\n  enrollment [label = \"Enrollment and calendar time\nplot_enrollment() / summarise_calendar_time()\"]\n  oc [label = \"Operating characteristics\nsummarise_sims() / plot_sim_ocs()\"]\n  stopping [label = \"Stopping and decision regions\nplot_sim_stopping() / plot_sim_decisions()\"]\n\n  one -> trace\n  one -> enrollment\n  observed -> trace\n  many -> enrollment\n  many -> oc\n  many -> stopping\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>For one simulated trial or an observed data cut, the interim decision
+history shows the two predictive probabilities, their Monte Carlo
+uncertainty, the three decision thresholds, and the action at each
+completed look. For repeated simulations, <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code>
+estimates power or type I error, probabilities of each stopping outcome,
+sample-size summaries, and Monte Carlo uncertainty.
+<code><a href="../reference/summarise_calendar_time.html">summarise_calendar_time()</a></code> adds trial duration, accrual
+duration, analysis readiness, and follow-up burden.</p>
+<p>The planning functions <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> and
+<code><a href="../reference/ppwe.html">ppwe()</a></code> connect clinically interpretable event probabilities
+to piecewise-exponential hazards. <code><a href="../reference/plot_enrollment.html">plot_enrollment()</a></code>
+displays the expected enrollment trajectory and planned interim
+milestones. These quantities are useful checks that the numerical design
+corresponds to the assumptions intended for the protocol.</p>
 </div>
 <div class="section level2">
-<h2 id="exported-utilities-and-retained-outputs">Exported utilities and retained outputs<a class="anchor" aria-label="anchor" href="#exported-utilities-and-retained-outputs"></a>
+<h2 id="prespecification-and-reproducibility">Prespecification and reproducibility<a class="anchor" aria-label="anchor" href="#prespecification-and-reproducibility"></a>
 </h2>
-<p>The exported low-level utilities are:</p>
+<p>Several conventions should be stated explicitly in a simulation
+report or statistical analysis plan:</p>
 <ul>
 <li>
-<code><a href="../reference/enrollment.html">enrollment()</a></code> for exact continuous-time accrual;</li>
+<code>treatment = 0</code> denotes control and
+<code>treatment = 1</code> denotes treatment;</li>
+<li>named arm-specific inputs use <code>control</code>, then
+<code>treatment</code>;</li>
 <li>
-<code><a href="../reference/randomization.html">randomization()</a></code> for blocked two-arm allocation;</li>
+<code>generation_cutpoints</code> governs event-time generation,
+whereas <code>cutpoints</code> governs prediction and analysis;</li>
+<li>analysis intervals use the survival counting-process convention
+<span class="math inline">(\text{start},\text{stop}]</span> when
+assigning observed events;</li>
 <li>
-<code><a href="../reference/pwe_sim.html">pwe_sim()</a></code> and <code><a href="../reference/pwe_impute.html">pwe_impute()</a></code> for
-unconditional and conditional piecewise-exponential event times;</li>
-<li>
-<code><a href="../reference/ppwe.html">ppwe()</a></code> for piecewise-exponential cumulative event
-probabilities;</li>
-<li>
-<code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> for converting cumulative event
-probabilities to piecewise hazards; and</li>
-<li>
-<code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code> for generating a complete simulated
-trial dataset.</li>
+<code>Qn</code>, <code>Sn</code>, <code>Fn</code>,
+<code>prob_ha</code>, <code>N_impute</code>, and <code>N_mcmc</code> are
+part of the prespecified decision algorithm; and</li>
+<li>a recorded simulation seed permits exact reproduction of the Monte
+Carlo study across the supported computing options.</li>
 </ul>
-<p>The three main entry points retain enough information for audit and
-downstream displays:</p>
-<ul>
-<li>
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> returns the one-row trial summary and
-optionally a compact interim trace, with normalized arguments, decision
-design, prior diagnostics, enrollment design, and calendar metrics
-attached;</li>
-<li>
-<code><a href="../reference/sim_trials.html">sim_trials()</a></code> returns successful trial summaries,
-isolated failure records, optional traces, RNG and parallel metadata,
-and the common retained design; and</li>
-<li>
-<code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> returns the decision, predictive
-probabilities, Monte Carlo diagnostics, allocation and data-cut
-diagnostics, posterior diagnostics, binary count-summary reuse
-diagnostics when applicable, and a compatible one-look trace.</li>
-</ul>
-<p>Post-processing functions consume these retained results without
-rerunning the trial:</p>
-<ul>
-<li>
-<code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> calculates operating characteristics
-and Monte Carlo uncertainty;</li>
-<li>
-<code><a href="../reference/summarise_calendar_time.html">summarise_calendar_time()</a></code> summarizes trial duration,
-accrual, analysis readiness, follow-up, and interim timing;</li>
-<li>
-<code><a href="../reference/summarise_trial_trace.html">summarise_trial_trace()</a></code> condenses a single trial’s
-stopping path;</li>
-<li>
-<code><a href="../reference/plot_enrollment.html">plot_enrollment()</a></code> displays expected or retained accrual
-and analysis milestones;</li>
-<li>
-<code><a href="../reference/plot_trial_trace.html">plot_trial_trace()</a></code> displays one trial’s
-predictive-probability path;</li>
-<li>
-<code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> summarizes stopping outcomes and
-sample sizes;</li>
-<li>
-<code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code> displays interim decision regions
-across simulated trials; and</li>
-<li>
-<code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code> compares operating characteristics
-across scenarios.</li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="architectural-invariants">Architectural invariants<a class="anchor" aria-label="anchor" href="#architectural-invariants"></a>
-</h2>
-<p>Several conventions link the layers above:</p>
-<ul>
-<li>data use <code>treatment = 0</code> for control and
-<code>treatment = 1</code> for treatment;</li>
-<li>normalized arm-specific vectors and priors use canonical
-<code>control</code>, <code>treatment</code> order, while posterior
-hazard arrays retain treatment in slice 1 and control in slice 2 for
-compatibility;</li>
-<li>
-<code>generation_cutpoints</code> governs event-time generation
-only, whereas <code>cutpoints</code> governs posterior estimation,
-predictive imputation, analysis priors, and endpoint probability
-calculations;</li>
-<li>analysis intervals follow the survival counting-process convention
-<code>(start, stop]</code> when observed events are assigned to
-sufficient statistics;</li>
-<li>outer predictive decisions use <code>N_impute</code>, completed-data
-Bayesian Monte Carlo uses <code>N_mcmc</code>, and exact bounds are
-diagnostic rather than decision-changing; and</li>
-<li>interim RNG order is posterior hazards, the complete
-predictive-imputation batch in draw/current/future/arm order, and then
-completed-data analyses; Bayesian binary Monte Carlo retains
-current-then-maximum order within each draw and does not reuse repeated
-summaries; and</li>
-<li>prepared repeated calculations may bypass rich-input validation only
-after package-owned functions have constructed canonical inputs. General
-entry points retain full validation.</li>
-</ul>
+<p>Operating characteristics should be evaluated over clinically
+plausible null and alternative scenarios, including nuisance parameters
+that may affect the amount of information available at interim looks.
+Numerical Monte Carlo error should be reported alongside every estimated
+operating characteristic.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

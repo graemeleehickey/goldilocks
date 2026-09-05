@@ -84,9 +84,9 @@ constant hazard rate changes at one or more cut-points; and</li>
 (<code>method = "bayes-surv"</code>) using a posterior probability
 threshold on the cumulative-failure-probability scale.</li>
 </ul>
-<p>We use a small example so that the simulation can be run while
-reading the vignette; the live <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> chunk takes
-around 10–20 seconds and is cached on first knit.</p>
+<p>We first use a small example to show the analysis of one adaptive
+trial, then outline the repeated simulations needed to evaluate
+operating characteristics.</p>
 <div class="section level2">
 <h2 id="when-piecewise-hazards-help">When piecewise hazards help<a class="anchor" aria-label="anchor" href="#when-piecewise-hazards-help"></a>
 </h2>
@@ -121,8 +121,8 @@ partitions may instead differ, and they need not contain the same number
 of intervals. The different boundary representations at an isolated
 cutpoint give the same continuous event-time distribution because the
 cutpoint itself has probability zero.</p>
-<p>The helper <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> maps cumulative event
-probabilities at given times into the corresponding piecewise
+<p>For design specification, <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> maps cumulative
+event probabilities at selected times to the corresponding piecewise
 hazards.</p>
 </div>
 <div class="section level2">
@@ -143,7 +143,7 @@ leaving the late-period hazard unchanged. Concretely, we target:</p>
 <p>We set the cut-point at 6 months and translate these proportions into
 piecewise hazards:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cutpoints</span> <span class="op">&lt;-</span> <span class="fl">6</span>         <span class="co"># one internal cut at 6 months -&gt; two intervals</span></span>
+<code class="sourceCode R"><span><span class="va">cutpoints</span> <span class="op">&lt;-</span> <span class="fl">6</span>         <span class="co"># one change-point at 6 months gives two intervals</span></span>
 <span><span class="va">end_of_study</span> <span class="op">&lt;-</span> <span class="fl">24</span></span>
 <span></span>
 <span><span class="va">hc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.30</span>, <span class="fl">0.50</span><span class="op">)</span>, cutpoints <span class="op">=</span> <span class="va">cutpoints</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
@@ -153,13 +153,11 @@ piecewise hazards:</p>
 <span><span class="co">#&gt;             [,1]   [,2]</span></span>
 <span><span class="co">#&gt; control   0.0594 0.0187</span></span>
 <span><span class="co">#&gt; treatment 0.0331 0.0174</span></span></code></pre></div>
-<p>The first column is the generating hazard during <span class="math inline">[0, 6)</span> months and the second column is the
-hazard from 6 months onward. In posterior sufficient statistics, the
-same columns receive observed events from <span class="math inline">(0,6]</span> and <span class="math inline">(6,\infty)</span> respectively. Both arms have a
-higher hazard in the early window. We can sanity-check that the implied
-survival probabilities at 24 months match what we specified by running
-the cumulative incidence computation back through
-<code><a href="../reference/ppwe.html">ppwe()</a></code>:</p>
+<p>The first column is the generating hazard during <span class="math inline">[0, 6)</span> months and the second is the hazard
+from 6 months onward. In posterior sufficient statistics, the same
+columns receive observed events from <span class="math inline">(0,6]</span> and <span class="math inline">(6,\infty)</span>, respectively. Both arms have a
+higher hazard in the early window. The implied 24-month survival
+probabilities can be verified with <code><a href="../reference/ppwe.html">ppwe()</a></code>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ppwe.html">ppwe</a></span><span class="op">(</span>hazard       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">hc</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>     cutpoints    <span class="op">=</span> <span class="va">cutpoints</span>,</span>
@@ -208,7 +206,8 @@ after enrollment continues to the maximum sample size is compared with
 <code>Fn</code> for the futility rule. Separately, the fraction that
 would declare success after completing follow-up for the subjects
 currently enrolled is compared with <code>Sn</code> for the
-expected-success rule.</p>
+expected-success rule. The default <code>Qn = 1</code> disables the
+optional immediate-success rule in this example.</p>
 <p>We use an independent weakly informative <span class="math inline">\operatorname{Gamma}(0.1, 0.1)</span> prior on every
 hazard component:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -326,18 +325,19 @@ trial-calendar time.</p>
 <div class="section level2">
 <h2 id="a-single-simulated-trial">A single simulated trial<a class="anchor" aria-label="anchor" href="#a-single-simulated-trial"></a>
 </h2>
-<p>We will run one trial under the alternative hypothesis to illustrate
-the mechanics. We choose <code>interim_look = 60</code> (the minimum
-required is <code>max(block) = 4</code>) and a constant accrual rate of
-5 enrollments per month. With <code>lambda_time = NULL</code>, the first
-patient is placed at time zero and subsequent inter-arrival gaps are
-generated exactly from an exponential distribution with rate 5.
-Piecewise accrual is specified using positive internal knots only; for
-example, <code>lambda = c(2, 5)</code> and <code>lambda_time = 6</code>
-assigns positive realized enrollment times in <span class="math inline">(0,6]</span> to the rate of 2 enrollments per month
-and later times to the rate of 5. The fixed first patient at zero is
-handled separately. These calendar-time enrollment knots are distinct
-from the subject-follow-up hazard <code>cutpoints</code> used above.</p>
+<p>We simulate one trial under the alternative hypothesis to illustrate
+the statistical calculations. The interim analysis is scheduled after 60
+participants have enrolled; the minimum allowable value is the
+randomization block size, <code>max(block) = 4</code>. A constant
+enrollment rate of five participants per month is assumed. With
+<code>lambda_time = NULL</code>, the first participant is placed at time
+zero and subsequent inter-arrival times follow an exponential
+distribution with rate 5. For piecewise accrual,
+<code>lambda = c(2, 5)</code> and <code>lambda_time = 6</code> would
+specify two expected enrollments per month through month 6 and five per
+month thereafter. Enrollment-rate change-points use trial calendar time,
+whereas hazard <code>cutpoints</code> use participant follow-up
+time.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7194</span><span class="op">)</span></span>
 <span></span>
@@ -348,7 +348,7 @@ from the subject-follow-up hazard <code>cutpoints</code> used above.</p>
 <span>  generation_cutpoints <span class="op">=</span> <span class="va">cutpoints</span>,</span>
 <span>  N_total          <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  lambda           <span class="op">=</span> <span class="fl">5</span>,                <span class="co"># enrollments per month</span></span>
-<span>  lambda_time      <span class="op">=</span> <span class="cn">NULL</span>,             <span class="co"># no internal enrollment-rate knots</span></span>
+<span>  lambda_time      <span class="op">=</span> <span class="cn">NULL</span>,             <span class="co"># constant enrollment rate</span></span>
 <span>  interim_look     <span class="op">=</span> <span class="fl">60</span>,</span>
 <span>  end_of_study     <span class="op">=</span> <span class="va">end_of_study</span>,</span>
 <span>  prior_surv       <span class="op">=</span> <span class="va">prior_surv</span>,</span>
@@ -375,12 +375,14 @@ from the subject-follow-up hazard <code>cutpoints</code> used above.</p>
 <span><span class="co">#&gt; 1           20.2688            43.91658                 44.2688</span></span>
 <span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
 <span><span class="co">#&gt; 1             1612.338                   71</span></span></code></pre></div>
-<p>The output reports the posterior probability of the alternative at
-the final (or stopped) analysis (<code>post_prob_ha</code>), the
-posterior mean treatment effect on the cumulative-failure scale
-(<code>est_final</code>), the predictive probability of success
-(<code>ppp_success</code>), and indicators for whether the trial stopped
-early for futility or expected success.</p>
+<p>For this trial replicate, <code>post_prob_ha</code> reports the
+posterior probability of the alternative at the final (or stopped)
+analysis (<code>post_prob_ha</code>), the posterior mean treatment
+effect on the cumulative-failure scale (<code>est_final</code>), the
+predictive probability of success (<code>ppp_success</code>), and
+indicators for immediate success, expected-success stopping, or
+futility. Immediate success is disabled in this example by the default
+<code>Qn = 1</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="notes-on-the-piecewise-model">Notes on the piecewise model<a class="anchor" aria-label="anchor" href="#notes-on-the-piecewise-model"></a>

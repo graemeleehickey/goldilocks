@@ -8,11 +8,10 @@ library(goldilocks)
 An adaptive trial is easier to assess when the final result can be
 connected back to the interim decisions that led to it. By default,
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-returns its compact, one-row final summary. Set `return_trace = TRUE` to
-request a `goldilocks_trial` object with that summary and a tidy row for
-each interim look.
+returns a one-row trial summary. Set `return_trace = TRUE` to retain the
+summary together with one record for each completed interim look.
 
-## A traced trial
+## Reviewing one trial’s interim history
 
 This small Bayesian survival design has two interim looks. The treatment
 arm is assumed to have a lower cumulative failure probability by 24
@@ -41,6 +40,7 @@ trial <- survival_adapt(
   h0 = 0,
   Fn = c(0.05, 0.05),
   Sn = c(0.95, 0.90),
+  Qn = c(0.99, 0.99),
   prob_ha = 0.95,
   N_impute = 20,
   N_mcmc = 20,
@@ -65,8 +65,9 @@ trial
 #> Interim looks completed: 2
 ```
 
-The summary element is the familiar final analysis output. The trace
-element is an audit trail of the interim path.
+The trial summary reports the official outcome and final analysis, when
+one is required. The interim history provides an audit trail of the
+predictive probabilities and decisions.
 
 ``` r
 
@@ -92,8 +93,8 @@ trial$trace
 #> 1         0.1095445          0.3935849          0.7829314                 20
 #> 2         0.1112430          0.2586506          0.6530686                 20
 #>   success_threshold immediate_success_threshold immediate_success_crossed
-#> 1              0.95                           1                     FALSE
-#> 2              0.90                           1                     FALSE
+#> 1              0.95                        0.99                     FALSE
+#> 2              0.90                        0.99                     FALSE
 #>   expected_success_crossed ppp_success_at_max ppp_success_at_max_mcse
 #> 1                    FALSE                0.6               0.1095445
 #> 2                    FALSE                0.4               0.1095445
@@ -123,16 +124,17 @@ summarise_trial_trace(trial)
 ```
 
 For each completed look, `ppp_stop_now` is the predictive probability of
-success if enrollment stops at that look. It is compared with
-`success_threshold`. `ppp_success_at_max` is the predictive probability
-of success if enrollment continues to the maximum sample size. It is
-compared with `futility_threshold`. The decision column records whether
-the design continued, stopped for expected success, or stopped for
-futility.
+success if enrollment stops at that look. It is compared first with
+`immediate_success_threshold` and then with `success_threshold`.
+`ppp_success_at_max` is the predictive probability of success if
+enrollment continues to the maximum sample size and is compared with
+`futility_threshold`. The `decision` column records whether the design
+declared immediate success, stopped accrual for expected success,
+stopped for binding futility, or continued.
 
-The trace does not retain posterior draws or completed imputed data
-sets. That keeps a traced trial small enough to inspect and share while
-leaving the underlying random-number path unchanged.
+The interim history retains Monte Carlo summaries rather than every
+posterior draw or completed imputation. It is therefore concise enough
+to include in a simulation review or interim-analysis record.
 
 ## Visualizing the enrollment plan
 
@@ -159,10 +161,9 @@ design has a constant enrollment rate, each displayed milestone time is
 its mean arrival time, (N - 1) / \lambda. For piecewise enrollment
 rates, the plot instead labels the time at which expected cumulative
 enrollment reaches the milestone. Supplying `seed` makes the displayed
-trajectories reproducible without changing the caller’s random-number
-state.
+enrollment trajectories reproducible.
 
-## Visualizing the path
+## Plotting the interim decision path
 
 ``` r
 
@@ -179,11 +180,12 @@ visible as ordinary R warnings.
 
 ## Summarizing many simulated trials
 
-Traces are intended for examining individual trial paths. By default,
+Interim histories are intended for examining individual trial paths. By
+default,
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
-keeps only its compact result data frame, which is more suitable for
-large operating characteristic simulations. Set `return_trace = TRUE` to
-retain the interim paths across simulations.
+retains the trial-level outcomes needed to estimate operating
+characteristics. Set `return_trace = TRUE` to retain the interim paths
+as well.
 [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
 summarizes where and why enrollment stopped through marginal,
 conditional, cumulative, or flowchart views, while
@@ -211,6 +213,7 @@ sims <- sim_trials(
   h0 = 0,
   Fn = c(0.05, 0.05),
   Sn = c(0.95, 0.90),
+  Qn = c(0.99, 0.99),
   prob_ha = 0.95,
   N_impute = 20,
   N_mcmc = 20,
@@ -253,9 +256,9 @@ plot_sim_ocs(
 )
 ```
 
-For reproducible simulations, set `seed` in
+For reproducible simulations, prespecify `seed` in
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md).
-The per-trial random streams make the compact simulation results
-reproducible across supported parallel backends. For a detailed
-explanation of the decision algorithm and calibration, see the
-“Technical details of the Goldilocks design” vignette.
+Results are then reproducible whether the trials are evaluated
+sequentially or in parallel. For a detailed explanation of the decision
+algorithm and calibration, see the “Technical details of the Goldilocks
+design” vignette.

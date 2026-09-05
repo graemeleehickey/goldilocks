@@ -13,8 +13,8 @@ outcome measured at a fixed follow-up time:
 
 Both methods estimate the treatment-minus-control event-risk difference,
 
-\widehat\Delta = \widehat p\_\text{treatment} - \widehat
-p\_\text{control},
+\widehat\Delta = \widehat p\_{\text{treatment}} - \widehat
+p\_{\text{control}},
 
 and compare it with the null value or margin supplied through `h0`. All
 three alternatives are supported. For example, when events are
@@ -37,8 +37,8 @@ way.
 plug-in variance. It is retained for designs that prespecify that
 analysis and for reproducing earlier results. The former
 `method = "riskdiff"` name remains a deprecated alias for
-`"riskdiff-wald"` and emits a warning. New code should select one of the
-two procedures explicitly.
+`"riskdiff-wald"` and produces a warning. New analyses should prespecify
+one of the two procedures explicitly.
 
 The Farrington-Manning calculation has no continuity correction. If its
 null-constrained variance is zero, `goldilocks` defines the score
@@ -108,8 +108,8 @@ result is a pooled Wald analysis for either method setting; it is not a
 Farrington-Manning test. The same neutral-or-directional convention
 prevents an error when its total variance is zero.
 
-The selected method is retained with the evaluated design arguments, so
-a separate analysis-metadata object is not needed.
+The saved results include the selected method and evaluated design
+arguments, providing an auditable record of the analysis specification.
 
 ## Reference
 

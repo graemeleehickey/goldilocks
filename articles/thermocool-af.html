@@ -157,7 +157,9 @@ d_\ell =
 \text{immediate success}, &amp; P_{n,\ell} &gt; Q_\ell, \\
 \text{stop accrual for expected success},
   &amp; S_\ell &lt; P_{n,\ell} \le Q_\ell, \\
-\text{binding futility}, &amp; P_{n_{\max},\ell} &lt; F_\ell, \\
+\text{binding futility},
+  &amp; P_{n,\ell} \le S_\ell
+    \text{ and } P_{n_{\max},\ell} &lt; F_\ell, \\
 \text{continue}, &amp; \text{otherwise.}
 \end{cases}
 </span></p>
@@ -364,7 +366,7 @@ reproduction</td>
 <td align="left"><code>prop_loss</code></td>
 <td align="left">0.05 in each arm</td>
 <td align="left">assumed</td>
-<td align="left">Runtime example; the package’s random censoring is not
+<td align="left">Illustrative assumption; random censoring is not
 equivalent to the eight randomized patients who did not receive assigned
 treatment</td>
 </tr>
@@ -373,22 +375,22 @@ treatment</td>
 <td align="left">TRUE</td>
 <td align="left">inferred</td>
 <td align="left">JAMA reports multiple imputation for incomplete
-outcomes; package implementation is an approximation</td>
+outcomes; the available package analysis is an approximation</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>N_impute</code></td>
 <td align="left">100 for one trial; 40 for small OC simulations</td>
 <td align="left">assumed</td>
-<td align="left">Runtime choices; the sponsor’s predictive draw count is
-unavailable</td>
+<td align="left">Illustrative choices; the sponsor’s predictive draw
+count is unavailable</td>
 </tr>
 <tr class="even">
 <td align="left">Evaluated <code>N_trials</code>
 </td>
 <td align="left">50 per scenario</td>
 <td align="left">assumed</td>
-<td align="left">Runtime choice; the sponsor briefing reports 10,000
-simulated trials per scenario</td>
+<td align="left">Illustrative choice; the sponsor briefing reports
+10,000 simulated trials per scenario</td>
 </tr>
 </tbody>
 </table>
@@ -589,9 +591,9 @@ rate would give a different amount of follow-up at the first look.</p>
 <div class="section level2">
 <h2 id="one-simulated-trial">One simulated trial<a class="anchor" aria-label="anchor" href="#one-simulated-trial"></a>
 </h2>
-<p>The following call simulates one trial under the descriptive FDA-rate
-scenario. It uses only 100 predictive imputations so the vignette
-remains quick to build. That is too few for regulatory calibration of
+<p>The following analysis simulates one trial replicate under the
+descriptive FDA-rate scenario. It uses only 100 predictive imputations
+for illustration. That is too few for regulatory calibration of
 boundaries as extreme as 0.99 and 0.01.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1030236</span><span class="op">)</span></span>
@@ -677,8 +679,9 @@ decision. It does not wait for a later completed-follow-up analysis, so
 <code>NA</code>. Binding futility is likewise an official terminal
 failure. For compatibility, the package still attempts its historical
 completed-follow-up diagnostic after futility; if that diagnostic cannot
-be computed, its two fields are <code>NA</code> and
-<code>trial_success</code> remains <code>FALSE</code>.</p>
+be computed, <code>post_prob_ha</code> and <code>est_final</code> are
+<code>NA</code> and <code>trial_success</code> remains
+<code>FALSE</code>.</p>
 <p>The trace makes the ordered rule auditable:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
@@ -849,11 +852,11 @@ is therefore a simple no-treatment-effect scenario.</p>
 </tbody>
 </table>
 <p>With only 50 trials and 40 imputations per look, these estimates have
-substantial Monte Carlo error. They demonstrate the workflow and the
-mutually exclusive stopping categories; they do not estimate the trial’s
-reported operating characteristics. <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code>
-retains the historical name <code>stop_success</code> for stopping
-accrual for expected success and reports immediate success separately as
+substantial Monte Carlo error. They illustrate the mutually exclusive
+stopping categories; they do not estimate the trial’s reported operating
+characteristics. <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> uses
+<code>stop_success</code> for stopping accrual for expected success and
+reports immediate success separately as
 <code>stop_immediate_success</code>.</p>
 <p>The no-effect scenario provides a more informative view of the four
 decision regions than the deliberately strong FDA-rate scenario:</p>
@@ -870,7 +873,7 @@ accrual for expected success. At or below <code>Sn</code>,
 <code>Fn</code> separates binding futility from continued accrual.</p>
 </div>
 <div class="section level2">
-<h2 id="design-validation-template">Design validation template<a class="anchor" aria-label="anchor" href="#design-validation-template"></a>
+<h2 id="operating-characteristic-evaluation">Operating-characteristic evaluation<a class="anchor" aria-label="anchor" href="#operating-characteristic-evaluation"></a>
 </h2>
 <p>A design that permits immediate declaration of success must be
 calibrated as a whole. Neither <code>Qn = 0.99</code> nor
@@ -953,8 +956,8 @@ decisions;</li>
 size; and</li>
 <li>all thresholds are evaluated in a prespecified order.</li>
 </ul>
-<p>It does not reproduce the sponsor’s source code, hierarchical hazard
-prior, simulation scenarios, treatment-specific evaluation-window
+<p>It does not reproduce the sponsor’s complete analysis, hierarchical
+hazard prior, simulation scenarios, treatment-specific evaluation-window
 origins, site-stratified randomization sequences, protocol deviations,
 crossover, analysis-population exclusions, operational overrun, or the
 original two-predictive-probability futility requirement. It also does

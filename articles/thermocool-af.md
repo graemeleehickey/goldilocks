@@ -92,9 +92,9 @@ statistic but uses the following ordered rule:
 
 d\_\ell = \begin{cases} \text{immediate success}, & P\_{n,\ell} \>
 Q\_\ell, \\ \text{stop accrual for expected success}, & S\_\ell \<
-P\_{n,\ell} \le Q\_\ell, \\ \text{binding futility}, &
-P\_{n\_{\max},\ell} \< F\_\ell, \\ \text{continue}, & \text{otherwise.}
-\end{cases}
+P\_{n,\ell} \le Q\_\ell, \\ \text{binding futility}, & P\_{n,\ell} \le
+S\_\ell \text{ and } P\_{n\_{\max},\ell} \< F\_\ell, \\ \text{continue},
+& \text{otherwise.} \end{cases}
 
 Decision order matters. An immediate-success crossing is terminal even
 if a futility boundary also appears crossed. Equality with `Qn` does not
@@ -156,10 +156,10 @@ vignette:
 | `lambda`, `lambda_time` | 0.83, 3.50, 8.92 patients/month; changes at months 12 and 24 | inferred | Derived from FDA’s 11 patients after year 1, 53 after year 2, and 160 near year 3; not a protocol accrual generator |
 | Data-generating hazards | June 2008 failures divided by exposure within each interval | inferred | Derived from the FDA SSED Table 8; descriptive observed-data scenario, not a planning assumption |
 | Sponsor planning scenarios | Not publicly available in sufficient detail | unavailable | Public materials state that operating characteristics were simulated but redact or omit enough inputs to prevent exact reproduction |
-| `prop_loss` | 0.05 in each arm | assumed | Runtime example; the package’s random censoring is not equivalent to the eight randomized patients who did not receive assigned treatment |
-| `imputed_final` | TRUE | inferred | JAMA reports multiple imputation for incomplete outcomes; package implementation is an approximation |
-| `N_impute` | 100 for one trial; 40 for small OC simulations | assumed | Runtime choices; the sponsor’s predictive draw count is unavailable |
-| Evaluated `N_trials` | 50 per scenario | assumed | Runtime choice; the sponsor briefing reports 10,000 simulated trials per scenario |
+| `prop_loss` | 0.05 in each arm | assumed | Illustrative assumption; random censoring is not equivalent to the eight randomized patients who did not receive assigned treatment |
+| `imputed_final` | TRUE | inferred | JAMA reports multiple imputation for incomplete outcomes; the available package analysis is an approximation |
+| `N_impute` | 100 for one trial; 40 for small OC simulations | assumed | Illustrative choices; the sponsor’s predictive draw count is unavailable |
+| Evaluated `N_trials` | 50 per scenario | assumed | Illustrative choice; the sponsor briefing reports 10,000 simulated trials per scenario |
 
 ## Mapping the longitudinal model
 
@@ -318,9 +318,9 @@ different amount of follow-up at the first look.
 
 ## One simulated trial
 
-The following call simulates one trial under the descriptive FDA-rate
-scenario. It uses only 100 predictive imputations so the vignette
-remains quick to build. That is too few for regulatory calibration of
+The following analysis simulates one trial replicate under the
+descriptive FDA-rate scenario. It uses only 100 predictive imputations
+for illustration. That is too few for regulatory calibration of
 boundaries as extreme as 0.99 and 0.01.
 
 ``` r
@@ -381,8 +381,8 @@ does not wait for a later completed-follow-up analysis, so
 `post_prob_ha` and the final effect estimate are `NA`. Binding futility
 is likewise an official terminal failure. For compatibility, the package
 still attempts its historical completed-follow-up diagnostic after
-futility; if that diagnostic cannot be computed, its two fields are `NA`
-and `trial_success` remains `FALSE`.
+futility; if that diagnostic cannot be computed, `post_prob_ha` and
+`est_final` are `NA` and `trial_success` remains `FALSE`.
 
 The trace makes the ordered rule auditable:
 
@@ -494,13 +494,12 @@ knitr::kable(oc_display, digits = 3)
 | FDA-rate illustration | 50 | 1.00 | 1 | 0.00 | 0.00 | 0.0 | 150.0 |
 
 With only 50 trials and 40 imputations per look, these estimates have
-substantial Monte Carlo error. They demonstrate the workflow and the
-mutually exclusive stopping categories; they do not estimate the trial’s
-reported operating characteristics.
+substantial Monte Carlo error. They illustrate the mutually exclusive
+stopping categories; they do not estimate the trial’s reported operating
+characteristics.
 [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
-retains the historical name `stop_success` for stopping accrual for
-expected success and reports immediate success separately as
-`stop_immediate_success`.
+uses `stop_success` for stopping accrual for expected success and
+reports immediate success separately as `stop_immediate_success`.
 
 The no-effect scenario provides a more informative view of the four
 decision regions than the deliberately strong FDA-rate scenario:
@@ -524,7 +523,7 @@ Observations above `Qn` are immediate successes. Observations between
 `Sn` and `Qn` stop accrual for expected success. At or below `Sn`, `Fn`
 separates binding futility from continued accrual.
 
-## Design validation template
+## Operating-characteristic evaluation
 
 A design that permits immediate declaration of success must be
 calibrated as a whole. Neither `Qn = 0.99` nor `prob_ha = 0.98`
@@ -607,8 +606,8 @@ The example preserves the central statistical idea:
 - `Fn` acts on predictive success at the maximum sample size; and
 - all thresholds are evaluated in a prespecified order.
 
-It does not reproduce the sponsor’s source code, hierarchical hazard
-prior, simulation scenarios, treatment-specific evaluation-window
+It does not reproduce the sponsor’s complete analysis, hierarchical
+hazard prior, simulation scenarios, treatment-specific evaluation-window
 origins, site-stratified randomization sequences, protocol deviations,
 crossover, analysis-population exclusions, operational overrun, or the
 original two-predictive-probability futility requirement. It also does

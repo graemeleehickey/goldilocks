@@ -4,6 +4,11 @@
 
 ### Improvements
 
+- A new calibration vignette demonstrates how to screen a prespecified
+  grid of `prob_ha` values against a one-sided type I error target,
+  classify candidates using Monte Carlo uncertainty, and independently
+  validate a selected threshold with an independent simulation seed
+  ([\#67](https://github.com/graemeleehickey/goldilocks/issues/67)).
 - Interim monitoring now supports an immediate-success boundary, `Qn`,
   on the same predictive probability used to stop accrual for expected
   success. At each look, the trial declares immediate success when that

@@ -80,13 +80,14 @@ its design was published by Konstam et al. (2019), and its results were
 published by Konstam et al. (2026).</p>
 <p>This vignette maps the morbidity and mortality component of the
 planned design to <code>goldilocks</code>. It is an explicit
-approximation, not a reconstruction or validation of the sponsor’s
-implementation. The public protocol, statistical analysis plan (SAP),
-and Adaptive Design Report (ADR) disclose substantially more detail than
-the journal articles alone, including the predictive model, priors,
-simulation profiles, and reference operating characteristics. Even with
-those documents, differences between the sponsor’s algorithm and the
-current package API remain important and are identified below.</p>
+approximation, not a reconstruction or independent validation of the
+sponsor’s analysis. The public protocol, statistical analysis plan
+(SAP), and Adaptive Design Report (ADR) disclose substantially more
+detail than the journal articles alone, including the predictive model,
+priors, simulation profiles, and reference operating characteristics.
+Even with those documents, differences between the sponsor’s design and
+the analyses currently available in <code>goldilocks</code> remain
+important and are identified below.</p>
 <div class="section level2">
 <h2 id="clinical-question-and-planned-analysis">Clinical question and planned analysis<a class="anchor" aria-label="anchor" href="#clinical-question-and-planned-analysis"></a>
 </h2>
@@ -160,10 +161,10 @@ publicly supplied.</li>
 </ul>
 <table class="table">
 <colgroup>
-<col width="9%">
-<col width="20%">
-<col width="3%">
-<col width="66%">
+<col width="10%">
+<col width="23%">
+<col width="4%">
+<col width="61%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Input</th>
@@ -203,8 +204,8 @@ and treatment</td>
 <td align="left"><code>block</code></td>
 <td align="left">3</td>
 <td align="left">assumed</td>
-<td align="left">ADR reports varying blocks of 3, 6, or 9; fixed 3 is
-the closest API setting</td>
+<td align="left">ADR reports varying blocks of 3, 6, or 9; a fixed block
+of 3 is the closest available specification</td>
 </tr>
 <tr class="even">
 <td align="left">
@@ -309,17 +310,17 @@ right-censored data</td>
 <td align="left"><code>N_impute</code></td>
 <td align="left">300 evaluated</td>
 <td align="left">assumed</td>
-<td align="left">Runtime setting chosen to keep the example manageable;
-ADR Section 2.3.3 specifies at least 10,000 draws for actual interim
-analyses and 1,000 within design simulations</td>
+<td align="left">Illustrative setting; ADR Section 2.3.3 specifies at
+least 10,000 draws for actual interim analyses and 1,000 within design
+simulations</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>N_trials</code></td>
 <td align="left">20 per evaluated scenario</td>
 <td align="left">assumed</td>
-<td align="left">This vignette uses 20 per scenario so it renders in a
-reasonable time; ADR Section 5.5 used 1,000 trials per treatment-benefit
-scenario and 10,000 per null scenario</td>
+<td align="left">Illustrative study uses 20 per scenario; ADR Section
+5.5 used 1,000 trials per treatment-benefit scenario and 10,000 per null
+scenario</td>
 </tr>
 </tbody>
 </table>
@@ -464,7 +465,7 @@ are listed in the input table above.</p>
 <p><img src="anthem-hfref_files/figure-html/accrual-projection-1.png" class="r-plt" alt="" width="672"></p>
 </div>
 <div class="section level2">
-<h2 id="runnable-survival_adapt-approximation">Runnable <code>survival_adapt()</code> approximation<a class="anchor" aria-label="anchor" href="#runnable-survival_adapt-approximation"></a>
+<h2 id="a-one-trial-goldilocks-approximation">A one-trial <code>goldilocks</code> approximation<a class="anchor" aria-label="anchor" href="#a-one-trial-goldilocks-approximation"></a>
 </h2>
 <p>The expected-success threshold is set to 1 at the 400-patient look.
 Since the package stops only when its predictive-probability point
@@ -660,17 +661,17 @@ error.</p>
 </h2>
 <p>The next two scenarios are intentionally small illustrative
 simulations: 20 trials under the null hazard ratio of 1 and 20 under the
-target hazard ratio of 0.70. This keeps the vignette runtime reasonable.
-The summary reports a Monte Carlo standard error and 95% Monte Carlo
-interval for every probability, making the numerical imprecision
-visible.</p>
+target hazard ratio of 0.70. The summary reports a Monte Carlo standard
+error and 95% Monte Carlo interval for every probability, making the
+numerical imprecision visible.</p>
 <p>The evaluated design uses 300 predictive draws per look to keep the
-vignette runtime manageable. This is not a precision recommendation: it
-gives the predictive-probability estimate a resolution of about 0.0033.
-The sponsor used 1,000 draws per look in its operating-characteristic
-simulations and at least 10,000 for actual interim analyses. The package
-reports exact bounds and Monte Carlo standard errors as diagnostics, but
-decisions use the point estimate.</p>
+vignette computation manageable. This is not a precision recommendation:
+it gives the predictive-probability estimate a resolution of about
+0.0033. The sponsor used 1,000 draws per look in its
+operating-characteristic simulations and at least 10,000 for actual
+interim analyses. The package reports exact bounds and Monte Carlo
+standard errors as diagnostics, but decisions use the point
+estimate.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">anthem_alt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trials</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="va">anthem_common</span>,</span>
@@ -769,11 +770,11 @@ decisions use the point estimate.</p>
 probability at one year, hazard ratio 0.70, peak accrual 26/month, and
 10% dropout - the ADR reported power 0.836 and mean sample size 833.
 Under the null with the same control profile it reported type I error
-0.021 and mean sample size 748. Those results came from a modified FACTS
-implementation, 1,000 alternative trials, 10,000 null trials, and 1,000
-predictive iterations per simulated interim. They are reference targets,
-not values that a 20-trial vignette simulation can meaningfully
-validate.</p>
+0.021 and mean sample size 748. Those results came from the sponsor’s
+modified FACTS analysis, 1,000 alternative trials, 10,000 null trials,
+and 1,000 predictive iterations per simulated interim. They are
+reference targets, not values that a 20-trial vignette simulation can
+meaningfully validate.</p>
 <p>The journal article summarized the same planning exercise more
 broadly as approximately 80% power for hazard ratio 0.70, a three-year
 control event rate of about 43%, 26 patients/month, and 10% dropout. The
@@ -781,7 +782,7 @@ small package results may differ because of Monte Carlo error and the
 structural approximations described next.</p>
 </div>
 <div class="section level2">
-<h2 id="why-this-is-not-a-bit-for-bit-reconstruction">Why this is not a bit-for-bit reconstruction<a class="anchor" aria-label="anchor" href="#why-this-is-not-a-bit-for-bit-reconstruction"></a>
+<h2 id="differences-from-the-sponsors-design">Differences from the sponsor’s design<a class="anchor" aria-label="anchor" href="#differences-from-the-sponsors-design"></a>
 </h2>
 <p>Several distinctions are consequential:</p>
 <ol style="list-style-type: decimal">
@@ -825,9 +826,9 @@ proportion below 0.01 permits zero, one, or two successes. The package
 additionally reports Monte Carlo standard errors and exact one-sided
 bounds in the decision trace, but these are diagnostic only.</li>
 </ol>
-<p>These are API limitations rather than undocumented choices hidden in
-the code. They are why the vignette compares broad behavior and workflow
-without claiming exact calibration.</p>
+<p>These differences concern the statistical and operational scope of
+the two designs. They are why the vignette compares broad behavior and
+operating characteristics without claiming exact calibration.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

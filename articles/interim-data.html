@@ -197,8 +197,8 @@ participant:</p>
 <span><span class="co">#&gt; 2      0.05      less         FALSE         FALSE</span></span></code></pre></div>
 <p>At the maximum sample size, equal randomization implies six
 participants per arm. Four have already accrued in each arm, so the
-function internally adds two potential future participants per arm for
-the maximum-sample calculation:</p>
+predictive calculation includes two potential future participants per
+arm:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">interim_result</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">$</span><span class="va">target_allocation</span></span>
 <span><span class="co">#&gt;   control treatment </span></span>
@@ -219,9 +219,9 @@ enrollment in either arm cannot already exceed its implied maximum.</p>
 </h2>
 <p>The decision uses the Monte Carlo point estimates. The standard
 errors and exact one-sided bounds describe finite-draw uncertainty but
-do not change the decision. The one-row trace uses the same schema as a
-simulated adaptive-trial trace and can be summarized or plotted with the
-existing helpers:</p>
+do not change the decision. The interim record contains the same
+quantities retained for a simulated adaptive trial and can be summarized
+or plotted in the same way:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/summarise_trial_trace.html">summarise_trial_trace</a></span><span class="op">(</span><span class="va">interim_result</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   interim_looks_completed last_look last_decision final_N final_post_prob_ha</span></span>
@@ -249,12 +249,10 @@ existing helpers:</p>
 <span><span class="co">#&gt; 1                             0                                      0</span></span>
 <span><span class="co">#&gt;   warning_messages</span></span>
 <span><span class="co">#&gt; 1</span></span></code></pre></div>
-<p>The metadata records the evaluated design, package version, data cut,
-fixed time-origin convention, and random-number policy. Supplying
-<code>seed</code> makes the calculation reproducible while preserving
-the caller’s random-number state. With <code>seed = NULL</code>, the
-calculation instead uses and advances the current R random-number
-state.</p>
+<p>The saved audit information records the evaluated design, package
+version, data cut, time-origin convention, and simulation seed.
+Supplying <code>seed</code> makes the predictive calculation exactly
+reproducible.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

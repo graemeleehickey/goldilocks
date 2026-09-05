@@ -1,6 +1,6 @@
 # Technical details of the Goldilocks design
 
-## Vignette summary
+## Overview
 
 The `goldilocks` package implements the Goldilocks adaptive sample-size
 design of Broglio, Connor, and Berry (2014) for time-to-event and
@@ -58,8 +58,13 @@ probabilities:
 2.  P\_{\max,\ell}, the probability of final success if the trial
     continues to N\_{\max}.
 
-These are compared with thresholds S\_\ell and F\_\ell, corresponding to
-the package arguments `Sn` and `Fn`.
+The current-sample-size probability is compared first with the
+immediate-success threshold Q\_\ell and then with the expected-success
+threshold S\_\ell. The maximum-sample-size probability is compared with
+the futility threshold F\_\ell. These correspond to the package
+arguments `Qn`, `Sn`, and `Fn`. The package requires Q\_\ell \ge
+S\_\ell; the default Q\_\ell = 1 disables immediate-success stopping
+because decisions use strict inequalities.
 
 ## 2. Continuous-time enrollment process
 
@@ -129,11 +134,11 @@ constant rate \rho, the successive gaps are independent
 the n-1, rather than n, random gaps.
 
 This differs from generating Poisson counts in unit-time bins and adding
-uniform jitter afterward. Binning is sensitive to the arbitrary width of
-a time unit and cannot represent a rate change inside a bin.
-Cumulative-intensity inversion handles integer and fractional knots
-identically and requires work proportional to the requested number of
-subjects rather than to the elapsed number of empty bins.
+uniform jitter afterward. Such binning is sensitive to the arbitrary
+width of a time unit and cannot represent a rate change inside a bin.
+Cumulative- intensity inversion instead preserves the prespecified
+continuous-time accrual model for integer and fractional change-points
+alike.
 
 For example,
 
@@ -152,12 +157,12 @@ enrollments per common time unit. `lambda_time`, enrollment times, event
 times, `cutpoints`, `generation_cutpoints`, and `end_of_study` should
 therefore all use the same unit, such as days or months.
 
-Although `lambda_time`, `cutpoints`, and `generation_cutpoints` share
-the same internal-knot API, enrollment knots operate on a different
-clock. Enrollment knots are trial-calendar times from first patient in.
-Both event-time partitions use follow-up from each individual subject’s
-enrollment. Their values and lengths are unrelated unless the scientific
-design makes them coincide.
+Although `lambda_time`, `cutpoints`, and `generation_cutpoints` are all
+entered as interior change-points, they operate on different time
+scales. Enrollment change-points are trial-calendar times from first
+patient in. Both event-time partitions use follow-up from each
+participant’s enrollment. Their values and lengths are unrelated unless
+the scientific design makes them coincide.
 
 The package does not currently model site activations, site-specific
 random rates, pauses, recruitment caps, or uncertainty in the supplied
@@ -226,11 +231,10 @@ and cumulative event probability are
 
 S_z(t) = \exp\\-H_z(t)\\, \qquad p_z(t) = 1 - S_z(t).
 
-The helper
+For simulation planning,
 [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
-solves the inverse problem used in simulation planning: given event
-probabilities at one or more time points, it returns the piecewise
-hazards that imply those probabilities. The helper
+returns the piecewise hazards implied by event probabilities at
+prespecified time points.
 [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
 evaluates p_z(\tau), and `haz_to_prop()` applies this transformation to
 posterior hazard draws.
@@ -265,17 +269,17 @@ independent Gamma prior
 
 where \alpha\_{0zj} is the shape and \beta\_{0zj} is the rate for arm z
 and interval j. This follows the
-[`stats::rgamma()`](https://rdrr.io/r/stats/GammaDist.html)
-parameterization. The argument `prior_surv = c(alpha0, beta0)`
-broadcasts one shape-rate pair over all arms and intervals.
-Alternatively, a two-row matrix supplies interval-specific shapes in row
-1 and rates in row 2, with columns in chronological interval order, and
-broadcasts that matrix across arms. Independent arm-specific priors are
-supplied as a list named `control` and `treatment`; each element may be
-a length-two vector or a two-row interval-specific matrix. Both arms
-must be specified, and no borrowing occurs between them.
-`prior_surv_final` accepts the same forms and defaults to `prior_surv`;
-it can therefore specify different priors by stage, arm, and interval.
+[`stats::rgamma()`](https://rdrr.io/r/stats/GammaDist.html) shape-rate
+parameterization. The specification `prior_surv = c(alpha0, beta0)`
+applies one shape-rate pair to every arm and interval. Alternatively, a
+two-row matrix specifies interval-specific shapes in row 1 and rates in
+row 2, with intervals in chronological order, and applies them to both
+arms. Independent arm- specific priors are supplied as a list named
+`control` and `treatment`; each element may be a length-two vector or a
+two-row interval-specific matrix. Both arms must be specified, and no
+borrowing occurs between them. `prior_surv_final` accepts the same
+specifications and defaults to `prior_surv`; priors may therefore differ
+by analysis stage, arm, and interval.
 
 At an analysis, let d\_{zj} be the number of observed events for
 treatment value z, interval j, and let y\_{zj} be the total observed
@@ -335,15 +339,14 @@ where F(t) = 1 - S(t). Equivalently, if U \sim
 
 T = F^{-1}\\F(u) + U\[1 - F(u)\]\\.
 
-This is implemented by
-[`pwe_impute()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.md).
-For future subjects in the maximum-sample-size calculation,
+[`pwe_impute()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.md)
+samples from this conditional distribution. For future participants in
+the maximum-sample-size calculation,
 [`pwe_sim()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_sim.md)
 draws unconditional event times from the same piecewise-exponential
-model. In the package implementation, these future event-time
-imputations do not require explicitly simulating future enrollment times
-at the interim look; the number of future subjects is determined by
-N\_{\max} - n\_\ell.
+model. The number of future participants is N\_{\max}-n\_\ell; their
+individual future enrollment times are not needed for this predictive
+calculation.
 
 Let \mathcal{D}\_{\ell}^{\mathrm{obs}} denote the data observed at look
 \ell, and let \mathcal{D}^{\mathrm{mis}} denote unobserved event times
@@ -354,22 +357,16 @@ p(\mathcal{D}^{\mathrm{mis}} \mid \mathcal{D}\_{\ell}^{\mathrm{obs}}) =
 \pi(\boldsymbol{\lambda} \mid \mathcal{D}\_{\ell}^{\mathrm{obs}})
 d\boldsymbol{\lambda}.
 
-This density is the mathematical target, not an object that the package
-evaluates in closed form. In the shared interim implementation,
-`posterior_from_sufficient_stats()` draws \boldsymbol{\lambda} and
-`impute_predictive_draws()` draws all completed outcomes conditional on
-those hazards. For survival, log-rank, and Cox methods, each replicate
-is represented by completed follow-up, event, and treatment vectors. The
-treatment assignments are fixed across replicates; only follow-up and
-event values requiring imputation are replaced. For
-`method = "riskdiff-wald"`, `method = "riskdiff-fm"`, and
-`method = "bayes-bin"`, the package instead carries forward the
-completed event and subject counts by arm because these are sufficient
-for the fixed-horizon binary analysis. Both representations apply the
-same completed-data analysis and average the same replicate-level
-success indicators.
+The package approximates this integral by Monte Carlo simulation. Each
+replicate draws \boldsymbol{\lambda} from its interim posterior,
+completes the unobserved outcomes conditional on those hazards, and
+applies the prespecified analysis. Treatment assignments remain fixed.
+Survival, log-rank, and Cox analyses use completed follow-up and event
+outcomes; fixed-horizon binary analyses use completed event counts and
+denominators by arm, which are sufficient statistics for the
+risk-difference and beta-binomial methods.
 
-## 6. Interim decision algorithm
+## 6. Interim decision rule
 
 At interim look \ell, the package first estimates the posterior of the
 hazard parameters from the currently observable data. It then uses Monte
@@ -431,8 +428,8 @@ d\mathcal{D}\_{n\_\ell}^{\mathrm{mis}}.
 Repeating the four-step procedure above for Monte Carlo replicate m =
 1,\ldots,M, where M is set by `N_impute`, gives
 
-\widehat{P}\_{n\_\ell} = \frac{1}{M}\sum\_{m=1}^{M} I\\\textrm{success
-in replicate } m\\.
+\widehat{P}\_{n\_\ell} = \frac{1}{M}\sum\_{m=1}^{M} I\\\text{success in
+replicate } m\\.
 
 For Bayesian completed-data analyses that use `N_mcmc` posterior draws,
 a replicate is counted as successful when its estimated posterior
@@ -443,19 +440,20 @@ Monte Carlo estimates are retained as diagnostics but do not change this
 classification.
 
 For the fixed-horizon binary methods, a completed replicate is
-represented by (x_0,n_0,x_1,n_1) in a two-arm design, or (x_1,n_1) in a
-single-arm design, where x_z and n_z are the event and subject counts in
-arm z. There is no loss of statistical information for the
-risk-difference or beta-binomial analysis because neither uses the
-individual event times after endpoint status is complete. Deterministic
-repeated count summaries within one interim look are evaluated once and
-reused. For `bin_method = "mc"`, repeated summaries are not reused: each
-predictive replicate receives an independent set of `N_mcmc`
-beta-posterior draws. Thus, count-summary reuse does not reduce the
-outer number of predictive imputations and does not alter either layer
-of Monte Carlo uncertainty.
+summarized by (x_0,n_0,x_1,n_1) in a two-arm design, or (x_1,n_1) in a
+single-arm design, where x_z and n_z are the event count and denominator
+in arm z. There is no loss of statistical information for the
+risk-difference or beta-binomial analysis because individual event times
+are not used once endpoint status is complete. With `bin_method = "mc"`,
+each predictive replicate receives an independent set of `N_mcmc`
+beta-posterior draws, thereby preserving the two sources of Monte Carlo
+variation.
 
-If
+The upper decisions are evaluated in order. If
+
+\widehat{P}\_{n\_\ell} \> Q\_\ell,
+
+the trial stops and immediately declares official success. Otherwise, if
 
 \widehat{P}\_{n\_\ell} \> S\_\ell,
 
@@ -479,15 +477,15 @@ P\_{\max,\ell} = \operatorname{E}\\
 \psi(\mathcal{D}\_{N\_{\max}}^{\mathrm{comp}}) \mid
 \mathcal{D}\_{\ell}^{\mathrm{obs}} \\.
 
-\widehat{P}\_{\max,\ell} = \frac{1}{M}\sum\_{m=1}^{M} I\\\textrm{success
-at } N\_{\max} \textrm{ in replicate } m\\.
+\widehat{P}\_{\max,\ell} = \frac{1}{M}\sum\_{m=1}^{M} I\\\text{success
+at } N\_{\max} \text{ in replicate } m\\.
 
-If
+If neither upper decision is crossed and
 
 \widehat{P}\_{\max,\ell} \< F\_\ell,
 
-the trial stops for futility. Otherwise, accrual continues to the next
-interim look.
+the trial stops for binding futility and declares official failure.
+Otherwise, accrual continues to the next interim look.
 
 The corresponding exact upper bound is reported in the trace as a
 diagnostic; it does not replace \widehat{P}\_{\max,\ell} in the stopping
@@ -495,27 +493,33 @@ rule.
 
 Thus the interim action at look \ell can be represented as
 
-A\_\ell = \begin{cases} \textrm{stop accrual for expected success}, &
-\widehat{P}\_{n\_\ell} \> S\_\ell,\\ \textrm{stop for futility}, &
-\widehat{P}\_{\max,\ell} \< F\_\ell,\\ \textrm{continue accrual}, &
-\textrm{otherwise}. \end{cases}
+A\_\ell = \begin{cases} \text{stop and declare immediate success}, &
+\widehat{P}\_{n\_\ell} \> Q\_\ell,\\ \text{stop accrual for expected
+success}, & S\_\ell \< \widehat{P}\_{n\_\ell} \le Q\_\ell,\\ \text{stop
+and declare binding futility}, & \widehat{P}\_{n\_\ell} \le S\_\ell
+\text{ and } \widehat{P}\_{\max,\ell} \< F\_\ell,\\ \text{continue
+accrual}, & \text{otherwise}. \end{cases}
 
-The first look satisfying either stopping condition defines the adaptive
-stopping look,
+The first look producing a non-continuation decision defines the
+adaptive stopping look. Because Q\_\ell \ge S\_\ell, the
+immediate-success region is contained in the upper stopping region, so
+this can be written as
 
-L^\* = \inf\\\ell : L\_{n\_\ell} \> S\_\ell \textrm{ or } U\_{\max,\ell}
-\< F\_\ell\\,
+L^\* = \inf\\\ell : \widehat{P}\_{n\_\ell} \> S\_\ell \text{ or }
+\widehat{P}\_{\max,\ell} \< F\_\ell\\,
 
 with L^\* = L + 1 if no interim stopping condition is met and the design
 continues to N\_{\max}.
 
 ## 7. Final analysis
 
-The final analysis is conducted after accrual has stopped and the
-relevant follow-up has completed for the enrolled cohort, subject to the
-handling of loss to follow-up described below. The final rule supplies
-the binary success indicator used inside the predictive probability
-calculations.
+After an expected-success stop or completion of enrollment, the final
+analysis is conducted when the relevant follow-up has completed for the
+enrolled cohort, subject to the handling of loss to follow-up described
+below. Immediate success and binding futility are terminal official
+decisions at the interim look and do not require a later analysis to
+determine `trial_success`. The final rule below also supplies the binary
+success indicator used inside the predictive probability calculations.
 
 ### 7.1 Frequentist final tests
 
@@ -529,9 +533,9 @@ is not a posterior probability, but it puts frequentist and Bayesian
 rules on a common “larger is stronger evidence” scale. For example, a
 one-sided test at \alpha = 0.025 corresponds to `prob_ha = 0.975`.
 
-The deprecated `method = "riskdiff"` is normalized to `"riskdiff-wald"`
-with a warning. The retained design arguments record the canonical
-`"riskdiff-wald"` name.
+For backward compatibility, `method = "riskdiff"` is accepted as an
+alias for `"riskdiff-wald"` and produces a warning. Results identify the
+analysis as `"riskdiff-wald"`.
 
 For the log-rank option, let Z\_{\mathrm{LR}} denote the signed log-rank
 statistic, with positive values corresponding to excess events in the
@@ -608,7 +612,7 @@ model-based rows because of the sign convention of the package’s
 log-rank statistic.
 
 The risk-difference analysis discards event-time information and
-requires complete binary endpoint status. The returned `est_final` is
+requires complete binary endpoint status. `est_final` reports
 \widehat\Delta.
 
 When a Cox or risk-difference final analysis uses multiple imputation,
@@ -661,15 +665,12 @@ and \boldsymbol{\lambda}\_0:
 \Delta^{(b)} = \left\[1 - \exp\\-H_1^{(b)}(\tau)\\\right\] - \left\[1 -
 \exp\\-H_0^{(b)}(\tau)\\\right\], \qquad b = 1,\ldots,B.
 
-In the implementation, fixed analysis-interval widths span from time
-zero through `end_of_study`; they do not shorten to the maximum
-follow-up observed at an interim or final data cut. Observed events and
-person-time determine the Gamma posterior for each interval separately.
-General analyses transform posterior hazards through `haz_to_prop()` and
-[`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md),
-while repeated predictive and imputed-final Bayesian-survival analyses
-use an equivalent prepared calculation with the precomputed widths. Both
-routes target the same H_a(\tau) and preserve the same posterior draws.
+The fixed analysis-interval widths span time zero through
+`end_of_study`; they do not shorten to the maximum follow-up observed at
+an interim or final data cut. Observed events and person-time determine
+the Gamma posterior in each interval. Posterior hazards are transformed
+to H_a(\tau) and then to the event probability at the prespecified
+endpoint horizon.
 
 The Monte Carlo estimate of the posterior probability for
 `alternative = "less"` is
@@ -681,11 +682,11 @@ where B is set by `N_mcmc`.
 
 With `alternative = "less"`, success is declared when
 
-\Pr(\Delta \< h_0 \mid \mathcal{D}) \> \texttt{prob_ha}.
+\Pr(\Delta \< h_0 \mid \mathcal{D}) \> \texttt{prob\\ha}.
 
 With `alternative = "greater"`, success is declared when
 
-\Pr(\Delta \> h_0 \mid \mathcal{D}) \> \texttt{prob_ha}.
+\Pr(\Delta \> h_0 \mid \mathcal{D}) \> \texttt{prob\\ha}.
 
 The Bayesian final test is one-sided in the package;
 `alternative = "two.sided"` is not supported.
@@ -720,11 +721,13 @@ probability. For an adverse binary event, benefit usually means
 \Delta\_{\mathrm{bin}} \< 0. With `alternative = "less"`, success is
 declared when
 
-\Pr(\Delta\_{\mathrm{bin}} \< h_0 \mid \mathcal{D}) \> \texttt{prob_ha}.
+\Pr(\Delta\_{\mathrm{bin}} \< h_0 \mid \mathcal{D}) \>
+\texttt{prob\\ha}.
 
 With `alternative = "greater"`, success is declared when
 
-\Pr(\Delta\_{\mathrm{bin}} \> h_0 \mid \mathcal{D}) \> \texttt{prob_ha}.
+\Pr(\Delta\_{\mathrm{bin}} \> h_0 \mid \mathcal{D}) \>
+\texttt{prob\\ha}.
 
 In a single-arm design, the estimand is \pi_1 and `h0` is the external
 benchmark event probability. Thus, `alternative = "less"` declares
@@ -740,16 +743,12 @@ posterior mean or treatment-control difference. With
 two-arm posterior difference. The argument `N_mcmc` controls the number
 of Monte Carlo beta draws only when `bin_method = "mc"`.
 
-The completed-data calculation is implemented from (x_z,n_z) directly.
-Ordinary patient-level analyses first verify complete endpoint
-ascertainment and then reduce the data to these counts. Interim
-prediction obtains the same counts from the predictive event matrices
-without constructing a separate patient-level data frame for every
-replicate. Normal, quadrature, and risk-difference results are
-deterministic conditional on the counts, so an identical count summary
-within the same look can reuse its result. Monte Carlo beta-binomial
-results are always recalculated to preserve fresh posterior draws and
-their random-number order.
+The completed-data calculation depends on (x_z,n_z) directly.
+Participant- level data are reduced to these sufficient statistics after
+complete endpoint ascertainment has been verified. Normal-approximation,
+quadrature, and risk- difference results are deterministic conditional
+on these counts. With `bin_method = "mc"`, posterior simulation is
+repeated independently for every predictive replicate.
 
 ### 7.4 Loss to follow-up at the final analysis
 
@@ -788,13 +787,12 @@ repeated simulation over clinically relevant scenarios.
 
 For a candidate design,
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
-repeatedly calls
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-and
+generates repeated trials and
 [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
 estimates:
 
 - power, or type I error under a null scenario;
+- probability of declaring immediate success;
 - probability of stopping for expected success;
 - probability of stopping for futility;
 - probability of reaching N\_{\max};
@@ -810,9 +808,10 @@ and follow-up duration. The trial-level random variables are:
 | Symbol | Meaning                                                     |
 |--------|-------------------------------------------------------------|
 | N_R    | enrolled sample size in simulated trial R                   |
+| I_R    | indicator that trial R declared immediate success           |
 | E_R    | indicator that trial R stopped accrual for expected success |
 | F_R    | indicator that trial R stopped for futility                 |
-| Z_R    | final success indicator in trial R                          |
+| Z_R    | official success indicator in trial R                       |
 
 Let \Theta_0 denote the null parameter space, i.e. the set of
 data-generating scenarios in which the treatment does not satisfy the
@@ -821,14 +820,16 @@ scenarios with no beneficial treatment effect; in practice, it should be
 explored across plausible nuisance parameters such as control event
 rates and accrual rates. The main operating characteristics are
 
-\operatorname{Power}(\theta) = \Pr\_\theta(Z_R = 1, F_R = 0),
+\operatorname{Power}(\theta) = \Pr\_\theta(Z_R = 1),
 
-\operatorname{Type\\ I\\ error}(\theta_0) = \Pr\_{\theta_0}(Z_R = 1, F_R
-= 0), \qquad \theta_0 \in \Theta_0,
+\operatorname{Type\\ I\\ error}(\theta_0) = \Pr\_{\theta_0}(Z_R = 1),
+\qquad \theta_0 \in \Theta_0,
 
-\Pr\_\theta(\textrm{stop for expected success}) = \Pr\_\theta(E_R = 1),
+\Pr\_\theta(\text{declare immediate success}) = \Pr\_\theta(I_R = 1),
 
-\Pr\_\theta(\textrm{stop for futility}) = \Pr\_\theta(F_R = 1),
+\Pr\_\theta(\text{stop for expected success}) = \Pr\_\theta(E_R = 1),
+
+\Pr\_\theta(\text{stop for futility}) = \Pr\_\theta(F_R = 1),
 
 and
 
@@ -841,7 +842,7 @@ The `stop_and_fail` summary estimates
 which is the probability that accrual stops for expected success but the
 final analysis does not meet the success criterion.
 
-The basic workflow is:
+One simulation specification is:
 
 ``` r
 
@@ -857,6 +858,7 @@ out <- sim_trials(
   prior_surv       = prior_surv,
   Fn               = Fn,
   Sn               = Sn,
+  Qn               = Qn,
   prob_ha          = prob_ha,
   N_impute         = N_impute,
   N_mcmc           = N_mcmc,
@@ -885,14 +887,13 @@ clinical trials. The optional named `max_mcse` targets produce a warning
 when the achieved Monte Carlo precision is too weak for the intended
 comparison.
 
-### 8.1 Visual diagnostics
+### 8.1 Graphical assessment
 
-The simulation plotting functions expose three different levels of the
-design:
+The simulation plots address three complementary statistical questions:
 
 - [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)
-  compares final success, stopping probabilities, and mean sample size
-  across data-generating scenarios.
+  compares official success, immediate-success and other stopping
+  probabilities, and mean sample size across data-generating scenarios.
 - [`plot_sim_stopping()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_stopping.md)
   expands one scenario into marginal, conditional, or cumulative
   stopping summaries, or a count-based flowchart through successive
@@ -932,10 +933,10 @@ plot_sim_stopping(target_sims_traced, type = "flowchart")
 plot_sim_decisions(target_sims_traced)
 ```
 
-Retaining traces does not change the trial summaries or random-number
-path, but it increases the output size. Trace-recorded sample sizes also
-let conditional, cumulative, and flowchart stopping views display
-reached looks at which no trial stopped. Traces are therefore usually
+Retaining interim histories does not change the simulated trials, but it
+requires additional storage. The recorded sample sizes allow
+conditional, cumulative, and flowchart displays to include looks reached
+without a stopping decision. Detailed histories are therefore usually
 most useful for selected scenarios after a broad
 operating-characteristic grid has been screened.
 
@@ -951,31 +952,29 @@ characteristics because it determines how much additional information is
 observed before the final analysis.
 
 The Monte Carlo sizes `N_impute`, `N_mcmc`, and `N_trials` should be
-chosen so that simulation error is small relative to the decision being
-made. `goldilocks` reports the outer estimate, Monte Carlo standard
-error, exact bounds, draw counts, and stopping reason in the decision
-trace. Decisions use strict comparisons of the point estimates with
+chosen so that simulation error is small relative to the design decision
+being made. `goldilocks` reports the estimate, Monte Carlo standard
+error, exact bounds, number of draws, and stopping reason in the interim
+history. Decisions use strict comparisons of the point estimates with
 their thresholds; the bounds quantify Monte Carlo uncertainty but do not
-alter those decisions. The defaults `N_impute = 500` and `N_mcmc = 1000`
-reduce the coarseness of the former undocumented 10-draw defaults, while
-`mc_conf_level = 0.95` sets the confidence level for the diagnostic
-bounds. Small values remain useful for examples and package tests, but
-operating characteristics must be calibrated with the exact Monte Carlo
-settings planned for the design.
+alter those decisions. `mc_conf_level = 0.95` sets the confidence level
+for these bounds. Small values are appropriate only for illustration;
+operating characteristics must be calibrated with the Monte Carlo
+settings prespecified for the design.
 
 ## 9. Threshold selection
 
-The thresholds S\_\ell and F\_\ell may be constant across looks or may
-vary by look. They interact with the final analysis threshold, number
-and timing of looks, endpoint delay, accrual rate, loss to follow-up,
-prior distribution, and maximum sample size.
+The thresholds Q\_\ell, S\_\ell, and F\_\ell may be constant across
+looks or may vary by look. They interact with the final analysis
+threshold, number and timing of looks, endpoint delay, accrual rate,
+loss to follow-up, prior distribution, and maximum sample size.
 
 If type I error is too high, possible remedies include increasing
-`prob_ha`, increasing the expected-success thresholds, reducing the
-number of looks, or altering follow-up requirements. If power is too
-low, the maximum sample size, futility threshold, expected-success
-threshold, or final analysis threshold may need reconsideration. Each
-change should be rechecked under null and alternative scenarios.
+`prob_ha`, increasing `Qn` or `Sn`, reducing the number of looks, or
+altering follow-up requirements. If power is too low, the maximum sample
+size, futility threshold, upper thresholds, or final analysis threshold
+may need reconsideration. Each change should be rechecked under null and
+alternative scenarios.
 
 The quantity `stop_and_fail` is particularly useful when tuning S\_\ell.
 It estimates how often a trial stops accrual for expected success but
@@ -995,11 +994,14 @@ cohort.
 This distinction matters for delayed outcomes. A trial may enroll many
 subjects before accumulating enough events for an event-driven interim
 analysis. Goldilocks uses the partial information available during
-accrual to decide whether additional subjects are needed, while
-preserving a single preplanned final analysis after the enrolled
-subjects have completed follow-up.
+accrual to decide whether additional subjects are needed. With the
+default `Qn = 1`, success is determined at a single preplanned final
+analysis after the enrolled subjects have completed follow-up. A design
+with `Qn < 1` can instead declare terminal success at an interim look
+and therefore requires explicit operating- characteristic calibration of
+that additional decision.
 
-## 11. Package-specific scope
+## 11. Scope and statistical limitations
 
 The time-to-event example in Broglio et al. (2014) uses a
 Gamma-exponential prediction model. `goldilocks` extends this to a
@@ -1016,16 +1018,16 @@ proof-of-concept settings, but validity then depends on the benchmark
 being transportable to the enrolled population.
 
 For complete binary endpoints, `method = "bayes-bin"` replaces the
-piecewise-exponential completed-data analysis with a conjugate
-beta-binomial analysis. The interim prediction machinery still imputes
-not-yet-observed endpoint statuses from the piecewise-exponential
-event-time model. These are separate models rather than components of
-one joint Bayesian model: the Gamma hazard prior used for imputation
-does not determine the Beta event-probability prior used for
-completed-data analysis. Both priors can affect predictive decisions
-when outcomes are pending. The retained `arguments` metadata records
-`prior_surv`, `prior_surv_final`, `prior_bin`, and the imputation
-horizon `end_of_study` so the modular specification can be audited.
+piecewise- exponential completed-data analysis with a conjugate
+beta-binomial analysis. Pending endpoint statuses are still imputed from
+the piecewise-exponential event-time model. These are separate models
+rather than components of one joint Bayesian model: the Gamma hazard
+prior used for imputation does not determine the Beta event-probability
+prior used for completed-data analysis. Both priors can affect
+predictive decisions when outcomes are pending. The analysis output
+records `prior_surv`, `prior_surv_final`, `prior_bin`, and the
+imputation horizon `end_of_study` so that the complete statistical
+specification can be reviewed.
 
 ## References
 

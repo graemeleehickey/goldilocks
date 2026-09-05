@@ -18,10 +18,9 @@ set up a Goldilocks design with:
   posterior probability threshold on the cumulative-failure-probability
   scale.
 
-We use a small example so that the simulation can be run while reading
-the vignette; the live
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-chunk takes around 10–20 seconds and is cached on first knit.
+We first use a small example to show the analysis of one adaptive trial,
+then outline the repeated simulations needed to evaluate operating
+characteristics.
 
 ## When piecewise hazards help
 
@@ -54,9 +53,9 @@ different boundary representations at an isolated cutpoint give the same
 continuous event-time distribution because the cutpoint itself has
 probability zero.
 
-The helper
+For design specification,
 [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
-maps cumulative event probabilities at given times into the
+maps cumulative event probabilities at selected times to the
 corresponding piecewise hazards.
 
 ## Setting up the design
@@ -78,7 +77,7 @@ piecewise hazards:
 
 ``` r
 
-cutpoints <- 6         # one internal cut at 6 months -> two intervals
+cutpoints <- 6         # one change-point at 6 months gives two intervals
 end_of_study <- 24
 
 hc <- prop_to_haz(probs = c(0.30, 0.50), cutpoints = cutpoints, endtime = end_of_study)
@@ -91,12 +90,10 @@ round(rbind(control = hc, treatment = ht), 4)
 ```
 
 The first column is the generating hazard during \[0, 6) months and the
-second column is the hazard from 6 months onward. In posterior
-sufficient statistics, the same columns receive observed events from
-(0,6\] and (6,\infty) respectively. Both arms have a higher hazard in
-the early window. We can sanity-check that the implied survival
-probabilities at 24 months match what we specified by running the
-cumulative incidence computation back through
+second is the hazard from 6 months onward. In posterior sufficient
+statistics, the same columns receive observed events from (0,6\] and
+(6,\infty), respectively. Both arms have a higher hazard in the early
+window. The implied 24-month survival probabilities can be verified with
 [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md):
 
 ``` r
@@ -151,7 +148,8 @@ imputed dataset. The fraction of imputations that would declare success
 after enrollment continues to the maximum sample size is compared with
 `Fn` for the futility rule. Separately, the fraction that would declare
 success after completing follow-up for the subjects currently enrolled
-is compared with `Sn` for the expected-success rule.
+is compared with `Sn` for the expected-success rule. The default
+`Qn = 1` disables the optional immediate-success rule in this example.
 
 We use an independent weakly informative \operatorname{Gamma}(0.1, 0.1)
 prior on every hazard component:
@@ -218,18 +216,17 @@ different clocks: `time` is subject-relative follow-up, whereas
 
 ## A single simulated trial
 
-We will run one trial under the alternative hypothesis to illustrate the
-mechanics. We choose `interim_look = 60` (the minimum required is
-`max(block) = 4`) and a constant accrual rate of 5 enrollments per
-month. With `lambda_time = NULL`, the first patient is placed at time
-zero and subsequent inter-arrival gaps are generated exactly from an
-exponential distribution with rate 5. Piecewise accrual is specified
-using positive internal knots only; for example, `lambda = c(2, 5)` and
-`lambda_time = 6` assigns positive realized enrollment times in (0,6\]
-to the rate of 2 enrollments per month and later times to the rate of 5.
-The fixed first patient at zero is handled separately. These
-calendar-time enrollment knots are distinct from the subject-follow-up
-hazard `cutpoints` used above.
+We simulate one trial under the alternative hypothesis to illustrate the
+statistical calculations. The interim analysis is scheduled after 60
+participants have enrolled; the minimum allowable value is the
+randomization block size, `max(block) = 4`. A constant enrollment rate
+of five participants per month is assumed. With `lambda_time = NULL`,
+the first participant is placed at time zero and subsequent
+inter-arrival times follow an exponential distribution with rate 5. For
+piecewise accrual, `lambda = c(2, 5)` and `lambda_time = 6` would
+specify two expected enrollments per month through month 6 and five per
+month thereafter. Enrollment-rate change-points use trial calendar time,
+whereas hazard `cutpoints` use participant follow-up time.
 
 ``` r
 
@@ -242,7 +239,7 @@ out <- survival_adapt(
   generation_cutpoints = cutpoints,
   N_total          = 100,
   lambda           = 5,                # enrollments per month
-  lambda_time      = NULL,             # no internal enrollment-rate knots
+  lambda_time      = NULL,             # constant enrollment rate
   interim_look     = 60,
   end_of_study     = end_of_study,
   prior_surv       = prior_surv,
@@ -271,11 +268,13 @@ out
 #> 1             1612.338                   71
 ```
 
-The output reports the posterior probability of the alternative at the
-final (or stopped) analysis (`post_prob_ha`), the posterior mean
-treatment effect on the cumulative-failure scale (`est_final`), the
-predictive probability of success (`ppp_success`), and indicators for
-whether the trial stopped early for futility or expected success.
+For this trial replicate, `post_prob_ha` reports the posterior
+probability of the alternative at the final (or stopped) analysis
+(`post_prob_ha`), the posterior mean treatment effect on the
+cumulative-failure scale (`est_final`), the predictive probability of
+success (`ppp_success`), and indicators for immediate success,
+expected-success stopping, or futility. Immediate success is disabled in
+this example by the default `Qn = 1`.
 
 ## Notes on the piecewise model
 

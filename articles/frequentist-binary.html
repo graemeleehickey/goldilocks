@@ -83,8 +83,8 @@ test.</li>
 <p>Both methods estimate the treatment-minus-control event-risk
 difference,</p>
 <p><span class="math display">\widehat\Delta = \widehat
-p_\text{treatment} -
-  \widehat p_\text{control},</span></p>
+p_{\text{treatment}} -
+  \widehat p_{\text{control}},</span></p>
 <p>and compare it with the null value or margin supplied through
 <code>h0</code>. All three alternatives are supported. For example, when
 events are undesirable, <code>alternative = "less"</code> asks whether
@@ -105,8 +105,8 @@ the usual way.</p>
 unpooled plug-in variance. It is retained for designs that prespecify
 that analysis and for reproducing earlier results. The former
 <code>method = "riskdiff"</code> name remains a deprecated alias for
-<code>"riskdiff-wald"</code> and emits a warning. New code should select
-one of the two procedures explicitly.</p>
+<code>"riskdiff-wald"</code> and produces a warning. New analyses should
+prespecify one of the two procedures explicitly.</p>
 <p>The Farrington-Manning calculation has no continuity correction. If
 its null-constrained variance is zero, <code>goldilocks</code> defines
 the score statistic as zero when the observed risk difference equals
@@ -173,8 +173,9 @@ That combined result is a pooled Wald analysis for either method
 setting; it is not a Farrington-Manning test. The same
 neutral-or-directional convention prevents an error when its total
 variance is zero.</p>
-<p>The selected method is retained with the evaluated design arguments,
-so a separate analysis-metadata object is not needed.</p>
+<p>The saved results include the selected method and evaluated design
+arguments, providing an auditable record of the analysis
+specification.</p>
 </div>
 <div class="section level2">
 <h2 id="reference">Reference<a class="anchor" aria-label="anchor" href="#reference"></a>

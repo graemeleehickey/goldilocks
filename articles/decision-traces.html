@@ -72,12 +72,11 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://graemeleehickey.github.io/goldilocks/">goldilocks</a></span><span class="op">)</span></span></code></pre></div>
 <p>An adaptive trial is easier to assess when the final result can be
 connected back to the interim decisions that led to it. By default,
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> returns its compact, one-row final
-summary. Set <code>return_trace = TRUE</code> to request a
-<code>goldilocks_trial</code> object with that summary and a tidy row
-for each interim look.</p>
+<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> returns a one-row trial summary. Set
+<code>return_trace = TRUE</code> to retain the summary together with one
+record for each completed interim look.</p>
 <div class="section level2">
-<h2 id="a-traced-trial">A traced trial<a class="anchor" aria-label="anchor" href="#a-traced-trial"></a>
+<h2 id="reviewing-one-trials-interim-history">Reviewing one trial’s interim history<a class="anchor" aria-label="anchor" href="#reviewing-one-trials-interim-history"></a>
 </h2>
 <p>This small Bayesian survival design has two interim looks. The
 treatment arm is assumed to have a lower cumulative failure probability
@@ -104,6 +103,7 @@ by 24 months.</p>
 <span>  h0 <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  Fn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
 <span>  Sn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">0.90</span><span class="op">)</span>,</span>
+<span>  Qn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.99</span>, <span class="fl">0.99</span><span class="op">)</span>,</span>
 <span>  prob_ha <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  N_impute <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  N_mcmc <span class="op">=</span> <span class="fl">20</span>,</span>
@@ -126,8 +126,9 @@ by 24 months.</p>
 <span><span class="co">#&gt; 1             1643.469                   76</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Interim looks completed: 2</span></span></code></pre></div>
-<p>The summary element is the familiar final analysis output. The trace
-element is an audit trail of the interim path.</p>
+<p>The trial summary reports the official outcome and final analysis,
+when one is required. The interim history provides an audit trail of the
+predictive probabilities and decisions.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">trial</span><span class="op">$</span><span class="va">summary</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
@@ -151,8 +152,8 @@ element is an audit trail of the interim path.</p>
 <span><span class="co">#&gt; 1         0.1095445          0.3935849          0.7829314                 20</span></span>
 <span><span class="co">#&gt; 2         0.1112430          0.2586506          0.6530686                 20</span></span>
 <span><span class="co">#&gt;   success_threshold immediate_success_threshold immediate_success_crossed</span></span>
-<span><span class="co">#&gt; 1              0.95                           1                     FALSE</span></span>
-<span><span class="co">#&gt; 2              0.90                           1                     FALSE</span></span>
+<span><span class="co">#&gt; 1              0.95                        0.99                     FALSE</span></span>
+<span><span class="co">#&gt; 2              0.90                        0.99                     FALSE</span></span>
 <span><span class="co">#&gt;   expected_success_crossed ppp_success_at_max ppp_success_at_max_mcse</span></span>
 <span><span class="co">#&gt; 1                    FALSE                0.6               0.1095445</span></span>
 <span><span class="co">#&gt; 2                    FALSE                0.4               0.1095445</span></span>
@@ -181,15 +182,16 @@ element is an audit trail of the interim path.</p>
 <span><span class="co">#&gt; 1         0.45                0.4             0         FALSE</span></span></code></pre></div>
 <p>For each completed look, <code>ppp_stop_now</code> is the predictive
 probability of success if enrollment stops at that look. It is compared
-with <code>success_threshold</code>. <code>ppp_success_at_max</code> is
-the predictive probability of success if enrollment continues to the
-maximum sample size. It is compared with
-<code>futility_threshold</code>. The decision column records whether the
-design continued, stopped for expected success, or stopped for
-futility.</p>
-<p>The trace does not retain posterior draws or completed imputed data
-sets. That keeps a traced trial small enough to inspect and share while
-leaving the underlying random-number path unchanged.</p>
+first with <code>immediate_success_threshold</code> and then with
+<code>success_threshold</code>. <code>ppp_success_at_max</code> is the
+predictive probability of success if enrollment continues to the maximum
+sample size and is compared with <code>futility_threshold</code>. The
+<code>decision</code> column records whether the design declared
+immediate success, stopped accrual for expected success, stopped for
+binding futility, or continued.</p>
+<p>The interim history retains Monte Carlo summaries rather than every
+posterior draw or completed imputation. It is therefore concise enough
+to include in a simulation review or interim-analysis record.</p>
 </div>
 <div class="section level2">
 <h2 id="visualizing-the-enrollment-plan">Visualizing the enrollment plan<a class="anchor" aria-label="anchor" href="#visualizing-the-enrollment-plan"></a>
@@ -212,11 +214,11 @@ design has a constant enrollment rate, each displayed milestone time is
 its mean arrival time, <span class="math inline">(N - 1) /
 \lambda</span>. For piecewise enrollment rates, the plot instead labels
 the time at which expected cumulative enrollment reaches the milestone.
-Supplying <code>seed</code> makes the displayed trajectories
-reproducible without changing the caller’s random-number state.</p>
+Supplying <code>seed</code> makes the displayed enrollment trajectories
+reproducible.</p>
 </div>
 <div class="section level2">
-<h2 id="visualizing-the-path">Visualizing the path<a class="anchor" aria-label="anchor" href="#visualizing-the-path"></a>
+<h2 id="plotting-the-interim-decision-path">Plotting the interim decision path<a class="anchor" aria-label="anchor" href="#plotting-the-interim-decision-path"></a>
 </h2>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_trial_trace.html">plot_trial_trace</a></span><span class="op">(</span><span class="va">trial</span><span class="op">)</span></span></code></pre></div>
@@ -230,16 +232,16 @@ and remain visible as ordinary R warnings.</p>
 <div class="section level2">
 <h2 id="summarizing-many-simulated-trials">Summarizing many simulated trials<a class="anchor" aria-label="anchor" href="#summarizing-many-simulated-trials"></a>
 </h2>
-<p>Traces are intended for examining individual trial paths. By default,
-<code><a href="../reference/sim_trials.html">sim_trials()</a></code> keeps only its compact result data frame,
-which is more suitable for large operating characteristic simulations.
-Set <code>return_trace = TRUE</code> to retain the interim paths across
-simulations. <code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> summarizes where and why
-enrollment stopped through marginal, conditional, cumulative, or
-flowchart views, while <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code> shows how the
-two predictive probabilities map to the decision regions at each look.
-Supplying the complete traced result ensures that stopping views include
-reached looks at which no trial stopped.</p>
+<p>Interim histories are intended for examining individual trial paths.
+By default, <code><a href="../reference/sim_trials.html">sim_trials()</a></code> retains the trial-level outcomes
+needed to estimate operating characteristics. Set
+<code>return_trace = TRUE</code> to retain the interim paths as well.
+<code><a href="../reference/plot_sim_stopping.html">plot_sim_stopping()</a></code> summarizes where and why enrollment
+stopped through marginal, conditional, cumulative, or flowchart views,
+while <code><a href="../reference/plot_sim_decisions.html">plot_sim_decisions()</a></code> shows how the two predictive
+probabilities map to the decision regions at each look. Supplying the
+complete traced result ensures that stopping views include reached looks
+at which no trial stopped.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sims</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">hazard_treatment</span>,</span>
@@ -258,6 +260,7 @@ reached looks at which no trial stopped.</p>
 <span>  h0 <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  Fn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
 <span>  Sn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">0.90</span><span class="op">)</span>,</span>
+<span>  Qn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.99</span>, <span class="fl">0.99</span><span class="op">)</span>,</span>
 <span>  prob_ha <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  N_impute <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  N_mcmc <span class="op">=</span> <span class="fl">20</span>,</span>
@@ -292,11 +295,11 @@ effect values to <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</
 <span>  effect <span class="op">=</span> <span class="st">"true_event_probability_difference"</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"True treatment-control event-probability difference"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>For reproducible simulations, set <code>seed</code> in
-<code><a href="../reference/sim_trials.html">sim_trials()</a></code>. The per-trial random streams make the compact
-simulation results reproducible across supported parallel backends. For
-a detailed explanation of the decision algorithm and calibration, see
-the “Technical details of the Goldilocks design” vignette.</p>
+<p>For reproducible simulations, prespecify <code>seed</code> in
+<code><a href="../reference/sim_trials.html">sim_trials()</a></code>. Results are then reproducible whether the
+trials are evaluated sequentially or in parallel. For a detailed
+explanation of the decision algorithm and calibration, see the
+“Technical details of the Goldilocks design” vignette.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

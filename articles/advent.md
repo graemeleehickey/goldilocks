@@ -65,7 +65,7 @@ In the code below, roll-in subjects and randomized subjects excluded
 from the analysis population are ignored. The simulation starts directly
 with the modeled 1:1 analysis population.
 
-## The Goldilocks flow
+## Adaptive decision process
 
 The ADVENT design paper includes a flowchart for the adaptive sample
 size algorithm. The chart below recreates the logic in package terms
@@ -178,15 +178,13 @@ its prior, which is also the package default. The examples set
 results that used neighboring-interval propagation can be reproduced
 with the legacy `empty_interval = "propagate"` option.
 
-The SAP reports M = 5000 completed datasets for its
+The SAP reports M = 5000 completed data sets for its
 predictive-probability and multiple-imputation calculations. The
-evaluated parts of this vignette deliberately use fewer imputations: 50
-for the worked single trials and 30 for the operating-characteristic
-example. We do not use M = 5000 in evaluated code in order to keep
-vignette computation time to a minimum. The unevaluated fuller template
-does use M = 5000 to show the ADVENT setting. Consequently, the
-numerical results shown in the vignette are demonstrations of package
-workflow rather than reproductions of the ADVENT calibration.
+evaluated examples deliberately use fewer imputations: 50 for the
+single-trial analyses and 30 for the operating- characteristic example.
+The fuller, unevaluated specification uses M = 5000 to represent the
+ADVENT setting. Consequently, the numerical results shown here
+illustrate the analysis but do not reproduce the ADVENT calibration.
 
 ## SAP event-time models and time units
 
@@ -218,14 +216,11 @@ safety_hazard_per_day <- c(0.011137363, 1.53540e-5)
 event_free_at_interval_end <- function(hazard, interval_end) {
   vapply(seq_along(hazard), function(j) {
     cutpoints <- if (j == 1L) NULL else interval_end[seq_len(j - 1L)]
-    post <- array(hazard[seq_len(j)], dim = c(1L, j, 1L))
-
-    1 - goldilocks:::haz_to_prop(
-      post = post,
+    1 - ppwe(
+      hazard = matrix(hazard[seq_len(j)], nrow = 1L),
       cutpoints = cutpoints,
-      end_of_study = interval_end[j],
-      single_arm = TRUE
-    )$p_treatment
+      end_of_study = interval_end[j]
+    )
   }, numeric(1))
 }
 
@@ -466,9 +461,9 @@ looks.
 
 The following
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-call simulates and analyzes the effectiveness endpoint for **one
-simulated trial**. It does not estimate operating characteristics over
-multiple trials.
+analysis simulates and evaluates the effectiveness endpoint for **one
+trial replicate**. It does not estimate operating characteristics over
+repeated trials.
 
 ``` r
 
@@ -515,7 +510,7 @@ advent_effectiveness
 #> 1             123841.1                  285
 ```
 
-The most important columns are:
+The principal trial-level quantities are:
 
 - `N_enrolled`: the selected sample size for this simulated trial.
 - `stop_expected_success`: whether enrollment stopped because the
@@ -538,7 +533,7 @@ threshold. Success in the code means:
 
 This
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
-call likewise represents **one simulated trial** for the safety
+analysis likewise represents **one trial replicate** for the safety
 endpoint.
 
 ``` r
@@ -594,13 +589,13 @@ not impose that joint rule. Instead, they show how each
 endpoint-specific Bayesian rule maps to
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
 
-## A compact design object
+## A reusable design specification
 
-For simulations, it is helpful to collect the settings that genuinely
-are common and then add endpoint-specific cut-points and designated
-missingness fractions. Keeping those endpoint-specific arguments out of
-the common object prevents an effectiveness setting from being reused
-accidentally for safety, or vice versa.
+For simulations, it is helpful to collect the assumptions that genuinely
+are common and then add endpoint-specific cut-points and missingness
+proportions. Keeping endpoint-specific assumptions separate reduces the
+risk of applying an effectiveness assumption to the safety endpoint, or
+vice versa.
 
 ``` r
 
@@ -707,7 +702,8 @@ advent_effectiveness_args
 #> [1] 0.075
 ```
 
-Then the endpoint-specific simulation calls become short:
+The endpoint-specific simulations can then reuse the common
+specification:
 
 ``` r
 
@@ -751,15 +747,15 @@ knitr::kable(oc_small, digits = 3)
 | margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.064 | 0.011 | 0.046 | 0.089 | 0 | 0 | 0 | 0.008 | 0.078 | 0.012 | 0.058 | 0.105 | 0.078 | 0.012 | 0.058 | 0.105 | 0.65 | 0.021 | 0.607 | 0.691 | 0.272 | 0.020 | 0.235 | 0.313 | 555.8 | 6.698 | 542.640 | 568.960 | 149.771 | 0.038 | 0.009 | 0.024 | 0.059 |
 | target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.984 | 0.006 | 0.969 | 0.992 | 0 | 0 | 0 | 0.008 | 0.958 | 0.009 | 0.937 | 0.972 | 0.958 | 0.009 | 0.937 | 0.972 | 0.00 | 0.000 | 0.000 | 0.008 | 0.042 | 0.009 | 0.028 | 0.063 | 469.0 | 4.957 | 459.262 | 478.738 | 110.831 | 0.012 | 0.005 | 0.006 | 0.026 |
 
-Each scenario uses 500 simulated trials and two cores. This remains a
-workflow demonstration rather than a definitive estimate of power or
-type I error. For design work, increase `N_trials`, increase `N_impute`,
-and run sensitivity analyses over accrual speed, loss to follow-up,
-event rates, and the imputation hazard model.
+Each scenario uses 500 simulated trials and two cores. These results are
+illustrative rather than definitive estimates of power or type I error.
+A design evaluation should increase `N_trials` and `N_impute` as needed
+for Monte Carlo precision and examine sensitivity to accrual, loss to
+follow-up, event rates, and the imputation hazard model.
 
-## Visualizing the simulated design
+## Graphical assessment of the simulated design
 
-The plotting helpers answer complementary design questions. First,
+The plots answer complementary design questions. First,
 [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)
 compares operating characteristics across the target and
 noninferiority-margin scenarios. The true PFA event probability is
@@ -803,8 +799,8 @@ plot_sim_decisions(eff_target)
 
 ## A fuller simulation template
 
-The following code is closer to what one would run outside the vignette
-build. It is not evaluated here.
+The following larger simulation uses the ADVENT values of `N_trials` and
+`N_impute`. It is provided as a template and is not evaluated here.
 
 ``` r
 
@@ -911,16 +907,15 @@ correspond to:
   `c(0.007327613, 0.000122991, 0.0000600610)` in its equal-arm target
   scenario.
 
-The three alternative event-time generators deliberately use
-data-generating partitions that differ from the principal analysis
-partitions. They can be represented by changing `generation_cutpoints`
-and the hazard vectors while retaining `cutpoints` and the priors for
-the principal predictive model. The SAP also planned an imputation-model
-sensitivity with six pieces: day 90 followed by five post-90-day
-intervals containing approximately equal event counts, potentially with
-different cut-points by arm. `goldilocks` uses one analysis partition
-shared by both arms, so arm-specific predictive cut-points remain
-outside the current API.
+The three alternative event-time models deliberately use data-generating
+partitions that differ from the principal analysis partitions. They can
+be represented by changing `generation_cutpoints` and the hazard vectors
+while retaining `cutpoints` and the priors for the principal predictive
+model. The SAP also planned an imputation-model sensitivity with six
+pieces: day 90 followed by five post-90-day intervals containing
+approximately equal event counts, potentially with different cut-points
+by arm. `goldilocks` uses one analysis partition shared by both arms, so
+this arm-specific predictive model cannot currently be represented.
 
 The SAP supplies quantitative reference results based on 10,000
 simulated trials per scenario and M=5000 predictive draws or

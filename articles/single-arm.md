@@ -27,12 +27,11 @@ Two practical constraints on single-arm designs in this package:
 
 ## The decision rule
 
-In a single-arm trial there is no concurrent control, so the “treatment
-effect” is replaced by the cumulative event probability on the treatment
-arm itself:
+In a single-arm trial there is no concurrent control, so the estimand is
+the cumulative event probability in the treatment arm. Let \tau denote
+`end_of_study`:
 
-\text{effect} \\=\\ p\_{\text{treatment}} \\=\\ \Pr(\text{event by
-end\\of\\study} \mid \text{data}).
+p\_{\text{treatment}} = \Pr(\text{event by } \tau \mid \text{data}).
 
 The argument `h0` plays the role of a benchmark on this scale: a target
 failure probability (or, equivalently, 1 - h_0 is a target survival
@@ -52,10 +51,12 @@ has a lower failure rate than the benchmark”. Choosing
 
 The same posterior is used at each interim look to compute the
 predictive probability of eventual success, which drives the futility
-(`Fn`) and expected-success (`Sn`) stopping rules. Predictive
-probabilities are obtained by imputing remaining follow-up from the
-posterior predictive distribution of the (piecewise-)exponential model
-and re-evaluating the success criterion on each completed dataset.
+(`Fn`) and expected-success (`Sn`) stopping rules. The default `Qn = 1`
+disables the optional immediate-success rule in these examples.
+Predictive probabilities are obtained by imputing remaining follow-up
+from the posterior predictive distribution of the
+(piecewise-)exponential model and re-evaluating the success criterion on
+each completed dataset.
 
 ## Setting up the design
 
@@ -116,7 +117,7 @@ out
 There is no need to supply `block` or `rand_ratio`: they are redundant
 in a single-arm design because no randomization is performed.
 
-A few points to highlight in the output:
+The principal trial-level quantities are:
 
 - `N_control = 0`: no concurrent control was simulated.
 - `margin = 0.30`: this is the value of `h0` that the trial is testing
@@ -129,12 +130,11 @@ A few points to highlight in the output:
 
 ## Operating characteristics
 
-A single trial does not tell you whether the design is well-calibrated.
-To estimate power and type I error, we run the design under each
-scenario using
-[`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md).
-The chunks below are not run when knitting (each takes a few minutes)
-but illustrate the workflow:
+A single trial replicate does not establish whether the design is well
+calibrated. Power and type I error are estimated by repeated simulation
+under alternative and null scenarios, respectively. The following
+analyses are not evaluated in the vignette because they require several
+minutes:
 
 ``` r
 
@@ -238,8 +238,8 @@ sensitivity.
   two-arm randomized design with a log-rank decision rule.
 - The “Bayesian piecewise-exponential designs” vignette covers the same
   decision rule used here, but in a two-arm setting and with
-  non-constant hazards. The piecewise machinery applies directly to
-  single-arm trials too (just keep `hazard_control = NULL` and pass a
-  per-interval `hazard_treatment` vector).
+  non-constant hazards. The same piecewise-exponential specification
+  applies to single-arm trials when `hazard_control = NULL` and
+  `hazard_treatment` contains one hazard per interval.
 - [`?survival_adapt`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
   documents all arguments.

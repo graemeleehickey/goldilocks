@@ -94,11 +94,10 @@ used in this mode.</li>
 <div class="section level2">
 <h2 id="the-decision-rule">The decision rule<a class="anchor" aria-label="anchor" href="#the-decision-rule"></a>
 </h2>
-<p>In a single-arm trial there is no concurrent control, so the
-“treatment effect” is replaced by the cumulative event probability on
-the treatment arm itself:</p>
-<p><span class="math inline">\text{effect} \;=\; p_{\text{treatment}}
-\;=\; \Pr(\text{event by end\_of\_study} \mid \text{data}).</span></p>
+<p>In a single-arm trial there is no concurrent control, so the estimand
+is the cumulative event probability in the treatment arm. Let <span class="math inline">\tau</span> denote <code>end_of_study</code>:</p>
+<p><span class="math display">p_{\text{treatment}}
+  = \Pr(\text{event by } \tau \mid \text{data}).</span></p>
 <p>The argument <code>h0</code> plays the role of a benchmark on this
 scale: a target failure probability (or, equivalently, <span class="math inline">1 - h_0</span> is a target survival probability)
 drawn from external evidence such as a published rate, registry, or
@@ -116,10 +115,11 @@ therapy has a lower failure rate than the benchmark”. Choosing
 <p>The same posterior is used at each interim look to compute the
 predictive probability of eventual success, which drives the futility
 (<code>Fn</code>) and expected-success (<code>Sn</code>) stopping rules.
-Predictive probabilities are obtained by imputing remaining follow-up
-from the posterior predictive distribution of the
-(piecewise-)exponential model and re-evaluating the success criterion on
-each completed dataset.</p>
+The default <code>Qn = 1</code> disables the optional immediate-success
+rule in these examples. Predictive probabilities are obtained by
+imputing remaining follow-up from the posterior predictive distribution
+of the (piecewise-)exponential model and re-evaluating the success
+criterion on each completed dataset.</p>
 </div>
 <div class="section level2">
 <h2 id="setting-up-the-design">Setting up the design<a class="anchor" aria-label="anchor" href="#setting-up-the-design"></a>
@@ -172,7 +172,7 @@ to 20%. We use an interim look at 50 of 80 enrolled subjects:</p>
 <p>There is no need to supply <code>block</code> or
 <code>rand_ratio</code>: they are redundant in a single-arm design
 because no randomization is performed.</p>
-<p>A few points to highlight in the output:</p>
+<p>The principal trial-level quantities are:</p>
 <ul>
 <li>
 <code>N_control = 0</code>: no concurrent control was
@@ -192,11 +192,11 @@ control.</li>
 <div class="section level2">
 <h2 id="operating-characteristics">Operating characteristics<a class="anchor" aria-label="anchor" href="#operating-characteristics"></a>
 </h2>
-<p>A single trial does not tell you whether the design is
-well-calibrated. To estimate power and type I error, we run the design
-under each scenario using <code><a href="../reference/sim_trials.html">sim_trials()</a></code>. The chunks below
-are not run when knitting (each takes a few minutes) but illustrate the
-workflow:</p>
+<p>A single trial replicate does not establish whether the design is
+well calibrated. Power and type I error are estimated by repeated
+simulation under alternative and null scenarios, respectively. The
+following analyses are not evaluated in the vignette because they
+require several minutes:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Power: simulate under the alternative (true rate = 0.20)</span></span>
 <span><span class="va">out_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
@@ -298,9 +298,9 @@ sensitivity.</p>
 two-arm randomized design with a log-rank decision rule.</li>
 <li>The “Bayesian piecewise-exponential designs” vignette covers the
 same decision rule used here, but in a two-arm setting and with
-non-constant hazards. The piecewise machinery applies directly to
-single-arm trials too (just keep <code>hazard_control = NULL</code> and
-pass a per-interval <code>hazard_treatment</code> vector).</li>
+non-constant hazards. The same piecewise-exponential specification
+applies to single-arm trials when <code>hazard_control = NULL</code> and
+<code>hazard_treatment</code> contains one hazard per interval.</li>
 <li>
 <code><a href="../reference/survival_adapt.html">?survival_adapt</a></code> documents all arguments.</li>
 </ul>

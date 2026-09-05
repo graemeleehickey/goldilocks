@@ -126,9 +126,8 @@ interim_result$monte_carlo
 ```
 
 At the maximum sample size, equal randomization implies six participants
-per arm. Four have already accrued in each arm, so the function
-internally adds two potential future participants per arm for the
-maximum-sample calculation:
+per arm. Four have already accrued in each arm, so the predictive
+calculation includes two potential future participants per arm:
 
 ``` r
 
@@ -152,9 +151,9 @@ in either arm cannot already exceed its implied maximum.
 
 The decision uses the Monte Carlo point estimates. The standard errors
 and exact one-sided bounds describe finite-draw uncertainty but do not
-change the decision. The one-row trace uses the same schema as a
-simulated adaptive-trial trace and can be summarized or plotted with the
-existing helpers:
+change the decision. The interim record contains the same quantities
+retained for a simulated adaptive trial and can be summarized or plotted
+in the same way:
 
 ``` r
 
@@ -186,8 +185,6 @@ interim_result$trace
 #> 1
 ```
 
-The metadata records the evaluated design, package version, data cut,
-fixed time-origin convention, and random-number policy. Supplying `seed`
-makes the calculation reproducible while preserving the caller’s
-random-number state. With `seed = NULL`, the calculation instead uses
-and advances the current R random-number state.
+The saved audit information records the evaluated design, package
+version, data cut, time-origin convention, and simulation seed.
+Supplying `seed` makes the predictive calculation exactly reproducible.

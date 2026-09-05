@@ -69,32 +69,28 @@
 
     
     
-<p>Broglio et al. (2014) presented an example from a hypothetical trial.
-We will use a similar setup for this example, and break up the pieces to
-make clear the argument choices for the package.</p>
-<p>The setting is a two-arm randomized trial where patients are equally
-randomized to either a control or a treatment arm. The primary endpoint
-is overall survival (OS) measured from enrollment to death from any
-cause or last follow-up. In <code>goldilocks</code>, enrollment time and
-randomization time are treated as the same time point; in practice they
-can differ, but that distinction is superfluous and therefore not
-represented in the package simulator. The expected OS rate at 12-months
-for the control arm is 30%. The minimum sample size is 100 and the
-maximum sample size is 300. For simplicity, it is assumed that there is
-no attrition. The maximum follow-up period for each subject is
-12-months. This differs from the time-to-event example in Broglio et
+<p>Broglio et al. (2014) presented a hypothetical trial example. We use
+a similar setting and show how each statistical and operational
+assumption is represented in <code>goldilocks</code>.</p>
+<p>The setting is a two-arm trial with equal randomization to control or
+treatment. The primary endpoint is overall survival (OS), measured from
+enrollment to death from any cause or last follow-up. The simulation
+treats enrollment and randomization as occurring at the same time. The
+assumed 12-month OS probability in the control arm is 30%. The minimum
+and maximum sample sizes are 100 and 300, respectively, and no loss to
+follow-up is assumed. Each participant can be followed for up to 12
+months. This differs from the time-to-event example in Broglio et
 al. (2014), which scheduled the primary analysis after accrual was
-complete and all subjects had then completed 12 months of follow-up.
-Thus, if accrual is stopped early for predicted success or the trial
-continues accrual to the maximum sample size of 300 patients, the
-primary analysis of OS will be conducted after each subject has
-completed 12-months of follow-up.</p>
+complete and all participants had completed 12 months of follow-up.
+Thus, after an expected-success stop or enrollment of 300 participants,
+the primary analysis is conducted once every enrolled participant has
+completed 12 months of follow-up.</p>
 <p>From this information, we have:</p>
 <ul>
 <li>Equal randomization: <code>block = 2</code> and
 <code>rand_ratio = c(control = 1, treatment = 1)</code> (default
 parameters)</li>
-<li>Primary endpoint is at 12-months:
+<li>Primary endpoint is at 12 months:
 <code>end_of_study = 12</code>
 </li>
 <li>12-month event rate for control arm:
@@ -108,20 +104,16 @@ parameter)</li>
 <li>No attrition: <code>prop_loss = 0</code>
 </li>
 </ul>
-<p>Arm names make unequal allocation unambiguous. Both
-<code>rand_ratio = c(control = 1, treatment = 2)</code> and the reversed
-named order are accepted and normalized internally. Legacy unnamed
-values are still read as <code>c(control, treatment)</code>, although
-unequal unnamed allocations warn because names may be required in a
-future major release.</p>
-<p>Sample size selection analyses are planned starting when 100 patients
-are enrolled and after every additional 25 patients are enrolled. Early
-stopping for futility is allowed starting with the 100 patient sample
-size selection analysis and <span class="math inline">F_n</span> is 10%.
-Stopping accrual early for predicted success is only allowed starting
-with the 200 patient sample size selection analysis and <span class="math inline">S_n</span> is 90%. It is expected that an average of
-5 patients per month will be enrolled, with no change in speed for the
-duration of the trial.</p>
+<p>Named arms make unequal allocation unambiguous. For example,
+<code>rand_ratio = c(control = 1, treatment = 2)</code> specifies 1:2
+randomization. Unnamed values are interpreted in control-treatment order
+for backward compatibility, but explicit arm names are recommended in a
+protocol simulation.</p>
+<p>Sample-size selection analyses are planned after 100 participants
+have enrolled and after each additional 25 participants. Futility
+stopping is allowed from the first analysis, with <span class="math inline">F_n=0.10</span>. Stopping accrual for expected
+success is allowed from 200 participants onward, with <span class="math inline">S_n=0.90</span>. The assumed enrollment rate is
+constant at five participants per month.</p>
 <p>Enrollment is stochastic even though the rate is constant. The
 package fixes the first patient at calendar time zero and generates each
 later inter-arrival gap from an exponential distribution with rate 5 per
@@ -129,18 +121,18 @@ month. Consequently, the expected time from the first to the 300th
 enrollment is <span class="math inline">(300 - 1) / 5 = 59.8</span>
 months, but the realized completion time differs between simulated
 trials. <code>lambda_time = NULL</code> indicates that there are no
-internal enrollment-rate changes; zero is implicit and must not be
-supplied.</p>
+enrollment-rate changes; zero is implicit and must not be supplied.</p>
 <p>For comparison, a ramp-up specification such as
 <code>lambda = c(2, 5)</code> and <code>lambda_time = 6</code> assigns
 positive realized enrollment times in <span class="math inline">(0,6]</span> to 2 expected enrollments per month and
-later times to 5 per month. The first patient at zero is the fixed
+later times to 5 per month. The first participant at zero is the fixed
 calendar origin. Fractional changes such as
 <code>lambda_time = 6.5</code> are also simulated exactly.
-Enrollment-rate knots use the trial calendar measured from first patient
-in, whereas hazard <code>cutpoints</code> use each subject’s follow-up
-time measured from that subject’s enrollment. The two schedules are
-independent and need not share their knots.</p>
+Enrollment-rate knots use the trial calendar measured from first
+participant in, whereas hazard <code>cutpoints</code> use each
+participant’s follow-up time measured from that participant’s
+enrollment. The two schedules are independent and need not share their
+knots.</p>
 <p>From this information, we have:</p>
 <ul>
 <li>Interim sample size looks:
@@ -172,12 +164,14 @@ and <code>method = "logrank"</code>
 success: <code>prob_ha = 0.95</code>
 </li>
 </ul>
-<p>Note that <code>prob_ha</code> is set as <span class="math inline">1
-- 0.05</span>. This allows us to interchange between tests, including
-Bayesian tests (<code>method = "bayes-surv"</code>), which requires an
-analogous posterior probability threshold. The parameter <code>h0</code>
-is ignored when using a log-rank test, as it is not meaningful to have
-success margins.</p>
+<p>For a frequentist analysis, <code>goldilocks</code> expresses
+evidence as <span class="math inline">1-p</span>, so
+<code>prob_ha = 0.95</code> corresponds to a two-sided significance
+level of 0.05. A Bayesian analysis instead compares a posterior
+probability with <code>prob_ha</code>; the common numerical scale does
+not make the frequentist and Bayesian decision rules inferentially
+equivalent. The log-rank analysis requires <code>h0 = 0</code>,
+corresponding to equality of the survival distributions.</p>
 <div class="section level3">
 <h3 id="one-sided-tests">One-sided tests<a class="anchor" aria-label="anchor" href="#one-sided-tests"></a>
 </h3>
@@ -205,28 +199,28 @@ the 0.025 level, we would set:</p>
 <span>  prob_ha <span class="op">=</span> <span class="fl">0.975</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The frequentist binary risk-difference analyses support all three
-alternatives and compare <span class="math inline">p_\textrm{treatment}
-- p_\textrm{control}</span> with <code>h0</code>. Use
+alternatives and compare <span class="math inline">p_{\text{treatment}}
+- p_{\text{control}}</span> with <code>h0</code>. Use
 <code>method = "riskdiff-fm"</code> for a Farrington-Manning score test
 that remains defined for sparse boundary tables, or
 <code>method = "riskdiff-wald"</code> for the plug-in Wald test. The
 Bayesian test (<code>method = "bayes-surv"</code>) requires a one-sided
 alternative (<code>"less"</code> or <code>"greater"</code>), and
 <code>"two.sided"</code> raises an error. For the Bayesian test the
-effect is measured on the cumulative-failure-probability scale, <span class="math inline">p_\textrm{treatment} - p_\textrm{control}</span> at
+effect is measured on the cumulative-failure-probability scale, <span class="math inline">p_{\text{treatment}} - p_{\text{control}}</span> at
 <code>end_of_study</code>, compared against the margin <code>h0</code>
 (default <code>0</code>):</p>
 <ul>
 <li>
 <code>alternative = "less"</code> declares success when the
-posterior probability that <span class="math inline">p_\textrm{treatment} - p_\textrm{control} &lt;
+posterior probability that <span class="math inline">p_{\text{treatment}} - p_{\text{control}} &lt;
 h_0</span> exceeds the threshold <code>prob_ha</code> – i.e. the
 treatment arm has a failure probability lower than the <code>h0</code>
 margin relative to control. With the default <code>h0 = 0</code>, this
 means lower failure probability (longer survival) than control.</li>
 <li>
 <code>alternative = "greater"</code> declares success when the
-posterior probability that <span class="math inline">p_\textrm{treatment} - p_\textrm{control} &gt;
+posterior probability that <span class="math inline">p_{\text{treatment}} - p_{\text{control}} &gt;
 h_0</span> exceeds <code>prob_ha</code>.</li>
 </ul>
 <p>In all methods, <code>alternative = "less"</code> therefore
@@ -248,11 +242,9 @@ cores.</p>
 <li>Independent prior distribution for each hazard rate parameter:
 <code>prior_surv = c(0.1, 0.1)</code>
 </li>
-<li>Parallel computation: <code>ncores = 8</code>. The default
-<code>backend = "auto"</code> uses serial execution for fewer than four
-trials and otherwise assigns at least two trials per worker, using
-forked workers on Unix-like platforms and PSOCK workers on Windows.</li>
-<li>Reproducible simulation streams: <code>seed = 123</code>
+<li>Parallel computation using eight cores: <code>ncores = 8</code>
+</li>
+<li>Reproducible Monte Carlo study: <code>seed = 123</code>
 </li>
 </ul>
 <p>Similar to above, the parameter <code>N_mcmc</code> is not required
@@ -299,15 +291,13 @@ treatment effect when the OS rate at 12-months for the treatment arm is
 <span>  method <span class="op">=</span> <span class="st">"logrank"</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span></code></pre></div>
-<p>On an Apple M2 Pro with 10 CPU cores, this workload took about 18
-seconds with <code>ncores = 8</code> in a local run. Runtime will vary
-with hardware, the number of workers, and system load.</p>
-<p>It is straightforward to calculate the type I error under this
-design. The only change required is to set the
-<code>hazard_treatment</code> argument to the same as the
-<code>hazard_control</code> argument (i.e. the null case). We can make
-use of the <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> function to avoid having to type
-everything else over again.</p>
+<p>The 500 replicates used here are sufficient for illustration but not
+for a definitive design decision. A larger simulation should be used
+when greater precision is needed for type I error, power, or expected
+sample size.</p>
+<p>To estimate type I error, we simulate under the null by setting the
+treatment hazard equal to the control hazard. <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>
+retains the remaining design specification:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_t1error</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, hazard_treatment <span class="op">=</span> <span class="va">hc</span>, seed <span class="op">=</span> <span class="fl">124</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -378,18 +368,16 @@ is the null (treatment OS 30%).</caption>
 </tr>
 </tbody>
 </table>
-<p>The type I error under this design (scenario 2, <code>power</code>
-column) is slightly too large to be considered acceptable. This was to
-be expected, since we kept the <span class="math inline">P</span>-value
-threshold as 0.05 despite having multiple interim looks. The full
-<code>initial_oc</code> object also contains <code>power_mc_lower</code>
-and <code>power_mc_upper</code>, which provide a 95% Wilson interval for
-the finite-simulation Monte Carlo error.</p>
-<p>In practice, we need to use a more stringent threshold in order to
-control the overall type I error. This can be achieved by trial and
-error. For example, if we use <span class="math inline">P &lt;
-0.04</span> (applied using the argument <code>prob_ha = 0.96</code>), we
-find the operating characteristics are more acceptable.</p>
+<p>The estimated type I error under this design is the
+<code>power</code> value for scenario 2. It is slightly larger than the
+intended level, as might be expected when a nominal <span class="math inline">P</span>-value threshold of 0.05 is retained in a
+design with multiple interim looks. The accompanying
+<code>power_mc_lower</code> and <code>power_mc_upper</code> values give
+a 95% Wilson Monte Carlo interval for this estimate.</p>
+<p>The final-analysis threshold should therefore be calibrated jointly
+with the interim rules. As a preliminary candidate, consider <span class="math inline">P &lt; 0.04</span>, specified as
+<code>prob_ha = 0.96</code>. The dedicated calibration vignette gives a
+systematic grid- search and independent-validation procedure.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_power2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, prob_ha <span class="op">=</span> <span class="fl">0.96</span>, return_trace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">out_t1error2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span></span>
@@ -510,13 +498,14 @@ while mean sample size uses a t interval based on its Monte Carlo
 standard error. The optional <code>max_mcse</code> argument warns when a
 named precision target is not met; it does not change the simulations or
 estimates.</p>
-<p>In the cached 500-trial simulation, assuming the treatment arm has an
-OS rate of 50% at 12 months, 84.4% of trials stopped early for expected
-success, 4.8% stopped early for futility, and the mean sample size was
-184.6. Overall power was 91.8%. When the treatment-arm OS rate equalled
-the control-arm rate, 81.4% of trials stopped early for futility. Larger
-calibration runs are appropriate for final design decisions when the
-displayed Monte Carlo precision is insufficient.</p>
+<p>In this illustrative 500-trial simulation, assuming a 50% 12-month OS
+probability in the treatment arm, 84.4% of trials stopped accrual for
+expected success, 4.8% stopped for futility, and the mean sample size
+was 184.6. Estimated power was 91.8%. Under the null scenario, in which
+treatment and control had the same 12-month OS probability, 81.4%
+stopped for futility. Larger simulation studies are appropriate when the
+displayed Monte Carlo precision is insufficient for a final design
+decision.</p>
 <p>The same simulation can be summarized on the calendar-time scale
 without adding any design arguments. Time zero is first patient
 enrolled, and the time unit is months in this example. “Analysis ready”
