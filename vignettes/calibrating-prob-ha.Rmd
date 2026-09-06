@@ -1,5 +1,5 @@
 ---
-title: "Calibrating prob_ha for type I error control"
+title: "Calibrating `prob_ha` for type I error control"
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -11,6 +11,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
+options(rmarkdown.html_vignette.check_title = FALSE)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
