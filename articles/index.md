@@ -4,7 +4,7 @@
 
 - [Two-arm randomized
   trials](https://graemeleehickey.github.io/goldilocks/articles/two-arm.md):
-- [Calibrating prob_ha for type I error
+- [Calibrating \`prob_ha\` for type I error
   control](https://graemeleehickey.github.io/goldilocks/articles/calibrating-prob-ha.md):
 - [ThermoCool AF: immediate success from predictive
   probability](https://graemeleehickey.github.io/goldilocks/articles/thermocool-af.md):

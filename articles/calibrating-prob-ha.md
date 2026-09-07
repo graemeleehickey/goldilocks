@@ -1,4 +1,4 @@
-# Calibrating prob_ha for type I error control
+# Calibrating \`prob_ha\` for type I error control
 
 ``` r
 

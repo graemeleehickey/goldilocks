@@ -19,10 +19,15 @@ and supported FDA premarket approval supplement
 
 This vignette uses the trial to explain `Qn`, the upper boundary for
 immediate success in `goldilocks`. It is a **ThermoCool-inspired package
-example, not an exact reconstruction or regulatory validation**. The
-public sources disclose the principal decision boundaries and
-longitudinal imputation model, but some simulation inputs are
-unavailable. In addition, the package rule deliberately differs from the
+example, not an exact reconstruction or regulatory validation**. JAMA
+and the public FDA record disclose the principal decision boundaries and
+longitudinal imputation model, but omit or redact the numerical
+operating-characteristic scenarios. The trial designers subsequently
+published the default failure-time generator, accrual schedule, and
+scenario grid in [Berry et al. (2010, Section 5.8,
+pp. 241–246)](https://doi.org/10.1201/EBK1439825488). This example uses
+those published defaults. The complete regulatory sensitivity suite
+remains unavailable, and the package rule deliberately differs from the
 trial protocol in its futility statistic, comparison operators, and
 treatment of a separate information gate for an early claim.
 
@@ -149,19 +154,23 @@ vignette:
 | `prob_ha` | 0.98 | reported | Historical success was at least 0.98; the package classifies success using its strict \> comparison |
 | `method`, `alternative`, `h0` | bayes-bin, less, 0 | inferred | Failure is the modeled binary event, so benefit is a lower treatment failure probability |
 | `prior_bin` | Beta(1, 1) in both arms | reported | FDA advisory transcript and sponsor briefing |
-| `cutpoints`, `end_of_study` | 0.5 and 2 months; 9-month horizon | reported | JAMA and FDA describe breaks at 2 weeks/0.5 months and 2 months |
+| `cutpoints`, `generation_cutpoints`, `end_of_study` | 0.5 and 2 months; 9-month horizon | reported | JAMA and FDA describe breaks at 2 weeks/0.5 months and 2 months |
 | Sponsor predictive hazard prior | Three arm-specific piecewise rates with a hierarchical prior | reported | FDA briefing discloses Exp(rate = 1) priors on the Gamma hyperparameters, but not a directly reproducible fixed package prior |
 | `prior_surv`, `prior_surv_final` | Fixed Gamma(1, 1) approximation in each interval and arm | assumed | Assumed plug-in approximation that sets both Gamma hyperparameters to the mean, 1, of their disclosed Exp(rate = 1) hyperpriors; not the sponsor’s hierarchical prior |
 | `block`, `rand_ratio` | 11; control 4 : treatment 7 | reported | JAMA Study Design |
-| `lambda`, `lambda_time` | 0.83, 3.50, 8.92 patients/month; changes at months 12 and 24 | inferred | Derived from FDA’s 11 patients after year 1, 53 after year 2, and 160 near year 3; not a protocol accrual generator |
-| Data-generating hazards | June 2008 failures divided by exposure within each interval | inferred | Derived from the FDA SSED Table 8; descriptive observed-data scenario, not a planning assumption |
-| Sponsor planning scenarios | Not publicly available in sufficient detail | unavailable | Public materials state that operating characteristics were simulated but redact or omit enough inputs to prevent exact reproduction |
-| `prop_loss` | 0.05 in each arm | assumed | Illustrative assumption; random censoring is not equivalent to the eight randomized patients who did not receive assigned treatment |
+| `lambda`, `lambda_time` | 2, 3, 5 patients/month; changes at months 2 and 4 | reported | Berry et al., Section 5.8, p. 245; default simulation accrual schedule |
+| Failure-time generator | Base hazards 0.65, 0.161, 0.05/month, scaled to target success | reported | Berry et al., Section 5.8, pp. 244–245; common shape scaled to an arm-specific nine-month success probability |
+| Worked benefit scenario | Treatment 0.45; control 0.20 chronic success | reported | One of the benefit cases in Berry et al., Table 5.19; selected for the worked example |
+| Published OC scenario grid | Three null and eight benefit scenarios | reported | Berry et al., Tables 5.18–5.19 |
+| Observed enrollment history | 11 after year 1; 53 after year 2; 160 at analysis; 167 at close | reported | FDA sponsor briefing; realized history retained only for comparison |
+| Observed interval hazards | June 2008 failures divided by exposure within each interval | inferred | Derived from FDA SSED Table 8; descriptive observed-data rates, not planning assumptions |
+| Complete regulatory sensitivity suite | Not publicly available in full | unavailable | The FDA briefing redacts its scenario table, and Berry et al. notes additional sensitivity simulations without enumerating all of them |
+| `prop_loss` | 0 in each arm | assumed | No random loss generator is reported for the published scenarios; observed exclusions are not equivalent to random censoring |
 | `imputed_final` | TRUE | inferred | JAMA reports multiple imputation for incomplete outcomes; the available package analysis is an approximation |
-| `N_impute` | 100 for one trial; 40 for small OC simulations | assumed | Illustrative choices; the sponsor’s predictive draw count is unavailable |
-| Evaluated `N_trials` | 50 per scenario | assumed | Illustrative choice; the sponsor briefing reports 10,000 simulated trials per scenario |
+| `N_impute` | 100 for one trial; 40 for small OC simulations; 5,000 in validation template | assumed | The evaluated counts are run-time choices; Berry et al. reports 1,000 burn-in and 5,000 retained MCMC iterations, which are not identical to the package computation |
+| Evaluated `N_trials` | 50 per scenario | assumed | Illustrative choice; the sponsor briefing reports 10,000 trials per scenario, while Berry et al. reports 25,000 for its tabulated null simulations |
 
-## Mapping the longitudinal model
+## Mapping the longitudinal analysis model
 
 The completed endpoint is binary, but its status is learned over time.
 The trial predicted unknown nine-month outcomes with an arm-specific
@@ -199,9 +208,142 @@ prior_bin <- c(1, 1)
 prior_surv <- c(shape = 1, rate = 1)
 ```
 
-The FDA summary reports observed exposure and failure counts for the
-same three intervals in its June 2008 analysis. Dividing failures by
-exposure produces a fully documented descriptive generator:
+The fixed `prior_surv` above approximates the sponsor’s analysis prior.
+It is separate from the true hazards used to generate virtual trials
+when studying the design’s operating characteristics.
+
+## Published design-generating assumptions
+
+Berry et al. (2010, pp. 244–245) gives the default piecewise-exponential
+failure generator that was not enumerated in JAMA or the public FDA
+summaries. Its base monthly hazards are 0.65, 0.161, and 0.05. Over the
+three analysis intervals, these give nine-month chronic success of
+approximately 0.40:
+
+\exp\\-0.5(0.65)-1.5(0.161)-7(0.05)\\ \approx 0.40.
+
+For a target chronic-success probability p, all three base hazards are
+multiplied by the same factor:
+
+\theta_j(p) = \theta_j^\*\frac{\log(p)}{\log(0.40)}.
+
+Thus, scenario probabilities change the overall failure level while
+preserving the shape of the failure-time distribution.
+
+``` r
+
+base_chronic_success <- 0.40
+base_failure_hazard <- c(
+  `0--0.5` = 0.65,
+  `0.5--2` = 0.161,
+  `2--9` = 0.05
+)
+
+hazard_for_success <- function(p) {
+  stopifnot(length(p) == 1L, is.finite(p), p > 0, p < 1)
+  base_failure_hazard * log(p) / log(base_chronic_success)
+}
+
+published_scenarios <- data.frame(
+  Type = c(rep("Null", 3), rep("Benefit", 8)),
+  `Treatment chronic success` = c(
+    0.20, 0.40, 0.60,
+    0.30, 0.40, 0.45, 0.50, 0.50, 0.60, 0.65, 0.70
+  ),
+  `Control chronic success` = c(
+    0.20, 0.40, 0.60,
+    0.20, 0.20, 0.20, 0.20, 0.40, 0.40, 0.40, 0.40
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(published_scenarios, digits = 2)
+```
+
+| Type    | Treatment chronic success | Control chronic success |
+|:--------|--------------------------:|------------------------:|
+| Null    |                      0.20 |                     0.2 |
+| Null    |                      0.40 |                     0.4 |
+| Null    |                      0.60 |                     0.6 |
+| Benefit |                      0.30 |                     0.2 |
+| Benefit |                      0.40 |                     0.2 |
+| Benefit |                      0.45 |                     0.2 |
+| Benefit |                      0.50 |                     0.2 |
+| Benefit |                      0.50 |                     0.4 |
+| Benefit |                      0.60 |                     0.4 |
+| Benefit |                      0.65 |                     0.4 |
+| Benefit |                      0.70 |                     0.4 |
+
+Tables 5.18 and 5.19 of Berry et al. report the three null cases and
+eight benefit cases shown above. There was therefore no single
+treatment-control event-rate assumption. For the runnable example, we
+select the published 0.45-versus-0.20 chronic-success case, which the
+monograph discusses specifically:
+
+``` r
+
+worked_chronic_success <- c(treatment = 0.45, control = 0.20)
+
+hazard_treatment <- hazard_for_success(worked_chronic_success["treatment"])
+hazard_control <- hazard_for_success(worked_chronic_success["control"])
+
+planning_hazards <- data.frame(
+  Arm = c("Catheter ablation", "ADT control"),
+  `Target nine-month chronic success` = unname(worked_chronic_success),
+  `Hazard 0--0.5 months` = c(hazard_treatment[1], hazard_control[1]),
+  `Hazard 0.5--2 months` = c(hazard_treatment[2], hazard_control[2]),
+  `Hazard 2--9 months` = c(hazard_treatment[3], hazard_control[3]),
+  check.names = FALSE
+)
+
+knitr::kable(planning_hazards, digits = 3)
+```
+
+| Arm | Target nine-month chronic success | Hazard 0–0.5 months | Hazard 0.5–2 months | Hazard 2–9 months |
+|:---|---:|---:|---:|---:|
+| Catheter ablation | 0.45 | 0.566 | 0.140 | 0.044 |
+| ADT control | 0.20 | 1.142 | 0.283 | 0.088 |
+
+The same source reports a default simulation accrual rate of two
+patients per month for the first two months, three per month for the
+next two months, and five per month from the fifth month onward (Berry
+et al., 2010, p. 245).
+
+``` r
+
+enrollment_rate_per_month <- c(
+  months_0_to_2 = 2,
+  months_2_to_4 = 3,
+  months_4_plus = 5
+)
+enrollment_rate_change_month <- c(2, 4)
+
+data.frame(
+  `Trial-calendar interval` = c("0--2 months", "2--4 months", "4+ months"),
+  `Patients per month` = enrollment_rate_per_month,
+  check.names = FALSE
+)
+#>               Trial-calendar interval Patients per month
+#> months_0_to_2             0--2 months                  2
+#> months_2_to_4             2--4 months                  3
+#> months_4_plus               4+ months                  5
+```
+
+These are reported defaults for simulations of the amended adaptive
+design. `goldilocks` maps the three rates to its piecewise Poisson
+arrival process; the monograph reports the rate schedule but does not
+specify enough operational detail to verify that its enrollment-time
+generator was identical. They should not be interpreted as the original
+2004 fixed-design forecast: the adaptive proposal was developed after
+accrual had begun and 106 patients were already enrolled.
+
+## Assumptions versus the reported trial history
+
+The [FDA Summary of Safety and Effectiveness Data, Table 8,
+p. 13](https://www.accessdata.fda.gov/cdrh_docs/pdf3/P030031S011B.pdf)
+reports June 2008 exposure and failure counts for the same three
+intervals. Dividing failures by exposure gives observed-data rates, not
+prospective design assumptions:
 
 ``` r
 
@@ -231,23 +373,43 @@ knitr::kable(fda_interval_data, digits = 4)
 ``` r
 
 
-hazard_treatment <- subset(
+observed_hazard_treatment <- subset(
   fda_interval_data,
   arm == "treatment"
 )$hazard_per_month
-hazard_control <- subset(
+observed_hazard_control <- subset(
   fda_interval_data,
   arm == "control"
 )$hazard_per_month
 ```
 
-These are post-trial empirical rates, not prospective design
-assumptions. They also approximate failures assigned at the start of the
-evaluation window with a continuous hazard. They are used only to create
-a strong-benefit scenario that resembles the information pattern in the
-public record.
+The planning and observed interval rates differ in shape as well as
+level:
 
-The event-free probabilities implied directly by these rates are:
+``` r
+
+hazard_comparison <- data.frame(
+  Interval = names(base_failure_hazard),
+  `Planning: treatment` = unname(hazard_treatment),
+  `Observed: treatment` = observed_hazard_treatment,
+  `Planning: control` = unname(hazard_control),
+  `Observed: control` = observed_hazard_control,
+  check.names = FALSE
+)
+
+knitr::kable(hazard_comparison, digits = 3)
+```
+
+| Interval | Planning: treatment | Observed: treatment | Planning: control | Observed: control |
+|:---|---:|---:|---:|---:|
+| 0–0.5 | 0.566 | 0.647 | 1.142 | 0.559 |
+| 0.5–2 | 0.140 | 0.029 | 0.283 | 0.258 |
+| 2–9 | 0.044 | 0.017 | 0.088 | 0.221 |
+
+Inserting the observed rates into a continuous piecewise-exponential
+distribution gives a stronger treatment contrast than the selected
+planning case. The JAMA Kaplan–Meier estimates were also more favorable
+to ablation:
 
 ``` r
 
@@ -257,71 +419,124 @@ interval_length_month <- diff(c(
   effectiveness_horizon_month
 ))
 
-implied_chronic_success <- data.frame(
+chronic_success_comparison <- data.frame(
   Arm = c("Catheter ablation", "ADT control"),
-  `Implied nine-month chronic-success probability` = c(
-    exp(-sum(hazard_treatment * interval_length_month)),
-    exp(-sum(hazard_control * interval_length_month))
+  `Published worked scenario` = unname(worked_chronic_success),
+  `Implied by observed FDA interval rates` = c(
+    exp(-sum(observed_hazard_treatment * interval_length_month)),
+    exp(-sum(observed_hazard_control * interval_length_month))
+  ),
+  `JAMA Kaplan-Meier estimate` = c(0.66, 0.16),
+  `FDA SSED Kaplan-Meier estimate` = c(0.64, 0.16),
+  check.names = FALSE
+)
+
+knitr::kable(chronic_success_comparison, digits = 3)
+```
+
+| Arm | Published worked scenario | Implied by observed FDA interval rates | JAMA Kaplan-Meier estimate | FDA SSED Kaplan-Meier estimate |
+|:---|---:|---:|---:|---:|
+| Catheter ablation | 0.45 | 0.616 | 0.66 | 0.64 |
+| ADT control | 0.20 | 0.109 | 0.16 | 0.16 |
+
+The FDA-rate probabilities are descriptive approximations. They need not
+equal the Kaplan–Meier estimates because they insert raw interval rates
+into a continuous distribution without the sponsor’s posterior
+calculation, handling of time-zero failures, or analysis-population
+rules. The 0.66 and 0.64 ablation estimates are also source- and
+cutoff-specific rather than interchangeable: JAMA reports 0.66, whereas
+the FDA SSED reports 0.64.
+
+The published accrual model also differs sharply from the early
+operational history reported in the [FDA sponsor briefing, internal
+p. 128](https://web.archive.org/web/20170222051859/https://www.fda.gov/ohrms/dockets/ac/08/briefing/2008-4393b1-01-%20%20Sponsors%20Executive%20Summary.pdf).
+Under the package convention that the first participant enrolls at time
+zero, the default simulation model expects about 51 participants by
+month 12 and 111 by month 24. The trial had only 11 and 53,
+respectively, before enrollment accelerated. It reached 160 at the
+September 2007 analysis and 167 when enrollment closed the following
+month:
+
+``` r
+
+expected_enrollment <- function(month) {
+  interval_time <- c(
+    min(month, 2),
+    max(min(month - 2, 2), 0),
+    max(month - 4, 0)
+  )
+  1 + sum(enrollment_rate_per_month * interval_time)
+}
+
+accrual_comparison <- data.frame(
+  Milestone = c(
+    "After year 1",
+    "After year 2",
+    "First planned analysis",
+    "Enrollment close"
+  ),
+  `Approximate trial month` = c(12, 24, 35, 36),
+  `Reported cumulative enrollment` = c(11, 53, 160, 167),
+  `Expected under published simulation default` = vapply(
+    c(12, 24, 35, 36),
+    expected_enrollment,
+    numeric(1)
   ),
   check.names = FALSE
 )
 
-knitr::kable(implied_chronic_success, digits = 3)
+knitr::kable(accrual_comparison, digits = 0)
 ```
 
-| Arm               | Implied nine-month chronic-success probability |
-|:------------------|-----------------------------------------------:|
-| Catheter ablation |                                          0.616 |
-| ADT control       |                                          0.109 |
+| Milestone | Approximate trial month | Reported cumulative enrollment | Expected under published simulation default |
+|:---|---:|---:|---:|
+| After year 1 | 12 | 11 | 51 |
+| After year 2 | 24 | 53 | 111 |
+| First planned analysis | 35 | 160 | 166 |
+| Enrollment close | 36 | 167 | 171 |
 
-The JAMA paper reports Kaplan-Meier chronic-success estimates of 0.66
-and 0.16. The values above need not equal those estimates: they are
-obtained by inserting raw interval rates into a piecewise-exponential
-distribution, without the sponsor’s full posterior calculation, protocol
-handling of time-zero failures, or analysis-population rules.
-
-## An observed-history accrual approximation
-
-Accrual speed determines how much nine-month endpoint information is
-available at an enrollment-triggered look. FDA reports 11 accrued
-patients after one year, 53 after two years, and 160 near the third
-year. The following piecewise rates preserve those increments
-approximately:
+For an observed-history sensitivity analysis based on the reported
+year-end totals, the corresponding piecewise average rates are:
 
 ``` r
 
-enrollment_rate_per_month <- c(
+observed_enrollment_rate_per_month <- c(
   year_1 = (11 - 1) / 12,
   year_2 = (53 - 11) / 12,
-  year_3 = (160 - 53) / 12
+  year_3 = (167 - 53) / 12
 )
-enrollment_rate_change_month <- c(12, 24)
+observed_enrollment_rate_change_month <- c(12, 24)
 
 data.frame(
-  `Trial-calendar interval` = c("0--12 months", "12--24 months", "24+ months"),
-  `Patients per month` = enrollment_rate_per_month,
+  `Trial-calendar interval` = c(
+    "0--12 months",
+    "12--24 months",
+    "24--36 months"
+  ),
+  `Observed-history patients per month` =
+    observed_enrollment_rate_per_month,
   check.names = FALSE
 )
-#>        Trial-calendar interval Patients per month
-#> year_1            0--12 months          0.8333333
-#> year_2           12--24 months          3.5000000
-#> year_3              24+ months          8.9166667
+#>        Trial-calendar interval Observed-history patients per month
+#> year_1            0--12 months                           0.8333333
+#> year_2           12--24 months                           3.5000000
+#> year_3           24--36 months                           9.5000000
 ```
 
-This is an inferred operational approximation, not a reported Poisson
-accrual model. `goldilocks` fixes the first enrollment at trial-calendar
-time zero, so the first rate generates 10 additional expected arrivals
-by month 12, for 11 patients in total. The later rates use the reported
-cumulative increments. The schedule intentionally captures the slow
-start and later acceleration because a single average rate would give a
-different amount of follow-up at the first look.
+The analysis-month values are approximate calendar offsets from the
+first enrollment in October 2004. Relative to the published 2, 3, and 5
+per-month default, the observed-history reconstruction is approximately
+0.83, 3.50, and 9.50 per month: much slower during the first two years
+and substantially faster late in the trial. The year-three rate uses the
+closing count of 167; 160 was the preceding decision-analysis count
+rather than the final enrollment total.
 
 ## One simulated trial
 
-The following analysis simulates one trial replicate under the
-descriptive FDA-rate scenario. It uses only 100 predictive imputations
-for illustration. That is too few for regulatory calibration of
-boundaries as extreme as 0.99 and 0.01.
+The following analysis simulates one trial replicate under the published
+0.45-versus-0.20 benefit scenario and default accrual schedule. It uses
+only 100 predictive imputations for illustration. That is too few for
+regulatory calibration of boundaries as extreme as 0.99 and 0.01.
 
 ``` r
 
@@ -331,6 +546,7 @@ thermocool_trial <- survival_adapt(
   hazard_treatment = hazard_treatment,
   hazard_control = hazard_control,
   cutpoints = analysis_cutpoints_month,
+  generation_cutpoints = analysis_cutpoints_month,
   N_total = N_total,
   lambda = enrollment_rate_per_month,
   lambda_time = enrollment_rate_change_month,
@@ -343,7 +559,7 @@ thermocool_trial <- survival_adapt(
   binary_imputation = "event-time",
   block = 11,
   rand_ratio = c(control = 4, treatment = 7),
-  prop_loss = 0.05,
+  prop_loss = 0,
   alternative = "less",
   h0 = 0,
   Fn = Fn,
@@ -374,7 +590,7 @@ knitr::kable(
 
 | N_enrolled | ppp_success | stop_immediate_success | stop_expected_success | stop_futility | trial_success | stopping_reason | decision_time |
 |---:|---:|---:|---:|---:|:---|:---|---:|
-| 150 | 1 | 1 | 0 | 0 | TRUE | immediate_success | 34.744 |
+| 150 | 1 | 1 | 0 | 0 | TRUE | immediate_success | 31.56 |
 
 `stop_immediate_success` is an official terminal success decision. It
 does not wait for a later completed-follow-up analysis, so
@@ -413,14 +629,15 @@ decision prevents all subsequent looks.
 ## Small operating-characteristic demonstration
 
 For simulation, collect common inputs in a named list and vary only the
-data-generating hazards. The first scenario uses the FDA-derived
-descriptive rates. The second assigns the control rates to both arms and
-is therefore a simple no-treatment-effect scenario.
+data-generating hazards. The first scenario is the published
+0.45-versus-0.20 benefit case. The second assigns the 0.20-success
+control profile to both arms, which is one of the published null cases.
 
 ``` r
 
 thermocool_design <- list(
   cutpoints = analysis_cutpoints_month,
+  generation_cutpoints = analysis_cutpoints_month,
   N_total = N_total,
   lambda = enrollment_rate_per_month,
   lambda_time = enrollment_rate_change_month,
@@ -433,7 +650,7 @@ thermocool_design <- list(
   binary_imputation = "event-time",
   block = 11,
   rand_ratio = c(control = 4, treatment = 7),
-  prop_loss = 0.05,
+  prop_loss = 0,
   alternative = "less",
   h0 = 0,
   Fn = Fn,
@@ -449,7 +666,7 @@ thermocool_design <- list(
   return_trace = TRUE
 )
 
-thermocool_descriptive <- do.call(sim_trials, c(
+thermocool_benefit <- do.call(sim_trials, c(
   thermocool_design,
   list(
     hazard_treatment = hazard_treatment,
@@ -468,8 +685,8 @@ thermocool_null <- do.call(sim_trials, c(
 ))
 
 oc_small <- summarise_sims(list(
-  "FDA-rate illustration" = thermocool_descriptive,
-  "Equal-arm null" = thermocool_null
+  "Published benefit: 0.45 vs 0.20" = thermocool_benefit,
+  "Published null: 0.20 vs 0.20" = thermocool_null
 ))
 
 oc_display <- oc_small[, c(
@@ -490,8 +707,8 @@ knitr::kable(oc_display, digits = 3)
 
 | scenario | n_analyzed | power | stop_immediate_success | stop_expected_success | stop_futility | stop_max_N | mean_N |
 |:---|---:|---:|---:|---:|---:|---:|---:|
-| Equal-arm null | 50 | 0.02 | 0 | 0.02 | 0.68 | 0.3 | 185.5 |
-| FDA-rate illustration | 50 | 1.00 | 1 | 0.00 | 0.00 | 0.0 | 150.0 |
+| Published benefit: 0.45 vs 0.20 | 50 | 0.94 | 0.68 | 0.16 | 0.02 | 0.14 | 165.7 |
+| Published null: 0.20 vs 0.20 | 50 | 0.00 | 0.00 | 0.02 | 0.86 | 0.12 | 170.1 |
 
 With only 50 trials and 40 imputations per look, these estimates have
 substantial Monte Carlo error. They illustrate the mutually exclusive
@@ -501,8 +718,8 @@ characteristics.
 uses `stop_success` for stopping accrual for expected success and
 reports immediate success separately as `stop_immediate_success`.
 
-The no-effect scenario provides a more informative view of the four
-decision regions than the deliberately strong FDA-rate scenario:
+The no-effect scenario provides a useful view of all four decision
+regions:
 
 ``` r
 
@@ -533,13 +750,19 @@ accrual, incomplete follow-up, the predictive model, and Monte Carlo
 error.
 
 The following unevaluated template increases both the number of
-simulated trials and the predictive-imputation count. The latter value
-is an analyst choice, not a reported ThermoCool setting.
+simulated trials and the predictive-imputation count. Its 5,000
+predictive draws are the closest package analogue to the 5,000 retained
+iterations described by Berry et al.; the package does not reproduce the
+sponsor’s hierarchical sampler or its 1,000-iteration burn-in. The
+25,000 trial replicates match the count stated for Berry et al.’s null
+table; the sponsor briefing instead describes 10,000 trials per
+scenario, and the monograph does not state a replicate count for its
+benefit table.
 
 ``` r
 
 thermocool_full_design <- modifyList(thermocool_design, list(
-  N_trials = 10000,
+  N_trials = 25000,
   N_impute = 5000,
   ncores = 8,
   return_trace = FALSE
@@ -557,7 +780,7 @@ full_null <- lapply(seq_along(q_grid), function(i) {
     )
   ))
 })
-names(full_null) <- paste0("null: Qn = ", q_grid)
+names(full_null) <- paste0("null 0.20 vs 0.20: Qn = ", q_grid)
 
 full_benefit <- lapply(seq_along(q_grid), function(i) {
   do.call(sim_trials, c(
@@ -569,7 +792,7 @@ full_benefit <- lapply(seq_along(q_grid), function(i) {
     )
   ))
 })
-names(full_benefit) <- paste0("benefit: Qn = ", q_grid)
+names(full_benefit) <- paste0("benefit 0.45 vs 0.20: Qn = ", q_grid)
 
 full_oc <- summarise_sims(c(full_null, full_benefit))
 full_oc[, c(
@@ -590,11 +813,13 @@ full_oc[, c(
 Useful additional scenarios include weaker treatment effects, different
 control event rates, slower and faster accrual, arm-specific
 missingness, alternative piecewise hazards, and violations of the
-predictive model. The null design should be evaluated over a suitable
-nuisance-parameter range rather than at a single equal-arm profile.
-Because a 0.99 boundary is estimated from imputations, the predictive
-draw count should also be chosen so that decisions near `Qn`, `Sn`, and
-`Fn` are sufficiently stable.
+predictive model. The three published null cases and eight benefit cases
+in `published_scenarios` provide a natural starting grid. The null
+design should still be evaluated over a suitable nuisance-parameter
+range rather than at a single equal-arm profile. Because a 0.99 boundary
+is estimated from imputations, the predictive draw count should also be
+chosen so that decisions near `Qn`, `Sn`, and `Fn` are sufficiently
+stable.
 
 ## What this example does and does not reproduce
 
@@ -606,34 +831,61 @@ The example preserves the central statistical idea:
 - `Fn` acts on predictive success at the maximum sample size; and
 - all thresholds are evaluated in a prespecified order.
 
-It does not reproduce the sponsor’s complete analysis, hierarchical
-hazard prior, simulation scenarios, treatment-specific evaluation-window
-origins, site-stratified randomization sequences, protocol deviations,
-crossover, analysis-population exclusions, operational overrun, or the
-original two-predictive-probability futility requirement. It also does
-not recreate the mid-trial design amendment or its statistical penalty.
+It uses the published default failure generator, accrual schedule, and
+one published benefit scenario, but it does not reproduce the sponsor’s
+complete analysis, hierarchical hazard prior, confidential sensitivity
+suite, treatment-specific evaluation-window origins, site-stratified
+randomization sequences, protocol deviations, crossover,
+analysis-population exclusions, operational overrun, or the original
+two-predictive-probability futility requirement. It also does not
+recreate the mid-trial design amendment or its statistical penalty.
 Those distinctions are why the simulated numerical results should not be
 compared directly with the trial’s regulatory analysis.
 
-## Primary sources
+## Sources and document roles
+
+- Berry SM, Carlin BP, Lee JJ, Müller P. [*Bayesian Adaptive Methods for
+  Clinical Trials*](https://doi.org/10.1201/EBK1439825488). Boca Raton,
+  FL: Chapman & Hall/CRC; 2010. Section 5.8, “Case study: Ablation
+  device to treat atrial fibrillation,” pp. 241–246. This
+  designer-authored case study supplies the default failure-time
+  generator, its probability-scaling formula, the default accrual
+  schedule, and the published operating-characteristic scenario grid
+  used in this vignette.
 
 - Wilber DJ, Pappone C, Neuzil P, et al. [Comparison of antiarrhythmic
   drug therapy and radiofrequency catheter ablation in patients with
   paroxysmal atrial fibrillation: a randomized controlled
   trial](https://jamanetwork.com/journals/jama/fullarticle/185277).
-  *JAMA*. 2010;303(4):333-340. <doi:10.1001/jama.2009.2029>.
+  *JAMA*. 2010;303(4):333-340. <doi:10.1001/jama.2009.2029>. The article
+  reports the analysis boundaries and observed Kaplan–Meier results, but
+  not the numerical simulation generator or accrual schedule.
+
 - U.S. Food and Drug Administration. [Summary of Safety and
   Effectiveness Data, PMA
   P030031/S011](https://www.accessdata.fda.gov/cdrh_docs/pdf3/P030031S011B.pdf).
-  The summary reports the approval analysis, longitudinal-model
-  intervals, interval exposure and failures, and updated Bayesian
-  results.
+  Table 8, p. 13 reports the June 2008 interval exposure and failures
+  used above as observed-data comparisons, not planning assumptions.
+
 - U.S. Food and Drug Administration. [Circulatory System Devices Panel,
   November 20, 2008 meeting
   materials](https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfAdvisory/details.cfm?mtg=705).
-  The archive links the FDA and sponsor briefing information, slides,
-  panel questions, and transcript used for the design-history and
-  early-claim details above.
+  This is the archive landing page for the FDA and sponsor summaries,
+  slides, panel questions, and transcript.
+
+- U.S. Food and Drug Administration. [FDA Executive Summary,
+  pp. 10–12](https://web.archive.org/web/20170222060225/https://www.fda.gov/ohrms/dockets/ac/08/briefing/2008-4393b1-01%20%20FDA%20executive%20summary%20FINAL.pdf).
+  It documents the amendment, 106-patient non-stopping look, information
+  gate, stopping rules, and hierarchical longitudinal model.
+
+- Biosense Webster, Inc. [Sponsor Executive
+  Summary](https://web.archive.org/web/20170222051859/https://www.fda.gov/ohrms/dockets/ac/08/briefing/2008-4393b1-01-%20%20Sponsors%20Executive%20Summary.pdf).
+  Internal pp. 24–25 and 128 report the simulation exercise and realized
+  enrollment history. The briefing says that 10,000 trials per scenario
+  were simulated, but its operating-characteristic table is redacted.
+  Berry et al. later reports 25,000 simulations specifically for its
+  tabulated null cases.
+
 - U.S. Food and Drug Administration. [PMA supplement P030031/S011
   approval
   record](https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpma/pma.cfm?id=P030031S011).

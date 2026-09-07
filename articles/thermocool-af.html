@@ -81,12 +81,16 @@ et al. (2010)</a>, and supported FDA premarket approval supplement <a href="htt
 <p>This vignette uses the trial to explain <code>Qn</code>, the upper
 boundary for immediate success in <code>goldilocks</code>. It is a
 <strong>ThermoCool-inspired package example, not an exact reconstruction
-or regulatory validation</strong>. The public sources disclose the
-principal decision boundaries and longitudinal imputation model, but
-some simulation inputs are unavailable. In addition, the package rule
-deliberately differs from the trial protocol in its futility statistic,
-comparison operators, and treatment of a separate information gate for
-an early claim.</p>
+or regulatory validation</strong>. JAMA and the public FDA record
+disclose the principal decision boundaries and longitudinal imputation
+model, but omit or redact the numerical operating-characteristic
+scenarios. The trial designers subsequently published the default
+failure-time generator, accrual schedule, and scenario grid in <a href="https://doi.org/10.1201/EBK1439825488" class="external-link">Berry et al. (2010, Section
+5.8, pp. 241–246)</a>. This example uses those published defaults. The
+complete regulatory sensitivity suite remains unavailable, and the
+package rule deliberately differs from the trial protocol in its
+futility statistic, comparison operators, and treatment of a separate
+information gate for an early claim.</p>
 <div class="section level2">
 <h2 id="trial-and-endpoint">Trial and endpoint<a class="anchor" aria-label="anchor" href="#trial-and-endpoint"></a>
 </h2>
@@ -211,10 +215,10 @@ interface.</li>
 </ul>
 <table class="table">
 <colgroup>
-<col width="12%">
-<col width="22%">
-<col width="4%">
-<col width="61%">
+<col width="16%">
+<col width="25%">
+<col width="3%">
+<col width="54%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Input</th>
@@ -300,7 +304,8 @@ lower treatment failure probability</td>
 </tr>
 <tr class="even">
 <td align="left">
-<code>cutpoints</code>, <code>end_of_study</code>
+<code>cutpoints</code>,
+<code>generation_cutpoints</code>, <code>end_of_study</code>
 </td>
 <td align="left">0.5 and 2 months; 9-month horizon</td>
 <td align="left">reported</td>
@@ -340,35 +345,63 @@ hyperpriors; not the sponsor’s hierarchical prior</td>
 <td align="left">
 <code>lambda</code>, <code>lambda_time</code>
 </td>
-<td align="left">0.83, 3.50, 8.92 patients/month; changes at months 12
-and 24</td>
-<td align="left">inferred</td>
-<td align="left">Derived from FDA’s 11 patients after year 1, 53 after
-year 2, and 160 near year 3; not a protocol accrual generator</td>
+<td align="left">2, 3, 5 patients/month; changes at months 2 and 4</td>
+<td align="left">reported</td>
+<td align="left">Berry et al., Section 5.8, p. 245; default simulation
+accrual schedule</td>
 </tr>
 <tr class="odd">
-<td align="left">Data-generating hazards</td>
+<td align="left">Failure-time generator</td>
+<td align="left">Base hazards 0.65, 0.161, 0.05/month, scaled to target
+success</td>
+<td align="left">reported</td>
+<td align="left">Berry et al., Section 5.8, pp. 244–245; common shape
+scaled to an arm-specific nine-month success probability</td>
+</tr>
+<tr class="even">
+<td align="left">Worked benefit scenario</td>
+<td align="left">Treatment 0.45; control 0.20 chronic success</td>
+<td align="left">reported</td>
+<td align="left">One of the benefit cases in Berry et al., Table 5.19;
+selected for the worked example</td>
+</tr>
+<tr class="odd">
+<td align="left">Published OC scenario grid</td>
+<td align="left">Three null and eight benefit scenarios</td>
+<td align="left">reported</td>
+<td align="left">Berry et al., Tables 5.18–5.19</td>
+</tr>
+<tr class="even">
+<td align="left">Observed enrollment history</td>
+<td align="left">11 after year 1; 53 after year 2; 160 at analysis; 167
+at close</td>
+<td align="left">reported</td>
+<td align="left">FDA sponsor briefing; realized history retained only
+for comparison</td>
+</tr>
+<tr class="odd">
+<td align="left">Observed interval hazards</td>
 <td align="left">June 2008 failures divided by exposure within each
 interval</td>
 <td align="left">inferred</td>
-<td align="left">Derived from the FDA SSED Table 8; descriptive
-observed-data scenario, not a planning assumption</td>
+<td align="left">Derived from FDA SSED Table 8; descriptive
+observed-data rates, not planning assumptions</td>
 </tr>
 <tr class="even">
-<td align="left">Sponsor planning scenarios</td>
-<td align="left">Not publicly available in sufficient detail</td>
+<td align="left">Complete regulatory sensitivity suite</td>
+<td align="left">Not publicly available in full</td>
 <td align="left">unavailable</td>
-<td align="left">Public materials state that operating characteristics
-were simulated but redact or omit enough inputs to prevent exact
-reproduction</td>
+<td align="left">The FDA briefing redacts its scenario table, and Berry
+et al. notes additional sensitivity simulations without enumerating all
+of them</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>prop_loss</code></td>
-<td align="left">0.05 in each arm</td>
+<td align="left">0 in each arm</td>
 <td align="left">assumed</td>
-<td align="left">Illustrative assumption; random censoring is not
-equivalent to the eight randomized patients who did not receive assigned
-treatment</td>
+<td align="left">No random loss generator is reported for the published
+scenarios; observed exclusions are not equivalent to random
+censoring</td>
 </tr>
 <tr class="even">
 <td align="left"><code>imputed_final</code></td>
@@ -379,10 +412,12 @@ outcomes; the available package analysis is an approximation</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>N_impute</code></td>
-<td align="left">100 for one trial; 40 for small OC simulations</td>
+<td align="left">100 for one trial; 40 for small OC simulations; 5,000
+in validation template</td>
 <td align="left">assumed</td>
-<td align="left">Illustrative choices; the sponsor’s predictive draw
-count is unavailable</td>
+<td align="left">The evaluated counts are run-time choices; Berry et
+al. reports 1,000 burn-in and 5,000 retained MCMC iterations, which are
+not identical to the package computation</td>
 </tr>
 <tr class="even">
 <td align="left">Evaluated <code>N_trials</code>
@@ -390,13 +425,14 @@ count is unavailable</td>
 <td align="left">50 per scenario</td>
 <td align="left">assumed</td>
 <td align="left">Illustrative choice; the sponsor briefing reports
-10,000 simulated trials per scenario</td>
+10,000 trials per scenario, while Berry et al. reports 25,000 for its
+tabulated null simulations</td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="section level2">
-<h2 id="mapping-the-longitudinal-model">Mapping the longitudinal model<a class="anchor" aria-label="anchor" href="#mapping-the-longitudinal-model"></a>
+<h2 id="mapping-the-longitudinal-analysis-model">Mapping the longitudinal analysis model<a class="anchor" aria-label="anchor" href="#mapping-the-longitudinal-analysis-model"></a>
 </h2>
 <p>The completed endpoint is binary, but its status is learned over
 time. The trial predicted unknown nine-month outcomes with an
@@ -431,10 +467,211 @@ after complementing to failure probabilities.</p>
 <span><span class="co"># Assumed plug-in approximation using the means of the disclosed Exp(1)</span></span>
 <span><span class="co"># hyperpriors; this is not the sponsor's hierarchical hazard prior.</span></span>
 <span><span class="va">prior_surv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">1</span>, rate <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p>The FDA summary reports observed exposure and failure counts for the
-same three intervals in its June 2008 analysis. Dividing failures by
-exposure produces a fully documented descriptive generator:</p>
+<p>The fixed <code>prior_surv</code> above approximates the sponsor’s
+analysis prior. It is separate from the true hazards used to generate
+virtual trials when studying the design’s operating characteristics.</p>
+</div>
+<div class="section level2">
+<h2 id="published-design-generating-assumptions">Published design-generating assumptions<a class="anchor" aria-label="anchor" href="#published-design-generating-assumptions"></a>
+</h2>
+<p>Berry et al. (2010, pp. 244–245) gives the default
+piecewise-exponential failure generator that was not enumerated in JAMA
+or the public FDA summaries. Its base monthly hazards are 0.65, 0.161,
+and 0.05. Over the three analysis intervals, these give nine-month
+chronic success of approximately 0.40:</p>
+<p><span class="math display">
+\exp\{-0.5(0.65)-1.5(0.161)-7(0.05)\} \approx 0.40.
+</span></p>
+<p>For a target chronic-success probability <span class="math inline">p</span>, all three base hazards are multiplied by
+the same factor:</p>
+<p><span class="math display">
+\theta_j(p) = \theta_j^*\frac{\log(p)}{\log(0.40)}.
+</span></p>
+<p>Thus, scenario probabilities change the overall failure level while
+preserving the shape of the failure-time distribution.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">base_chronic_success</span> <span class="op">&lt;-</span> <span class="fl">0.40</span></span>
+<span><span class="va">base_failure_hazard</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  `0--0.5` <span class="op">=</span> <span class="fl">0.65</span>,</span>
+<span>  `0.5--2` <span class="op">=</span> <span class="fl">0.161</span>,</span>
+<span>  `2--9` <span class="op">=</span> <span class="fl">0.05</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">hazard_for_success</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1L</span>, <span class="fu"><a href="https://rdrr.io/r/base/is.finite.html" class="external-link">is.finite</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>, <span class="va">p</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="va">p</span> <span class="op">&lt;</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>  <span class="va">base_failure_hazard</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">base_chronic_success</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">published_scenarios</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  Type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Null"</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Benefit"</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  `Treatment chronic success` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fl">0.20</span>, <span class="fl">0.40</span>, <span class="fl">0.60</span>,</span>
+<span>    <span class="fl">0.30</span>, <span class="fl">0.40</span>, <span class="fl">0.45</span>, <span class="fl">0.50</span>, <span class="fl">0.50</span>, <span class="fl">0.60</span>, <span class="fl">0.65</span>, <span class="fl">0.70</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  `Control chronic success` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fl">0.20</span>, <span class="fl">0.40</span>, <span class="fl">0.60</span>,</span>
+<span>    <span class="fl">0.20</span>, <span class="fl">0.20</span>, <span class="fl">0.20</span>, <span class="fl">0.20</span>, <span class="fl">0.40</span>, <span class="fl">0.40</span>, <span class="fl">0.40</span>, <span class="fl">0.40</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">published_scenarios</span>, digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">Type</th>
+<th align="right">Treatment chronic success</th>
+<th align="right">Control chronic success</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Null</td>
+<td align="right">0.20</td>
+<td align="right">0.2</td>
+</tr>
+<tr class="even">
+<td align="left">Null</td>
+<td align="right">0.40</td>
+<td align="right">0.4</td>
+</tr>
+<tr class="odd">
+<td align="left">Null</td>
+<td align="right">0.60</td>
+<td align="right">0.6</td>
+</tr>
+<tr class="even">
+<td align="left">Benefit</td>
+<td align="right">0.30</td>
+<td align="right">0.2</td>
+</tr>
+<tr class="odd">
+<td align="left">Benefit</td>
+<td align="right">0.40</td>
+<td align="right">0.2</td>
+</tr>
+<tr class="even">
+<td align="left">Benefit</td>
+<td align="right">0.45</td>
+<td align="right">0.2</td>
+</tr>
+<tr class="odd">
+<td align="left">Benefit</td>
+<td align="right">0.50</td>
+<td align="right">0.2</td>
+</tr>
+<tr class="even">
+<td align="left">Benefit</td>
+<td align="right">0.50</td>
+<td align="right">0.4</td>
+</tr>
+<tr class="odd">
+<td align="left">Benefit</td>
+<td align="right">0.60</td>
+<td align="right">0.4</td>
+</tr>
+<tr class="even">
+<td align="left">Benefit</td>
+<td align="right">0.65</td>
+<td align="right">0.4</td>
+</tr>
+<tr class="odd">
+<td align="left">Benefit</td>
+<td align="right">0.70</td>
+<td align="right">0.4</td>
+</tr>
+</tbody>
+</table>
+<p>Tables 5.18 and 5.19 of Berry et al. report the three null cases and
+eight benefit cases shown above. There was therefore no single
+treatment-control event-rate assumption. For the runnable example, we
+select the published 0.45-versus-0.20 chronic-success case, which the
+monograph discusses specifically:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">worked_chronic_success</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>treatment <span class="op">=</span> <span class="fl">0.45</span>, control <span class="op">=</span> <span class="fl">0.20</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">hazard_treatment</span> <span class="op">&lt;-</span> <span class="fu">hazard_for_success</span><span class="op">(</span><span class="va">worked_chronic_success</span><span class="op">[</span><span class="st">"treatment"</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">hazard_control</span> <span class="op">&lt;-</span> <span class="fu">hazard_for_success</span><span class="op">(</span><span class="va">worked_chronic_success</span><span class="op">[</span><span class="st">"control"</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">planning_hazards</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  Arm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Catheter ablation"</span>, <span class="st">"ADT control"</span><span class="op">)</span>,</span>
+<span>  `Target nine-month chronic success` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">worked_chronic_success</span><span class="op">)</span>,</span>
+<span>  `Hazard 0--0.5 months` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">hazard_treatment</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">hazard_control</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  `Hazard 0.5--2 months` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">hazard_treatment</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">hazard_control</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  `Hazard 2--9 months` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">hazard_treatment</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="va">hazard_control</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">planning_hazards</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="15%">
+<col width="30%">
+<col width="18%">
+<col width="18%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Arm</th>
+<th align="right">Target nine-month chronic success</th>
+<th align="right">Hazard 0–0.5 months</th>
+<th align="right">Hazard 0.5–2 months</th>
+<th align="right">Hazard 2–9 months</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Catheter ablation</td>
+<td align="right">0.45</td>
+<td align="right">0.566</td>
+<td align="right">0.140</td>
+<td align="right">0.044</td>
+</tr>
+<tr class="even">
+<td align="left">ADT control</td>
+<td align="right">0.20</td>
+<td align="right">1.142</td>
+<td align="right">0.283</td>
+<td align="right">0.088</td>
+</tr>
+</tbody>
+</table>
+<p>The same source reports a default simulation accrual rate of two
+patients per month for the first two months, three per month for the
+next two months, and five per month from the fifth month onward (Berry
+et al., 2010, p. 245).</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">enrollment_rate_per_month</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  months_0_to_2 <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  months_2_to_4 <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  months_4_plus <span class="op">=</span> <span class="fl">5</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">enrollment_rate_change_month</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  `Trial-calendar interval` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0--2 months"</span>, <span class="st">"2--4 months"</span>, <span class="st">"4+ months"</span><span class="op">)</span>,</span>
+<span>  `Patients per month` <span class="op">=</span> <span class="va">enrollment_rate_per_month</span>,</span>
+<span>  check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;               Trial-calendar interval Patients per month</span></span>
+<span><span class="co">#&gt; months_0_to_2             0--2 months                  2</span></span>
+<span><span class="co">#&gt; months_2_to_4             2--4 months                  3</span></span>
+<span><span class="co">#&gt; months_4_plus               4+ months                  5</span></span></code></pre></div>
+<p>These are reported defaults for simulations of the amended adaptive
+design. <code>goldilocks</code> maps the three rates to its piecewise
+Poisson arrival process; the monograph reports the rate schedule but
+does not specify enough operational detail to verify that its
+enrollment-time generator was identical. They should not be interpreted
+as the original 2004 fixed-design forecast: the adaptive proposal was
+developed after accrual had begun and 106 patients were already
+enrolled.</p>
+</div>
+<div class="section level2">
+<h2 id="assumptions-versus-the-reported-trial-history">Assumptions versus the reported trial history<a class="anchor" aria-label="anchor" href="#assumptions-versus-the-reported-trial-history"></a>
+</h2>
+<p>The <a href="https://www.accessdata.fda.gov/cdrh_docs/pdf3/P030031S011B.pdf" class="external-link">FDA
+Summary of Safety and Effectiveness Data, Table 8, p. 13</a> reports
+June 2008 exposure and failure counts for the same three intervals.
+Dividing failures by exposure gives observed-data rates, not prospective
+design assumptions:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fda_interval_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  arm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"treatment"</span>, <span class="st">"control"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
 <span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0--0.5"</span>, <span class="st">"0.5--2"</span>, <span class="st">"2--9"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
@@ -500,108 +737,255 @@ exposure produces a fully documented descriptive generator:</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">hazard_treatment</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span></span>
+<span><span class="va">observed_hazard_treatment</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span></span>
 <span>  <span class="va">fda_interval_data</span>,</span>
 <span>  <span class="va">arm</span> <span class="op">==</span> <span class="st">"treatment"</span></span>
 <span><span class="op">)</span><span class="op">$</span><span class="va">hazard_per_month</span></span>
-<span><span class="va">hazard_control</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span></span>
+<span><span class="va">observed_hazard_control</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span></span>
 <span>  <span class="va">fda_interval_data</span>,</span>
 <span>  <span class="va">arm</span> <span class="op">==</span> <span class="st">"control"</span></span>
 <span><span class="op">)</span><span class="op">$</span><span class="va">hazard_per_month</span></span></code></pre></div>
-<p>These are post-trial empirical rates, not prospective design
-assumptions. They also approximate failures assigned at the start of the
-evaluation window with a continuous hazard. They are used only to create
-a strong-benefit scenario that resembles the information pattern in the
-public record.</p>
-<p>The event-free probabilities implied directly by these rates are:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<p>The planning and observed interval rates differ in shape as well as
+level:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hazard_comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  Interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">base_failure_hazard</span><span class="op">)</span>,</span>
+<span>  `Planning: treatment` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">hazard_treatment</span><span class="op">)</span>,</span>
+<span>  `Observed: treatment` <span class="op">=</span> <span class="va">observed_hazard_treatment</span>,</span>
+<span>  `Planning: control` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">hazard_control</span><span class="op">)</span>,</span>
+<span>  `Observed: control` <span class="op">=</span> <span class="va">observed_hazard_control</span>,</span>
+<span>  check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">hazard_comparison</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="10%">
+<col width="23%">
+<col width="23%">
+<col width="21%">
+<col width="21%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Interval</th>
+<th align="right">Planning: treatment</th>
+<th align="right">Observed: treatment</th>
+<th align="right">Planning: control</th>
+<th align="right">Observed: control</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">0–0.5</td>
+<td align="right">0.566</td>
+<td align="right">0.647</td>
+<td align="right">1.142</td>
+<td align="right">0.559</td>
+</tr>
+<tr class="even">
+<td align="left">0.5–2</td>
+<td align="right">0.140</td>
+<td align="right">0.029</td>
+<td align="right">0.283</td>
+<td align="right">0.258</td>
+</tr>
+<tr class="odd">
+<td align="left">2–9</td>
+<td align="right">0.044</td>
+<td align="right">0.017</td>
+<td align="right">0.088</td>
+<td align="right">0.221</td>
+</tr>
+</tbody>
+</table>
+<p>Inserting the observed rates into a continuous piecewise-exponential
+distribution gives a stronger treatment contrast than the selected
+planning case. The JAMA Kaplan–Meier estimates were also more favorable
+to ablation:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">interval_length_month</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="fl">0</span>,</span>
 <span>  <span class="va">analysis_cutpoints_month</span>,</span>
 <span>  <span class="va">effectiveness_horizon_month</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">implied_chronic_success</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span><span class="va">chronic_success_comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  Arm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Catheter ablation"</span>, <span class="st">"ADT control"</span><span class="op">)</span>,</span>
-<span>  `Implied nine-month chronic-success probability` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">hazard_treatment</span> <span class="op">*</span> <span class="va">interval_length_month</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">hazard_control</span> <span class="op">*</span> <span class="va">interval_length_month</span><span class="op">)</span><span class="op">)</span></span>
+<span>  `Published worked scenario` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">worked_chronic_success</span><span class="op">)</span>,</span>
+<span>  `Implied by observed FDA interval rates` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">observed_hazard_treatment</span> <span class="op">*</span> <span class="va">interval_length_month</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">observed_hazard_control</span> <span class="op">*</span> <span class="va">interval_length_month</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
+<span>  `JAMA Kaplan-Meier estimate` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.66</span>, <span class="fl">0.16</span><span class="op">)</span>,</span>
+<span>  `FDA SSED Kaplan-Meier estimate` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.64</span>, <span class="fl">0.16</span><span class="op">)</span>,</span>
 <span>  check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">implied_chronic_success</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">chronic_success_comparison</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
+<colgroup>
+<col width="12%">
+<col width="18%">
+<col width="27%">
+<col width="19%">
+<col width="21%">
+</colgroup>
 <thead><tr class="header">
 <th align="left">Arm</th>
-<th align="right">Implied nine-month chronic-success probability</th>
+<th align="right">Published worked scenario</th>
+<th align="right">Implied by observed FDA interval rates</th>
+<th align="right">JAMA Kaplan-Meier estimate</th>
+<th align="right">FDA SSED Kaplan-Meier estimate</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">Catheter ablation</td>
+<td align="right">0.45</td>
 <td align="right">0.616</td>
+<td align="right">0.66</td>
+<td align="right">0.64</td>
 </tr>
 <tr class="even">
 <td align="left">ADT control</td>
+<td align="right">0.20</td>
 <td align="right">0.109</td>
+<td align="right">0.16</td>
+<td align="right">0.16</td>
 </tr>
 </tbody>
 </table>
-<p>The JAMA paper reports Kaplan-Meier chronic-success estimates of 0.66
-and 0.16. The values above need not equal those estimates: they are
-obtained by inserting raw interval rates into a piecewise-exponential
-distribution, without the sponsor’s full posterior calculation, protocol
-handling of time-zero failures, or analysis-population rules.</p>
-</div>
-<div class="section level2">
-<h2 id="an-observed-history-accrual-approximation">An observed-history accrual approximation<a class="anchor" aria-label="anchor" href="#an-observed-history-accrual-approximation"></a>
-</h2>
-<p>Accrual speed determines how much nine-month endpoint information is
-available at an enrollment-triggered look. FDA reports 11 accrued
-patients after one year, 53 after two years, and 160 near the third
-year. The following piecewise rates preserve those increments
-approximately:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">enrollment_rate_per_month</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  year_1 <span class="op">=</span> <span class="op">(</span><span class="fl">11</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="fl">12</span>,</span>
-<span>  year_2 <span class="op">=</span> <span class="op">(</span><span class="fl">53</span> <span class="op">-</span> <span class="fl">11</span><span class="op">)</span> <span class="op">/</span> <span class="fl">12</span>,</span>
-<span>  year_3 <span class="op">=</span> <span class="op">(</span><span class="fl">160</span> <span class="op">-</span> <span class="fl">53</span><span class="op">)</span> <span class="op">/</span> <span class="fl">12</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">enrollment_rate_change_month</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">24</span><span class="op">)</span></span>
+<p>The FDA-rate probabilities are descriptive approximations. They need
+not equal the Kaplan–Meier estimates because they insert raw interval
+rates into a continuous distribution without the sponsor’s posterior
+calculation, handling of time-zero failures, or analysis-population
+rules. The 0.66 and 0.64 ablation estimates are also source- and
+cutoff-specific rather than interchangeable: JAMA reports 0.66, whereas
+the FDA SSED reports 0.64.</p>
+<p>The published accrual model also differs sharply from the early
+operational history reported in the <a href="https://web.archive.org/web/20170222051859/https://www.fda.gov/ohrms/dockets/ac/08/briefing/2008-4393b1-01-%20%20Sponsors%20Executive%20Summary.pdf" class="external-link">FDA
+sponsor briefing, internal p. 128</a>. Under the package convention that
+the first participant enrolls at time zero, the default simulation model
+expects about 51 participants by month 12 and 111 by month 24. The trial
+had only 11 and 53, respectively, before enrollment accelerated. It
+reached 160 at the September 2007 analysis and 167 when enrollment
+closed the following month:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">expected_enrollment</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">month</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">interval_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">month</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">month</span> <span class="op">-</span> <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">month</span> <span class="op">-</span> <span class="fl">4</span>, <span class="fl">0</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">enrollment_rate_per_month</span> <span class="op">*</span> <span class="va">interval_time</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  `Trial-calendar interval` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0--12 months"</span>, <span class="st">"12--24 months"</span>, <span class="st">"24+ months"</span><span class="op">)</span>,</span>
-<span>  `Patients per month` <span class="op">=</span> <span class="va">enrollment_rate_per_month</span>,</span>
+<span><span class="va">accrual_comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  Milestone <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"After year 1"</span>,</span>
+<span>    <span class="st">"After year 2"</span>,</span>
+<span>    <span class="st">"First planned analysis"</span>,</span>
+<span>    <span class="st">"Enrollment close"</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  `Approximate trial month` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">24</span>, <span class="fl">35</span>, <span class="fl">36</span><span class="op">)</span>,</span>
+<span>  `Reported cumulative enrollment` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">11</span>, <span class="fl">53</span>, <span class="fl">160</span>, <span class="fl">167</span><span class="op">)</span>,</span>
+<span>  `Expected under published simulation default` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">24</span>, <span class="fl">35</span>, <span class="fl">36</span><span class="op">)</span>,</span>
+<span>    <span class="va">expected_enrollment</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;        Trial-calendar interval Patients per month</span></span>
-<span><span class="co">#&gt; year_1            0--12 months          0.8333333</span></span>
-<span><span class="co">#&gt; year_2           12--24 months          3.5000000</span></span>
-<span><span class="co">#&gt; year_3              24+ months          8.9166667</span></span></code></pre></div>
-<p>This is an inferred operational approximation, not a reported Poisson
-accrual model. <code>goldilocks</code> fixes the first enrollment at
-trial-calendar time zero, so the first rate generates 10 additional
-expected arrivals by month 12, for 11 patients in total. The later rates
-use the reported cumulative increments. The schedule intentionally
-captures the slow start and later acceleration because a single average
-rate would give a different amount of follow-up at the first look.</p>
+<span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">accrual_comparison</span>, digits <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="18%">
+<col width="19%">
+<col width="25%">
+<col width="36%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Milestone</th>
+<th align="right">Approximate trial month</th>
+<th align="right">Reported cumulative enrollment</th>
+<th align="right">Expected under published simulation default</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">After year 1</td>
+<td align="right">12</td>
+<td align="right">11</td>
+<td align="right">51</td>
+</tr>
+<tr class="even">
+<td align="left">After year 2</td>
+<td align="right">24</td>
+<td align="right">53</td>
+<td align="right">111</td>
+</tr>
+<tr class="odd">
+<td align="left">First planned analysis</td>
+<td align="right">35</td>
+<td align="right">160</td>
+<td align="right">166</td>
+</tr>
+<tr class="even">
+<td align="left">Enrollment close</td>
+<td align="right">36</td>
+<td align="right">167</td>
+<td align="right">171</td>
+</tr>
+</tbody>
+</table>
+<p>For an observed-history sensitivity analysis based on the reported
+year-end totals, the corresponding piecewise average rates are:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">observed_enrollment_rate_per_month</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  year_1 <span class="op">=</span> <span class="op">(</span><span class="fl">11</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="fl">12</span>,</span>
+<span>  year_2 <span class="op">=</span> <span class="op">(</span><span class="fl">53</span> <span class="op">-</span> <span class="fl">11</span><span class="op">)</span> <span class="op">/</span> <span class="fl">12</span>,</span>
+<span>  year_3 <span class="op">=</span> <span class="op">(</span><span class="fl">167</span> <span class="op">-</span> <span class="fl">53</span><span class="op">)</span> <span class="op">/</span> <span class="fl">12</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">observed_enrollment_rate_change_month</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">24</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  `Trial-calendar interval` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"0--12 months"</span>,</span>
+<span>    <span class="st">"12--24 months"</span>,</span>
+<span>    <span class="st">"24--36 months"</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  `Observed-history patients per month` <span class="op">=</span></span>
+<span>    <span class="va">observed_enrollment_rate_per_month</span>,</span>
+<span>  check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;        Trial-calendar interval Observed-history patients per month</span></span>
+<span><span class="co">#&gt; year_1            0--12 months                           0.8333333</span></span>
+<span><span class="co">#&gt; year_2           12--24 months                           3.5000000</span></span>
+<span><span class="co">#&gt; year_3           24--36 months                           9.5000000</span></span></code></pre></div>
+<p>The analysis-month values are approximate calendar offsets from the
+first enrollment in October 2004. Relative to the published 2, 3, and 5
+per-month default, the observed-history reconstruction is approximately
+0.83, 3.50, and 9.50 per month: much slower during the first two years
+and substantially faster late in the trial. The year-three rate uses the
+closing count of 167; 160 was the preceding decision-analysis count
+rather than the final enrollment total.</p>
 </div>
 <div class="section level2">
 <h2 id="one-simulated-trial">One simulated trial<a class="anchor" aria-label="anchor" href="#one-simulated-trial"></a>
 </h2>
 <p>The following analysis simulates one trial replicate under the
-descriptive FDA-rate scenario. It uses only 100 predictive imputations
-for illustration. That is too few for regulatory calibration of
-boundaries as extreme as 0.99 and 0.01.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+published 0.45-versus-0.20 benefit scenario and default accrual
+schedule. It uses only 100 predictive imputations for illustration. That
+is too few for regulatory calibration of boundaries as extreme as 0.99
+and 0.01.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1030236</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">thermocool_trial</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">hazard_treatment</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">hazard_control</span>,</span>
 <span>  cutpoints <span class="op">=</span> <span class="va">analysis_cutpoints_month</span>,</span>
+<span>  generation_cutpoints <span class="op">=</span> <span class="va">analysis_cutpoints_month</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="va">N_total</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="va">enrollment_rate_per_month</span>,</span>
 <span>  lambda_time <span class="op">=</span> <span class="va">enrollment_rate_change_month</span>,</span>
@@ -614,7 +998,7 @@ boundaries as extreme as 0.99 and 0.01.</p>
 <span>  binary_imputation <span class="op">=</span> <span class="st">"event-time"</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">11</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">4</span>, treatment <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>,</span>
-<span>  prop_loss <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  prop_loss <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  alternative <span class="op">=</span> <span class="st">"less"</span>,</span>
 <span>  h0 <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  Fn <span class="op">=</span> <span class="va">Fn</span>,</span>
@@ -670,7 +1054,7 @@ boundaries as extreme as 0.99 and 0.01.</p>
 <td align="right">0</td>
 <td align="left">TRUE</td>
 <td align="left">immediate_success</td>
-<td align="right">34.744</td>
+<td align="right">31.56</td>
 </tr></tbody>
 </table>
 <p><code>stop_immediate_success</code> is an official terminal success
@@ -683,7 +1067,7 @@ be computed, <code>post_prob_ha</code> and <code>est_final</code> are
 <code>NA</code> and <code>trial_success</code> remains
 <code>FALSE</code>.</p>
 <p>The trace makes the ordered rule auditable:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
 <span>  <span class="va">thermocool_trial</span><span class="op">$</span><span class="va">trace</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>    <span class="st">"look"</span>,</span>
@@ -736,12 +1120,14 @@ decision prevents all subsequent looks.</p>
 <h2 id="small-operating-characteristic-demonstration">Small operating-characteristic demonstration<a class="anchor" aria-label="anchor" href="#small-operating-characteristic-demonstration"></a>
 </h2>
 <p>For simulation, collect common inputs in a named list and vary only
-the data-generating hazards. The first scenario uses the FDA-derived
-descriptive rates. The second assigns the control rates to both arms and
-is therefore a simple no-treatment-effect scenario.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+the data-generating hazards. The first scenario is the published
+0.45-versus-0.20 benefit case. The second assigns the 0.20-success
+control profile to both arms, which is one of the published null
+cases.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">thermocool_design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  cutpoints <span class="op">=</span> <span class="va">analysis_cutpoints_month</span>,</span>
+<span>  generation_cutpoints <span class="op">=</span> <span class="va">analysis_cutpoints_month</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="va">N_total</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="va">enrollment_rate_per_month</span>,</span>
 <span>  lambda_time <span class="op">=</span> <span class="va">enrollment_rate_change_month</span>,</span>
@@ -754,7 +1140,7 @@ is therefore a simple no-treatment-effect scenario.</p>
 <span>  binary_imputation <span class="op">=</span> <span class="st">"event-time"</span>,</span>
 <span>  block <span class="op">=</span> <span class="fl">11</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">4</span>, treatment <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>,</span>
-<span>  prop_loss <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  prop_loss <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  alternative <span class="op">=</span> <span class="st">"less"</span>,</span>
 <span>  h0 <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  Fn <span class="op">=</span> <span class="va">Fn</span>,</span>
@@ -770,7 +1156,7 @@ is therefore a simple no-treatment-effect scenario.</p>
 <span>  return_trace <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">thermocool_descriptive</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trials</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span><span class="va">thermocool_benefit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trials</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="va">thermocool_design</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    hazard_treatment <span class="op">=</span> <span class="va">hazard_treatment</span>,</span>
@@ -789,8 +1175,8 @@ is therefore a simple no-treatment-effect scenario.</p>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">oc_small</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="st">"FDA-rate illustration"</span> <span class="op">=</span> <span class="va">thermocool_descriptive</span>,</span>
-<span>  <span class="st">"Equal-arm null"</span> <span class="op">=</span> <span class="va">thermocool_null</span></span>
+<span>  <span class="st">"Published benefit: 0.45 vs 0.20"</span> <span class="op">=</span> <span class="va">thermocool_benefit</span>,</span>
+<span>  <span class="st">"Published null: 0.20 vs 0.20"</span> <span class="op">=</span> <span class="va">thermocool_null</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">oc_display</span> <span class="op">&lt;-</span> <span class="va">oc_small</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -807,16 +1193,16 @@ is therefore a simple no-treatment-effect scenario.</p>
 <span>  <span class="st">"stop_expected_success"</span></span>
 <span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">oc_display</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
-<table style="width:100%;" class="table">
+<table class="table">
 <colgroup>
+<col width="25%">
+<col width="8%">
+<col width="4%">
 <col width="18%">
-<col width="9%">
+<col width="17%">
+<col width="11%">
+<col width="8%">
 <col width="5%">
-<col width="19%">
-<col width="18%">
-<col width="12%">
-<col width="9%">
-<col width="6%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">scenario</th>
@@ -830,24 +1216,24 @@ is therefore a simple no-treatment-effect scenario.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">Equal-arm null</td>
+<td align="left">Published benefit: 0.45 vs 0.20</td>
 <td align="right">50</td>
-<td align="right">0.02</td>
-<td align="right">0</td>
-<td align="right">0.02</td>
+<td align="right">0.94</td>
 <td align="right">0.68</td>
-<td align="right">0.3</td>
-<td align="right">185.5</td>
+<td align="right">0.16</td>
+<td align="right">0.02</td>
+<td align="right">0.14</td>
+<td align="right">165.7</td>
 </tr>
 <tr class="even">
-<td align="left">FDA-rate illustration</td>
+<td align="left">Published null: 0.20 vs 0.20</td>
 <td align="right">50</td>
-<td align="right">1.00</td>
-<td align="right">1</td>
 <td align="right">0.00</td>
 <td align="right">0.00</td>
-<td align="right">0.0</td>
-<td align="right">150.0</td>
+<td align="right">0.02</td>
+<td align="right">0.86</td>
+<td align="right">0.12</td>
+<td align="right">170.1</td>
 </tr>
 </tbody>
 </table>
@@ -858,12 +1244,12 @@ characteristics. <code><a href="../reference/summarise_sims.html">summarise_sims
 <code>stop_success</code> for stopping accrual for expected success and
 reports immediate success separately as
 <code>stop_immediate_success</code>.</p>
-<p>The no-effect scenario provides a more informative view of the four
-decision regions than the deliberately strong FDA-rate scenario:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<p>The no-effect scenario provides a useful view of all four decision
+regions:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_stopping.html">plot_sim_stopping</a></span><span class="op">(</span><span class="va">thermocool_null</span><span class="op">)</span></span></code></pre></div>
 <p><img src="thermocool-af_files/figure-html/stopping-plot-1.png" class="r-plt" alt="" width="672"></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_sim_decisions.html">plot_sim_decisions</a></span><span class="op">(</span><span class="va">thermocool_null</span><span class="op">)</span></span></code></pre></div>
 <p><img src="thermocool-af_files/figure-html/decision-plot-1.png" class="r-plt" alt="" width="864"></p>
 <p>In a decision plot, <code>Qn</code> adds a second horizontal boundary
@@ -882,11 +1268,17 @@ design. Calibration must reflect all looks, the final analysis, the
 binding futility rule, accrual, incomplete follow-up, the predictive
 model, and Monte Carlo error.</p>
 <p>The following unevaluated template increases both the number of
-simulated trials and the predictive-imputation count. The latter value
-is an analyst choice, not a reported ThermoCool setting.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+simulated trials and the predictive-imputation count. Its 5,000
+predictive draws are the closest package analogue to the 5,000 retained
+iterations described by Berry et al.; the package does not reproduce the
+sponsor’s hierarchical sampler or its 1,000-iteration burn-in. The
+25,000 trial replicates match the count stated for Berry et al.’s null
+table; the sponsor briefing instead describes 10,000 trials per
+scenario, and the monograph does not state a replicate count for its
+benefit table.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">thermocool_full_design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">thermocool_design</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  N_trials <span class="op">=</span> <span class="fl">10000</span>,</span>
+<span>  N_trials <span class="op">=</span> <span class="fl">25000</span>,</span>
 <span>  N_impute <span class="op">=</span> <span class="fl">5000</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  return_trace <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -904,7 +1296,7 @@ is an analyst choice, not a reported ThermoCool setting.</p>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">full_null</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"null: Qn = "</span>, <span class="va">q_grid</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">full_null</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"null 0.20 vs 0.20: Qn = "</span>, <span class="va">q_grid</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">full_benefit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">q_grid</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trials</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -916,7 +1308,7 @@ is an analyst choice, not a reported ThermoCool setting.</p>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">full_benefit</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"benefit: Qn = "</span>, <span class="va">q_grid</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">full_benefit</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"benefit 0.45 vs 0.20: Qn = "</span>, <span class="va">q_grid</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">full_oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">full_null</span>, <span class="va">full_benefit</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">full_oc</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -935,11 +1327,13 @@ is an analyst choice, not a reported ThermoCool setting.</p>
 <p>Useful additional scenarios include weaker treatment effects,
 different control event rates, slower and faster accrual, arm-specific
 missingness, alternative piecewise hazards, and violations of the
-predictive model. The null design should be evaluated over a suitable
-nuisance-parameter range rather than at a single equal-arm profile.
-Because a 0.99 boundary is estimated from imputations, the predictive
-draw count should also be chosen so that decisions near <code>Qn</code>,
-<code>Sn</code>, and <code>Fn</code> are sufficiently stable.</p>
+predictive model. The three published null cases and eight benefit cases
+in <code>published_scenarios</code> provide a natural starting grid. The
+null design should still be evaluated over a suitable nuisance-parameter
+range rather than at a single equal-arm profile. Because a 0.99 boundary
+is estimated from imputations, the predictive draw count should also be
+chosen so that decisions near <code>Qn</code>, <code>Sn</code>, and
+<code>Fn</code> are sufficiently stable.</p>
 </div>
 <div class="section level2">
 <h2 id="what-this-example-does-and-does-not-reproduce">What this example does and does not reproduce<a class="anchor" aria-label="anchor" href="#what-this-example-does-and-does-not-reproduce"></a>
@@ -956,36 +1350,56 @@ decisions;</li>
 size; and</li>
 <li>all thresholds are evaluated in a prespecified order.</li>
 </ul>
-<p>It does not reproduce the sponsor’s complete analysis, hierarchical
-hazard prior, simulation scenarios, treatment-specific evaluation-window
-origins, site-stratified randomization sequences, protocol deviations,
-crossover, analysis-population exclusions, operational overrun, or the
-original two-predictive-probability futility requirement. It also does
-not recreate the mid-trial design amendment or its statistical penalty.
+<p>It uses the published default failure generator, accrual schedule,
+and one published benefit scenario, but it does not reproduce the
+sponsor’s complete analysis, hierarchical hazard prior, confidential
+sensitivity suite, treatment-specific evaluation-window origins,
+site-stratified randomization sequences, protocol deviations, crossover,
+analysis-population exclusions, operational overrun, or the original
+two-predictive-probability futility requirement. It also does not
+recreate the mid-trial design amendment or its statistical penalty.
 Those distinctions are why the simulated numerical results should not be
 compared directly with the trial’s regulatory analysis.</p>
 </div>
 <div class="section level2">
-<h2 id="primary-sources">Primary sources<a class="anchor" aria-label="anchor" href="#primary-sources"></a>
+<h2 id="sources-and-document-roles">Sources and document roles<a class="anchor" aria-label="anchor" href="#sources-and-document-roles"></a>
 </h2>
 <ul>
-<li>Wilber DJ, Pappone C, Neuzil P, et al. <a href="https://jamanetwork.com/journals/jama/fullarticle/185277" class="external-link">Comparison
+<li><p>Berry SM, Carlin BP, Lee JJ, Müller P. <a href="https://doi.org/10.1201/EBK1439825488" class="external-link"><em>Bayesian Adaptive
+Methods for Clinical Trials</em></a>. Boca Raton, FL: Chapman &amp;
+Hall/CRC; 2010. Section 5.8, “Case study: Ablation device to treat
+atrial fibrillation,” pp. 241–246. This designer-authored case study
+supplies the default failure-time generator, its probability-scaling
+formula, the default accrual schedule, and the published
+operating-characteristic scenario grid used in this vignette.</p></li>
+<li><p>Wilber DJ, Pappone C, Neuzil P, et al. <a href="https://jamanetwork.com/journals/jama/fullarticle/185277" class="external-link">Comparison
 of antiarrhythmic drug therapy and radiofrequency catheter ablation in
 patients with paroxysmal atrial fibrillation: a randomized controlled
-trial</a>. <em>JAMA</em>. 2010;303(4):333-340. <a href="doi:10.1001/jama.2009.2029" class="uri">doi:10.1001/jama.2009.2029</a>.</li>
-<li>U.S. Food and Drug Administration. <a href="https://www.accessdata.fda.gov/cdrh_docs/pdf3/P030031S011B.pdf" class="external-link">Summary
-of Safety and Effectiveness Data, PMA P030031/S011</a>. The summary
-reports the approval analysis, longitudinal-model intervals, interval
-exposure and failures, and updated Bayesian results.</li>
-<li>U.S. Food and Drug Administration. <a href="https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfAdvisory/details.cfm?mtg=705" class="external-link">Circulatory
-System Devices Panel, November 20, 2008 meeting materials</a>. The
-archive links the FDA and sponsor briefing information, slides, panel
-questions, and transcript used for the design-history and early-claim
-details above.</li>
-<li>U.S. Food and Drug Administration. <a href="https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpma/pma.cfm?id=P030031S011" class="external-link">PMA
+trial</a>. <em>JAMA</em>. 2010;303(4):333-340. <a href="doi:10.1001/jama.2009.2029" class="uri">doi:10.1001/jama.2009.2029</a>. The article reports the
+analysis boundaries and observed Kaplan–Meier results, but not the
+numerical simulation generator or accrual schedule.</p></li>
+<li><p>U.S. Food and Drug Administration. <a href="https://www.accessdata.fda.gov/cdrh_docs/pdf3/P030031S011B.pdf" class="external-link">Summary
+of Safety and Effectiveness Data, PMA P030031/S011</a>. Table 8, p. 13
+reports the June 2008 interval exposure and failures used above as
+observed-data comparisons, not planning assumptions.</p></li>
+<li><p>U.S. Food and Drug Administration. <a href="https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfAdvisory/details.cfm?mtg=705" class="external-link">Circulatory
+System Devices Panel, November 20, 2008 meeting materials</a>. This is
+the archive landing page for the FDA and sponsor summaries, slides,
+panel questions, and transcript.</p></li>
+<li><p>U.S. Food and Drug Administration. <a href="https://web.archive.org/web/20170222060225/https://www.fda.gov/ohrms/dockets/ac/08/briefing/2008-4393b1-01%20%20FDA%20executive%20summary%20FINAL.pdf" class="external-link">FDA
+Executive Summary, pp. 10–12</a>. It documents the amendment,
+106-patient non-stopping look, information gate, stopping rules, and
+hierarchical longitudinal model.</p></li>
+<li><p>Biosense Webster, Inc. <a href="https://web.archive.org/web/20170222051859/https://www.fda.gov/ohrms/dockets/ac/08/briefing/2008-4393b1-01-%20%20Sponsors%20Executive%20Summary.pdf" class="external-link">Sponsor
+Executive Summary</a>. Internal pp. 24–25 and 128 report the simulation
+exercise and realized enrollment history. The briefing says that 10,000
+trials per scenario were simulated, but its operating-characteristic
+table is redacted. Berry et al. later reports 25,000 simulations
+specifically for its tabulated null cases.</p></li>
+<li><p>U.S. Food and Drug Administration. <a href="https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpma/pma.cfm?id=P030031S011" class="external-link">PMA
 supplement P030031/S011 approval record</a>. FDA issued the decision on
 February 6, 2009 for the expanded paroxysmal atrial-fibrillation
-indication.</li>
+indication.</p></li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
