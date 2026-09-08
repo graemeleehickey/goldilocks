@@ -14,6 +14,8 @@
   design](https://graemeleehickey.github.io/goldilocks/articles/advent.md):
 - [Bayesian piecewise-exponential
   designs](https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.md):
+- [Restricted mean survival time
+  designs](https://graemeleehickey.github.io/goldilocks/articles/rmst.md):
 - [Bayesian binary outcome
   designs](https://graemeleehickey.github.io/goldilocks/articles/bayesian-binary.md):
 - [Frequentist binary outcome

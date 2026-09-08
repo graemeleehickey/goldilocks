@@ -81,7 +81,8 @@ according to <code>N_total</code>, the observed arm counts, and <code>rand_ratio
 <span>  method <span class="op">=</span> <span class="st">"logrank"</span>,</span>
 <span>  binary_imputation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event-time"</span>, <span class="st">"bernoulli"</span><span class="op">)</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  Qn <span class="op">=</span> <span class="fl">1</span></span>
+<span>  Qn <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  rmst_tau <span class="op">=</span> <span class="va">end_of_study</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -181,10 +182,10 @@ hypothesis. It must be one of <code>"greater"</code> (the default), <code>"less"
 <code>"two.sided"</code>. One-sided alternatives (<code>"greater"</code> and <code>"less"</code>) are
 supported for <code>method = "bayes-surv"</code> and <code>method = "bayes-bin"</code>. All three
 options are supported for <code>method = "logrank"</code>, <code>method = "cox"</code>,
-<code>method = "riskdiff-wald"</code>, and <code>method = "riskdiff-fm"</code>. For
-survival outcomes, <code>"less"</code> corresponds to the treatment arm having a lower
-cumulative incidence (i.e., treatment is beneficial), and <code>"greater"</code>
-corresponds to the treatment arm having a higher cumulative incidence.</p></dd>
+<code>method = "rmst"</code>, <code>method = "riskdiff-wald"</code>, and <code>method = "riskdiff-fm"</code>.
+For an adverse event, benefit is in the <code>"greater"</code> direction for RMST
+(longer event-free time) and the <code>"less"</code> direction for the other methods
+(lower hazard or event probability).</p></dd>
 
 
 <dt id="arg-h-">h0<a class="anchor" aria-label="anchor" href="#arg-h-"></a></dt>
@@ -203,6 +204,10 @@ treatment versus control. Use <code>h0 = 0</code> for the usual hazard ratio
 of 1 null, or <code>h0 = log(margin)</code> for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use <code>alternative = "less"</code>.</p></li>
+<li><p>When <code>method = "rmst"</code>, <code>h0</code> is the null treatment-control RMST
+difference in time units and must lie in <code>[-rmst_tau, rmst_tau]</code>.
+For non-inferiority allowing a loss of <code>m</code> time units, use <code>h0 = -m</code>
+and <code>alternative = "greater"</code>.</p></li>
 <li><p>When <code>method = "riskdiff-wald"</code> or <code>method = "riskdiff-fm"</code>, <code>h0</code> is the
 null value of
 \(p_\textrm{treatment} - p_\textrm{control}\) and must lie in
@@ -240,7 +245,7 @@ is compared with <code>1 - P</code>. The default is <code>0.95</code>.</p></dd>
 <dd><p>A positive integer giving the number of predictive
 imputations used at each
 interim look and, when requested, for final multiple imputation. The
-default is <code>500</code>. An imputed Cox or risk-difference final analysis requires
+default is <code>500</code>. An imputed Cox, RMST, or risk-difference final analysis requires
 at least two.</p></dd>
 
 
@@ -278,7 +283,8 @@ is found.</p></dd>
 <dd><p>A single character string specifying the completed-data and
 final analysis. Available choices are a log-rank
 (<code>method = "logrank"</code>) test, Cox proportional hazards regression model
-Wald test (<code>method = "cox"</code>), a fully-Bayesian piecewise-exponential
+Wald test (<code>method = "cox"</code>), a restricted mean survival time difference
+Wald test (<code>method = "rmst"</code>), a fully-Bayesian piecewise-exponential
 analysis (<code>method = "bayes-surv"</code>), a Bayesian beta-binomial analysis of
 complete binary outcomes (<code>method = "bayes-bin"</code>), a frequentist
 risk-difference Wald test (<code>method = "riskdiff-wald"</code>), or a
@@ -312,6 +318,14 @@ for declaring immediate trial success at this look. Immediate success is
 declared when predictive success among the currently enrolled participants
 is strictly greater than <code>Qn</code>. <code>Qn</code> must be greater than or equal to <code>Sn</code>.
 The default, <code>1</code>, disables immediate-success stopping.</p></dd>
+
+
+<dt id="arg-rmst-tau">rmst_tau<a class="anchor" aria-label="anchor" href="#arg-rmst-tau"></a></dt>
+<dd><p>A single finite positive restriction time for <code>method = "rmst"</code>, in the same units as <code>end_of_study</code>. Defaults to <code>end_of_study</code>
+and must not exceed it. Prespecify the same horizon for all looks,
+imputations, and simulations. It may precede analysis cutpoints and does
+not shorten the planned follow-up or imputation horizon. Ignored for other
+methods.</p></dd>
 
 </dl></div>
     <div class="section level2">

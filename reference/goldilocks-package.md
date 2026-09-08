@@ -3,10 +3,10 @@
 Implements Goldilocks adaptive trial designs for time-to-event and
 fixed-time binary endpoints. Outcomes are generated with a piecewise
 exponential model, with conjugate Gamma priors used for predictive
-imputation. Final analyses may use log-rank or Cox tests, Bayesian
-piecewise-exponential inference, frequentist risk differences, or
-Bayesian beta-binomial inference. The method closely follows Broglio and
-colleagues
+imputation. Final analyses may use log-rank, Cox, or restricted mean
+survival time tests, Bayesian piecewise-exponential inference,
+frequentist risk differences, or Bayesian beta-binomial inference. The
+method closely follows Broglio and colleagues
 [doi:10.1080/10543406.2014.888569](https://doi.org/10.1080/10543406.2014.888569)
 and supports simulation of design operating characteristics.
 

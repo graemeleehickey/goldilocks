@@ -131,6 +131,7 @@ and when required the final trial data, meets the success criterion.
 |:---|:---|:---|:---|
 | `bayes-surv` | Posterior treatment-minus-control event probability, or the treatment event probability in a single-arm design | Average posterior summaries across completed imputations | Analyze observed right-censored follow-up |
 | `bayes-bin` | Beta-binomial posterior for fixed-horizon event status | Average posterior summaries across completed imputations | Exclude participants without complete endpoint ascertainment |
+| `rmst` | Treatment-minus-control RMST through fixed `rmst_tau`, using a Wald test | Pool differences and Greenwood variances using Rubin’s rules | Retain censoring; require support through the fixed horizon |
 | `cox` | Log hazard ratio from a Cox model | Pool estimates and variances using Rubin’s rules | Analyze observed right-censored follow-up |
 | `riskdiff-wald` | Treatment-minus-control event-risk difference using a Wald test | Pool estimates and variances using Rubin’s rules | Exclude participants without complete endpoint ascertainment |
 | `riskdiff-fm` | Treatment-minus-control event-risk difference using a Farrington-Manning score test | Pool estimates and variances using Rubin’s rules, yielding a pooled Wald analysis | Exclude participants without complete endpoint ascertainment |
@@ -193,3 +194,30 @@ null and alternative scenarios, including nuisance parameters that may
 affect the amount of information available at interim looks. Numerical
 Monte Carlo error should be reported alongside every estimated operating
 characteristic.
+
+## Implementation map
+
+The internal `R/analysis_*.R` files group the completed-data methods and
+the analysis stages in one place. Method files use the `method` value in
+the name, with underscores replacing hyphens. The two risk-difference
+methods share one file because they use the same event counts, effect
+estimate, and supporting calculations.
+
+| Method or responsibility | Source file |
+|:---|:---|
+| `logrank` | `R/analysis_logrank.R` |
+| `cox` | `R/analysis_cox.R` |
+| `rmst` | `R/analysis_rmst.R` |
+| `bayes-surv` | `R/analysis_bayes_surv.R` |
+| `bayes-bin` | `R/analysis_bayes_bin.R` |
+| `riskdiff-wald`, `riskdiff-fm` | `R/analysis_riskdiff.R` |
+| Shared tests, pooling, and binary endpoint validation | `R/analysis_common.R` |
+| Completed-data dispatch | `R/analysis_completed.R` |
+| Predictively completed trial analysis | `R/analysis_predictive.R` |
+| Interim decision rules | `R/analysis_interim.R` |
+| Final analysis and imputation orchestration | `R/analysis_final.R` |
+
+Public entry points retain their function names: `survival_adapt.R`,
+`sim_trials.R`, and `evaluate_interim.R`. Hazard posterior calculations
+and imputation are shared across analysis methods, so their files retain
+names such as `survival_posterior.R` and `predictive_imputation.R`.

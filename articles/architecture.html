@@ -239,12 +239,21 @@ imputations</td>
 ascertainment</td>
 </tr>
 <tr class="odd">
+<td align="left"><code>rmst</code></td>
+<td align="left">Treatment-minus-control RMST through fixed
+<code>rmst_tau</code>, using a Wald test</td>
+<td align="left">Pool differences and Greenwood variances using Rubin’s
+rules</td>
+<td align="left">Retain censoring; require support through the fixed
+horizon</td>
+</tr>
+<tr class="even">
 <td align="left"><code>cox</code></td>
 <td align="left">Log hazard ratio from a Cox model</td>
 <td align="left">Pool estimates and variances using Rubin’s rules</td>
 <td align="left">Analyze observed right-censored follow-up</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>riskdiff-wald</code></td>
 <td align="left">Treatment-minus-control event-risk difference using a
 Wald test</td>
@@ -252,7 +261,7 @@ Wald test</td>
 <td align="left">Exclude participants without complete endpoint
 ascertainment</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>riskdiff-fm</code></td>
 <td align="left">Treatment-minus-control event-risk difference using a
 Farrington-Manning score test</td>
@@ -261,7 +270,7 @@ yielding a pooled Wald analysis</td>
 <td align="left">Exclude participants without complete endpoint
 ascertainment</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>logrank</code></td>
 <td align="left">Difference between survival distributions using a
 log-rank test</td>
@@ -330,6 +339,82 @@ plausible null and alternative scenarios, including nuisance parameters
 that may affect the amount of information available at interim looks.
 Numerical Monte Carlo error should be reported alongside every estimated
 operating characteristic.</p>
+</div>
+<div class="section level2">
+<h2 id="implementation-map">Implementation map<a class="anchor" aria-label="anchor" href="#implementation-map"></a>
+</h2>
+<p>The internal <code>R/analysis_*.R</code> files group the
+completed-data methods and the analysis stages in one place. Method
+files use the <code>method</code> value in the name, with underscores
+replacing hyphens. The two risk-difference methods share one file
+because they use the same event counts, effect estimate, and supporting
+calculations.</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Method or responsibility</th>
+<th align="left">Source file</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>logrank</code></td>
+<td align="left"><code>R/analysis_logrank.R</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>cox</code></td>
+<td align="left"><code>R/analysis_cox.R</code></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>rmst</code></td>
+<td align="left"><code>R/analysis_rmst.R</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>bayes-surv</code></td>
+<td align="left"><code>R/analysis_bayes_surv.R</code></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>bayes-bin</code></td>
+<td align="left"><code>R/analysis_bayes_bin.R</code></td>
+</tr>
+<tr class="even">
+<td align="left">
+<code>riskdiff-wald</code>,
+<code>riskdiff-fm</code>
+</td>
+<td align="left"><code>R/analysis_riskdiff.R</code></td>
+</tr>
+<tr class="odd">
+<td align="left">Shared tests, pooling, and binary endpoint
+validation</td>
+<td align="left"><code>R/analysis_common.R</code></td>
+</tr>
+<tr class="even">
+<td align="left">Completed-data dispatch</td>
+<td align="left"><code>R/analysis_completed.R</code></td>
+</tr>
+<tr class="odd">
+<td align="left">Predictively completed trial analysis</td>
+<td align="left"><code>R/analysis_predictive.R</code></td>
+</tr>
+<tr class="even">
+<td align="left">Interim decision rules</td>
+<td align="left"><code>R/analysis_interim.R</code></td>
+</tr>
+<tr class="odd">
+<td align="left">Final analysis and imputation orchestration</td>
+<td align="left"><code>R/analysis_final.R</code></td>
+</tr>
+</tbody>
+</table>
+<p>Public entry points retain their function names:
+<code>survival_adapt.R</code>, <code>sim_trials.R</code>, and
+<code>evaluate_interim.R</code>. Hazard posterior calculations and
+imputation are shared across analysis methods, so their files retain
+names such as <code>survival_posterior.R</code> and
+<code>predictive_imputation.R</code>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

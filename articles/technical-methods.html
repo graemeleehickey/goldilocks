@@ -522,6 +522,18 @@ test P-value, with one-sided variants defined in Section 7.1</td>
 </tr>
 <tr class="even">
 <td>Two-arm randomized trial</td>
+<td><code>rmst</code></td>
+<td>
+<span class="math inline">1-p(\mathcal{D})</span> for a Wald test of
+the treatment-control RMST difference through <code>rmst_tau</code>
+</td>
+<td>
+<code>"less"</code>, <code>"greater"</code>,
+<code>"two.sided"</code>
+</td>
+</tr>
+<tr class="odd">
+<td>Two-arm randomized trial</td>
 <td><code>cox</code></td>
 <td>
 <span class="math inline">1-p(\mathcal{D})</span>, where <span class="math inline">p(\mathcal{D})</span> is the traditional Wald-test
@@ -531,7 +543,7 @@ P-value, with one-sided variants defined in Section 7.1</td>
 <code>"two.sided"</code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Two-arm randomized trial</td>
 <td><code>riskdiff-wald</code></td>
 <td>
@@ -542,7 +554,7 @@ the treatment-control event-risk difference</td>
 <code>"two.sided"</code>
 </td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Two-arm randomized trial</td>
 <td><code>riskdiff-fm</code></td>
 <td>
@@ -553,7 +565,7 @@ score-test P-value for the treatment-control event-risk difference</td>
 <code>"two.sided"</code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Two-arm randomized trial</td>
 <td><code>bayes-surv</code></td>
 <td>
@@ -565,7 +577,7 @@ score-test P-value for the treatment-control event-risk difference</td>
 <code>"less"</code>, <code>"greater"</code>
 </td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Single-arm trial</td>
 <td><code>bayes-surv</code></td>
 <td>
@@ -577,7 +589,7 @@ score-test P-value for the treatment-control event-risk difference</td>
 <code>"less"</code>, <code>"greater"</code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Two-arm randomized trial</td>
 <td><code>bayes-bin</code></td>
 <td>
@@ -589,7 +601,7 @@ score-test P-value for the treatment-control event-risk difference</td>
 <code>"less"</code>, <code>"greater"</code>
 </td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Single-arm trial</td>
 <td><code>bayes-bin</code></td>
 <td>
@@ -773,6 +785,36 @@ corresponds to <span class="math inline">Z_{\mathrm{Cox}} &lt; 0</span>.
 Let <span class="math inline">p_{\mathrm{Cox}}</span> denote the
 two-sided Wald-test P-value relative to <code>h0</code>. The package
 uses the following method-specific definitions of <span class="math inline">Q(\mathcal{D})</span>:</p>
+<p>For <code>method = "rmst"</code>, let <span class="math inline">\tau_R</span> denote <code>rmst_tau</code>, a
+prespecified restriction time in <span class="math inline">(0,\tau]</span> that defaults to
+<code>end_of_study</code>. The effect is</p>
+<p><span class="math display">\widehat\Delta_R = \int_0^{\tau_R}\widehat
+S_1(t)\,dt
+  - \int_0^{\tau_R}\widehat S_0(t)\,dt.</span></p>
+<p>The curves are Kaplan-Meier estimates. For arm <span class="math inline">z</span>, the Greenwood plug-in variance is</p>
+<p><span class="math display">U_z = \sum_{j:t_{zj}&lt;\tau_R}
+  \left\{\int_{t_{zj}}^{\tau_R}\widehat S_z(t)\,dt\right\}^{2}
+  \frac{d_{zj}}{Y_{zj}(Y_{zj}-d_{zj})},</span></p>
+<p>where <span class="math inline">Y_{zj}</span> is the risk set
+immediately before event time <span class="math inline">t_{zj}</span>
+and <span class="math inline">d_{zj}</span> is the number of events
+there. A terminal jump to zero contributes zero tail area and zero
+variance term. The test statistic is <span class="math inline">Z_R=(\widehat\Delta_R-h_0)/\sqrt{U_0+U_1}</span>.
+Positive effects mean longer time without the event on treatment. Both
+the estimated effect and <code>h0</code> use time units; <code>h0</code>
+must lie in <span class="math inline">[-\tau_R,\tau_R]</span>. For an
+adverse event, superiority uses <code>alternative = "greater"</code>,
+and non-inferiority allowing a loss of <span class="math inline">m</span> time units uses the same alternative with
+<code>h0 = -m</code>.</p>
+<p>The horizon is identical across arms, looks, and completed
+replicates; it is never selected from the observed follow-up. Positive
+estimated survival at an arm’s last follow-up before <span class="math inline">\tau_R</span> makes the analysis non-estimable. A
+curve reaching zero before that horizon is allowed. The test requires
+positive total variance, although one arm may have zero variance. RMST
+inference does not require proportional hazards, but predictive
+imputation still depends on the piecewise-exponential model. Reducing
+<code>rmst_tau</code> does not reduce <code>end_of_study</code> or
+change the calendar-time calculations.</p>
 <p>For the risk-difference options, let <span class="math inline">\widehat p_1</span> and <span class="math inline">\widehat p_0</span> be the observed event
 proportions in the treatment and control arms, with sample sizes <span class="math inline">n_1</span> and <span class="math inline">n_0</span>.
 Both report the estimated effect</p>
@@ -827,47 +869,62 @@ result rather than an error.</p>
 <td><span class="math inline">1 - p_{\mathrm{LR}}</span></td>
 </tr>
 <tr class="even">
+<td><code>rmst</code></td>
+<td><code>"less"</code></td>
+<td><span class="math inline">1-\Phi(Z_R)</span></td>
+</tr>
+<tr class="odd">
+<td><code>rmst</code></td>
+<td><code>"greater"</code></td>
+<td><span class="math inline">\Phi(Z_R)</span></td>
+</tr>
+<tr class="even">
+<td><code>rmst</code></td>
+<td><code>"two.sided"</code></td>
+<td><span class="math inline">1-2\Phi(-|Z_R|)</span></td>
+</tr>
+<tr class="odd">
 <td><code>cox</code></td>
 <td><code>"less"</code></td>
 <td><span class="math inline">1 - \Phi(Z_{\mathrm{Cox}})</span></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>cox</code></td>
 <td><code>"greater"</code></td>
 <td><span class="math inline">\Phi(Z_{\mathrm{Cox}})</span></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>cox</code></td>
 <td><code>"two.sided"</code></td>
 <td><span class="math inline">1 - p_{\mathrm{Cox}}</span></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>riskdiff-wald</code></td>
 <td><code>"less"</code></td>
 <td><span class="math inline">1 - \Phi(Z_{\mathrm{Wald}})</span></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>riskdiff-wald</code></td>
 <td><code>"greater"</code></td>
 <td><span class="math inline">\Phi(Z_{\mathrm{Wald}})</span></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>riskdiff-wald</code></td>
 <td><code>"two.sided"</code></td>
 <td><span class="math inline">1 -
 2\Phi(-|Z_{\mathrm{Wald}}|)</span></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>riskdiff-fm</code></td>
 <td><code>"less"</code></td>
 <td><span class="math inline">1 - \Phi(Z_{\mathrm{FM}})</span></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>riskdiff-fm</code></td>
 <td><code>"greater"</code></td>
 <td><span class="math inline">\Phi(Z_{\mathrm{FM}})</span></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>riskdiff-fm</code></td>
 <td><code>"two.sided"</code></td>
 <td><span class="math inline">1 - 2\Phi(-|Z_{\mathrm{FM}}|)</span></td>
@@ -880,14 +937,14 @@ log-rank statistic.</p>
 <p>The risk-difference analysis discards event-time information and
 requires complete binary endpoint status. <code>est_final</code> reports
 <span class="math inline">\widehat\Delta</span>.</p>
-<p>When a Cox or risk-difference final analysis uses multiple
+<p>When a Cox, RMST, or risk-difference final analysis uses multiple
 imputation, the analysis is applied separately to each completed
 dataset. Let <span class="math inline">\widehat{\theta}_m</span> and
 <span class="math inline">U_m</span> be the scalar effect estimate and
 its estimated variance from imputation <span class="math inline">m =
 1,\ldots,M</span>. For Cox regression <span class="math inline">\widehat{\theta}_m</span> is the log hazard ratio;
-for risk difference it is <span class="math inline">\widehat\Delta_m</span>. Rubin’s scalar pooling
-rules give</p>
+for risk difference it is <span class="math inline">\widehat\Delta_m</span>. For RMST it is <span class="math inline">\widehat\Delta_{R,m}</span>, with <span class="math inline">U_m</span> the sum of the arm-specific Greenwood
+variances. Rubin’s scalar pooling rules give</p>
 <p><span class="math display">\bar{\theta} =
 \frac{1}{M}\sum_{m=1}^{M}\widehat{\theta}_m, \qquad
 \bar{U} = \frac{1}{M}\sum_{m=1}^{M}U_m,</span></p>
@@ -902,9 +959,10 @@ large-sample degrees of freedom</p>
 r = \frac{(1 + 1/M)B}{\bar{U}}.</span></p>
 <p>When <span class="math inline">B = 0</span>, <span class="math inline">\nu = \infty</span> and the reference distribution
 reduces to the standard normal distribution. If both the within- and
-between-imputation variances are zero, the same neutral-or-directional
-boundary convention described above is used. At least two imputations
-are therefore required. The returned <code>est_final</code> is <span class="math inline">\bar{\theta}</span>, while <code>post_prob_ha</code>
+between-imputation variances are zero, RMST reports a non-estimability
+error; the other pooled methods use the neutral-or-directional boundary
+convention described above. At least two imputations are therefore
+required. The returned <code>est_final</code> is <span class="math inline">\bar{\theta}</span>, while <code>post_prob_ha</code>
 is <span class="math inline">1-p</span> from this pooled test with the
 direction determined by <code>alternative</code>. This
 multiple-imputation result is a pooled Wald analysis for both
@@ -1020,22 +1078,23 @@ lost to follow-up are also imputed.</p>
 <p>If <code>imputed_final = TRUE</code>, Bayesian methods
 (<code>method = "bayes-surv"</code> or
 <code>method = "bayes-bin"</code>) analyze each imputed completed
-dataset and average the resulting posterior summaries. Cox regression
-and risk-difference analyses instead pool completed-data scalar
+dataset and average the resulting posterior summaries. Cox regression,
+RMST, and risk-difference analyses instead pool completed-data scalar
 estimates and variances using Rubin’s rules as described above;
 <code>N_impute</code> must be at least two. Imputed final analyses
 remain unavailable for <code>method = "logrank"</code> because no
 pooling rule is implemented for that test.</p>
 <p>If <code>imputed_final = FALSE</code>, the final analysis uses
 observed right-censored data for methods that can handle censoring
-(<code>logrank</code>, <code>cox</code>, and <code>bayes-surv</code>).
-For <code>riskdiff-wald</code>, <code>riskdiff-fm</code>, and
-<code>bayes-bin</code>, lost-to-follow-up subjects are excluded because
-these methods require complete binary outcomes and have no mechanism for
-right-censored observations. Rubin pooling applies to imputed Cox and
-risk-difference final analyses; it does not alter the interim
-posterior-predictive calculation, where each simulated completed trial
-is tested separately before the success indicators are averaged.</p>
+(<code>logrank</code>, <code>cox</code>, <code>rmst</code>, and
+<code>bayes-surv</code>). For <code>riskdiff-wald</code>,
+<code>riskdiff-fm</code>, and <code>bayes-bin</code>, lost-to-follow-up
+subjects are excluded because these methods require complete binary
+outcomes and have no mechanism for right-censored observations. Rubin
+pooling applies to imputed Cox, RMST, and risk-difference final
+analyses; it does not alter the interim posterior-predictive
+calculation, where each simulated completed trial is tested separately
+before the success indicators are averaged.</p>
 <p>The independent dropout mechanism in Section 3.1 supports
 right-censored survival inference within each arm. It does
 <strong>not</strong> imply unbiased complete-case binary inference:

@@ -34,7 +34,8 @@ evaluate_interim(
   method = "logrank",
   binary_imputation = c("event-time", "bernoulli"),
   seed = NULL,
-  Qn = 1
+  Qn = 1,
+  rmst_tau = end_of_study
 )
 ```
 
@@ -130,10 +131,11 @@ evaluate_interim(
   One-sided alternatives (`"greater"` and `"less"`) are supported for
   `method = "bayes-surv"` and `method = "bayes-bin"`. All three options
   are supported for `method = "logrank"`, `method = "cox"`,
-  `method = "riskdiff-wald"`, and `method = "riskdiff-fm"`. For survival
-  outcomes, `"less"` corresponds to the treatment arm having a lower
-  cumulative incidence (i.e., treatment is beneficial), and `"greater"`
-  corresponds to the treatment arm having a higher cumulative incidence.
+  `method = "rmst"`, `method = "riskdiff-wald"`, and
+  `method = "riskdiff-fm"`. For an adverse event, benefit is in the
+  `"greater"` direction for RMST (longer event-free time) and the
+  `"less"` direction for the other methods (lower hazard or event
+  probability).
 
 - h0:
 
@@ -156,6 +158,11 @@ evaluate_interim(
     1 null, or `h0 = log(margin)` for a non-inferiority margin specified
     as a hazard ratio. A Cox non-inferiority test should usually use
     `alternative = "less"`.
+
+  - When `method = "rmst"`, `h0` is the null treatment-control RMST
+    difference in time units and must lie in `[-rmst_tau, rmst_tau]`.
+    For non-inferiority allowing a loss of `m` time units, use `h0 = -m`
+    and `alternative = "greater"`.
 
   - When `method = "riskdiff-wald"` or `method = "riskdiff-fm"`, `h0` is
     the null value of \\p\_\textrm{treatment} - p\_\textrm{control}\\
@@ -192,8 +199,8 @@ evaluate_interim(
 
   A positive integer giving the number of predictive imputations used at
   each interim look and, when requested, for final multiple imputation.
-  The default is `500`. An imputed Cox or risk-difference final analysis
-  requires at least two.
+  The default is `500`. An imputed Cox, RMST, or risk-difference final
+  analysis requires at least two.
 
 - N_mcmc:
 
@@ -228,9 +235,10 @@ evaluate_interim(
   A single character string specifying the completed-data and final
   analysis. Available choices are a log-rank (`method = "logrank"`)
   test, Cox proportional hazards regression model Wald test
-  (`method = "cox"`), a fully-Bayesian piecewise-exponential analysis
-  (`method = "bayes-surv"`), a Bayesian beta-binomial analysis of
-  complete binary outcomes (`method = "bayes-bin"`), a frequentist
+  (`method = "cox"`), a restricted mean survival time difference Wald
+  test (`method = "rmst"`), a fully-Bayesian piecewise-exponential
+  analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis
+  of complete binary outcomes (`method = "bayes-bin"`), a frequentist
   risk-difference Wald test (`method = "riskdiff-wald"`), or a
   Farrington-Manning score test (`method = "riskdiff-fm"`) of complete
   binary outcomes. The deprecated `method = "riskdiff"` is accepted as
@@ -263,6 +271,15 @@ evaluate_interim(
   participants is strictly greater than `Qn`. `Qn` must be greater than
   or equal to `Sn`. The default, `1`, disables immediate-success
   stopping.
+
+- rmst_tau:
+
+  A single finite positive restriction time for `method = "rmst"`, in
+  the same units as `end_of_study`. Defaults to `end_of_study` and must
+  not exceed it. Prespecify the same horizon for all looks, imputations,
+  and simulations. It may precede analysis cutpoints and does not
+  shorten the planned follow-up or imputation horizon. Ignored for other
+  methods.
 
 ## Value
 

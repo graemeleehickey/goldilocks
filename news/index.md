@@ -25,11 +25,28 @@
 
 ### Improvements
 
+- Internal analysis code is grouped into `analysis_*.R` files, with
+  separate files for method implementations, shared calculations, and
+  analysis stages. This source reorganization preserves function names
+  and calculations.
+
+- `method = "rmst"` adds a two-arm restricted mean survival time
+  difference Wald analysis to simulations and observed interim
+  monitoring. The fixed `rmst_tau` defaults to `end_of_study`; effects
+  and null margins are in time units, with longer event-free time tested
+  using `alternative = "greater"`. Observed censoring is retained, and
+  final multiple imputation pools RMST differences and Greenwood
+  variances using Rubin’s rules. Unsupported positive survival tails and
+  zero total variance produce explicit non-estimability errors. A worked
+  vignette and reference, calibration, and reproducibility checks
+  accompany the option.
+
 - A new calibration vignette demonstrates how to screen a prespecified
   grid of `prob_ha` values against a one-sided type I error target,
   classify candidates using Monte Carlo uncertainty, and independently
   validate a selected threshold with an independent simulation seed
   ([\#67](https://github.com/graemeleehickey/goldilocks/issues/67)).
+
 - Interim monitoring now supports an immediate-success boundary, `Qn`,
   on the same predictive probability used to stop accrual for expected
   success. At each look, the trial declares immediate success when that
@@ -40,6 +57,7 @@
   three-decision design. A new ThermoCool AF vignette illustrates the
   four-decision design without adding it to the existing worked examples
   ([\#16](https://github.com/graemeleehickey/goldilocks/issues/16)).
+
 - Frequentist binary analyses now require an explicit choice between
   `method = "riskdiff-fm"`, a Farrington-Manning score test that remains
   defined for sparse boundary tables, and `method = "riskdiff-wald"`,
@@ -50,6 +68,7 @@
   continue to use Rubin’s scalar pooling rules and now define the
   zero-total-variance case rather than aborting
   ([\#63](https://github.com/graemeleehickey/goldilocks/issues/63)).
+
 - For fixed-time binary endpoints, each completed predictive replicate
   is now summarized by the event count and sample size in each arm.
   These are the sufficient statistics for the risk-difference and
@@ -60,6 +79,7 @@
   stopping rules are unchanged. Interim results report how often
   identical completed-data summaries occurred and were reused
   ([\#91](https://github.com/graemeleehickey/goldilocks/issues/91)).
+
 - Interim log-rank, Cox, and Bayesian survival predictions now prepare
   the observed follow-up, event indicators, treatment assignments, and
   imputation positions once per look. Each predictive replicate replaces
@@ -69,6 +89,7 @@
   are unchanged. This reduces the time and memory required for repeated
   interim analyses without changing the statistical procedure
   ([\#39](https://github.com/graemeleehickey/goldilocks/issues/39)).
+
 - Additional statistical validation now covers piecewise-exponential
   event and conditional-imputation distributions, conjugate Gamma
   posterior moments, frequentist type I error and confidence-interval
@@ -77,10 +98,12 @@
   the futility and expected-success thresholds. Acceptance limits
   reflect Monte Carlo uncertainty and identify the estimand, target,
   estimate, and uncertainty when a check fails.
+
 - Function documentation now states argument types, accepted lengths and
   ranges, defaults, and required inputs more consistently. Titles,
   descriptions, analysis-method explanations, and return values have
   been revised to emphasize their statistical interpretation.
+
 - All `N_impute` completions at an interim look are now generated
   together from the corresponding posterior hazard draws. The
   statistical imputation model and completed-data analyses are
@@ -91,6 +114,7 @@
   different Bayesian results than earlier package versions. Repeated
   runs and supported serial or parallel calculations remain reproducible
   ([\#37](https://github.com/graemeleehickey/goldilocks/issues/37)).
+
 - Bayesian survival calculations now use analysis-interval widths that
   always extend from time zero to `end_of_study`. They are not shortened
   when no participant has yet reached the maximum follow-up time at an
@@ -98,12 +122,14 @@
   cumulative-hazard estimand while avoiding repeated calculation of the
   same interval widths
   ([\#90](https://github.com/graemeleehickey/goldilocks/issues/90)).
+
 - Repeated Bayesian survival analyses of completed predictive datasets
   now work directly from arm-by-interval event counts and exposure
   times. These are the sufficient statistics for the conjugate Gamma
   posterior. The posterior distribution, treatment-effect calculation,
   empty-interval policy, and reported results are unchanged
   ([\#89](https://github.com/graemeleehickey/goldilocks/issues/89)).
+
 - Documentation now states explicitly that Bayesian binary prediction
   uses a piecewise-exponential Gamma model to impute pending outcomes
   and a separate beta-binomial model to analyze completed endpoint
@@ -111,6 +137,7 @@
   model. Retained analysis information identifies both priors and the
   imputation horizon
   ([\#64](https://github.com/graemeleehickey/goldilocks/issues/64)).
+
 - `prior_surv` and `prior_surv_final` now accept independent
   arm-specific Gamma priors supplied as lists named `control` and
   `treatment` (or `treatment` for a single-arm design). Each arm may use
@@ -121,6 +148,7 @@
   independent; there is no hierarchical or implicit borrowing between
   arms
   ([\#88](https://github.com/graemeleehickey/goldilocks/issues/88)).
+
 - New
   [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
   applies the same posterior predictive decision rule used by
@@ -134,6 +162,7 @@
   imputation summaries, a one-look decision trace, and the design
   information needed for audit
   ([\#81](https://github.com/graemeleehickey/goldilocks/issues/81)).
+
 - [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
   and
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
@@ -148,18 +177,21 @@
   the previous named argument `cutpoints` must now be written as
   `generation_cutpoints`
   ([\#95](https://github.com/graemeleehickey/goldilocks/issues/95)).
+
 - `rand_ratio` and `randomization(allocation =)` now accept vectors
   named `control` and `treatment` in either order. Unnamed vectors
   continue to mean `c(control, treatment)`; unequal unnamed allocations
   warn that names may be required in a future major release. Retained
   analysis information records the control and treatment allocation
   weights in that order.
+
 - `prop_loss` now accepts separate dropout probabilities at
   `end_of_study` for the control and treatment arms through a named
   vector. A single value continues to apply the same dropout
   distribution to both arms. Dropout is sampled separately within each
   randomized arm, and single-arm designs continue to require one value
   ([\#69](https://github.com/graemeleehickey/goldilocks/issues/69)).
+
 - Piecewise event and enrollment times now use the survival
   counting-process convention `(start, stop]`: a time exactly at a
   cutpoint belongs to the interval ending at that cutpoint. Posterior
@@ -169,6 +201,7 @@
   differ only at individual boundary points, which have probability zero
   under a continuous distribution
   ([\#70](https://github.com/graemeleehickey/goldilocks/issues/70)).
+
 - Results from
   [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
   and
@@ -178,6 +211,7 @@
   with [`do.call()`](https://rdrr.io/r/base/do.call.html) to reproduce
   or modify an analysis without reconstructing the original call
   ([\#86](https://github.com/graemeleehickey/goldilocks/issues/86)).
+
 - [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
   now reports the numbers of requested, successfully analyzed, failed,
   and included trials. Every estimated probability and mean sample size
@@ -187,6 +221,7 @@
   Monte Carlo precision and distinguishes simulation uncertainty from
   clinical or model uncertainty
   ([\#68](https://github.com/graemeleehickey/goldilocks/issues/68)).
+
 - New
   [`summarise_calendar_time()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.md)
   reports operating characteristics for trial duration, accrual,
