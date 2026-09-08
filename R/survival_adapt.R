@@ -331,7 +331,12 @@
 #'      of loss to follow-up before `end_of_study`. Design evaluations should
 #'      prespecify whether the final analysis imputes these outcomes and assess
 #'      sensitivity to that choice, particularly when appreciable attrition is
-#'      expected. Loss to follow-up is assumed to be non-informative. For Cox
+#'      expected. Simulated dropout is independent of event time within each
+#'      arm, as described under `prop_loss`. This supports survival analyses
+#'      with right-censoring, but does not make complete-case binary analysis
+#'      unbiased: early events can be observed before dropout, whereas later
+#'      endpoint outcomes can be missing. Binary designs with dropout should
+#'      assess model-based final imputation and its assumptions. For Cox
 #'      regression the final estimates and
 #'      variances are pooled with Rubin's rules. It cannot be used with
 #'      `method = "logrank"`.

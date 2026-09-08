@@ -22,6 +22,9 @@
 #'   `"riskdiff-fm"`, or `"bayes-bin"`) exclude subjects without complete
 #'   endpoint status. Design evaluations should prespecify this choice and
 #'   assess sensitivity to it when appreciable loss to follow-up is expected.
+#'   Independent dropout supports right-censored survival inference but does
+#'   not imply unbiased complete-case binary inference: an early event can be
+#'   observed before dropout while a later endpoint outcome is missing.
 #'
 #' @return A length-two numeric vector containing the posterior probability (or
 #'   `1 - P` for a frequentist analysis) for the alternative hypothesis,

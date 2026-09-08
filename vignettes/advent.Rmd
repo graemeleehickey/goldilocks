@@ -13,6 +13,7 @@ knitr::opts_chunk$set(
   comment = "#>",
   cache = TRUE,
   cache.path = "advent-cache/",
+  cache.extra = as.character(utils::packageVersion("goldilocks")),
   fig.width = 7,
   fig.height = 4
 )
@@ -375,7 +376,24 @@ This matches the reported 15 percentage point absolute noninferiority margin for
 
 ADVENT used 1:1 randomization stratified by site. The design paper reports randomly varying permuted block sizes, but the SAP does not provide the block sizes or the randomization-generation algorithm. The package can generate blocked 1:1 randomization, but it does not model site-level stratification or randomly varying block sizes. Here `block = 2` and `rand_ratio = c(control = 1, treatment = 1)` retain simple 1:1 balance; they do not reproduce the trial's full randomization scheme.
 
-The SAP explicitly designates 5% of subjects as lost to follow-up for safety and 7.5% for effectiveness: the same 5% plus another 2.5% who may be unassessable for effectiveness while remaining assessable for safety. SAP dropout times are uniform over days 0--360, and an event remains observed when it precedes dropout. The package's `prop_loss` mechanism is similar but not identical: every selected subject is censored at a uniformly generated time before their potential event or administrative censoring time. Separate endpoint runs also cannot preserve the SAP's shared subject-level 5% plus nested 2.5% relationship. We therefore use 0.075 and 0.05 to map the SAP's **designated fractions**, not to claim exact reproduction of its censoring process. The subsequently observed proportion not completing follow-up was approximately 0.04, which is close to 0.05, but that post-trial quantity is not the design input and need not equal endpoint-specific missingness.
+The SAP explicitly designates 5% of subjects as lost to follow-up for safety
+and 7.5% for effectiveness: the same 5% plus another 2.5% who may be
+unassessable for effectiveness while remaining assessable for safety. SAP
+dropout times among designated subjects are uniform over days 0--360, and an
+event remains observed when it precedes dropout.
+
+The package instead draws independent exponential dropout times for all
+subjects. We use `prop_loss = 0.075` and `0.05` to match the endpoint-specific
+probabilities of potential dropout by day 360, with daily hazards
+$-\log(0.925)/360$ and $-\log(0.95)/360$. This approximates the SAP's timing
+distribution; it does not reproduce its designated-subject uniform mechanism.
+Both approaches retain events occurring before dropout, so the observed
+proportion censored by dropout can be below the stated probability. Package
+dropout counts vary between trials, and separate endpoint runs cannot preserve
+the SAP's shared subject-level 5% plus nested 2.5% relationship. The
+subsequently observed proportion not completing follow-up was approximately
+0.04, but that post-trial quantity is not the design input and need not equal
+endpoint-specific missingness.
 
 The SAP reports the expected accrual schedule in subjects per month: 2, 5, 10, 15, 20, 25, and 30 during months 1--7, then 33 per month from month 8 onward. Accrual is into the primary analysis population. The source rates remain visibly labeled per month below, but they are divided by 30 exactly once before being supplied to `goldilocks`. Likewise, the calendar-month change points are converted once to days since first patient in. The SAP does not describe its individual arrival-time generator; `goldilocks` uses these rates in a continuous-time Poisson enrollment process with first patient in fixed at calendar day 0.
 
@@ -387,6 +405,7 @@ enrollment_rate_per_day <- enrollment_rate_per_month / days_per_month
 enrollment_rate_change_day <-
   enrollment_rate_change_month * days_per_month
 
+# Independent exponential dropout CDFs at the 360-day per-subject horizon.
 effectiveness_prop_loss <- 0.075
 safety_prop_loss <- 0.05
 
@@ -510,7 +529,7 @@ In the published ADVENT design, a predicted-success stopping recommendation requ
 ## A reusable design specification
 
 For simulations, it is helpful to collect the assumptions that genuinely are
-common and then add endpoint-specific cut-points and missingness proportions.
+common and then add endpoint-specific cut-points and dropout probabilities.
 Keeping endpoint-specific assumptions separate reduces the risk of applying an
 effectiveness assumption to the safety endpoint, or vice versa.
 

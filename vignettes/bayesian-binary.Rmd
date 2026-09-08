@@ -42,6 +42,14 @@ Two practical consequences follow:
 -   `method = "bayes-bin"` only supports one-sided alternatives: `alternative = "less"` or `alternative = "greater"`.
 -   The final binary analysis requires complete endpoint status. Subjects who are censored before `end_of_study` must be imputed (`imputed_final = TRUE`) or, if `imputed_final = FALSE`, excluded from the final binary analysis.
 
+The examples use `prop_loss = 0`. If dropout is added, `prop_loss` specifies
+the CDF of an independent exponential dropout time at `end_of_study`, not an
+exact fraction of missing binary outcomes. Events occurring before dropout
+remain observed. Consequently, excluding early-censored subjects can bias
+binary event probabilities even though censoring is independent for survival
+analysis. Assess final imputation and its event-time-model assumptions when
+evaluating binary designs with dropout.
+
 ## Two-arm design
 
 Suppose the control event probability by 12 months is 35%, and the treatment is expected to reduce this to 25%. We use a beta-binomial final analysis with a uniform $\operatorname{Beta}(1, 1)$ prior in each arm. Since lower event probability is beneficial, we use `alternative = "less"` and compare the posterior distribution of

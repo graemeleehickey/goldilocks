@@ -1345,7 +1345,7 @@ test_that("terminal interim decisions remain official without a final result", {
     end_of_study = 1,
     block = 2,
     rand_ratio = c(control = 1, treatment = 1),
-    prop_loss = 1,
+    prop_loss = 0.99,
     alternative = "less",
     Fn = 0,
     Sn = 0,

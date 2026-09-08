@@ -64,17 +64,21 @@ because names may be required in a future major release. See
 \code{\link[=randomization]{randomization()}} for more details.}
 
 \item{prop_loss}{A numeric vector containing one or two probabilities in
-\verb{[0, 1]}. A single value applies the same loss-to-follow-up proportion to
-every arm. For a two-arm design, differential attrition can
-be specified with a length-two vector named \code{control} and \code{treatment}; the
-supplied order does not matter. Within each arm,
-\verb{ceiling(prop_loss * arm size)} subjects are selected at random regardless
-of event status. Each selected subject's observed time is drawn from a
-\code{Uniform(0, t)} distribution, where \code{t} is their potential event or
-censoring time. Since the LTFU time is always less than \code{t}, the event has
-not yet occurred at dropout and the subject is right-censored. Single-arm
-designs require one probability. The default is \code{0}, denoting no loss to
-follow-up.}
+\verb{[0, 1)}. Each value is the dropout-time CDF at \code{end_of_study}:
+\eqn{P(D \le \tau) = p}, where \eqn{\tau} is the planned follow-up
+duration per subject. Independently of event time and enrollment, each
+subject's dropout time \eqn{D} is exponentially distributed with rate
+\eqn{-\log(1-p)/\tau}. The observed time is the minimum of event time,
+dropout time, and \code{end_of_study}; an event occurring before dropout is
+retained. Thus, \code{prop_loss} is not the expected proportion actually
+censored by dropout: that proportion can be lower because events occur
+first, and the realized number of dropouts varies between trials.
+A single value applies the same dropout distribution to every arm. For a
+two-arm design, supply a length-two vector named \code{control} and \code{treatment}
+for arm-specific probabilities; supplied order does not matter.
+Single-arm designs require one probability. The default \code{0} sets dropout
+time to infinity without drawing random numbers. A value of \code{1} is
+rejected because it requires an infinite exponential rate.}
 }
 \value{
 A data frame with one row per subject and columns:
@@ -89,7 +93,8 @@ right-censoring.
 patient in. The package treats enrollment and
 randomization as occurring at the same time.
 \item \code{id}: Integer subject identifier.
-\item \code{loss_to_fu}: Logical indicator of loss to follow-up.
+\item \code{loss_to_fu}: Logical indicator that dropout occurred before both the
+event and the administrative follow-up horizon.
 }
 }
 \description{
@@ -117,4 +122,27 @@ open-left, closed-right convention for assigning realized times only at
 the cutpoints themselves, which have probability zero under the continuous
 model. The cumulative hazard, event-time distribution, and generated
 simulations are therefore unchanged.
+
+Dropout is independent censoring conditional on treatment arm. For event
+time \eqn{T}, \code{loss_to_fu} is true only when
+\eqn{D < \min(T, \tau)}. Administrative censoring and dropout after an
+observed event are not counted as loss to follow-up. For example,
+\code{prop_loss = 0.05} with \code{end_of_study = 12} specifies a 5\% dropout CDF at
+12 months if the time unit is months; it does not force five losses in a
+100-subject trial. Equal dropout probabilities in arms with different
+event hazards need not yield equal observed dropout proportions.
+
+To express a dropout probability \eqn{q} supplied at a different
+reference time \eqn{t_0}, use
+\eqn{p = 1 - (1-q)^{\tau/t_0}} at \code{end_of_study} to preserve the same
+exponential dropout hazard. Treatment discontinuation is not separately
+modeled and should not be treated as loss to follow-up if endpoint
+collection continues.
+
+This independent exponential mechanism replaces selection of
+\verb{ceiling(prop_loss * arm size)} subjects followed by censoring uniformly
+before each selected subject's potential event or administrative time.
+Positive \code{prop_loss} values therefore change seeded results and design
+operating characteristics relative to the previous mechanism. Simulations
+with \code{prop_loss = 0} are unchanged.
 }

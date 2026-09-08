@@ -10,7 +10,7 @@ test_that("complete-data simulation is invariant to the time unit", {
     end_of_study = 12,
     block = 2,
     rand_ratio = c(control = 1, treatment = 1),
-    prop_loss = 0
+    prop_loss = c(control = 0.1, treatment = 0.25)
   )
   day_arguments <- month_arguments
   day_arguments$hazard_treatment <-

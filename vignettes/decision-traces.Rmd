@@ -25,6 +25,12 @@ together with one record for each completed interim look.
 
 This small Bayesian survival design has two interim looks. The treatment arm is assumed to have a lower cumulative failure probability by 24 months.
 
+The common `prop_loss = 0.05` specifies a 5% dropout-time CDF at 24 months.
+Dropout is exponential and independent of event time within each arm; an event
+before dropout remains observed. Actual dropout censoring can therefore be
+below 5%, with additional incomplete follow-up at interim looks due to staged
+enrollment.
+
 ```{r traced-trial}
 end_of_study <- 24
 hazard_control <- prop_to_haz(c(0.20, 0.35), 12, end_of_study)

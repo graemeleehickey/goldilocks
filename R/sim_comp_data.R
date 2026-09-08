@@ -41,17 +41,21 @@
 #'   because names may be required in a future major release. See
 #'   [randomization()] for more details.
 #' @param prop_loss A numeric vector containing one or two probabilities in
-#'   `[0, 1]`. A single value applies the same loss-to-follow-up proportion to
-#'   every arm. For a two-arm design, differential attrition can
-#'   be specified with a length-two vector named `control` and `treatment`; the
-#'   supplied order does not matter. Within each arm,
-#'   `ceiling(prop_loss * arm size)` subjects are selected at random regardless
-#'   of event status. Each selected subject's observed time is drawn from a
-#'   `Uniform(0, t)` distribution, where `t` is their potential event or
-#'   censoring time. Since the LTFU time is always less than `t`, the event has
-#'   not yet occurred at dropout and the subject is right-censored. Single-arm
-#'   designs require one probability. The default is `0`, denoting no loss to
-#'   follow-up.
+#'   `[0, 1)`. Each value is the dropout-time CDF at `end_of_study`:
+#'   \eqn{P(D \le \tau) = p}, where \eqn{\tau} is the planned follow-up
+#'   duration per subject. Independently of event time and enrollment, each
+#'   subject's dropout time \eqn{D} is exponentially distributed with rate
+#'   \eqn{-\log(1-p)/\tau}. The observed time is the minimum of event time,
+#'   dropout time, and `end_of_study`; an event occurring before dropout is
+#'   retained. Thus, `prop_loss` is not the expected proportion actually
+#'   censored by dropout: that proportion can be lower because events occur
+#'   first, and the realized number of dropouts varies between trials.
+#'   A single value applies the same dropout distribution to every arm. For a
+#'   two-arm design, supply a length-two vector named `control` and `treatment`
+#'   for arm-specific probabilities; supplied order does not matter.
+#'   Single-arm designs require one probability. The default `0` sets dropout
+#'   time to infinity without drawing random numbers. A value of `1` is
+#'   rejected because it requires an infinite exponential rate.
 #'
 #' @details Enrollment is simulated directly in continuous time by
 #'   [enrollment()]. The first patient is placed at time zero and all subsequent
@@ -73,6 +77,29 @@
 #'   model. The cumulative hazard, event-time distribution, and generated
 #'   simulations are therefore unchanged.
 #'
+#'   Dropout is independent censoring conditional on treatment arm. For event
+#'   time \eqn{T}, `loss_to_fu` is true only when
+#'   \eqn{D < \min(T, \tau)}. Administrative censoring and dropout after an
+#'   observed event are not counted as loss to follow-up. For example,
+#'   `prop_loss = 0.05` with `end_of_study = 12` specifies a 5% dropout CDF at
+#'   12 months if the time unit is months; it does not force five losses in a
+#'   100-subject trial. Equal dropout probabilities in arms with different
+#'   event hazards need not yield equal observed dropout proportions.
+#'
+#'   To express a dropout probability \eqn{q} supplied at a different
+#'   reference time \eqn{t_0}, use
+#'   \eqn{p = 1 - (1-q)^{\tau/t_0}} at `end_of_study` to preserve the same
+#'   exponential dropout hazard. Treatment discontinuation is not separately
+#'   modeled and should not be treated as loss to follow-up if endpoint
+#'   collection continues.
+#'
+#'   This independent exponential mechanism replaces selection of
+#'   `ceiling(prop_loss * arm size)` subjects followed by censoring uniformly
+#'   before each selected subject's potential event or administrative time.
+#'   Positive `prop_loss` values therefore change seeded results and design
+#'   operating characteristics relative to the previous mechanism. Simulations
+#'   with `prop_loss = 0` are unchanged.
+#'
 #' @return A data frame with one row per subject and columns:
 #'
 #'   - `time`: Numeric event or censoring time.
@@ -85,9 +112,10 @@
 #'     patient in. The package treats enrollment and
 #'     randomization as occurring at the same time.
 #'   - `id`: Integer subject identifier.
-#'   - `loss_to_fu`: Logical indicator of loss to follow-up.
+#'   - `loss_to_fu`: Logical indicator that dropout occurred before both the
+#'     event and the administrative follow-up horizon.
 #'
-#' @importFrom stats runif sd
+#' @importFrom stats rexp sd
 #' @export
 sim_comp_data <- function(
   hazard_treatment,
@@ -192,17 +220,22 @@ sim_comp_data <- function(
   time[treatment == 1] <- sim_treatment$time
   event[treatment == 1] <- sim_treatment$event
 
-  # Simulate loss to follow-up
-  loss_to_fu <- rep(FALSE, N_total)
+  # Generate dropout independently of each subject's potential event time.
+  # A zero probability consumes no RNG, preserving no-dropout simulations.
+  dropout_time <- rep(Inf, N_total)
   treatment_values <- c(control = 0L, treatment = 1L)
   for (arm in names(prop_loss)) {
     arm_index <- which(treatment == treatment_values[[arm]])
-    n_arm_loss <- ceiling(prop_loss[[arm]] * length(arm_index))
-    if (n_arm_loss > 0L) {
-      loss_to_fu[sample(arm_index, n_arm_loss)] <- TRUE
+    if (prop_loss[[arm]] > 0) {
+      dropout_rate <- -log1p(-prop_loss[[arm]]) / end_of_study
+      dropout_time[arm_index] <- rexp(length(arm_index), rate = dropout_rate)
     }
   }
-  n_loss_to_fu <- sum(loss_to_fu)
+  # time already contains min(event time, administrative horizon). Strict
+  # comparison retains an event (or administrative censoring) at an exact tie.
+  loss_to_fu <- dropout_time < time
+  time <- pmin(time, dropout_time)
+  event[loss_to_fu] <- 0
 
   # Creating a new data.frame for all the variables
   data_total <- data.frame(
@@ -213,16 +246,6 @@ sim_comp_data <- function(
     id = 1:N_total,
     loss_to_fu = loss_to_fu
   )
-
-  # Subjects lost are uniformly distributed
-  if (n_loss_to_fu > 0L) {
-    data_total$time[data_total$loss_to_fu] <- runif(
-      n_loss_to_fu,
-      0,
-      data_total$time[data_total$loss_to_fu]
-    )
-    data_total$event[data_total$loss_to_fu] <- rep(0, n_loss_to_fu)
-  }
 
   return(data_total)
 }

@@ -195,7 +195,7 @@ input_audit <- data.frame(
     "ADR Table 5 uses 0-12, 12-24, and >24 month generating intervals; only the 12-month cut-point precedes the 16-month horizon",
     "ADR Table 5, using its two generating hazards that apply before the 16-month horizon",
     "ADR Sections 5.1 and 7 report the target hazard-ratio scenario",
-    "ADR Sections 5.3 and 7.2",
+    "ADR Sections 5.3 and 7.2; independent exponential dropout CDF of 0.10 at 16 months",
     "ADR Table 1; `goldilocks` applies these independent priors to both arms",
     "ADR Equation 1 defines lower treatment hazard as benefit",
     "ADR Equation 1 uses equality of survival distributions",
@@ -307,6 +307,14 @@ plot_enrollment(
 ```
 
 ## A one-trial `goldilocks` approximation
+
+The ADR generated independent exponential dropout times with 10% cumulative
+dropout probability by 16 months. The package now uses the same dropout
+distribution: `prop_loss = 0.10` at the 16-month `end_of_study` gives rate
+$-\log(0.90)/16$ per month (converted to the weekly unit below). Events before
+dropout remain observed, so the actual proportion censored by dropout can be
+below 10% and varies across trials. The package's shorter administrative
+follow-up for earlier recruits remains a separate approximation.
 
 The expected-success threshold is set to 1 at the 400-patient look. Since the
 package stops only when its predictive-probability point estimate is greater
@@ -493,14 +501,10 @@ Several distinctions are consequential:
     horizon. The published trial kept all randomized patients under follow-up
     until the common final visit 16 months after the last randomization, so
     earlier participants could contribute more than 16 months.
-4.  **Dropout.** The ADR generated independent exponential dropout times giving
-    10% cumulative dropout by 16 months. `prop_loss = 0.10` selects a fixed
-    proportion for loss to follow-up and samples censoring before each selected
-    subject's potential event or administrative time.
-5.  **Accrual and randomization.** The stepwise accrual approximation replaces
+4.  **Accrual and randomization.** The stepwise accrual approximation replaces
     a linear six-month ramp. The package also cannot reproduce geographic and
     clinical stratification or randomly varying block sizes 3, 6, and 9.
-6.  **Monte Carlo diagnostics.** The public ADR defines each predictive
+5.  **Monte Carlo diagnostics.** The public ADR defines each predictive
     probability as the proportion of imputed datasets in which the final test
     succeeds, and compares that point estimate with 0.95 or 0.01. `goldilocks`
     uses the same strict point-estimate comparisons. With 300 imputations, for

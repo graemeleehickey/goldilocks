@@ -148,7 +148,7 @@ normalize_arm_vector <- function(
   )
 }
 
-#' Normalize arm-specific loss-to-follow-up proportions
+#' Normalize arm-specific dropout probabilities at the follow-up horizon
 #'
 #' @param prop_loss A numeric vector containing one shared probability or two
 #'   values named `control` and `treatment`.
@@ -160,7 +160,7 @@ normalize_arm_vector <- function(
 #' @keywords internal
 #' @noRd
 normalize_prop_loss <- function(prop_loss, single_arm) {
-  validate_probability_vector(prop_loss, "prop_loss")
+  validate_probability_vector(prop_loss, "prop_loss", upper_open = TRUE)
   if (single_arm && length(prop_loss) != 1L) {
     stop("'prop_loss' must be a single probability for a single-arm design")
   }

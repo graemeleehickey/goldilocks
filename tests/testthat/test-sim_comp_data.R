@@ -81,7 +81,7 @@ test_that("sim_comp_data returns correct columns for single-arm", {
   )
   expect_equal(nrow(out), 30)
   expect_true(all(out$treatment == 1))
-  expect_equal(sum(out$loss_to_fu), ceiling(0.20 * 30))
+  expect_type(out$loss_to_fu, "logical")
 })
 
 test_that("sim_comp_data applies loss to follow-up", {
@@ -97,9 +97,11 @@ test_that("sim_comp_data applies loss to follow-up", {
     prop_loss = 0.30
   )
   n_lost <- sum(out$loss_to_fu)
-  expect_equal(n_lost, ceiling(0.30 * 200))
+  expect_gt(n_lost, 0)
+  expect_lt(n_lost, nrow(out))
   # Subjects lost to follow-up should be censored
   expect_true(all(out$event[out$loss_to_fu] == 0))
+  expect_true(all(out$time[out$loss_to_fu] < 36))
 })
 
 test_that("scalar and equal arm-specific loss proportions are identical", {
@@ -214,14 +216,6 @@ test_that("sim_comp_data applies differential loss within randomized arms", {
   )
 
   expect_identical(reversed, canonical)
-  expect_equal(
-    sum(canonical$loss_to_fu[canonical$treatment == 0L]),
-    ceiling(0.10 * sum(canonical$treatment == 0L))
-  )
-  expect_equal(
-    sum(canonical$loss_to_fu[canonical$treatment == 1L]),
-    ceiling(0.25 * sum(canonical$treatment == 1L))
-  )
   expect_true(all(canonical$event[canonical$loss_to_fu] == 0L))
 })
 

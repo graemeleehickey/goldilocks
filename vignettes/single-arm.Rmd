@@ -11,7 +11,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  cache.path = "single-arm-cache/"
+  cache.path = "single-arm-cache/",
+  cache.extra = as.character(utils::packageVersion("goldilocks"))
 )
 set.seed(3081)
 ```
@@ -63,6 +64,12 @@ target    <- 0.20                       # rate we hope the new therapy achieves
 ht <- prop_to_haz(probs = target, endtime = end_of_study)
 ht
 ```
+
+We set `prop_loss = 0.05`: independently of event time, dropout time is
+exponential with rate $-\log(0.95)/24$ per month, giving a 5% dropout CDF
+at 24 months. The observed proportion censored by dropout can be lower because
+events can occur first; it is not a fixed count of four losses among 80
+participants. Survival analyses retain the follow-up observed before dropout.
 
 Now we run `survival_adapt()`:
 

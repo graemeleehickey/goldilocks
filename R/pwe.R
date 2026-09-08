@@ -33,7 +33,7 @@
 #'   for administrative censoring.
 #'
 #' @importFrom PWEALL rpwe qpwe pwe
-#' @importFrom stats rexp
+#' @importFrom stats rexp runif
 #' @importFrom utils tail
 #' @export
 #'

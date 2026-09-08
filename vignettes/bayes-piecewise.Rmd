@@ -11,7 +11,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  cache.path = "bayes-piecewise-cache/"
+  cache.path = "bayes-piecewise-cache/",
+  cache.extra = as.character(utils::packageVersion("goldilocks"))
 )
 set.seed(7194)
 ```
@@ -152,6 +153,13 @@ Each row represents one simulated subject:
 -   `loss_to_fu` indicates whether the subject was censored because of simulated loss to follow-up.
 
 The `time` and `enrollment` columns therefore use the same unit but different clocks: `time` is subject-relative follow-up, whereas `enrollment` is trial-calendar time.
+
+Here `prop_loss = 0.05` means $\Pr(D\leq24)=0.05$ for an independent
+exponential dropout time with rate $-\log(0.95)/24$ per month. The observed
+time is the minimum of the event time, dropout time, and 24 months. An event
+before dropout is retained, so the observed proportion censored by dropout can
+be below 5% and can differ between arms despite a common dropout distribution.
+The number of losses varies across trials; small examples may have none.
 
 ## A single simulated trial
 

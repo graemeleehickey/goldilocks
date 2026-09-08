@@ -123,17 +123,21 @@ because names may be required in a future major release. See
 \code{\link[=randomization]{randomization()}} for more details.}
 
 \item{prop_loss}{A numeric vector containing one or two probabilities in
-\verb{[0, 1]}. A single value applies the same loss-to-follow-up proportion to
-every arm. For a two-arm design, differential attrition can
-be specified with a length-two vector named \code{control} and \code{treatment}; the
-supplied order does not matter. Within each arm,
-\verb{ceiling(prop_loss * arm size)} subjects are selected at random regardless
-of event status. Each selected subject's observed time is drawn from a
-\code{Uniform(0, t)} distribution, where \code{t} is their potential event or
-censoring time. Since the LTFU time is always less than \code{t}, the event has
-not yet occurred at dropout and the subject is right-censored. Single-arm
-designs require one probability. The default is \code{0}, denoting no loss to
-follow-up.}
+\verb{[0, 1)}. Each value is the dropout-time CDF at \code{end_of_study}:
+\eqn{P(D \le \tau) = p}, where \eqn{\tau} is the planned follow-up
+duration per subject. Independently of event time and enrollment, each
+subject's dropout time \eqn{D} is exponentially distributed with rate
+\eqn{-\log(1-p)/\tau}. The observed time is the minimum of event time,
+dropout time, and \code{end_of_study}; an event occurring before dropout is
+retained. Thus, \code{prop_loss} is not the expected proportion actually
+censored by dropout: that proportion can be lower because events occur
+first, and the realized number of dropouts varies between trials.
+A single value applies the same dropout distribution to every arm. For a
+two-arm design, supply a length-two vector named \code{control} and \code{treatment}
+for arm-specific probabilities; supplied order does not matter.
+Single-arm designs require one probability. The default \code{0} sets dropout
+time to infinity without drawing random numbers. A value of \code{1} is
+rejected because it requires an infinite exponential rate.}
 
 \item{alternative}{A single character string specifying the alternative
 hypothesis. It must be one of \code{"greater"} (the default), \code{"less"}, or
