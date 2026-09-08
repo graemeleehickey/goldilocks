@@ -78,13 +78,12 @@ enrollment to death from any cause or last follow-up. The simulation
 treats enrollment and randomization as occurring at the same time. The
 assumed 12-month OS probability in the control arm is 30%. The minimum
 and maximum sample sizes are 100 and 300, respectively, and no loss to
-follow-up is assumed. Each participant can be followed for up to 12
-months. This differs from the time-to-event example in Broglio et
-al. (2014), which scheduled the primary analysis after accrual was
-complete and all participants had completed 12 months of follow-up.
-Thus, after an expected-success stop or enrollment of 300 participants,
-the primary analysis is conducted once every enrolled participant has
-completed 12 months of follow-up.</p>
+follow-up is assumed. Each participant is followed until death or 12
+months, whichever comes first. After an expected-success stop or
+enrollment of 300 participants, the primary analysis is conducted once
+all enrolled participants’ required event or censoring outcomes are
+available. Its calendar time therefore depends on the last observed
+event or censoring time.</p>
 <p>From this information, we have:</p>
 <ul>
 <li>Equal randomization: <code>block = 2</code> and
@@ -112,7 +111,7 @@ protocol simulation.</p>
 <p>Sample-size selection analyses are planned after 100 participants
 have enrolled and after each additional 25 participants. Futility
 stopping is allowed from the first analysis, with <span class="math inline">F_n=0.10</span>. Stopping accrual for expected
-success is allowed from 200 participants onward, with <span class="math inline">S_n=0.90</span>. The assumed enrollment rate is
+success is allowed from 125 participants onward, with <span class="math inline">S_n=0.90</span>. The assumed enrollment rate is
 constant at five participants per month.</p>
 <p>Enrollment is stochastic even though the rate is constant. The
 package fixes the first patient at calendar time zero and generates each
@@ -143,6 +142,8 @@ knots.</p>
 <li>Predicted success probability thresholds:
 <code>Sn = c(1, rep(0.9, 7))</code>
 </li>
+<li>Immediate success is disabled: <code>Qn = 1</code> (the
+default)</li>
 <li>
 <code>lambda = 5</code> and <code>lambda_time = NULL</code> (default
 parameter)</li>
@@ -175,12 +176,11 @@ corresponding to equality of the survival distributions.</p>
 <div class="section level3">
 <h3 id="one-sided-tests">One-sided tests<a class="anchor" aria-label="anchor" href="#one-sided-tests"></a>
 </h3>
-<p>The example above uses a two-sided test. When the trial is designed
-to detect a benefit in one direction only – here, longer survival on the
-treatment arm – a one-sided test is often more appropriate. The
+<p>The example above uses a two-sided test. A design targeting benefit
+in one direction can instead prespecify a one-sided test. The
 <code>cox</code> and <code>logrank</code> methods support all three
 alternatives via the <code>alternative</code> argument. For these
-methods the direction is defined on the hazard scale:</p>
+methods, the direction of benefit is:</p>
 <ul>
 <li>
 <code>alternative = "less"</code> declares success when the
@@ -223,9 +223,16 @@ means lower failure probability (longer survival) than control.</li>
 posterior probability that <span class="math inline">p_{\text{treatment}} - p_{\text{control}} &gt;
 h_0</span> exceeds <code>prob_ha</code>.</li>
 </ul>
-<p>In all methods, <code>alternative = "less"</code> therefore
-corresponds to a beneficial treatment effect (longer survival) in this
-example.</p>
+<p>For <code>method = "rmst"</code>, the effect is instead
+treatment-minus-control restricted mean survival time through a fixed
+<code>rmst_tau</code>. Longer survival corresponds to
+<code>alternative = "greater"</code>. With time measured in months,
+<code>h0</code> is a difference in months: use <code>h0 = 0</code> for
+superiority, or <code>h0 = -1</code> for non-inferiority allowing a loss
+of one month of RMST. Choose the method, effect scale, direction, and
+horizon together before evaluating the design. The <a href="rmst.html">RMST vignette</a> gives a worked example with a delayed
+treatment effect and explains the support required through
+<code>rmst_tau</code>.</p>
 <p>The operating characteristics will be determined using 500 simulated
 trials. At each interim analysis, we will use 100 imputations and assume
 independent weakly-informative <span class="math inline">\operatorname{Gamma}(0.1, 0.1)</span> prior
@@ -251,20 +258,22 @@ cores.</p>
 Here <code>prop_loss = 0</code> means no dropout. A positive value would
 specify the CDF of an independent exponential dropout time at
 <code>end_of_study</code>; actual censoring by dropout can be less
-frequent because events can occur first. Log-rank and Cox analyses
-retain right-censored follow-up with <code>imputed_final = FALSE</code>,
-including when dropout occurs. Imputed final analyses are not available
-for <code>method = "logrank"</code>.</p>
-<p>For <code>method = "cox"</code>, <code>"riskdiff-wald"</code>, or
-<code>"riskdiff-fm"</code>, setting <code>imputed_final = TRUE</code>
-analyzes completed datasets and pools scalar estimates and variances
-using Rubin’s rules; at least two imputations are required. This
-produces a pooled Wald analysis for either risk-difference setting.
-Binary analyses with <code>imputed_final = FALSE</code> exclude
-incomplete endpoint statuses; that complete-case analysis can be biased
-even under independent dropout, because early events can be observed
-before dropout. Binary designs with dropout should assess final
-imputation and its model assumptions.</p>
+frequent because events can occur first. Log-rank, Cox, and RMST
+analyses retain right-censored follow-up with
+<code>imputed_final = FALSE</code>, including when dropout occurs.
+Imputed final analyses are not available for
+<code>method = "logrank"</code>.</p>
+<p>For <code>method = "cox"</code>, <code>"rmst"</code>,
+<code>"riskdiff-wald"</code>, or <code>"riskdiff-fm"</code>, setting
+<code>imputed_final = TRUE</code> analyzes completed datasets and pools
+scalar estimates and variances using Rubin’s rules; at least two
+imputations are required. This produces a pooled Wald analysis for
+either risk-difference setting. Binary analyses with
+<code>imputed_final = FALSE</code> exclude incomplete endpoint statuses;
+that complete-case analysis can be biased even under independent
+dropout, because early events can be observed before dropout. Binary
+designs with dropout should assess final imputation and its model
+assumptions.</p>
 <p>Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is
 50%.</p>
@@ -375,15 +384,16 @@ is the null (treatment OS 30%).</caption>
 </tbody>
 </table>
 <p>The estimated type I error under this design is the
-<code>power</code> value for scenario 2. It is slightly larger than the
-intended level, as might be expected when a nominal <span class="math inline">P</span>-value threshold of 0.05 is retained in a
-design with multiple interim looks. The accompanying
-<code>power_mc_lower</code> and <code>power_mc_upper</code> values give
-a 95% Wilson Monte Carlo interval for this estimate.</p>
+<code>power</code> value for scenario 2: 6.2%. Its 95% Wilson Monte
+Carlo interval is 4.4% to 8.7%. The point estimate alone does not
+establish whether the design exceeds the intended 0.05 level; both Monte
+Carlo uncertainty and the complete adaptive decision rule matter.</p>
 <p>The final-analysis threshold should therefore be calibrated jointly
 with the interim rules. As a preliminary candidate, consider <span class="math inline">P &lt; 0.04</span>, specified as
-<code>prob_ha = 0.96</code>. The dedicated calibration vignette gives a
-systematic grid- search and independent-validation procedure.</p>
+<code>prob_ha = 0.96</code>. The <a href="calibrating-prob-ha.html">calibration vignette</a> gives a
+systematic grid-search and independent-validation procedure. The
+candidate below illustrates a stricter threshold; it is not a validated
+calibration.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_power2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">out_power</span>, prob_ha <span class="op">=</span> <span class="fl">0.96</span>, return_trace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">out_t1error2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span></span>
@@ -397,6 +407,13 @@ systematic grid- search and independent-validation procedure.</p>
 <span>  <span class="st">"target: treatment OS 50%"</span> <span class="op">=</span> <span class="va">out_power2</span>,</span>
 <span>  <span class="st">"null: treatment OS 30%"</span> <span class="op">=</span> <span class="va">out_t1error2</span></span>
 <span><span class="op">)</span>, max_mcse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>power <span class="op">=</span> <span class="fl">0.02</span>, mean_N <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">target_oc</span> <span class="op">&lt;-</span> <span class="va">oc_calibrated</span><span class="op">[</span></span>
+<span>  <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">scenario</span> <span class="op">==</span> <span class="st">"target: treatment OS 50%"</span>,</span>
+<span><span class="op">]</span></span>
+<span><span class="va">null_oc</span> <span class="op">&lt;-</span> <span class="va">oc_calibrated</span><span class="op">[</span></span>
+<span>  <span class="va">oc_calibrated</span><span class="op">$</span><span class="va">scenario</span> <span class="op">==</span> <span class="st">"null: treatment OS 30%"</span>,</span>
+<span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">format_mc_interval</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">estimate</span>, <span class="va">lower</span>, <span class="va">upper</span>, <span class="va">digits</span> <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">format_string</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span></span>
@@ -745,9 +762,17 @@ look.</caption>
 and expected sample size across the treatment-effect scenarios. Because
 the meaning and direction of an effect depends on the chosen analysis,
 the effect scale is supplied explicitly; here it is the true 12-month
-treatment survival probability.</p>
+treatment survival probability. Match values by scenario name so that
+they remain aligned when <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> sorts the
+rows.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">oc_calibrated</span><span class="op">$</span><span class="va">true_treatment_survival</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.50</span>, <span class="fl">0.30</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">effect_by_scenario</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"target: treatment OS 50%"</span> <span class="op">=</span> <span class="fl">0.50</span>,</span>
+<span>  <span class="st">"null: treatment OS 30%"</span> <span class="op">=</span> <span class="fl">0.30</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">oc_calibrated</span><span class="op">$</span><span class="va">true_treatment_survival</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span></span>
+<span>  <span class="va">effect_by_scenario</span><span class="op">[</span><span class="va">oc_calibrated</span><span class="op">$</span><span class="va">scenario</span><span class="op">]</span></span>
+<span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_ocs.html">plot_sim_ocs</a></span><span class="op">(</span></span>
 <span>  <span class="va">oc_calibrated</span>,</span>
 <span>  effect <span class="op">=</span> <span class="st">"true_treatment_survival"</span>,</span>

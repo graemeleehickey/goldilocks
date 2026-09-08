@@ -180,6 +180,12 @@ or statistical analysis plan:
 
 - `treatment = 0` denotes control and `treatment = 1` denotes treatment;
 - named arm-specific inputs use `control`, then `treatment`;
+- `method` determines the effect scale for `h0` and the direction of
+  `alternative`; for RMST, benefit is a positive difference in time
+  units;
+- `rmst_tau` is fixed in advance for RMST and cannot exceed
+  `end_of_study`; a shorter restriction time does not shorten the
+  follow-up schedule;
 - `generation_cutpoints` governs event-time generation, whereas
   `cutpoints` governs prediction and analysis;
 - analysis intervals use the survival counting-process convention

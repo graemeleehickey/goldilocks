@@ -293,7 +293,10 @@ effect values to <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</
 <span>  <span class="st">"moderate"</span> <span class="op">=</span> <span class="va">sims_moderate</span>,</span>
 <span>  <span class="st">"target"</span> <span class="op">=</span> <span class="va">sims</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">scenario_oc</span><span class="op">$</span><span class="va">true_event_probability_difference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="op">-</span><span class="fl">0.05</span>, <span class="op">-</span><span class="fl">0.10</span><span class="op">)</span></span>
+<span><span class="va">effect_by_scenario</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>null <span class="op">=</span> <span class="fl">0</span>, moderate <span class="op">=</span> <span class="op">-</span><span class="fl">0.05</span>, target <span class="op">=</span> <span class="op">-</span><span class="fl">0.10</span><span class="op">)</span></span>
+<span><span class="va">scenario_oc</span><span class="op">$</span><span class="va">true_event_probability_difference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span></span>
+<span>  <span class="va">effect_by_scenario</span><span class="op">[</span><span class="va">scenario_oc</span><span class="op">$</span><span class="va">scenario</span><span class="op">]</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_sim_ocs.html">plot_sim_ocs</a></span><span class="op">(</span></span>
 <span>  <span class="va">scenario_oc</span>,</span>

@@ -165,9 +165,11 @@ participant:</p>
 <span>  N_total <span class="op">=</span> <span class="fl">12</span>,</span>
 <span>  end_of_study <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">1</span>, treatment <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"logrank"</span>,</span>
 <span>  alternative <span class="op">=</span> <span class="st">"less"</span>,</span>
 <span>  Fn <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  Sn <span class="op">=</span> <span class="fl">0.90</span>,</span>
+<span>  Qn <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  prob_ha <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  N_impute <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">20260831</span></span>
@@ -195,6 +197,10 @@ participant:</p>
 <span><span class="co">#&gt;   threshold direction point_crossed bound_crossed</span></span>
 <span><span class="co">#&gt; 1      0.90   greater         FALSE         FALSE</span></span>
 <span><span class="co">#&gt; 2      0.05      less         FALSE         FALSE</span></span></code></pre></div>
+<p>Here <code>Qn = 1</code> disables an immediate success claim.
+Crossing <code>Sn</code> stops accrual for expected success while
+enrolled participants continue follow-up. The method, alternative, and
+thresholds must match the prespecified trial design.</p>
 <p>At the maximum sample size, equal randomization implies six
 participants per arm. Four have already accrued in each arm, so the
 predictive calculation includes two potential future participants per
@@ -215,6 +221,73 @@ ratio requires <code>N_total</code> to be divisible by three. Observed
 enrollment in either arm cannot already exceed its implied maximum.</p>
 </div>
 <div class="section level2">
+<h2 id="using-a-prespecified-rmst-endpoint">Using a prespecified RMST endpoint<a class="anchor" aria-label="anchor" href="#using-a-prespecified-rmst-endpoint"></a>
+</h2>
+<p>For a design that prespecifies RMST as its analysis, supply
+<code>method = "rmst"</code> and the fixed restriction time. The same
+illustrative data cut can demonstrate this separate design, targeting
+treatment-minus-control RMST through six time units while follow-up
+continues through ten:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rmst_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/evaluate_interim.html">evaluate_interim</a></span><span class="op">(</span></span>
+<span>  data <span class="op">=</span> <span class="va">interim_cut</span>,</span>
+<span>  data_cut <span class="op">=</span> <span class="fl">8</span>,</span>
+<span>  look <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  N_total <span class="op">=</span> <span class="fl">12</span>,</span>
+<span>  end_of_study <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  rand_ratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>control <span class="op">=</span> <span class="fl">1</span>, treatment <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"rmst"</span>,</span>
+<span>  rmst_tau <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  alternative <span class="op">=</span> <span class="st">"greater"</span>,</span>
+<span>  h0 <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  Fn <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  Sn <span class="op">=</span> <span class="fl">0.90</span>,</span>
+<span>  Qn <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  prob_ha <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  N_impute <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">20260908</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rmst_result</span><span class="op">$</span><span class="va">decision</span></span>
+<span><span class="co">#&gt;   look planned_N calendar_time      decision                   decision_reason</span></span>
+<span><span class="co">#&gt; 1    2         8             8 stop_futility futility_estimate_below_threshold</span></span>
+<span><span class="co">#&gt;   ppp_stop_now success_threshold immediate_success_threshold</span></span>
+<span><span class="co">#&gt; 1            0               0.9                           1</span></span>
+<span><span class="co">#&gt;   immediate_success_crossed expected_success_crossed ppp_success_at_max</span></span>
+<span><span class="co">#&gt; 1                     FALSE                    FALSE                  0</span></span>
+<span><span class="co">#&gt;   futility_threshold futility_crossed</span></span>
+<span><span class="co">#&gt; 1               0.05             TRUE</span></span>
+<span><span class="va">rmst_result</span><span class="op">$</span><span class="va">monte_carlo</span></span>
+<span><span class="co">#&gt;              estimand successes draws estimate mcse lower     upper threshold</span></span>
+<span><span class="co">#&gt; 1 success_if_stop_now         0    20        0    0     0 0.1391083      0.90</span></span>
+<span><span class="co">#&gt; 2  success_at_maximum         0    20        0    0     0 0.1391083      0.05</span></span>
+<span><span class="co">#&gt;   direction point_crossed bound_crossed</span></span>
+<span><span class="co">#&gt; 1   greater         FALSE         FALSE</span></span>
+<span><span class="co">#&gt; 2      less          TRUE         FALSE</span></span>
+<span><span class="va">rmst_result</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">design</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"method"</span>, <span class="st">"rmst_tau"</span>, <span class="st">"alternative"</span>, <span class="st">"h0"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt; $method</span></span>
+<span><span class="co">#&gt; [1] "rmst"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $rmst_tau</span></span>
+<span><span class="co">#&gt; [1] 6</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $alternative</span></span>
+<span><span class="co">#&gt; [1] "greater"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $h0</span></span>
+<span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+<p>Positive effects mean longer event-free time on treatment, so benefit
+uses <code>alternative = "greater"</code>. Both <code>h0</code> and
+<code>rmst_tau</code> use the data’s time units. The horizon remains
+fixed across looks and predictive imputations. Input
+<code>status = "complete"</code> still requires event-free follow-up to
+<code>end_of_study</code>, even when a participant has already reached
+<code>rmst_tau</code>. The <a href="rmst.html">RMST vignette</a>
+explains the final analysis and its support and variance requirements.
+These small Monte Carlo examples demonstrate the API; the deployed
+design needs its own calibration and precision assessment.</p>
+</div>
+<div class="section level2">
 <h2 id="reviewing-and-retaining-the-audit-trail">Reviewing and retaining the audit trail<a class="anchor" aria-label="anchor" href="#reviewing-and-retaining-the-audit-trail"></a>
 </h2>
 <p>The decision uses the Monte Carlo point estimates. The standard
@@ -222,7 +295,7 @@ errors and exact one-sided bounds describe finite-draw uncertainty but
 do not change the decision. The interim record contains the same
 quantities retained for a simulated adaptive trial and can be summarized
 or plotted in the same way:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/summarise_trial_trace.html">summarise_trial_trace</a></span><span class="op">(</span><span class="va">interim_result</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   interim_looks_completed last_look last_decision final_N final_post_prob_ha</span></span>
 <span><span class="co">#&gt; 1                       1         2      continue      NA                 NA</span></span>

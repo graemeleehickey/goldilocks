@@ -21,7 +21,7 @@ Two practical constraints on single-arm designs in this package:
 - `method = "bayes-surv"` supports single-arm survival analyses with
   piecewise-exponential event-time modeling. `method = "bayes-bin"`
   supports single-arm analyses of complete binary outcomes. The
-  frequentist methods (`logrank`, `cox`, `riskdiff-wald`, and
+  frequentist methods (`logrank`, `cox`, `rmst`, `riskdiff-wald`, and
   `riskdiff-fm`) require two arms and will raise an error if used in
   this mode.
 
@@ -197,7 +197,11 @@ oc <- summarise_sims(list(
   "target event probability" = out_power,
   "benchmark event probability" = out_t1error
 ))
-oc$true_event_probability <- c(target, benchmark)
+effect_by_scenario <- c(
+  "target event probability" = target,
+  "benchmark event probability" = benchmark
+)
+oc$true_event_probability <- unname(effect_by_scenario[oc$scenario])
 
 oc
 plot_sim_ocs(
@@ -217,10 +221,15 @@ probabilities fall relative to the expected-success and futility
 thresholds. For large calibration grids, retain traces only for
 scenarios whose interim behavior needs closer inspection.
 
-Calibration proceeds the same way as for two-arm designs: if the type I
-error under the null (where the true rate equals the benchmark) is above
-the desired level, raise `prob_ha`; if power is too low, increase
-`N_total` or relax the `Fn`/`Sn` thresholds.
+Calibration proceeds as for two-arm designs. Screen candidate `prob_ha`
+values under the null, where the true event probability equals the
+benchmark, and validate the selected design with a fresh seed and
+adequate Monte Carlo precision. If sample size or the stopping
+thresholds change to improve power, reassess type I error for the
+revised design. The [calibration
+vignette](https://graemeleehickey.github.io/goldilocks/articles/calibrating-prob-ha.md)
+demonstrates this workflow; its log-rank threshold is specific to that
+example.
 
 ## A practical caveat on benchmarks
 

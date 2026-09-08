@@ -366,6 +366,9 @@ threshold.</p>
 <code class="sourceCode R"><span><span class="va">controlled_candidates</span> <span class="op">&lt;-</span> <span class="va">calibration_screening</span><span class="op">$</span><span class="va">prob_ha</span><span class="op">[</span></span>
 <span>  <span class="va">calibration_screening</span><span class="op">$</span><span class="va">type1_status</span> <span class="op">==</span> <span class="st">"controlled"</span></span>
 <span><span class="op">]</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">controlled_candidates</span><span class="op">)</span> <span class="op">==</span> <span class="fl">0L</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop</a></span><span class="op">(</span><span class="st">"No screened candidate meets the Monte Carlo criterion; revise the grid or simulation size."</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span><span class="va">selected_prob_ha</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">controlled_candidates</span><span class="op">)</span></span>
 <span><span class="va">selected_prob_ha</span></span>
 <span><span class="co">#&gt; [1] 0.985</span></span></code></pre></div>
@@ -466,6 +469,37 @@ and expected sample size. Those simulations should retain the selected
 <code>prob_ha</code> and the same prespecified values of
 <code>N_impute</code> and <code>N_mcmc</code> intended for the
 trial.</p>
+<div class="section level3">
+<h3 id="calibrating-an-rmst-design">Calibrating an RMST design<a class="anchor" aria-label="anchor" href="#calibrating-an-rmst-design"></a>
+</h3>
+<p>The workflow also applies to <code>method = "rmst"</code>, but the
+null is defined on the treatment-minus-control RMST scale. The following
+specification keeps the equal-hazard null from the example and targets a
+difference of zero through month nine, with follow-up continuing through
+month twelve:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rmst_calibration_design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">calibration_design</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  method <span class="op">=</span> <span class="st">"rmst"</span>,</span>
+<span>  rmst_tau <span class="op">=</span> <span class="fl">9</span>,</span>
+<span>  alternative <span class="op">=</span> <span class="st">"greater"</span>,</span>
+<span>  h0 <span class="op">=</span> <span class="fl">0</span></span>
+<span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Repeat screening and independent validation with this design in place
+of <code>calibration_design</code>; the stored log-rank results and
+selected threshold do not calibrate RMST. Keep <code>rmst_tau</code>
+fixed throughout the search. When allowing a loss of <code>m</code>
+months for non-inferiority, use <code>h0 = -m</code> and generate
+boundary-null scenarios with a true RMST difference of <code>-m</code>
+at that horizon.</p>
+<p>Equal survival distributions provide one zero-difference null
+scenario. Crossing survival curves can also have equal RMST, so evaluate
+those scenarios when relevant, together with dropout and discrepancies
+between <code>generation_cutpoints</code> and the predictive
+<code>cutpoints</code>. Inspect failure counts as well as rejection
+rates: inadequate support through the fixed horizon or zero total
+variance can make an RMST analysis non-estimable. The <a href="rmst.html">RMST vignette</a> describes these requirements and
+gives executable trial simulations.</p>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

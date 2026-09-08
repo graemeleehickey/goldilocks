@@ -93,9 +93,11 @@ interim_result <- evaluate_interim(
   N_total = 12,
   end_of_study = 10,
   rand_ratio = c(control = 1, treatment = 1),
+  method = "logrank",
   alternative = "less",
   Fn = 0.05,
   Sn = 0.90,
+  Qn = 1,
   prob_ha = 0.95,
   N_impute = 20,
   seed = 20260831
@@ -125,6 +127,11 @@ interim_result$monte_carlo
 #> 2      0.05      less         FALSE         FALSE
 ```
 
+Here `Qn = 1` disables an immediate success claim. Crossing `Sn` stops
+accrual for expected success while enrolled participants continue
+follow-up. The method, alternative, and thresholds must match the
+prespecified trial design.
+
 At the maximum sample size, equal randomization implies six participants
 per arm. Four have already accrued in each arm, so the predictive
 calculation includes two potential future participants per arm:
@@ -146,6 +153,76 @@ No block size or future randomization sequence is needed. The design
 must have an exactly allocable maximum sample size: for example, a 1:2
 ratio requires `N_total` to be divisible by three. Observed enrollment
 in either arm cannot already exceed its implied maximum.
+
+## Using a prespecified RMST endpoint
+
+For a design that prespecifies RMST as its analysis, supply
+`method = "rmst"` and the fixed restriction time. The same illustrative
+data cut can demonstrate this separate design, targeting
+treatment-minus-control RMST through six time units while follow-up
+continues through ten:
+
+``` r
+
+rmst_result <- evaluate_interim(
+  data = interim_cut,
+  data_cut = 8,
+  look = 2,
+  N_total = 12,
+  end_of_study = 10,
+  rand_ratio = c(control = 1, treatment = 1),
+  method = "rmst",
+  rmst_tau = 6,
+  alternative = "greater",
+  h0 = 0,
+  Fn = 0.05,
+  Sn = 0.90,
+  Qn = 1,
+  prob_ha = 0.95,
+  N_impute = 20,
+  seed = 20260908
+)
+
+rmst_result$decision
+#>   look planned_N calendar_time      decision                   decision_reason
+#> 1    2         8             8 stop_futility futility_estimate_below_threshold
+#>   ppp_stop_now success_threshold immediate_success_threshold
+#> 1            0               0.9                           1
+#>   immediate_success_crossed expected_success_crossed ppp_success_at_max
+#> 1                     FALSE                    FALSE                  0
+#>   futility_threshold futility_crossed
+#> 1               0.05             TRUE
+rmst_result$monte_carlo
+#>              estimand successes draws estimate mcse lower     upper threshold
+#> 1 success_if_stop_now         0    20        0    0     0 0.1391083      0.90
+#> 2  success_at_maximum         0    20        0    0     0 0.1391083      0.05
+#>   direction point_crossed bound_crossed
+#> 1   greater         FALSE         FALSE
+#> 2      less          TRUE         FALSE
+rmst_result$metadata$design[c("method", "rmst_tau", "alternative", "h0")]
+#> $method
+#> [1] "rmst"
+#> 
+#> $rmst_tau
+#> [1] 6
+#> 
+#> $alternative
+#> [1] "greater"
+#> 
+#> $h0
+#> [1] 0
+```
+
+Positive effects mean longer event-free time on treatment, so benefit
+uses `alternative = "greater"`. Both `h0` and `rmst_tau` use the data’s
+time units. The horizon remains fixed across looks and predictive
+imputations. Input `status = "complete"` still requires event-free
+follow-up to `end_of_study`, even when a participant has already reached
+`rmst_tau`. The [RMST
+vignette](https://graemeleehickey.github.io/goldilocks/articles/rmst.md)
+explains the final analysis and its support and variance requirements.
+These small Monte Carlo examples demonstrate the API; the deployed
+design needs its own calibration and precision assessment.
 
 ## Reviewing and retaining the audit trail
 

@@ -140,6 +140,9 @@ imputation uses the piecewise-exponential model and the Gamma hazard
 priors. <code>N_impute</code> controls its Monte Carlo resolution;
 <code>N_mcmc</code> and <code>binary_imputation</code> do not change the
 RMST test.</p>
+<p>The <a href="interim-data.html">observed interim data vignette</a>
+demonstrates an RMST look with event, pending, and early-censored
+records.</p>
 <p>With <code>imputed_final = FALSE</code>, participants lost to
 follow-up contribute their observed right-censored data to Kaplan-Meier
 estimation. Each arm must have follow-up through the fixed restriction
@@ -204,6 +207,10 @@ benefits, dropout, and discrepancies between the generating and
 predictive hazard models. RMST avoids the proportional-hazards
 assumption for the completed-data test; it does not remove assumptions
 from prediction or final imputation.</p>
+<p>The <a href="calibrating-prob-ha.html">calibration vignette</a> shows
+how to screen thresholds, assess Monte Carlo uncertainty, and validate a
+selected design with independent simulations, including how to adapt the
+workflow to RMST.</p>
 <p>For maintainer validation, <code>benchmarks/rmst-calibration.R</code>
 runs fixed and adaptive scenarios with failure counts and Monte Carlo
 intervals, and <code>benchmarks/rmst.R</code> compares completed-data

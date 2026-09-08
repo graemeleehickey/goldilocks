@@ -72,6 +72,11 @@ cut. Predictive imputation uses the piecewise-exponential model and the
 Gamma hazard priors. `N_impute` controls its Monte Carlo resolution;
 `N_mcmc` and `binary_imputation` do not change the RMST test.
 
+The [observed interim data
+vignette](https://graemeleehickey.github.io/goldilocks/articles/interim-data.md)
+demonstrates an RMST look with event, pending, and early-censored
+records.
+
 With `imputed_final = FALSE`, participants lost to follow-up contribute
 their observed right-censored data to Kaplan-Meier estimation. Each arm
 must have follow-up through the fixed restriction time, or its survival
@@ -141,6 +146,12 @@ benefits, dropout, and discrepancies between the generating and
 predictive hazard models. RMST avoids the proportional-hazards
 assumption for the completed-data test; it does not remove assumptions
 from prediction or final imputation.
+
+The [calibration
+vignette](https://graemeleehickey.github.io/goldilocks/articles/calibrating-prob-ha.md)
+shows how to screen thresholds, assess Monte Carlo uncertainty, and
+validate a selected design with independent simulations, including how
+to adapt the workflow to RMST.
 
 For maintainer validation, `benchmarks/rmst-calibration.R` runs fixed
 and adaptive scenarios with failure counts and Monte Carlo intervals,

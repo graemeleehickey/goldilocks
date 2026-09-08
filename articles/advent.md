@@ -769,7 +769,13 @@ supplied as the effect scale.
 
 ``` r
 
-oc_small$true_pfa_event_probability <- c(0.35, 0.50)
+effect_by_scenario <- c(
+  "target: equal 35% failure" = 0.35,
+  "margin: PFA failure 50%" = 0.50
+)
+oc_small$true_pfa_event_probability <- unname(
+  effect_by_scenario[oc_small$scenario]
+)
 plot_sim_ocs(
   oc_small,
   effect = "true_pfa_event_probability",

@@ -22,6 +22,14 @@ We first use a small example to show the analysis of one adaptive trial,
 then outline the repeated simulations needed to evaluate operating
 characteristics.
 
+The Bayesian rule here targets the difference in event probabilities at
+`end_of_study`. If the prespecified endpoint is instead average
+event-free time through a fixed horizon, see the [RMST
+vignette](https://graemeleehickey.github.io/goldilocks/articles/rmst.md).
+RMST uses the same piecewise-exponential predictive machinery but a
+different completed-data test, effect scale, and direction of benefit
+(`alternative = "greater"`).
+
 ## When piecewise hazards help
 
 Survival in many settings – post-surgical mortality, transplant

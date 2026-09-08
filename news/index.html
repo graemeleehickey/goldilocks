@@ -41,6 +41,11 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.0.9000" id="goldilocks-0609000">goldilocks 0.6.0.9000<a class="anchor" aria-label="anchor" href="#goldilocks-0609000"></a></h2>
 <div class="section level3">
+<h3 id="documentation-0-6-0-9000">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-6-0-9000"></a></h3>
+<ul><li>Refresh the existing vignettes for RMST effect direction, restriction time, observed interim evaluation, and calibration. Align the two-arm stopping narrative with its code, derive reported results from the stored summaries, and remove knit caches that could outlive changes within a development version.</li>
+<li>Match operating-characteristic plot effects by scenario name in vignette examples, preventing sorted summaries from swapping null and target values.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="bug-fixes-0-6-0-9000">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-6-0-9000"></a></h3>
 <ul><li>Dropout times are now exponential and independent of event times and enrollment within each treatment arm (<a href="https://github.com/graemeleehickey/goldilocks/issues/61" class="external-link">#61</a>). <code>prop_loss = p</code> specifies <code>P(D &lt;= end_of_study) = p</code>, using rate <code>-log1p(-p) / end_of_study</code>. Observation ends at the first event, dropout, or administrative horizon; events before dropout are retained. The observed fraction censored by dropout can be lower than <code>p</code>, and counts vary between trials instead of being fixed by <code><a href="https://rdrr.io/r/base/Round.html" class="external-link">ceiling()</a></code>. Probabilities must be in <code>[0, 1)</code>; <code>1</code> is no longer accepted. Positive dropout assumptions change seeded results and operating characteristics; <code>prop_loss = 0</code> preserves results and RNG use. Vignettes and help now explain this interpretation, the migration from the previous dependent-censoring mechanism, and the limitations of complete-case binary analysis with dropout. Statistical checks cover dropout probabilities, event preservation, and Kaplan-Meier recovery with common and arm-specific dropout under constant and piecewise event hazards.</li>
 </ul></div>

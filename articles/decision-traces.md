@@ -253,7 +253,10 @@ scenario_oc <- summarise_sims(list(
   "moderate" = sims_moderate,
   "target" = sims
 ))
-scenario_oc$true_event_probability_difference <- c(0, -0.05, -0.10)
+effect_by_scenario <- c(null = 0, moderate = -0.05, target = -0.10)
+scenario_oc$true_event_probability_difference <- unname(
+  effect_by_scenario[scenario_oc$scenario]
+)
 
 plot_sim_ocs(
   scenario_oc,

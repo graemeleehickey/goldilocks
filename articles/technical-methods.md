@@ -428,10 +428,10 @@ The package approximates this integral by Monte Carlo simulation. Each
 replicate draws \boldsymbol{\lambda} from its interim posterior,
 completes the unobserved outcomes conditional on those hazards, and
 applies the prespecified analysis. Treatment assignments remain fixed.
-Survival, log-rank, and Cox analyses use completed follow-up and event
-outcomes; fixed-horizon binary analyses use completed event counts and
-denominators by arm, which are sufficient statistics for the
-risk-difference and beta-binomial methods.
+Bayesian survival, log-rank, Cox, and RMST analyses use completed
+follow-up and event outcomes; fixed-horizon binary analyses use
+completed event counts and denominators by arm, which are sufficient
+statistics for the risk-difference and beta-binomial methods.
 
 ## 6. Interim decision rule
 
@@ -593,13 +593,15 @@ success indicator used inside the predictive probability calculations.
 
 For `method = "logrank"`, success is based on a log-rank test. For
 `method = "cox"`, success is based on the Wald test from a Cox
-proportional hazards regression. For a treatment-control difference in
-binary event risks at `end_of_study`, `method = "riskdiff-wald"` uses a
-Wald test and `method = "riskdiff-fm"` uses a Farrington-Manning score
-test. For these methods, `goldilocks` stores 1-p in `post_prob_ha`; this
-is not a posterior probability, but it puts frequentist and Bayesian
-rules on a common “larger is stronger evidence” scale. For example, a
-one-sided test at \alpha = 0.025 corresponds to `prob_ha = 0.975`.
+proportional hazards regression. For `method = "rmst"`, success uses a
+Wald test of the treatment-control RMST difference through `rmst_tau`.
+For a treatment-control difference in binary event risks at
+`end_of_study`, `method = "riskdiff-wald"` uses a Wald test and
+`method = "riskdiff-fm"` uses a Farrington-Manning score test. For these
+methods, `goldilocks` stores 1-p in `post_prob_ha`; this is not a
+posterior probability, but it puts frequentist and Bayesian rules on a
+common “larger is stronger evidence” scale. For example, a one-sided
+test at \alpha = 0.025 corresponds to `prob_ha = 0.975`.
 
 For backward compatibility, `method = "riskdiff"` is accepted as an
 alias for `"riskdiff-wald"` and produces a warning. Results identify the
@@ -1018,7 +1020,9 @@ The simulation plots address three complementary statistical questions:
 For operating-characteristic curves, first attach a numeric effect scale
 to the scenario summary. The package does not infer this automatically
 because the appropriate scale may be a hazard ratio, risk difference,
-survival probability, or event probability depending on the analysis:
+RMST difference, survival probability, or event probability depending on
+the analysis. Match values by scenario name because the summary can
+reorder the input scenarios:
 
 ``` r
 
@@ -1027,7 +1031,8 @@ scenario_oc <- summarise_sims(list(
   "moderate" = moderate_sims,
   "target" = target_sims
 ))
-scenario_oc$true_effect <- c(0, -0.10, -0.20)
+effect_by_scenario <- c(null = 0, moderate = -0.10, target = -0.20)
+scenario_oc$true_effect <- unname(effect_by_scenario[scenario_oc$scenario])
 
 plot_sim_ocs(
   scenario_oc,

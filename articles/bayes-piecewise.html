@@ -87,6 +87,12 @@ threshold on the cumulative-failure-probability scale.</li>
 <p>We first use a small example to show the analysis of one adaptive
 trial, then outline the repeated simulations needed to evaluate
 operating characteristics.</p>
+<p>The Bayesian rule here targets the difference in event probabilities
+at <code>end_of_study</code>. If the prespecified endpoint is instead
+average event-free time through a fixed horizon, see the <a href="rmst.html">RMST vignette</a>. RMST uses the same
+piecewise-exponential predictive machinery but a different
+completed-data test, effect scale, and direction of benefit
+(<code>alternative = "greater"</code>).</p>
 <div class="section level2">
 <h2 id="when-piecewise-hazards-help">When piecewise hazards help<a class="anchor" aria-label="anchor" href="#when-piecewise-hazards-help"></a>
 </h2>

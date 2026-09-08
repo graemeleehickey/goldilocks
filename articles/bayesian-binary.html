@@ -375,7 +375,11 @@ reproducible, including when <code>ncores</code> is greater than 1.</p>
 <span>  <span class="st">"target: treatment event probability 25%"</span> <span class="op">=</span> <span class="va">out_power</span>,</span>
 <span>  <span class="st">"null: treatment event probability 35%"</span> <span class="op">=</span> <span class="va">out_null</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">oc</span><span class="op">$</span><span class="va">true_treatment_event_probability</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.35</span><span class="op">)</span></span>
+<span><span class="va">effect_by_scenario</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"target: treatment event probability 25%"</span> <span class="op">=</span> <span class="fl">0.25</span>,</span>
+<span>  <span class="st">"null: treatment event probability 35%"</span> <span class="op">=</span> <span class="fl">0.35</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">oc</span><span class="op">$</span><span class="va">true_treatment_event_probability</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">effect_by_scenario</span><span class="op">[</span><span class="va">oc</span><span class="op">$</span><span class="va">scenario</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">oc</span></span>
 <span><span class="fu"><a href="../reference/plot_sim_ocs.html">plot_sim_ocs</a></span><span class="op">(</span></span>

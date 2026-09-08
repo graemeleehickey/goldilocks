@@ -248,6 +248,9 @@ claiming it is the unique or optimal threshold.
 controlled_candidates <- calibration_screening$prob_ha[
   calibration_screening$type1_status == "controlled"
 ]
+if (length(controlled_candidates) == 0L) {
+  stop("No screened candidate meets the Monte Carlo criterion; revise the grid or simulation size.")
+}
 selected_prob_ha <- min(controlled_candidates)
 selected_prob_ha
 #> [1] 0.985
@@ -333,3 +336,37 @@ or more clinically relevant alternative scenarios to estimate power and
 expected sample size. Those simulations should retain the selected
 `prob_ha` and the same prespecified values of `N_impute` and `N_mcmc`
 intended for the trial.
+
+### Calibrating an RMST design
+
+The workflow also applies to `method = "rmst"`, but the null is defined
+on the treatment-minus-control RMST scale. The following specification
+keeps the equal-hazard null from the example and targets a difference of
+zero through month nine, with follow-up continuing through month twelve:
+
+``` r
+
+rmst_calibration_design <- modifyList(calibration_design, list(
+  method = "rmst",
+  rmst_tau = 9,
+  alternative = "greater",
+  h0 = 0
+))
+```
+
+Repeat screening and independent validation with this design in place of
+`calibration_design`; the stored log-rank results and selected threshold
+do not calibrate RMST. Keep `rmst_tau` fixed throughout the search. When
+allowing a loss of `m` months for non-inferiority, use `h0 = -m` and
+generate boundary-null scenarios with a true RMST difference of `-m` at
+that horizon.
+
+Equal survival distributions provide one zero-difference null scenario.
+Crossing survival curves can also have equal RMST, so evaluate those
+scenarios when relevant, together with dropout and discrepancies between
+`generation_cutpoints` and the predictive `cutpoints`. Inspect failure
+counts as well as rejection rates: inadequate support through the fixed
+horizon or zero total variance can make an RMST analysis non-estimable.
+The [RMST
+vignette](https://graemeleehickey.github.io/goldilocks/articles/rmst.md)
+describes these requirements and gives executable trial simulations.

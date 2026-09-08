@@ -474,9 +474,9 @@ predictive density is</p>
 Each replicate draws <span class="math inline">\boldsymbol{\lambda}</span> from its interim
 posterior, completes the unobserved outcomes conditional on those
 hazards, and applies the prespecified analysis. Treatment assignments
-remain fixed. Survival, log-rank, and Cox analyses use completed
-follow-up and event outcomes; fixed-horizon binary analyses use
-completed event counts and denominators by arm, which are sufficient
+remain fixed. Bayesian survival, log-rank, Cox, and RMST analyses use
+completed follow-up and event outcomes; fixed-horizon binary analyses
+use completed event counts and denominators by arm, which are sufficient
 statistics for the risk-difference and beta-binomial methods.</p>
 </div>
 <div class="section level2">
@@ -752,14 +752,17 @@ calculations.</p>
 </h3>
 <p>For <code>method = "logrank"</code>, success is based on a log-rank
 test. For <code>method = "cox"</code>, success is based on the Wald test
-from a Cox proportional hazards regression. For a treatment-control
-difference in binary event risks at <code>end_of_study</code>,
-<code>method = "riskdiff-wald"</code> uses a Wald test and
-<code>method = "riskdiff-fm"</code> uses a Farrington-Manning score
-test. For these methods, <code>goldilocks</code> stores <span class="math inline">1-p</span> in <code>post_prob_ha</code>; this is not
-a posterior probability, but it puts frequentist and Bayesian rules on a
-common “larger is stronger evidence” scale. For example, a one-sided
-test at <span class="math inline">\alpha = 0.025</span> corresponds to
+from a Cox proportional hazards regression. For
+<code>method = "rmst"</code>, success uses a Wald test of the
+treatment-control RMST difference through <code>rmst_tau</code>. For a
+treatment-control difference in binary event risks at
+<code>end_of_study</code>, <code>method = "riskdiff-wald"</code> uses a
+Wald test and <code>method = "riskdiff-fm"</code> uses a
+Farrington-Manning score test. For these methods,
+<code>goldilocks</code> stores <span class="math inline">1-p</span> in
+<code>post_prob_ha</code>; this is not a posterior probability, but it
+puts frequentist and Bayesian rules on a common “larger is stronger
+evidence” scale. For example, a one-sided test at <span class="math inline">\alpha = 0.025</span> corresponds to
 <code>prob_ha = 0.975</code>.</p>
 <p>For backward compatibility, <code>method = "riskdiff"</code> is
 accepted as an alias for <code>"riskdiff-wald"</code> and produces a
@@ -1252,15 +1255,17 @@ predictive probabilities and the decision thresholds at each look.</li>
 <p>For operating-characteristic curves, first attach a numeric effect
 scale to the scenario summary. The package does not infer this
 automatically because the appropriate scale may be a hazard ratio, risk
-difference, survival probability, or event probability depending on the
-analysis:</p>
+difference, RMST difference, survival probability, or event probability
+depending on the analysis. Match values by scenario name because the
+summary can reorder the input scenarios:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scenario_oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="st">"null"</span> <span class="op">=</span> <span class="va">null_sims</span>,</span>
 <span>  <span class="st">"moderate"</span> <span class="op">=</span> <span class="va">moderate_sims</span>,</span>
 <span>  <span class="st">"target"</span> <span class="op">=</span> <span class="va">target_sims</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">scenario_oc</span><span class="op">$</span><span class="va">true_effect</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="op">-</span><span class="fl">0.10</span>, <span class="op">-</span><span class="fl">0.20</span><span class="op">)</span></span>
+<span><span class="va">effect_by_scenario</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>null <span class="op">=</span> <span class="fl">0</span>, moderate <span class="op">=</span> <span class="op">-</span><span class="fl">0.10</span>, target <span class="op">=</span> <span class="op">-</span><span class="fl">0.20</span><span class="op">)</span></span>
+<span><span class="va">scenario_oc</span><span class="op">$</span><span class="va">true_effect</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">effect_by_scenario</span><span class="op">[</span><span class="va">scenario_oc</span><span class="op">$</span><span class="va">scenario</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_sim_ocs.html">plot_sim_ocs</a></span><span class="op">(</span></span>
 <span>  <span class="va">scenario_oc</span>,</span>

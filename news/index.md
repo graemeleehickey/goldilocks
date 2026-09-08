@@ -2,6 +2,17 @@
 
 ## goldilocks 0.6.0.9000
 
+### Documentation
+
+- Refresh the existing vignettes for RMST effect direction, restriction
+  time, observed interim evaluation, and calibration. Align the two-arm
+  stopping narrative with its code, derive reported results from the
+  stored summaries, and remove knit caches that could outlive changes
+  within a development version.
+- Match operating-characteristic plot effects by scenario name in
+  vignette examples, preventing sorted summaries from swapping null and
+  target values.
+
 ### Bug fixes
 
 - Dropout times are now exponential and independent of event times and

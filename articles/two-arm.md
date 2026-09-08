@@ -10,13 +10,12 @@ enrollment to death from any cause or last follow-up. The simulation
 treats enrollment and randomization as occurring at the same time. The
 assumed 12-month OS probability in the control arm is 30%. The minimum
 and maximum sample sizes are 100 and 300, respectively, and no loss to
-follow-up is assumed. Each participant can be followed for up to 12
-months. This differs from the time-to-event example in Broglio et
-al. (2014), which scheduled the primary analysis after accrual was
-complete and all participants had completed 12 months of follow-up.
-Thus, after an expected-success stop or enrollment of 300 participants,
-the primary analysis is conducted once every enrolled participant has
-completed 12 months of follow-up.
+follow-up is assumed. Each participant is followed until death or 12
+months, whichever comes first. After an expected-success stop or
+enrollment of 300 participants, the primary analysis is conducted once
+all enrolled participants’ required event or censoring outcomes are
+available. Its calendar time therefore depends on the last observed
+event or censoring time.
 
 From this information, we have:
 
@@ -39,7 +38,7 @@ protocol simulation.
 Sample-size selection analyses are planned after 100 participants have
 enrolled and after each additional 25 participants. Futility stopping is
 allowed from the first analysis, with F_n=0.10. Stopping accrual for
-expected success is allowed from 200 participants onward, with S_n=0.90.
+expected success is allowed from 125 participants onward, with S_n=0.90.
 The assumed enrollment rate is constant at five participants per month.
 
 Enrollment is stochastic even though the rate is constant. The package
@@ -66,6 +65,7 @@ From this information, we have:
 - Interim sample size looks: `interim_look = seq(100, 275, 25)`
 - Futility probability thresholds: `Fn = rep(0.10, 8)`
 - Predicted success probability thresholds: `Sn = c(1, rep(0.9, 7))`
+- Immediate success is disabled: `Qn = 1` (the default)
 - `lambda = 5` and `lambda_time = NULL` (default parameter)
 
 Note that the first value of `Sn` is 1. This is because the trial is not
@@ -91,12 +91,10 @@ distributions.
 
 ### One-sided tests
 
-The example above uses a two-sided test. When the trial is designed to
-detect a benefit in one direction only – here, longer survival on the
-treatment arm – a one-sided test is often more appropriate. The `cox`
-and `logrank` methods support all three alternatives via the
-`alternative` argument. For these methods the direction is defined on
-the hazard scale:
+The example above uses a two-sided test. A design targeting benefit in
+one direction can instead prespecify a one-sided test. The `cox` and
+`logrank` methods support all three alternatives via the `alternative`
+argument. For these methods, the direction of benefit is:
 
 - `alternative = "less"` declares success when the treatment arm has a
   *lower* hazard (longer survival) than control.
@@ -136,8 +134,16 @@ against the margin `h0` (default `0`):
   probability that p\_{\text{treatment}} - p\_{\text{control}} \> h_0
   exceeds `prob_ha`.
 
-In all methods, `alternative = "less"` therefore corresponds to a
-beneficial treatment effect (longer survival) in this example.
+For `method = "rmst"`, the effect is instead treatment-minus-control
+restricted mean survival time through a fixed `rmst_tau`. Longer
+survival corresponds to `alternative = "greater"`. With time measured in
+months, `h0` is a difference in months: use `h0 = 0` for superiority, or
+`h0 = -1` for non-inferiority allowing a loss of one month of RMST.
+Choose the method, effect scale, direction, and horizon together before
+evaluating the design. The [RMST
+vignette](https://graemeleehickey.github.io/goldilocks/articles/rmst.md)
+gives a worked example with a delayed treatment effect and explains the
+support required through `rmst_tau`.
 
 The operating characteristics will be determined using 500 simulated
 trials. At each interim analysis, we will use 100 imputations and assume
@@ -157,19 +163,19 @@ The parameter `N_mcmc` is not used by the log-rank test. Here
 `prop_loss = 0` means no dropout. A positive value would specify the CDF
 of an independent exponential dropout time at `end_of_study`; actual
 censoring by dropout can be less frequent because events can occur
-first. Log-rank and Cox analyses retain right-censored follow-up with
-`imputed_final = FALSE`, including when dropout occurs. Imputed final
-analyses are not available for `method = "logrank"`.
+first. Log-rank, Cox, and RMST analyses retain right-censored follow-up
+with `imputed_final = FALSE`, including when dropout occurs. Imputed
+final analyses are not available for `method = "logrank"`.
 
-For `method = "cox"`, `"riskdiff-wald"`, or `"riskdiff-fm"`, setting
-`imputed_final = TRUE` analyzes completed datasets and pools scalar
-estimates and variances using Rubin’s rules; at least two imputations
-are required. This produces a pooled Wald analysis for either
-risk-difference setting. Binary analyses with `imputed_final = FALSE`
-exclude incomplete endpoint statuses; that complete-case analysis can be
-biased even under independent dropout, because early events can be
-observed before dropout. Binary designs with dropout should assess final
-imputation and its model assumptions.
+For `method = "cox"`, `"rmst"`, `"riskdiff-wald"`, or `"riskdiff-fm"`,
+setting `imputed_final = TRUE` analyzes completed datasets and pools
+scalar estimates and variances using Rubin’s rules; at least two
+imputations are required. This produces a pooled Wald analysis for
+either risk-difference setting. Binary analyses with
+`imputed_final = FALSE` exclude incomplete endpoint statuses; that
+complete-case analysis can be biased even under independent dropout,
+because early events can be observed before dropout. Binary designs with
+dropout should assess final imputation and its model assumptions.
 
 Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is
@@ -255,16 +261,18 @@ level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is
 the null (treatment OS 30%). {.table}
 
 The estimated type I error under this design is the `power` value for
-scenario 2. It is slightly larger than the intended level, as might be
-expected when a nominal P-value threshold of 0.05 is retained in a
-design with multiple interim looks. The accompanying `power_mc_lower`
-and `power_mc_upper` values give a 95% Wilson Monte Carlo interval for
-this estimate.
+scenario 2: 6.2%. Its 95% Wilson Monte Carlo interval is 4.4% to 8.7%.
+The point estimate alone does not establish whether the design exceeds
+the intended 0.05 level; both Monte Carlo uncertainty and the complete
+adaptive decision rule matter.
 
 The final-analysis threshold should therefore be calibrated jointly with
 the interim rules. As a preliminary candidate, consider P \< 0.04,
-specified as `prob_ha = 0.96`. The dedicated calibration vignette gives
-a systematic grid- search and independent-validation procedure.
+specified as `prob_ha = 0.96`. The [calibration
+vignette](https://graemeleehickey.github.io/goldilocks/articles/calibrating-prob-ha.md)
+gives a systematic grid-search and independent-validation procedure. The
+candidate below illustrates a stricter threshold; it is not a validated
+calibration.
 
 ``` r
 
@@ -283,6 +291,13 @@ oc_calibrated <- summarise_sims(list(
   "target: treatment OS 50%" = out_power2,
   "null: treatment OS 30%" = out_t1error2
 ), max_mcse = c(power = 0.02, mean_N = 3))
+
+target_oc <- oc_calibrated[
+  oc_calibrated$scenario == "target: treatment OS 50%",
+]
+null_oc <- oc_calibrated[
+  oc_calibrated$scenario == "null: treatment OS 30%",
+]
 
 format_mc_interval <- function(estimate, lower, upper, digits = 3) {
   format_string <- paste0(
@@ -495,11 +510,20 @@ compares final success, stopping behavior, and expected sample size
 across the treatment-effect scenarios. Because the meaning and direction
 of an effect depends on the chosen analysis, the effect scale is
 supplied explicitly; here it is the true 12-month treatment survival
-probability.
+probability. Match values by scenario name so that they remain aligned
+when
+[`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
+sorts the rows.
 
 ``` r
 
-oc_calibrated$true_treatment_survival <- c(0.50, 0.30)
+effect_by_scenario <- c(
+  "target: treatment OS 50%" = 0.50,
+  "null: treatment OS 30%" = 0.30
+)
+oc_calibrated$true_treatment_survival <- unname(
+  effect_by_scenario[oc_calibrated$scenario]
+)
 plot_sim_ocs(
   oc_calibrated,
   effect = "true_treatment_survival",

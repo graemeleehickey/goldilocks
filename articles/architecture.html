@@ -322,6 +322,14 @@ report or statistical analysis plan:</p>
 <li>named arm-specific inputs use <code>control</code>, then
 <code>treatment</code>;</li>
 <li>
+<code>method</code> determines the effect scale for <code>h0</code>
+and the direction of <code>alternative</code>; for RMST, benefit is a
+positive difference in time units;</li>
+<li>
+<code>rmst_tau</code> is fixed in advance for RMST and cannot exceed
+<code>end_of_study</code>; a shorter restriction time does not shorten
+the follow-up schedule;</li>
+<li>
 <code>generation_cutpoints</code> governs event-time generation,
 whereas <code>cutpoints</code> governs prediction and analysis;</li>
 <li>analysis intervals use the survival counting-process convention
