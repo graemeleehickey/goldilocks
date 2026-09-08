@@ -15,6 +15,6 @@
 \code{x}, invisibly.
 }
 \description{
-Prints the predictive probabilities and decision from an
-interim analysis returned by \code{\link[=evaluate_interim]{evaluate_interim()}}.
+Prints the predictive probabilities and decision from an interim
+analysis returned by \code{\link[=evaluate_interim]{evaluate_interim()}}.
 }

@@ -23,15 +23,15 @@ event rates for the treatment arm. Supply one rate per interval defined by
 \code{generation_cutpoints}; a single value specifies a constant event rate.}
 
 \item{hazard_control}{\code{NULL} (the default) for a single-arm trial, or a
-numeric vector of finite, non-negative event rates for the control arm in
-a two-arm trial. It must contain one rate per interval defined by
+numeric vector of finite, non-negative event rates for the control arm in a
+two-arm trial. It must contain one rate per interval defined by
 \code{generation_cutpoints}.}
 
 \item{generation_cutpoints}{\code{NULL} (the default), or a numeric vector of
-finite, positive, strictly increasing interior
-follow-up times at which the data-generating hazard changes. The number of
-hazards for each arm must be one greater than the number of generation
-cutpoints. \code{NULL} specifies a constant-hazard data-generating model.}
+finite, positive, strictly increasing interior follow-up times at which the
+data-generating hazard changes. The number of hazards for each arm must be
+one greater than the number of generation cutpoints. \code{NULL} specifies a
+constant-hazard data-generating model.}
 
 \item{N_total}{A required positive integer giving the maximum total sample
 size.}
@@ -56,29 +56,28 @@ sizes. Every value must be a multiple of \code{sum(rand_ratio)}. The default is
 
 \item{rand_ratio}{A length-two positive integer vector giving the control to
 treatment randomization ratio. The default is
-\code{c(control = 1, treatment = 1)}. Name
-the values \code{control} and \code{treatment}; either supplied order is accepted and
-matched by name. A legacy unnamed vector remains accepted in
-\code{c(control, treatment)} order. Unequal unnamed values produce a warning
-because names may be required in a future major release. See
-\code{\link[=randomization]{randomization()}} for more details.}
+\code{c(control = 1, treatment = 1)}. Name the values \code{control} and \code{treatment};
+either supplied order is accepted and matched by name. A legacy unnamed
+vector remains accepted in \code{c(control, treatment)} order. Unequal unnamed
+values produce a warning because names may be required in a future major
+release. See \code{\link[=randomization]{randomization()}} for more details.}
 
 \item{prop_loss}{A numeric vector containing one or two probabilities in
 \verb{[0, 1)}. Each value is the dropout-time CDF at \code{end_of_study}:
-\eqn{P(D \le \tau) = p}, where \eqn{\tau} is the planned follow-up
-duration per subject. Independently of event time and enrollment, each
-subject's dropout time \eqn{D} is exponentially distributed with rate
+\eqn{P(D \le \tau) = p}, where \eqn{\tau} is the planned follow-up duration
+per subject. Independently of event time and enrollment, each subject's
+dropout time \eqn{D} is exponentially distributed with rate
 \eqn{-\log(1-p)/\tau}. The observed time is the minimum of event time,
 dropout time, and \code{end_of_study}; an event occurring before dropout is
 retained. Thus, \code{prop_loss} is not the expected proportion actually
 censored by dropout: that proportion can be lower because events occur
-first, and the realized number of dropouts varies between trials.
-A single value applies the same dropout distribution to every arm. For a
-two-arm design, supply a length-two vector named \code{control} and \code{treatment}
-for arm-specific probabilities; supplied order does not matter.
-Single-arm designs require one probability. The default \code{0} sets dropout
-time to infinity without drawing random numbers. A value of \code{1} is
-rejected because it requires an infinite exponential rate.}
+first, and the realized number of dropouts varies between trials. A single
+value applies the same dropout distribution to every arm. For a two-arm
+design, supply a length-two vector named \code{control} and \code{treatment} for
+arm-specific probabilities; supplied order does not matter. Single-arm
+designs require one probability. The default \code{0} sets dropout time to
+infinity without drawing random numbers. A value of \code{1} is rejected because
+it requires an infinite exponential rate.}
 }
 \value{
 A data frame with one row per subject and columns:
@@ -90,8 +89,8 @@ every subject.
 \item \code{event}: Numeric event indicator, coded \code{1} for an event and \code{0} for
 right-censoring.
 \item \code{enrollment}: Numeric time of subject enrollment relative to first
-patient in. The package treats enrollment and
-randomization as occurring at the same time.
+patient in. The package treats enrollment and randomization as occurring
+at the same time.
 \item \code{id}: Integer subject identifier.
 \item \code{loss_to_fu}: Logical indicator that dropout occurred before both the
 event and the administrative follow-up horizon.
@@ -117,27 +116,26 @@ the same values or length. All time quantities supplied to a simulation
 should nevertheless use one common unit, such as days or months.
 
 PWEALL represents the continuous generating hazard with pieces closed on
-the left and open on the right. This differs from the package's
-open-left, closed-right convention for assigning realized times only at
-the cutpoints themselves, which have probability zero under the continuous
-model. The cumulative hazard, event-time distribution, and generated
-simulations are therefore unchanged.
+the left and open on the right. This differs from the package's open-left,
+closed-right convention for assigning realized times only at the cutpoints
+themselves, which have probability zero under the continuous model. The
+cumulative hazard, event-time distribution, and generated simulations are
+therefore unchanged.
 
 Dropout is independent censoring conditional on treatment arm. For event
-time \eqn{T}, \code{loss_to_fu} is true only when
-\eqn{D < \min(T, \tau)}. Administrative censoring and dropout after an
-observed event are not counted as loss to follow-up. For example,
-\code{prop_loss = 0.05} with \code{end_of_study = 12} specifies a 5\% dropout CDF at
-12 months if the time unit is months; it does not force five losses in a
-100-subject trial. Equal dropout probabilities in arms with different
-event hazards need not yield equal observed dropout proportions.
+time \eqn{T}, \code{loss_to_fu} is true only when \eqn{D < \min(T, \tau)}.
+Administrative censoring and dropout after an observed event are not
+counted as loss to follow-up. For example, \code{prop_loss = 0.05} with
+\code{end_of_study = 12} specifies a 5\% dropout CDF at 12 months if the time
+unit is months; it does not force five losses in a 100-subject trial. Equal
+dropout probabilities in arms with different event hazards need not yield
+equal observed dropout proportions.
 
-To express a dropout probability \eqn{q} supplied at a different
-reference time \eqn{t_0}, use
-\eqn{p = 1 - (1-q)^{\tau/t_0}} at \code{end_of_study} to preserve the same
-exponential dropout hazard. Treatment discontinuation is not separately
-modeled and should not be treated as loss to follow-up if endpoint
-collection continues.
+To express a dropout probability \eqn{q} supplied at a different reference
+time \eqn{t_0}, use \eqn{p = 1 - (1-q)^{\tau/t_0}} at \code{end_of_study} to
+preserve the same exponential dropout hazard. Treatment discontinuation is
+not separately modeled and should not be treated as loss to follow-up if
+endpoint collection continues.
 
 This independent exponential mechanism replaces selection of
 \verb{ceiling(prop_loss * arm size)} subjects followed by censoring uniformly

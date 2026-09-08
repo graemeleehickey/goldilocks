@@ -5,11 +5,11 @@
 #'
 #' @description Implements the Goldilocks Bayesian adaptive design proposed by
 #'   Broglio et al. (2014) for single-arm and randomized two-arm trials.
-#'   Outcomes are generated with an underlying piecewise-exponential
-#'   event-time model. Final analyses may retain the time-to-event outcome
-#'   (`method = "logrank"`, `"cox"`, `"rmst"`, or `"bayes-surv"`) or reduce complete
-#'   follow-up to event status at a fixed endpoint time (`method =
-#'   "riskdiff-wald"`, `"riskdiff-fm"`, or `"bayes-bin"`).
+#'   Outcomes are generated with an underlying piecewise-exponential event-time
+#'   model. Final analyses may retain the time-to-event outcome
+#'   (`method = "logrank"`, `"cox"`, `"rmst"`, or `"bayes-surv"`) or reduce
+#'   complete follow-up to event status at a fixed endpoint time
+#'   (`method = "riskdiff-wald"`, `"riskdiff-fm"`, or `"bayes-bin"`).
 #'
 #'   The method can be used for a confirmatory trial to select a sample size
 #'   based on accumulating data. During accrual, predictive probabilities are
@@ -20,10 +20,9 @@
 #'   Goldilocks trial design, as it is constantly asking the question, **“Is the
 #'   sample size too big, too small, or just right?”**
 #'
-#' @references
-#' Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks
-#' approach to sample size selection. *Journal of Biopharmaceutical Statistics*,
-#' 2014; **24(3)**: 685–705.
+#' @references Broglio KR, Connor JT, Berry SM. Not too big, not too small: a
+#'   Goldilocks approach to sample size selection. *Journal of Biopharmaceutical
+#'   Statistics*, 2014; **24(3)**: 685–705.
 #'
 #' @importFrom utils getFromNamespace globalVariables
 NULL

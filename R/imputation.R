@@ -11,11 +11,11 @@
 #' @inheritParams sim_comp_data
 #' @inheritParams haz_to_prop
 #' @param data_in A data frame with one row per subject and columns for
-#'   treatment assignment (`treatment`, coded `1`
-#'   for treatment and `0` for control; single-arm designs use all 1s),
-#'   event time (`time`), event indicator (`event`), and indicators
-#'   of whether the subject requires imputation for expected success
-#'   (`subject_impute_success`) or futility (`subject_impute_futility`).
+#'   treatment assignment (`treatment`, coded `1` for treatment and `0` for
+#'   control; single-arm designs use all 1s), event time (`time`), event
+#'   indicator (`event`), and indicators of whether the subject requires
+#'   imputation for expected success (`subject_impute_success`) or futility
+#'   (`subject_impute_futility`).
 #' @param hazard A three-dimensional numeric array containing one posterior draw
 #'   of the piecewise-exponential hazard rates. Its dimensions must be `1` by
 #'   \eqn{J} by `2`, where \eqn{J} is the number of intervals and the third

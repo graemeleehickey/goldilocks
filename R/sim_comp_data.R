@@ -8,14 +8,14 @@
 #'   event rates for the treatment arm. Supply one rate per interval defined by
 #'   `generation_cutpoints`; a single value specifies a constant event rate.
 #' @param hazard_control `NULL` (the default) for a single-arm trial, or a
-#'   numeric vector of finite, non-negative event rates for the control arm in
-#'   a two-arm trial. It must contain one rate per interval defined by
+#'   numeric vector of finite, non-negative event rates for the control arm in a
+#'   two-arm trial. It must contain one rate per interval defined by
 #'   `generation_cutpoints`.
 #' @param generation_cutpoints `NULL` (the default), or a numeric vector of
-#'   finite, positive, strictly increasing interior
-#'   follow-up times at which the data-generating hazard changes. The number of
-#'   hazards for each arm must be one greater than the number of generation
-#'   cutpoints. `NULL` specifies a constant-hazard data-generating model.
+#'   finite, positive, strictly increasing interior follow-up times at which the
+#'   data-generating hazard changes. The number of hazards for each arm must be
+#'   one greater than the number of generation cutpoints. `NULL` specifies a
+#'   constant-hazard data-generating model.
 #' @param N_total A required positive integer giving the maximum total sample
 #'   size.
 #' @param lambda A numeric vector of finite, positive enrollment rates per unit
@@ -34,28 +34,27 @@
 #'   `2` and the argument is ignored for a single-arm trial.
 #' @param rand_ratio A length-two positive integer vector giving the control to
 #'   treatment randomization ratio. The default is
-#'   `c(control = 1, treatment = 1)`. Name
-#'   the values `control` and `treatment`; either supplied order is accepted and
-#'   matched by name. A legacy unnamed vector remains accepted in
-#'   `c(control, treatment)` order. Unequal unnamed values produce a warning
-#'   because names may be required in a future major release. See
-#'   [randomization()] for more details.
+#'   `c(control = 1, treatment = 1)`. Name the values `control` and `treatment`;
+#'   either supplied order is accepted and matched by name. A legacy unnamed
+#'   vector remains accepted in `c(control, treatment)` order. Unequal unnamed
+#'   values produce a warning because names may be required in a future major
+#'   release. See [randomization()] for more details.
 #' @param prop_loss A numeric vector containing one or two probabilities in
 #'   `[0, 1)`. Each value is the dropout-time CDF at `end_of_study`:
-#'   \eqn{P(D \le \tau) = p}, where \eqn{\tau} is the planned follow-up
-#'   duration per subject. Independently of event time and enrollment, each
-#'   subject's dropout time \eqn{D} is exponentially distributed with rate
+#'   \eqn{P(D \le \tau) = p}, where \eqn{\tau} is the planned follow-up duration
+#'   per subject. Independently of event time and enrollment, each subject's
+#'   dropout time \eqn{D} is exponentially distributed with rate
 #'   \eqn{-\log(1-p)/\tau}. The observed time is the minimum of event time,
 #'   dropout time, and `end_of_study`; an event occurring before dropout is
 #'   retained. Thus, `prop_loss` is not the expected proportion actually
 #'   censored by dropout: that proportion can be lower because events occur
-#'   first, and the realized number of dropouts varies between trials.
-#'   A single value applies the same dropout distribution to every arm. For a
-#'   two-arm design, supply a length-two vector named `control` and `treatment`
-#'   for arm-specific probabilities; supplied order does not matter.
-#'   Single-arm designs require one probability. The default `0` sets dropout
-#'   time to infinity without drawing random numbers. A value of `1` is
-#'   rejected because it requires an infinite exponential rate.
+#'   first, and the realized number of dropouts varies between trials. A single
+#'   value applies the same dropout distribution to every arm. For a two-arm
+#'   design, supply a length-two vector named `control` and `treatment` for
+#'   arm-specific probabilities; supplied order does not matter. Single-arm
+#'   designs require one probability. The default `0` sets dropout time to
+#'   infinity without drawing random numbers. A value of `1` is rejected because
+#'   it requires an infinite exponential rate.
 #'
 #' @details Enrollment is simulated directly in continuous time by
 #'   [enrollment()]. The first patient is placed at time zero and all subsequent
@@ -71,27 +70,26 @@
 #'   should nevertheless use one common unit, such as days or months.
 #'
 #'   PWEALL represents the continuous generating hazard with pieces closed on
-#'   the left and open on the right. This differs from the package's
-#'   open-left, closed-right convention for assigning realized times only at
-#'   the cutpoints themselves, which have probability zero under the continuous
-#'   model. The cumulative hazard, event-time distribution, and generated
-#'   simulations are therefore unchanged.
+#'   the left and open on the right. This differs from the package's open-left,
+#'   closed-right convention for assigning realized times only at the cutpoints
+#'   themselves, which have probability zero under the continuous model. The
+#'   cumulative hazard, event-time distribution, and generated simulations are
+#'   therefore unchanged.
 #'
 #'   Dropout is independent censoring conditional on treatment arm. For event
-#'   time \eqn{T}, `loss_to_fu` is true only when
-#'   \eqn{D < \min(T, \tau)}. Administrative censoring and dropout after an
-#'   observed event are not counted as loss to follow-up. For example,
-#'   `prop_loss = 0.05` with `end_of_study = 12` specifies a 5% dropout CDF at
-#'   12 months if the time unit is months; it does not force five losses in a
-#'   100-subject trial. Equal dropout probabilities in arms with different
-#'   event hazards need not yield equal observed dropout proportions.
+#'   time \eqn{T}, `loss_to_fu` is true only when \eqn{D < \min(T, \tau)}.
+#'   Administrative censoring and dropout after an observed event are not
+#'   counted as loss to follow-up. For example, `prop_loss = 0.05` with
+#'   `end_of_study = 12` specifies a 5% dropout CDF at 12 months if the time
+#'   unit is months; it does not force five losses in a 100-subject trial. Equal
+#'   dropout probabilities in arms with different event hazards need not yield
+#'   equal observed dropout proportions.
 #'
-#'   To express a dropout probability \eqn{q} supplied at a different
-#'   reference time \eqn{t_0}, use
-#'   \eqn{p = 1 - (1-q)^{\tau/t_0}} at `end_of_study` to preserve the same
-#'   exponential dropout hazard. Treatment discontinuation is not separately
-#'   modeled and should not be treated as loss to follow-up if endpoint
-#'   collection continues.
+#'   To express a dropout probability \eqn{q} supplied at a different reference
+#'   time \eqn{t_0}, use \eqn{p = 1 - (1-q)^{\tau/t_0}} at `end_of_study` to
+#'   preserve the same exponential dropout hazard. Treatment discontinuation is
+#'   not separately modeled and should not be treated as loss to follow-up if
+#'   endpoint collection continues.
 #'
 #'   This independent exponential mechanism replaces selection of
 #'   `ceiling(prop_loss * arm size)` subjects followed by censoring uniformly
@@ -109,8 +107,8 @@
 #'   - `event`: Numeric event indicator, coded `1` for an event and `0` for
 #'     right-censoring.
 #'   - `enrollment`: Numeric time of subject enrollment relative to first
-#'     patient in. The package treats enrollment and
-#'     randomization as occurring at the same time.
+#'     patient in. The package treats enrollment and randomization as occurring
+#'     at the same time.
 #'   - `id`: Integer subject identifier.
 #'   - `loss_to_fu`: Logical indicator that dropout occurred before both the
 #'     event and the administrative follow-up horizon.

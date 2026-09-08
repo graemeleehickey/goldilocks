@@ -268,7 +268,7 @@ test_that("survival_adapt pools imputed Cox final analyses", {
   expect_true(is.finite(out$est_final))
 })
 
-test_that("survival_adapt pools imputed risk-difference final analyses", {
+test_that("survival_adapt pools imputed Wald analyses and rejects FM imputation", {
   run_analysis <- function(method) {
     set.seed(2084)
     survival_adapt(
@@ -290,17 +290,15 @@ test_that("survival_adapt pools imputed risk-difference final analyses", {
     )
   }
   wald <- run_analysis("riskdiff-wald")
-  fm <- run_analysis("riskdiff-fm")
+  expect_error(run_analysis("riskdiff-fm"), "riskdiff-fm.*pooling rule")
 
   expect_s3_class(wald, "data.frame")
   expect_true(wald$post_prob_ha >= 0 && wald$post_prob_ha <= 1)
   expect_true(is.finite(wald$est_final))
-  expect_equal(fm$post_prob_ha, wald$post_prob_ha)
-  expect_equal(fm$est_final, wald$est_final)
 })
 
 test_that("survival_adapt requires multiple imputations for Rubin pooling", {
-  for (method in c("cox", "riskdiff-wald", "riskdiff-fm")) {
+  for (method in c("cox", "riskdiff-wald")) {
     expect_error(
       survival_adapt(
         hazard_treatment = -log(0.85) / 36,

@@ -629,7 +629,12 @@ knitr::kable(
     "stopping_reason",
     "decision_time"
   )],
-  digits = 3
+  digits = 3,
+  col.names = c(
+    "Enrolled N", "Predictive success", "Immediate success stop",
+    "Expected success stop", "Futility stop", "Trial success",
+    "Stopping reason", "Decision time"
+  )
 )
 ```
 
@@ -655,10 +660,16 @@ knitr::kable(
     "futility_threshold",
     "decision"
   )],
-  digits = 3
+  digits = 3,
+  col.names = c(
+    "Look", "Planned N", "PPSn", "Immediate success cut",
+    "Expected success cut", "PPSmax", "Futility cut", "Decision"
+  )
 )
 ```
 
+Here, PPSn is `ppp_stop_now`, PPSmax is `ppp_success_at_max`, and the three
+cut columns show the immediate-success, expected-success, and futility thresholds.
 Only looks actually reached appear in the trace. An immediate-success decision
 prevents all subsequent looks.
 
@@ -737,7 +748,14 @@ oc_display <- oc_small[, c(
 names(oc_display)[names(oc_display) == "stop_success"] <-
   "stop_expected_success"
 
-knitr::kable(oc_display, digits = 3)
+knitr::kable(
+  oc_display,
+  digits = 3,
+  col.names = c(
+    "Scenario", "Trials analyzed", "Power", "Immediate success stop",
+    "Expected success stop", "Futility stop", "Maximum N", "Mean N"
+  )
+)
 ```
 
 With only 50 trials and 40 imputations per look, these estimates have

@@ -13,27 +13,27 @@ represent the intervals defined by \code{cutpoints}. The number of columns must
 equal \code{length(cutpoints) + 1}, and at least one row is required.}
 
 \item{end_of_study}{A required single finite, positive numeric time at which
-the cumulative event
-probability is evaluated. It must be greater than every cutpoint.}
+the cumulative event probability is evaluated. It must be greater than
+every cutpoint.}
 
 \item{cutpoints}{\code{NULL} (the default), or a numeric vector of finite,
-positive, strictly increasing interior
-times at which the hazard rate changes. The number of hazard rates must be
-one greater than the number of cutpoints. Use \code{NULL} for a constant hazard.}
+positive, strictly increasing interior times at which the hazard rate
+changes. The number of hazard rates must be one greater than the number of
+cutpoints. Use \code{NULL} for a constant hazard.}
 }
 \value{
 A numeric vector of event probabilities in \verb{[0, 1]}, with one value
 for each row of \code{hazard}.
 }
 \description{
-Calculates the cumulative event probability at a fixed
-follow-up time for one or more sets of piecewise-constant hazard rates.
+Calculates the cumulative event probability at a fixed follow-up
+time for one or more sets of piecewise-constant hazard rates.
 }
 \details{
 The cumulative probability depends on interval durations, so the
-value assigned to an isolated cutpoint has no effect. PWEALL represents
-its generating hazard with pieces closed on the left and open on the
-right. When \code{goldilocks} assigns realized event times to analysis
-intervals, it instead uses the survival counting-process convention,
-open on the left and closed on the right.
+value assigned to an isolated cutpoint has no effect. PWEALL represents its
+generating hazard with pieces closed on the left and open on the right.
+When \code{goldilocks} assigns realized event times to analysis intervals, it
+instead uses the survival counting-process convention, open on the left and
+closed on the right.
 }

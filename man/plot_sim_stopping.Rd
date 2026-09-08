@@ -14,29 +14,29 @@ plot_sim_stopping(
 returned by \code{\link[=sim_trials]{sim_trials()}}.}
 
 \item{type}{A single character string specifying the percentages to plot.
-\code{"marginal"} (the default)
-shows the percentage of all simulated trials ending at each sample size;
-its bars sum to 100 percent across sample sizes. \code{"conditional"} shows the
-percentage stopping at each look among trials still active at the start of
-that look. \code{"cumulative"} shows the status of all simulated trials after
-each look; every bar sums to 100 percent and includes trials continuing to
-the next look. \code{"flowchart"} starts with all simulated trials and branches
-at each look into futility, continued enrollment, expected-success, and
-immediate-success nodes labelled with trial counts.}
+\code{"marginal"} (the default) shows the percentage of all simulated trials
+ending at each sample size; its bars sum to 100 percent across sample
+sizes. \code{"conditional"} shows the percentage stopping at each look among
+trials still active at the start of that look. \code{"cumulative"} shows the
+status of all simulated trials after each look; every bar sums to 100
+percent and includes trials continuing to the next look. \code{"flowchart"}
+starts with all simulated trials and branches at each look into futility,
+continued enrollment, expected-success, and immediate-success nodes
+labelled with trial counts.}
 }
 \value{
-For bar-chart types, the simulation result data frame, invisibly.
-For \code{type = "flowchart"}, a \code{DiagrammeR} \code{grViz} htmlwidget.
+For bar-chart types, the simulation result data frame, invisibly. For
+\code{type = "flowchart"}, a \code{DiagrammeR} \code{grViz} htmlwidget.
 }
 \description{
 Draws a stacked bar chart of stopping outcomes by enrolled
 sample size, with colours distinguishing immediate success, stopping
 accrual for expected success, futility, and maximum-sample-size outcomes.
-The \code{type} argument controls whether the
-function draws marginal, conditional, or cumulative bars, or a flowchart
-through successive interim looks. Bar-chart subtitles state the
-denominator used by the selected view. The input can be the \code{sims} element
-returned by \code{\link[=sim_trials]{sim_trials()}} or the complete \code{sim_trials()} result.
+The \code{type} argument controls whether the function draws marginal,
+conditional, or cumulative bars, or a flowchart through successive interim
+looks. Bar-chart subtitles state the denominator used by the selected view.
+The input can be the \code{sims} element returned by \code{\link[=sim_trials]{sim_trials()}} or the
+complete \code{sim_trials()} result.
 }
 \details{
 The marginal view uses terminal sample sizes observed in

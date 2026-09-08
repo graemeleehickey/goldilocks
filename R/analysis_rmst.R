@@ -29,8 +29,8 @@ validate_rmst_args <- function(rmst_tau, end_of_study, h0) {
 #'   empirical calculation when every truncated outcome is known; `"survfit"`
 #'   always uses Kaplan-Meier integration for reference checks.
 #'
-#' @return A list with `estimate`, `variance`, `std_error`, and named
-#'   `rmst` and `arm_variance` vectors (control, treatment).
+#' @return A list with `estimate`, `variance`, `std_error`, and named `rmst` and
+#'   `arm_variance` vectors (control, treatment).
 #' @noRd
 rmst_estimate <- function(
   time,

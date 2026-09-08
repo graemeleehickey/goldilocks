@@ -49,8 +49,8 @@ numeric value giving the planned follow-up time for each subject. When
 available and \code{annotate = TRUE}, it is reported beneath the plot.}
 
 \item{n_sim}{A single non-negative integer giving the number of random
-enrollment trajectories to draw. The default is \code{20L}; use \code{0} to show
-only the expected enrollment curve.}
+enrollment trajectories to draw. The default is \code{20L}; use \code{0} to show only
+the expected enrollment curve.}
 
 \item{seed}{\code{NULL} (the default), or a single integer between \code{0} and
 \code{.Machine$integer.max} for the random trajectories. A supplied seed gives
@@ -81,24 +81,24 @@ enrollment trajectories. The default is \code{"#777777"}.}
 and maximum-sample-size guides. The default is \code{"#C8682A"}.}
 }
 \value{
-Invisibly, a list containing the evaluated \code{design}, the
-\code{projection} data frame, the \code{milestones} data frame, and the simulated
-enrollment-time vectors in \code{simulations}.
+Invisibly, a list containing the evaluated \code{design}, the \code{projection}
+data frame, the \code{milestones} data frame, and the simulated enrollment-time
+vectors in \code{simulations}.
 }
 \description{
-Draws the expected cumulative enrollment curve for a
-Goldilocks trial design, together with optional random enrollment
-trajectories and projected interim and maximum-sample-size milestones.
+Draws the expected cumulative enrollment curve for a Goldilocks
+trial design, together with optional random enrollment trajectories and
+projected interim and maximum-sample-size milestones.
 }
 \details{
-The blue projection is
-\eqn{1 + \Lambda(t)}, where \eqn{\Lambda(t)} is the cumulative intensity of
-the piecewise-constant Poisson enrollment process. The first patient is
-fixed at time zero, consistently with \code{\link[=enrollment]{enrollment()}}. A milestone's
-projected time solves \eqn{1 + \Lambda(t) = N}. With a constant enrollment
-rate this is also the mean arrival time, \eqn{(N - 1) / \lambda}. With a
-piecewise rate it is an expected-count projection rather than the mean of
-the corresponding arrival-time distribution.
+The blue projection is \eqn{1 + \Lambda(t)}, where \eqn{\Lambda(t)}
+is the cumulative intensity of the piecewise-constant Poisson enrollment
+process. The first patient is fixed at time zero, consistently with
+\code{\link[=enrollment]{enrollment()}}. A milestone's projected time solves
+\eqn{1 + \Lambda(t) = N}. With a constant enrollment rate this is also the
+mean arrival time, \eqn{(N - 1) / \lambda}. With a piecewise rate it is an
+expected-count projection rather than the mean of the corresponding
+arrival-time distribution.
 
 If \code{x} supplies a stored design, explicitly supplied design arguments
 override the corresponding stored values. This makes it possible, for

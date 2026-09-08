@@ -19,8 +19,10 @@ normal_test_success <- function(statistic, alternative) {
 #' @title Pool scalar treatment effects using Rubin's rules
 #'
 #' @description Combines scalar treatment-effect estimates and their
-#'   within-imputation variances, then evaluates the pooled estimate against
-#'   its null value using Rubin's large-sample degrees of freedom.
+#'   within-imputation variances, then evaluates the pooled estimate against its
+#'   null value using Rubin's large-sample degrees of freedom.
+#'   Zero total variance raises a non-estimability error; either variance
+#'   component may be zero if their combined total is positive.
 #'
 #' @param estimates A numeric vector of treatment-effect estimates, one per
 #'   imputed data set. At least two values are required.
@@ -58,17 +60,9 @@ pool_rubin_scalar <- function(estimates, variances, alternative, h0) {
     stop("Rubin pooling requires a finite non-negative total variance")
   }
   if (total_variance == 0) {
-    difference_from_null <- estimate - h0
-    statistic <- if (difference_from_null == 0) {
-      0
-    } else {
-      sign(difference_from_null) * Inf
-    }
-    return(list(
-      success = normal_test_success(statistic, alternative),
-      estimate = estimate,
-      std_error = 0,
-      degrees_freedom = Inf
+    stop(errorCondition(
+      "Rubin-pooled analysis is non-estimable: total variance is zero.",
+      class = "goldilocks_non_estimable"
     ))
   }
 

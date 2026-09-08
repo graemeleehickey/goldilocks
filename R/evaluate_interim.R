@@ -7,16 +7,15 @@
 #'   according to `N_total`, the observed arm counts, and `rand_ratio`.
 #'
 #' @param data A required data frame with one row per enrolled subject and
-#'   columns `id`,
-#'   `treatment`, `enrollment`, `time`, `event`, and `status`. Treatment is
-#'   coded `1` for treatment and `0` for control; single-arm data use `1`.
-#'   `enrollment` is measured from first participant randomization, which must
-#'   be zero, and `time` is follow-up from that subject's randomization. See
-#'   Details for the permitted character values in `status`.
+#'   columns `id`, `treatment`, `enrollment`, `time`, `event`, and `status`.
+#'   Treatment is coded `1` for treatment and `0` for control; single-arm data
+#'   use `1`. `enrollment` is measured from first participant randomization,
+#'   which must be zero, and `time` is follow-up from that subject's
+#'   randomization. See Details for the permitted character values in `status`.
 #' @param data_cut A required single finite, non-negative numeric value giving
-#'   the calendar time of the interim data cut, measured
-#'   from the same origin and in the same units as `enrollment`, `time`,
-#'   `end_of_study`, and `cutpoints`.
+#'   the calendar time of the interim data cut, measured from the same origin
+#'   and in the same units as `enrollment`, `time`, `end_of_study`, and
+#'   `cutpoints`.
 #' @param look A required positive integer identifying the prespecified interim
 #'   look.
 #' @param N_total A required positive integer giving the maximum total sample
@@ -26,32 +25,29 @@
 #' @param rand_ratio A length-two positive integer vector giving the control to
 #'   treatment allocation ratio at the maximum sample size. The default is
 #'   `c(control = 1, treatment = 1)`. Name the values `control` and `treatment`;
-#'   either order is accepted.
-#'   A legacy unnamed vector is interpreted as `c(control, treatment)`. The
-#'   maximum sample size must divide exactly according to this ratio. Ignored
-#'   for single-arm designs.
+#'   either order is accepted. A legacy unnamed vector is interpreted as
+#'   `c(control, treatment)`. The maximum sample size must divide exactly
+#'   according to this ratio. Ignored for single-arm designs.
 #' @param single_arm A single logical value indicating whether the design has
 #'   one treatment arm and no control arm. The default is `FALSE`.
 #' @param Fn `NULL`, or a single numeric probability in `[0, 1]` giving the
-#'   threshold for stopping for futility at this
-#'   look. Futility is declared when predictive success at the maximum sample
-#'   size is strictly less than `Fn`. Set `Fn = 0` or `NULL` to disable the
-#'   maximum-sample calculation. The default is `0.05`.
+#'   threshold for stopping for futility at this look. Futility is declared when
+#'   predictive success at the maximum sample size is strictly less than `Fn`.
+#'   Set `Fn = 0` or `NULL` to disable the maximum-sample calculation. The
+#'   default is `0.05`.
 #' @param Sn A single numeric probability in `[0, 1]` giving the threshold for
-#'   stopping for expected success at
-#'   this look. Expected success is declared when predictive success among the
-#'   currently enrolled participants is strictly greater than `Sn`. The default
-#'   is `0.9`.
+#'   stopping for expected success at this look. Expected success is declared
+#'   when predictive success among the currently enrolled participants is
+#'   strictly greater than `Sn`. The default is `0.9`.
 #' @param Qn A single numeric probability in `[0, 1]` giving the upper threshold
 #'   for declaring immediate trial success at this look. Immediate success is
 #'   declared when predictive success among the currently enrolled participants
 #'   is strictly greater than `Qn`. `Qn` must be greater than or equal to `Sn`.
 #'   The default, `1`, disables immediate-success stopping.
 #' @param seed `NULL` (the default), or a single non-negative integer used for
-#'   the predictive Monte
-#'   Carlo calculation. A supplied seed makes the result reproducible and
-#'   leaves the existing random-number state unchanged. With `seed = NULL`, the call
-#'   uses and advances the current random-number state.
+#'   the predictive Monte Carlo calculation. A supplied seed makes the result
+#'   reproducible and leaves the existing random-number state unchanged. With
+#'   `seed = NULL`, the call uses and advances the current random-number state.
 #' @param prior_surv_final A numeric vector, matrix, or named list specifying
 #'   the Gamma analysis prior for each hypothetical completed trial when
 #'   `method = "bayes-surv"`. It accepts the same shared, interval-specific, and
@@ -84,11 +80,11 @@
 #'
 #'   `Qn`, `Sn`, and `Fn` are scalar thresholds for this look. Immediate success
 #'   is declared when the estimated probability of completed-data success among
-#'   the current participants is strictly greater than `Qn`. Otherwise,
-#'   expected success stops accrual for planned follow-up when that probability
-#'   is strictly greater than `Sn`. If neither success rule applies, futility is
-#'   declared when the corresponding maximum-sample probability is strictly
-#'   less than `Fn`. Set `Fn = 0` or `NULL` to disable futility. Exact one-sided
+#'   the current participants is strictly greater than `Qn`. Otherwise, expected
+#'   success stops accrual for planned follow-up when that probability is
+#'   strictly greater than `Sn`. If neither success rule applies, futility is
+#'   declared when the corresponding maximum-sample probability is strictly less
+#'   than `Fn`. Set `Fn = 0` or `NULL` to disable futility. Exact one-sided
 #'   Monte Carlo bounds are returned as diagnostics and do not drive any
 #'   decision.
 #'
@@ -106,8 +102,8 @@
 #'   - `diagnostics`: observed status counts, potential accruals, warnings,
 #'     imputation diagnostics, and resolved Gamma prior and posterior parameters
 #'     by arm and interval;
-#'   - `trace`: a one-row decision trace compatible with
-#'     [plot_trial_trace()] and [summarise_trial_trace()];
+#'   - `trace`: a one-row decision trace compatible with [plot_trial_trace()]
+#'     and [summarise_trial_trace()];
 #'   - `metadata`: the evaluated design, resolved prior design, package version,
 #'     time-origin, data-cut, and random-number policy. For
 #'     `method = "bayes-surv"`, both Gamma priors are retained in
@@ -632,8 +628,8 @@ validate_interim_seed <- function(seed) {
 
 #' Print an externally evaluated interim analysis
 #'
-#' @description Prints the predictive probabilities and decision from an
-#'   interim analysis returned by [evaluate_interim()].
+#' @description Prints the predictive probabilities and decision from an interim
+#'   analysis returned by [evaluate_interim()].
 #'
 #' @param x A `goldilocks_interim` result returned by [evaluate_interim()].
 #' @param ... Additional arguments; currently ignored.

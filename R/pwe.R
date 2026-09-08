@@ -11,22 +11,21 @@
 #'   is zero, `maxtime` must be supplied so that subjects without an event can
 #'   be administratively censored.
 #' @param cutpoints `NULL` (the default), or a numeric vector of finite,
-#'   positive, strictly increasing interior
-#'   times at which the hazard rate changes. The number of hazard rates must be
-#'   one greater than the number of cutpoints. Use `NULL` for a constant hazard.
+#'   positive, strictly increasing interior times at which the hazard rate
+#'   changes. The number of hazard rates must be one greater than the number of
+#'   cutpoints. Use `NULL` for a constant hazard.
 #' @param maxtime `NULL` (the default), or a single finite, positive numeric
 #'   administrative censoring time. When supplied, it must be later than every
 #'   cutpoint.
 #'
 #' @details PWEALL represents the generating hazard with pieces closed on the
 #'   left and open on the right. Because the event-time distribution is
-#'   continuous, the value of
-#'   the hazard at an isolated cutpoint does not alter the cumulative hazard,
-#'   distribution, or generated samples. When realized event times are later
-#'   assigned to analysis intervals, `goldilocks` follows the survival
-#'   counting-process convention, open on the left and closed on the right, so
-#'   an event exactly at a cutpoint belongs to the interval ending there. See
-#'   [pwe_impute()] for the conditional sampling details.
+#'   continuous, the value of the hazard at an isolated cutpoint does not alter
+#'   the cumulative hazard, distribution, or generated samples. When realized
+#'   event times are later assigned to analysis intervals, `goldilocks` follows
+#'   the survival counting-process convention, open on the left and closed on
+#'   the right, so an event exactly at a cutpoint belongs to the interval ending
+#'   there. See [pwe_impute()] for the conditional sampling details.
 #'
 #' @return A data frame with one row per simulated subject and columns `time`,
 #'   the event or censoring time, and `event`, coded `1` for an event and `0`
@@ -84,8 +83,8 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL) {
 #' @inheritParams pwe_sim
 #' @param time A required numeric vector of finite, non-negative event-free
 #'   follow-up times for subjects who have not had an event. When `maxtime` is
-#'   supplied, no value may exceed it. A zero-length vector returns
-#'   a zero-row data frame. Values are not recycled against other arguments.
+#'   supplied, no value may exceed it. A zero-length vector returns a zero-row
+#'   data frame. Values are not recycled against other arguments.
 #' @param hazard A required numeric vector of finite, non-negative event rates,
 #'   with one value per interval defined by `cutpoints`. If the final rate is
 #'   zero, `maxtime` must be supplied.
@@ -96,10 +95,10 @@ pwe_sim <- function(n = 1, hazard = 1, cutpoints = NULL, maxtime = NULL) {
 #'   \deqn{F_{T | s}(t | s) = P(T \le t | T > s) = \frac{F(t) - F(s)}{1 - F(s)}}
 #'
 #'   where \eqn{F(\cdot)} is the cumulative distribution function of the
-#'   piecewise exponential (PWE) distribution. Equivalently, \eqn{F(t) = 1 -
-#'   S(t)}, where `S(t)` is the survival function. If \eqn{U \sim Unif(0, 1)},
-#'   then we can generate an event time (conditional on being event free up
-#'   until \eqn{s}) as
+#'   piecewise exponential (PWE) distribution. Equivalently,
+#'   \eqn{F(t) = 1 - S(t)}, where `S(t)` is the survival function. If
+#'   \eqn{U \sim Unif(0, 1)}, then we can generate an event time (conditional on
+#'   being event free up until \eqn{s}) as
 #'
 #'   \deqn{F^{-1}(U(1 - F(s)) + F(s))}
 #'
@@ -228,25 +227,25 @@ pwe_conditional_event_probability <- function(
 
 #' @title Calculate endpoint event probabilities from piecewise hazards
 #'
-#' @description Calculates the cumulative event probability at a fixed
-#'   follow-up time for one or more sets of piecewise-constant hazard rates.
+#' @description Calculates the cumulative event probability at a fixed follow-up
+#'   time for one or more sets of piecewise-constant hazard rates.
 #'
 #' @param hazard A required numeric matrix of finite, non-negative hazard rates.
 #'   Rows represent parameter sets, such as posterior draws, and columns
 #'   represent the intervals defined by `cutpoints`. The number of columns must
 #'   equal `length(cutpoints) + 1`, and at least one row is required.
 #' @param end_of_study A required single finite, positive numeric time at which
-#'   the cumulative event
-#'   probability is evaluated. It must be greater than every cutpoint.
+#'   the cumulative event probability is evaluated. It must be greater than
+#'   every cutpoint.
 #' @inheritParams pwe_sim
 #' @inheritParams survival_adapt
 #'
 #' @details The cumulative probability depends on interval durations, so the
-#'   value assigned to an isolated cutpoint has no effect. PWEALL represents
-#'   its generating hazard with pieces closed on the left and open on the
-#'   right. When `goldilocks` assigns realized event times to analysis
-#'   intervals, it instead uses the survival counting-process convention,
-#'   open on the left and closed on the right.
+#'   value assigned to an isolated cutpoint has no effect. PWEALL represents its
+#'   generating hazard with pieces closed on the left and open on the right.
+#'   When `goldilocks` assigns realized event times to analysis intervals, it
+#'   instead uses the survival counting-process convention, open on the left and
+#'   closed on the right.
 #'
 #' @return A numeric vector of event probabilities in `[0, 1]`, with one value
 #'   for each row of `hazard`.

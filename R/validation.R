@@ -538,8 +538,8 @@ validate_cutpoints <- function(cutpoints, name = "cutpoints") {
 
 #' @title Validate an endpoint time
 #'
-#' @description Checks that an analysis endpoint is finite and positive and
-#'   lies after the final piecewise cutpoint.
+#' @description Checks that an analysis endpoint is finite and positive and lies
+#'   after the final piecewise cutpoint.
 #'
 #' @param endpoint A numeric value giving the endpoint time.
 #' @param cutpoints `NULL`, or a numeric vector of interior cutpoints.
@@ -744,8 +744,8 @@ validate_enrollment_schedule <- function(lambda, lambda_time, N_total) {
 #' @param block A positive integer vector of permitted block sizes.
 #' @param allocation A length-two positive integer vector giving the control and
 #'   treatment allocation weights.
-#' @param allocation_name A single character string naming `allocation` in
-#'   error messages. The default is `"allocation"`.
+#' @param allocation_name A single character string naming `allocation` in error
+#'   messages. The default is `"allocation"`.
 #'
 #' @noRd
 validate_randomization_args <- function(
@@ -957,8 +957,8 @@ normalize_analysis_method <- function(method) {
 
 #' @title Validate analysis-method configuration
 #'
-#' @description Checks the mutually compatible analysis settings shared by
-#'   trial simulation and final analysis.
+#' @description Checks the mutually compatible analysis settings shared by trial
+#'   simulation and final analysis.
 #'
 #' @param method A single character string naming the analysis method.
 #' @param alternative A single character string naming the alternative
@@ -1029,6 +1029,43 @@ validate_analysis_configuration <- function(
     stop("The selected method can only be used for two-armed trials")
   }
 
+  invisible(TRUE)
+}
+
+#' Validate whether final imputation is supported
+#'
+#' @param has_missing_outcomes A logical value indicating whether outcomes
+#'   require imputation, or whether dropout is possible in a simulated design.
+#' @inheritParams survival_adapt
+#'
+#' @keywords internal
+#' @noRd
+validate_final_imputation <- function(
+  method,
+  imputed_final,
+  has_missing_outcomes,
+  N_impute
+) {
+  validate_logical_scalar(imputed_final, "imputed_final")
+  if (!imputed_final || !has_missing_outcomes) {
+    return(invisible(TRUE))
+  }
+  if (method == "riskdiff-fm") {
+    stop(
+      "Final imputation is not supported for 'riskdiff-fm': no validated ",
+      "Farrington-Manning pooling rule is implemented. With ",
+      "'imputed_final = TRUE', final outcomes must be complete; simulations ",
+      "require 'prop_loss = 0' in both arms.",
+      call. = FALSE
+    )
+  }
+  if (method %in% c("cox", "rmst", "riskdiff-wald") && N_impute < 2) {
+    stop(
+      "Frequentist final-analysis imputation requires at least two imputations ",
+      "to apply Rubin's rules",
+      call. = FALSE
+    )
+  }
   invisible(TRUE)
 }
 

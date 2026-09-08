@@ -1,8 +1,8 @@
 #' @title Plot an enrollment projection
 #'
-#' @description Draws the expected cumulative enrollment curve for a
-#'   Goldilocks trial design, together with optional random enrollment
-#'   trajectories and projected interim and maximum-sample-size milestones.
+#' @description Draws the expected cumulative enrollment curve for a Goldilocks
+#'   trial design, together with optional random enrollment trajectories and
+#'   projected interim and maximum-sample-size milestones.
 #'
 #' @param x `NULL` (the default), or a result returned by [survival_adapt()] or
 #'   [sim_trials()]. Results created by current versions of `goldilocks` retain
@@ -23,8 +23,8 @@
 #'   numeric value giving the planned follow-up time for each subject. When
 #'   available and `annotate = TRUE`, it is reported beneath the plot.
 #' @param n_sim A single non-negative integer giving the number of random
-#'   enrollment trajectories to draw. The default is `20L`; use `0` to show
-#'   only the expected enrollment curve.
+#'   enrollment trajectories to draw. The default is `20L`; use `0` to show only
+#'   the expected enrollment curve.
 #' @param seed `NULL` (the default), or a single integer between `0` and
 #'   `.Machine$integer.max` for the random trajectories. A supplied seed gives
 #'   reproducible trajectories and leaves the existing random-number state
@@ -45,22 +45,22 @@
 #' @param milestone_col A character string specifying the colour of the interim
 #'   and maximum-sample-size guides. The default is `"#C8682A"`.
 #'
-#' @details The blue projection is
-#' \eqn{1 + \Lambda(t)}, where \eqn{\Lambda(t)} is the cumulative intensity of
-#' the piecewise-constant Poisson enrollment process. The first patient is
-#' fixed at time zero, consistently with [enrollment()]. A milestone's
-#' projected time solves \eqn{1 + \Lambda(t) = N}. With a constant enrollment
-#' rate this is also the mean arrival time, \eqn{(N - 1) / \lambda}. With a
-#' piecewise rate it is an expected-count projection rather than the mean of
-#' the corresponding arrival-time distribution.
+#' @details The blue projection is \eqn{1 + \Lambda(t)}, where \eqn{\Lambda(t)}
+#'   is the cumulative intensity of the piecewise-constant Poisson enrollment
+#'   process. The first patient is fixed at time zero, consistently with
+#'   [enrollment()]. A milestone's projected time solves
+#'   \eqn{1 + \Lambda(t) = N}. With a constant enrollment rate this is also the
+#'   mean arrival time, \eqn{(N - 1) / \lambda}. With a piecewise rate it is an
+#'   expected-count projection rather than the mean of the corresponding
+#'   arrival-time distribution.
 #'
 #' If `x` supplies a stored design, explicitly supplied design arguments
 #' override the corresponding stored values. This makes it possible, for
 #' example, to compare a fitted design with a different enrollment rate.
 #'
-#' @return Invisibly, a list containing the evaluated `design`, the
-#'   `projection` data frame, the `milestones` data frame, and the simulated
-#'   enrollment-time vectors in `simulations`.
+#' @return Invisibly, a list containing the evaluated `design`, the `projection`
+#'   data frame, the `milestones` data frame, and the simulated enrollment-time
+#'   vectors in `simulations`.
 #'
 #' @examples
 #' plot_enrollment(

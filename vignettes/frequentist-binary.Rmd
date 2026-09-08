@@ -99,10 +99,16 @@ directly.
 
 At the final analysis, subjects lost before complete endpoint ascertainment are
 excluded when `imputed_final = FALSE`. With `imputed_final = TRUE`, the package
-combines risk-difference estimates and their within-imputation variances using
-Rubin's rules. That combined result is a pooled Wald analysis for either method
-setting; it is not a Farrington-Manning test. The same neutral-or-directional
-convention prevents an error when its total variance is zero.
+uses the selected complete-data test directly if no outcomes are missing.
+When outcomes require imputation, `riskdiff-wald` combines estimates and
+within-imputation variances using Rubin's rules. This requires at least two
+imputations and positive total variance; zero total variance produces a
+non-estimability error.
+
+Genuine final imputation is unsupported for `riskdiff-fm` because no validated
+FM pooling rule is implemented. Simulations with FM and `imputed_final = TRUE`
+require `prop_loss = 0` in both arms and reject positive dropout at setup.
+The package does not substitute a pooled Wald test for FM.
 
 With nonzero `prop_loss`, the simulator draws dropout independently of event
 time from an exponential distribution whose CDF at `end_of_study` equals

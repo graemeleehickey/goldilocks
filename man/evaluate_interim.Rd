@@ -35,17 +35,16 @@ evaluate_interim(
 }
 \arguments{
 \item{data}{A required data frame with one row per enrolled subject and
-columns \code{id},
-\code{treatment}, \code{enrollment}, \code{time}, \code{event}, and \code{status}. Treatment is
-coded \code{1} for treatment and \code{0} for control; single-arm data use \code{1}.
-\code{enrollment} is measured from first participant randomization, which must
-be zero, and \code{time} is follow-up from that subject's randomization. See
-Details for the permitted character values in \code{status}.}
+columns \code{id}, \code{treatment}, \code{enrollment}, \code{time}, \code{event}, and \code{status}.
+Treatment is coded \code{1} for treatment and \code{0} for control; single-arm data
+use \code{1}. \code{enrollment} is measured from first participant randomization,
+which must be zero, and \code{time} is follow-up from that subject's
+randomization. See Details for the permitted character values in \code{status}.}
 
 \item{data_cut}{A required single finite, non-negative numeric value giving
-the calendar time of the interim data cut, measured
-from the same origin and in the same units as \code{enrollment}, \code{time},
-\code{end_of_study}, and \code{cutpoints}.}
+the calendar time of the interim data cut, measured from the same origin
+and in the same units as \code{enrollment}, \code{time}, \code{end_of_study}, and
+\code{cutpoints}.}
 
 \item{look}{A required positive integer identifying the prespecified interim
 look.}
@@ -57,25 +56,24 @@ size.}
 the planned follow-up time for each subject.}
 
 \item{cutpoints}{\code{NULL} (the default), or a numeric vector of finite,
-positive, strictly increasing interior follow-up
-times defining the piecewise-exponential model used for interim posterior
-estimation, predictive imputation, and final analysis. The number of
-interval-specific prior columns must be one greater than the number of
-cutpoints. \code{NULL} specifies a constant-hazard analysis model.}
+positive, strictly increasing interior follow-up times defining the
+piecewise-exponential model used for interim posterior estimation,
+predictive imputation, and final analysis. The number of interval-specific
+prior columns must be one greater than the number of cutpoints. \code{NULL}
+specifies a constant-hazard analysis model.}
 
 \item{prior_surv}{A numeric vector, matrix, or named list specifying the
-Gamma prior for the
-piecewise-exponential hazards used to generate outcomes during interim
-prediction. A length-two
-vector supplies shape and rate and applies the same prior to every arm and
-interval. A \code{2} by \code{length(cutpoints) + 1} matrix supplies
-interval-specific values shared by all arms, with shapes in row 1 and rates
-in row 2. For independent arm-specific priors, supply a list named
-\code{control} and \code{treatment} in a two-arm design, or \code{treatment} in a
-single-arm design. Each list element may be a length-two vector or an
-interval-specific matrix. Both arms must be supplied; no values are
-borrowed or filled from the other arm. Rates must use the same time unit as
-event times, exposure, and cutpoints. The default is \code{c(0.1, 0.1)}.}
+Gamma prior for the piecewise-exponential hazards used to generate outcomes
+during interim prediction. A length-two vector supplies shape and rate and
+applies the same prior to every arm and interval. A \code{2} by
+\code{length(cutpoints) + 1} matrix supplies interval-specific values shared by
+all arms, with shapes in row 1 and rates in row 2. For independent
+arm-specific priors, supply a list named \code{control} and \code{treatment} in a
+two-arm design, or \code{treatment} in a single-arm design. Each list element
+may be a length-two vector or an interval-specific matrix. Both arms must
+be supplied; no values are borrowed or filled from the other arm. Rates
+must use the same time unit as event times, exposure, and cutpoints. The
+default is \code{c(0.1, 0.1)}.}
 
 \item{prior_bin}{A length-two numeric vector of finite, positive shape
 parameters \code{c(a, b)} for the \code{Beta(a, b)} event-probability prior used when
@@ -83,18 +81,20 @@ parameters \code{c(a, b)} for the \code{Beta(a, b)} event-probability prior used
 is \code{c(1, 1)}, a uniform prior.}
 
 \item{bin_method}{A single character string selecting how to calculate the
-posterior probability for \code{method = "bayes-bin"}. It must be one of
-\code{"mc"} (Monte Carlo
-sampling), \code{"normal"} (normal approximation), or \code{"quadrature"} (numerical
-integration). The default is \code{"mc"}.}
+posterior probability for \code{method = "bayes-bin"}. It must be one of \code{"mc"}
+(Monte Carlo sampling), \code{"normal"} (normal approximation), or
+\code{"quadrature"} (numerical integration). The default is \code{"mc"}.
+The normal approximation can be inaccurate with sparse events or
+non-events and posterior event probabilities near 0 or 1. It can change
+whether \code{prob_ha} is exceeded. Increasing \code{N_mcmc} does not improve this
+approximation; use \code{"quadrature"} or sufficiently precise \code{"mc"} instead.}
 
 \item{rand_ratio}{A length-two positive integer vector giving the control to
 treatment allocation ratio at the maximum sample size. The default is
 \code{c(control = 1, treatment = 1)}. Name the values \code{control} and \code{treatment};
-either order is accepted.
-A legacy unnamed vector is interpreted as \code{c(control, treatment)}. The
-maximum sample size must divide exactly according to this ratio. Ignored
-for single-arm designs.}
+either order is accepted. A legacy unnamed vector is interpreted as
+\code{c(control, treatment)}. The maximum sample size must divide exactly
+according to this ratio. Ignored for single-arm designs.}
 
 \item{single_arm}{A single logical value indicating whether the design has
 one treatment arm and no control arm. The default is \code{FALSE}.}
@@ -104,114 +104,105 @@ hypothesis. It must be one of \code{"greater"} (the default), \code{"less"}, or
 \code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
 supported for \code{method = "bayes-surv"} and \code{method = "bayes-bin"}. All three
 options are supported for \code{method = "logrank"}, \code{method = "cox"},
-\code{method = "rmst"}, \code{method = "riskdiff-wald"}, and \code{method = "riskdiff-fm"}.
-For an adverse event, benefit is in the \code{"greater"} direction for RMST
-(longer event-free time) and the \code{"less"} direction for the other methods
-(lower hazard or event probability).}
+\code{method = "rmst"}, \code{method = "riskdiff-wald"}, and
+\code{method = "riskdiff-fm"}. For an adverse event, benefit is in the
+\code{"greater"} direction for RMST (longer event-free time) and the \code{"less"}
+direction for the other methods (lower hazard or event probability).}
 
 \item{h0}{A single finite numeric value specifying the null hypothesis or
 margin. The default is \code{0}. For Bayesian analyses, \code{h0} must lie in
-\verb{[0, 1]} for a
-single-arm design and \verb{[-1, 1]} for a two-arm design.
+\verb{[0, 1]} for a single-arm design and \verb{[-1, 1]} for a two-arm design.
 \itemize{
 \item When \code{method = "bayes-surv"}, \code{h0} is the null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
-\code{h0} is the external benchmark event probability, often referred to
-as a performance goal (PG) or objective performance criterion (OPC).
+\code{h0} is the external benchmark event probability, often referred to as a
+performance goal (PG) or objective performance criterion (OPC).
 \item When \code{method = "bayes-bin"}, \code{h0} is the null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}} for a two-arm design, or
 the null event probability for a single-arm design.
-\item When \code{method = "cox"}, \code{h0} is the null log hazard ratio for
-treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
-of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
-specified as a hazard ratio. A Cox non-inferiority test should usually
-use \code{alternative = "less"}.
+\item When \code{method = "cox"}, \code{h0} is the null log hazard ratio for treatment
+versus control. Use \code{h0 = 0} for the usual hazard ratio of 1 null, or
+\code{h0 = log(margin)} for a non-inferiority margin specified as a hazard
+ratio. A Cox non-inferiority test should usually use
+\code{alternative = "less"}.
 \item When \code{method = "rmst"}, \code{h0} is the null treatment-control RMST
-difference in time units and must lie in \verb{[-rmst_tau, rmst_tau]}.
-For non-inferiority allowing a loss of \code{m} time units, use \code{h0 = -m}
-and \code{alternative = "greater"}.
+difference in time units and must lie in \verb{[-rmst_tau, rmst_tau]}. For
+non-inferiority allowing a loss of \code{m} time units, use \code{h0 = -m} and
+\code{alternative = "greater"}.
 \item When \code{method = "riskdiff-wald"} or \code{method = "riskdiff-fm"}, \code{h0} is the
-null value of
-\eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
-\verb{[-1, 1]}.
+null value of \eqn{p_\textrm{treatment} - p_\textrm{control}} and must
+lie in \verb{[-1, 1]}.
 \item When \code{method = "logrank"}, only \code{h0 = 0} is supported; this denotes the
 usual equal-survival null. Nonzero values are rejected because the
 standard log-rank statistic does not implement a nonzero effect margin.
 }}
 
 \item{Fn}{\code{NULL}, or a single numeric probability in \verb{[0, 1]} giving the
-threshold for stopping for futility at this
-look. Futility is declared when predictive success at the maximum sample
-size is strictly less than \code{Fn}. Set \code{Fn = 0} or \code{NULL} to disable the
-maximum-sample calculation. The default is \code{0.05}.}
+threshold for stopping for futility at this look. Futility is declared when
+predictive success at the maximum sample size is strictly less than \code{Fn}.
+Set \code{Fn = 0} or \code{NULL} to disable the maximum-sample calculation. The
+default is \code{0.05}.}
 
 \item{Sn}{A single numeric probability in \verb{[0, 1]} giving the threshold for
-stopping for expected success at
-this look. Expected success is declared when predictive success among the
-currently enrolled participants is strictly greater than \code{Sn}. The default
-is \code{0.9}.}
+stopping for expected success at this look. Expected success is declared
+when predictive success among the currently enrolled participants is
+strictly greater than \code{Sn}. The default is \code{0.9}.}
 
 \item{prob_ha}{A single numeric probability in \verb{[0, 1]} defining success in
 each completed-data analysis. For Bayesian methods this is compared with
-the posterior probability of the alternative; for frequentist methods it
-is compared with \code{1 - P}. The default is \code{0.95}.}
+the posterior probability of the alternative; for frequentist methods it is
+compared with \code{1 - P}. The default is \code{0.95}.}
 
 \item{N_impute}{A positive integer giving the number of predictive
-imputations used at each
-interim look and, when requested, for final multiple imputation. The
-default is \code{500}. An imputed Cox, RMST, or risk-difference final analysis requires
-at least two.}
+imputations used at each interim look and, when requested, for final
+multiple imputation. The default is \code{500}. An imputed Cox, RMST, or
+risk-difference final analysis requires at least two.}
 
 \item{N_mcmc}{A positive integer giving the number of posterior draws used
-within each
-\code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
+within each \code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
 \code{bin_method = "mc"}. The default is \code{1000}.}
 
 \item{mc_conf_level}{A single numeric probability strictly between \code{0.5} and
-\code{1}, giving the confidence
-level for one-sided exact binomial bounds reported as diagnostics of
-finite Monte Carlo uncertainty. The bounds do not alter completed-data
-success classifications or interim decisions, which use strict point-
-estimate comparisons with \code{prob_ha}, \code{Qn}, \code{Sn}, and \code{Fn}. The default is
-\code{0.95}.}
+\code{1}, giving the confidence level for one-sided exact binomial bounds
+reported as diagnostics of finite Monte Carlo uncertainty. The bounds do
+not alter completed-data success classifications or interim decisions,
+which use strict point-estimate comparisons with \code{prob_ha}, \code{Qn}, \code{Sn}, and
+\code{Fn}. The default is \code{0.95}.}
 
 \item{empty_interval}{A single character string specifying how to handle
 empty piecewise-exponential intervals when updating Gamma hazard models for
-predictive imputation and Bayesian survival analysis. An empty
-interval is an interval with no exposed subjects in a treatment arm at the
-analysis time. \code{"prior"} (the default) leaves the interval at zero exposure
-time and zero events, so its posterior is driven only by its assigned
-survival prior. \code{"propagate"} is a legacy heuristic that copies exposure
-time and event counts from the nearest non-empty interval in the same
-treatment arm and emits a warning. \code{"error"} stops when any empty interval
-is found.}
+predictive imputation and Bayesian survival analysis. An empty interval is
+an interval with no exposed subjects in a treatment arm at the analysis
+time. \code{"prior"} (the default) leaves the interval at zero exposure time and
+zero events, so its posterior is driven only by its assigned survival
+prior. \code{"propagate"} is a legacy heuristic that copies exposure time and
+event counts from the nearest non-empty interval in the same treatment arm
+and emits a warning. \code{"error"} stops when any empty interval is found.}
 
 \item{method}{A single character string specifying the completed-data and
-final analysis. Available choices are a log-rank
-(\code{method = "logrank"}) test, Cox proportional hazards regression model
-Wald test (\code{method = "cox"}), a restricted mean survival time difference
-Wald test (\code{method = "rmst"}), a fully-Bayesian piecewise-exponential
-analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
-complete binary outcomes (\code{method = "bayes-bin"}), a frequentist
-risk-difference Wald test (\code{method = "riskdiff-wald"}), or a
-Farrington-Manning score test (\code{method = "riskdiff-fm"}) of complete
-binary outcomes. The deprecated \code{method = "riskdiff"} is accepted as an
-alias for \code{"riskdiff-wald"} with a warning. The default is \code{"logrank"}.
-See Details.}
+final analysis. Available choices are a log-rank (\code{method = "logrank"})
+test, Cox proportional hazards regression model Wald test
+(\code{method = "cox"}), a restricted mean survival time difference Wald test
+(\code{method = "rmst"}), a fully-Bayesian piecewise-exponential analysis
+(\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of complete
+binary outcomes (\code{method = "bayes-bin"}), a frequentist risk-difference
+Wald test (\code{method = "riskdiff-wald"}), or a Farrington-Manning score test
+(\code{method = "riskdiff-fm"}) of complete binary outcomes. The deprecated
+\code{method = "riskdiff"} is accepted as an alias for \code{"riskdiff-wald"} with a
+warning. The default is \code{"logrank"}. See Details.}
 
 \item{binary_imputation}{A single character string selecting the predictive
-imputation approach for
-\code{method = "bayes-bin"}, \code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}. \code{"event-time"} (the default) draws a conditional
-piecewise-exponential event time and reduces it to event status at
-\code{end_of_study}. \code{"bernoulli"} draws the endpoint status directly from its
-conditional event probability. This argument is ignored for time-to-event
-analysis methods.}
+imputation approach for \code{method = "bayes-bin"}, \code{method = "riskdiff-wald"},
+or \code{method = "riskdiff-fm"}. \code{"event-time"} (the default) draws a
+conditional piecewise-exponential event time and reduces it to event status
+at \code{end_of_study}. \code{"bernoulli"} draws the endpoint status directly from
+its conditional event probability. This argument is ignored for
+time-to-event analysis methods.}
 
 \item{seed}{\code{NULL} (the default), or a single non-negative integer used for
-the predictive Monte
-Carlo calculation. A supplied seed makes the result reproducible and
-leaves the existing random-number state unchanged. With \code{seed = NULL}, the call
-uses and advances the current random-number state.}
+the predictive Monte Carlo calculation. A supplied seed makes the result
+reproducible and leaves the existing random-number state unchanged. With
+\code{seed = NULL}, the call uses and advances the current random-number state.}
 
 \item{Qn}{A single numeric probability in \verb{[0, 1]} giving the upper threshold
 for declaring immediate trial success at this look. Immediate success is
@@ -219,11 +210,12 @@ declared when predictive success among the currently enrolled participants
 is strictly greater than \code{Qn}. \code{Qn} must be greater than or equal to \code{Sn}.
 The default, \code{1}, disables immediate-success stopping.}
 
-\item{rmst_tau}{A single finite positive restriction time for \code{method = "rmst"}, in the same units as \code{end_of_study}. Defaults to \code{end_of_study}
-and must not exceed it. Prespecify the same horizon for all looks,
-imputations, and simulations. It may precede analysis cutpoints and does
-not shorten the planned follow-up or imputation horizon. Ignored for other
-methods.}
+\item{rmst_tau}{A single finite positive restriction time for
+\code{method = "rmst"}, in the same units as \code{end_of_study}. Defaults to
+\code{end_of_study} and must not exceed it. Prespecify the same horizon for all
+looks, imputations, and simulations. It may precede analysis cutpoints and
+does not shorten the planned follow-up or imputation horizon. Ignored for
+other methods.}
 
 \item{prior_surv_final}{A numeric vector, matrix, or named list specifying
 the Gamma analysis prior for each hypothetical completed trial when
@@ -241,8 +233,8 @@ An object of class \code{goldilocks_interim}, containing:
 \item \code{diagnostics}: observed status counts, potential accruals, warnings,
 imputation diagnostics, and resolved Gamma prior and posterior parameters
 by arm and interval;
-\item \code{trace}: a one-row decision trace compatible with
-\code{\link[=plot_trial_trace]{plot_trial_trace()}} and \code{\link[=summarise_trial_trace]{summarise_trial_trace()}};
+\item \code{trace}: a one-row decision trace compatible with \code{\link[=plot_trial_trace]{plot_trial_trace()}}
+and \code{\link[=summarise_trial_trace]{summarise_trial_trace()}};
 \item \code{metadata}: the evaluated design, resolved prior design, package version,
 time-origin, data-cut, and random-number policy. For
 \code{method = "bayes-surv"}, both Gamma priors are retained in
@@ -284,11 +276,11 @@ Bayesian binary completed-data analyses use \code{prior_bin}.
 
 \code{Qn}, \code{Sn}, and \code{Fn} are scalar thresholds for this look. Immediate success
 is declared when the estimated probability of completed-data success among
-the current participants is strictly greater than \code{Qn}. Otherwise,
-expected success stops accrual for planned follow-up when that probability
-is strictly greater than \code{Sn}. If neither success rule applies, futility is
-declared when the corresponding maximum-sample probability is strictly
-less than \code{Fn}. Set \code{Fn = 0} or \code{NULL} to disable futility. Exact one-sided
+the current participants is strictly greater than \code{Qn}. Otherwise, expected
+success stops accrual for planned follow-up when that probability is
+strictly greater than \code{Sn}. If neither success rule applies, futility is
+declared when the corresponding maximum-sample probability is strictly less
+than \code{Fn}. Set \code{Fn = 0} or \code{NULL} to disable futility. Exact one-sided
 Monte Carlo bounds are returned as diagnostics and do not drive any
 decision.
 

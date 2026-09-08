@@ -8,9 +8,8 @@ summarise_calendar_time(data)
 }
 \arguments{
 \item{data}{A required complete result returned by \code{\link[=sim_trials]{sim_trials()}}, a
-simulation
-\code{data.frame}, or a list of either form. Named list elements identify
-scenarios. Existing \code{scenario} columns and grouping variables are
+simulation \code{data.frame}, or a list of either form. Named list elements
+identify scenarios. Existing \code{scenario} columns and grouping variables are
 preserved.}
 }
 \value{
@@ -34,12 +33,12 @@ number of simulations as their denominator, so excluded failures remain
 visible.
 }
 \description{
-Summarizes trial duration, follow-up burden, and (when retained) interim-look
-timing without adding any new simulation arguments. Calendar time is measured
-from the first patient's enrollment at time zero. \code{analysis_ready_time} is
-the time at which the last enrolled subject's observed event or censoring
-becomes available; it does not include external data-cleaning or database-lock
-delays.
+Summarizes trial duration, follow-up burden, and (when retained)
+interim-look timing without adding any new simulation arguments. Calendar
+time is measured from the first patient's enrollment at time zero.
+\code{analysis_ready_time} is the time at which the last enrolled subject's
+observed event or censoring becomes available; it does not include external
+data-cleaning or database-lock delays.
 
 Pass a complete result from \code{\link[=sim_trials]{sim_trials()}} to retain requested, analyzed, and
 failed simulation counts. Interim timing requires simulations run with

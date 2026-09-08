@@ -1,8 +1,8 @@
 #' @title Generate a block-randomized treatment sequence
 #'
-#' @description Generates a randomized treatment assignment sequence for
-#'   control and treatment arms using a fixed allocation ratio and one or more
-#'   permitted block sizes.
+#' @description Generates a randomized treatment assignment sequence for control
+#'   and treatment arms using a fixed allocation ratio and one or more permitted
+#'   block sizes.
 #'
 #' @param N_total A required positive integer giving the total number of
 #'   treatment assignments.
@@ -10,10 +10,9 @@
 #'   sizes. Every block size must be a multiple of `sum(allocation)`. The
 #'   default is `2`.
 #' @param allocation A length-two positive integer vector giving the control to
-#'   treatment allocation ratio. The default is
-#'   `c(control = 1, treatment = 1)`. Name the values
-#'   `control` and `treatment`; either supplied order is accepted and matched by
-#'   name. A legacy unnamed vector remains accepted in
+#'   treatment allocation ratio. The default is `c(control = 1, treatment = 1)`.
+#'   Name the values `control` and `treatment`; either supplied order is
+#'   accepted and matched by name. A legacy unnamed vector remains accepted in
 #'   `c(control, treatment)` order. Unequal unnamed values produce a warning
 #'   because names may be required in a future major release.
 #'
@@ -21,13 +20,13 @@
 #'   drawing a large block assigned to one treatment group, potentially
 #'   impacting the time to enrollment completion. Therefore, a block
 #'   randomization allocation may be preferable. The block randomization
-#'   allocation specification allows for different two-arm randomization
-#'   ratios, but they must be given in integer form. For every value `b` in
-#'   `block`, the required relationship is `b %% sum(allocation) == 0`; see the
-#'   equal- and unequal-allocation examples below.
+#'   allocation specification allows for different two-arm randomization ratios,
+#'   but they must be given in integer form. For every value `b` in `block`, the
+#'   required relationship is `b %% sum(allocation) == 0`; see the equal- and
+#'   unequal-allocation examples below.
 #'
-#' @return An integer treatment assignment vector, coded `0` for control and
-#'   `1` for treatment.
+#' @return An integer treatment assignment vector, coded `0` for control and `1`
+#'   for treatment.
 #'
 #' @export
 #'

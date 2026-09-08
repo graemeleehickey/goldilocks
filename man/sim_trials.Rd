@@ -48,16 +48,16 @@ event rates for the treatment arm. Supply one rate per interval defined by
 \code{generation_cutpoints}; a single value specifies a constant event rate.}
 
 \item{hazard_control}{\code{NULL} (the default) for a single-arm trial, or a
-numeric vector of finite, non-negative event rates for the control arm in
-a two-arm trial. It must contain one rate per interval defined by
+numeric vector of finite, non-negative event rates for the control arm in a
+two-arm trial. It must contain one rate per interval defined by
 \code{generation_cutpoints}.}
 
 \item{cutpoints}{\code{NULL} (the default), or a numeric vector of finite,
-positive, strictly increasing interior follow-up
-times defining the piecewise-exponential model used for interim posterior
-estimation, predictive imputation, and final analysis. The number of
-interval-specific prior columns must be one greater than the number of
-cutpoints. \code{NULL} specifies a constant-hazard analysis model.}
+positive, strictly increasing interior follow-up times defining the
+piecewise-exponential model used for interim posterior estimation,
+predictive imputation, and final analysis. The number of interval-specific
+prior columns must be one greater than the number of cutpoints. \code{NULL}
+specifies a constant-hazard analysis model.}
 
 \item{N_total}{A required positive integer giving the maximum total sample
 size.}
@@ -75,11 +75,10 @@ changes. Time zero is implicit, and \code{length(lambda)} must equal
 \item{interim_look}{\code{NULL} (the default) for no interim analyses, or a
 strictly increasing positive integer vector giving the cumulative sample
 size at each interim look. Do not include the maximum sample size. For
-two-arm designs, each
-interim look must be at least the (largest) block size (see \code{block}),
-ensuring both treatment groups are present at every interim analysis; a
-smaller look could enroll subjects from one treatment group only, leaving
-the interim posterior undefined for the missing group.}
+two-arm designs, each interim look must be at least the (largest) block
+size (see \code{block}), ensuring both treatment groups are present at every
+interim analysis; a smaller look could enroll subjects from one treatment
+group only, leaving the interim posterior undefined for the missing group.}
 
 \item{end_of_study}{A required finite, positive numeric value giving the
 planned subject-level follow-up time. It must be greater than the final
@@ -87,18 +86,17 @@ value in both \code{cutpoints} and \code{generation_cutpoints}, when supplied, a
 use the same time unit.}
 
 \item{prior_surv}{A numeric vector, matrix, or named list specifying the
-Gamma prior for the
-piecewise-exponential hazards used to generate outcomes during interim
-prediction. A length-two
-vector supplies shape and rate and applies the same prior to every arm and
-interval. A \code{2} by \code{length(cutpoints) + 1} matrix supplies
-interval-specific values shared by all arms, with shapes in row 1 and rates
-in row 2. For independent arm-specific priors, supply a list named
-\code{control} and \code{treatment} in a two-arm design, or \code{treatment} in a
-single-arm design. Each list element may be a length-two vector or an
-interval-specific matrix. Both arms must be supplied; no values are
-borrowed or filled from the other arm. Rates must use the same time unit as
-event times, exposure, and cutpoints. The default is \code{c(0.1, 0.1)}.}
+Gamma prior for the piecewise-exponential hazards used to generate outcomes
+during interim prediction. A length-two vector supplies shape and rate and
+applies the same prior to every arm and interval. A \code{2} by
+\code{length(cutpoints) + 1} matrix supplies interval-specific values shared by
+all arms, with shapes in row 1 and rates in row 2. For independent
+arm-specific priors, supply a list named \code{control} and \code{treatment} in a
+two-arm design, or \code{treatment} in a single-arm design. Each list element
+may be a length-two vector or an interval-specific matrix. Both arms must
+be supplied; no values are borrowed or filled from the other arm. Rates
+must use the same time unit as event times, exposure, and cutpoints. The
+default is \code{c(0.1, 0.1)}.}
 
 \item{prior_bin}{A length-two numeric vector of finite, positive shape
 parameters \code{c(a, b)} for the \code{Beta(a, b)} event-probability prior used when
@@ -106,10 +104,13 @@ parameters \code{c(a, b)} for the \code{Beta(a, b)} event-probability prior used
 is \code{c(1, 1)}, a uniform prior.}
 
 \item{bin_method}{A single character string selecting how to calculate the
-posterior probability for \code{method = "bayes-bin"}. It must be one of
-\code{"mc"} (Monte Carlo
-sampling), \code{"normal"} (normal approximation), or \code{"quadrature"} (numerical
-integration). The default is \code{"mc"}.}
+posterior probability for \code{method = "bayes-bin"}. It must be one of \code{"mc"}
+(Monte Carlo sampling), \code{"normal"} (normal approximation), or
+\code{"quadrature"} (numerical integration). The default is \code{"mc"}.
+The normal approximation can be inaccurate with sparse events or
+non-events and posterior event probabilities near 0 or 1. It can change
+whether \code{prob_ha} is exceeded. Increasing \code{N_mcmc} does not improve this
+approximation; use \code{"quadrature"} or sufficiently precise \code{"mc"} instead.}
 
 \item{block}{A positive integer vector of permitted randomization block
 sizes. Every value must be a multiple of \code{sum(rand_ratio)}. The default is
@@ -117,157 +118,149 @@ sizes. Every value must be a multiple of \code{sum(rand_ratio)}. The default is
 
 \item{rand_ratio}{A length-two positive integer vector giving the control to
 treatment randomization ratio. The default is
-\code{c(control = 1, treatment = 1)}. Name
-the values \code{control} and \code{treatment}; either supplied order is accepted and
-matched by name. A legacy unnamed vector remains accepted in
-\code{c(control, treatment)} order. Unequal unnamed values produce a warning
-because names may be required in a future major release. See
-\code{\link[=randomization]{randomization()}} for more details.}
+\code{c(control = 1, treatment = 1)}. Name the values \code{control} and \code{treatment};
+either supplied order is accepted and matched by name. A legacy unnamed
+vector remains accepted in \code{c(control, treatment)} order. Unequal unnamed
+values produce a warning because names may be required in a future major
+release. See \code{\link[=randomization]{randomization()}} for more details.}
 
 \item{prop_loss}{A numeric vector containing one or two probabilities in
 \verb{[0, 1)}. Each value is the dropout-time CDF at \code{end_of_study}:
-\eqn{P(D \le \tau) = p}, where \eqn{\tau} is the planned follow-up
-duration per subject. Independently of event time and enrollment, each
-subject's dropout time \eqn{D} is exponentially distributed with rate
+\eqn{P(D \le \tau) = p}, where \eqn{\tau} is the planned follow-up duration
+per subject. Independently of event time and enrollment, each subject's
+dropout time \eqn{D} is exponentially distributed with rate
 \eqn{-\log(1-p)/\tau}. The observed time is the minimum of event time,
 dropout time, and \code{end_of_study}; an event occurring before dropout is
 retained. Thus, \code{prop_loss} is not the expected proportion actually
 censored by dropout: that proportion can be lower because events occur
-first, and the realized number of dropouts varies between trials.
-A single value applies the same dropout distribution to every arm. For a
-two-arm design, supply a length-two vector named \code{control} and \code{treatment}
-for arm-specific probabilities; supplied order does not matter.
-Single-arm designs require one probability. The default \code{0} sets dropout
-time to infinity without drawing random numbers. A value of \code{1} is
-rejected because it requires an infinite exponential rate.}
+first, and the realized number of dropouts varies between trials. A single
+value applies the same dropout distribution to every arm. For a two-arm
+design, supply a length-two vector named \code{control} and \code{treatment} for
+arm-specific probabilities; supplied order does not matter. Single-arm
+designs require one probability. The default \code{0} sets dropout time to
+infinity without drawing random numbers. A value of \code{1} is rejected because
+it requires an infinite exponential rate.}
 
 \item{alternative}{A single character string specifying the alternative
 hypothesis. It must be one of \code{"greater"} (the default), \code{"less"}, or
 \code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
 supported for \code{method = "bayes-surv"} and \code{method = "bayes-bin"}. All three
 options are supported for \code{method = "logrank"}, \code{method = "cox"},
-\code{method = "rmst"}, \code{method = "riskdiff-wald"}, and \code{method = "riskdiff-fm"}.
-For an adverse event, benefit is in the \code{"greater"} direction for RMST
-(longer event-free time) and the \code{"less"} direction for the other methods
-(lower hazard or event probability).}
+\code{method = "rmst"}, \code{method = "riskdiff-wald"}, and
+\code{method = "riskdiff-fm"}. For an adverse event, benefit is in the
+\code{"greater"} direction for RMST (longer event-free time) and the \code{"less"}
+direction for the other methods (lower hazard or event probability).}
 
 \item{h0}{A single finite numeric value specifying the null hypothesis or
 margin. The default is \code{0}. For Bayesian analyses, \code{h0} must lie in
-\verb{[0, 1]} for a
-single-arm design and \verb{[-1, 1]} for a two-arm design.
+\verb{[0, 1]} for a single-arm design and \verb{[-1, 1]} for a two-arm design.
 \itemize{
 \item When \code{method = "bayes-surv"}, \code{h0} is the null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}}. In a single-arm design,
-\code{h0} is the external benchmark event probability, often referred to
-as a performance goal (PG) or objective performance criterion (OPC).
+\code{h0} is the external benchmark event probability, often referred to as a
+performance goal (PG) or objective performance criterion (OPC).
 \item When \code{method = "bayes-bin"}, \code{h0} is the null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}} for a two-arm design, or
 the null event probability for a single-arm design.
-\item When \code{method = "cox"}, \code{h0} is the null log hazard ratio for
-treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
-of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
-specified as a hazard ratio. A Cox non-inferiority test should usually
-use \code{alternative = "less"}.
+\item When \code{method = "cox"}, \code{h0} is the null log hazard ratio for treatment
+versus control. Use \code{h0 = 0} for the usual hazard ratio of 1 null, or
+\code{h0 = log(margin)} for a non-inferiority margin specified as a hazard
+ratio. A Cox non-inferiority test should usually use
+\code{alternative = "less"}.
 \item When \code{method = "rmst"}, \code{h0} is the null treatment-control RMST
-difference in time units and must lie in \verb{[-rmst_tau, rmst_tau]}.
-For non-inferiority allowing a loss of \code{m} time units, use \code{h0 = -m}
-and \code{alternative = "greater"}.
+difference in time units and must lie in \verb{[-rmst_tau, rmst_tau]}. For
+non-inferiority allowing a loss of \code{m} time units, use \code{h0 = -m} and
+\code{alternative = "greater"}.
 \item When \code{method = "riskdiff-wald"} or \code{method = "riskdiff-fm"}, \code{h0} is the
-null value of
-\eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
-\verb{[-1, 1]}.
+null value of \eqn{p_\textrm{treatment} - p_\textrm{control}} and must
+lie in \verb{[-1, 1]}.
 \item When \code{method = "logrank"}, only \code{h0 = 0} is supported; this denotes the
 usual equal-survival null. Nonzero values are rejected because the
 standard log-rank statistic does not implement a nonzero effect margin.
 }}
 
 \item{Fn}{\code{NULL}, or a numeric vector of probabilities in \verb{[0, 1]}. Each
-value is the predictive-probability
-threshold to stop at the \eqn{i}-th look early for futility. If there are
-no interim looks (i.e. \code{interim_look = NULL}), then \code{Fn} is not
-used in the simulations or analysis. Set \code{Fn = 0} to disable futility
-monitoring; \code{Fn = NULL} has the same effect. Supply either one value,
-which is repeated at every interim look, or exactly one value per
-\code{interim_look}. Other lengths are rejected rather than recycled. The
-default is \code{0.05}.}
+value is the predictive-probability threshold to stop at the \eqn{i}-th
+look early for futility. If there are no interim looks (i.e.
+\code{interim_look = NULL}), then \code{Fn} is not used in the simulations or
+analysis. Set \code{Fn = 0} to disable futility monitoring; \code{Fn = NULL} has the
+same effect. Supply either one value, which is repeated at every interim
+look, or exactly one value per \code{interim_look}. Other lengths are rejected
+rather than recycled. The default is \code{0.05}.}
 
 \item{Sn}{A numeric vector of probabilities in \verb{[0, 1]}. Each value is the
-predictive-probability
-threshold to stop accrual at the \eqn{i}-th look for expected success. If
-there are no interim looks (i.e. \code{interim_look = NULL}), then
-\code{Sn} is not used in the simulations or analysis. Supply either one value,
-which is repeated at every interim look, or exactly one value per
-\code{interim_look}. Other lengths are rejected rather than recycled. The
-default is \code{0.9}.}
+predictive-probability threshold to stop accrual at the \eqn{i}-th look for
+expected success. If there are no interim looks (i.e.
+\code{interim_look = NULL}), then \code{Sn} is not used in the simulations or
+analysis. Supply either one value, which is repeated at every interim look,
+or exactly one value per \code{interim_look}. Other lengths are rejected rather
+than recycled. The default is \code{0.9}.}
 
 \item{prob_ha}{A single numeric probability in \verb{[0, 1]} defining success in
 each completed-data analysis. For Bayesian methods this is compared with
-the posterior probability of the alternative; for frequentist methods it
-is compared with \code{1 - P}. The default is \code{0.95}.}
+the posterior probability of the alternative; for frequentist methods it is
+compared with \code{1 - P}. The default is \code{0.95}.}
 
 \item{N_impute}{A positive integer giving the number of predictive
-imputations used at each
-interim look and, when requested, for final multiple imputation. The
-default is \code{500}. An imputed Cox, RMST, or risk-difference final analysis requires
-at least two.}
+imputations used at each interim look and, when requested, for final
+multiple imputation. The default is \code{500}. An imputed Cox, RMST, or
+risk-difference final analysis requires at least two.}
 
 \item{N_mcmc}{A positive integer giving the number of posterior draws used
-within each
-\code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
+within each \code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
 \code{bin_method = "mc"}. The default is \code{1000}.}
 
 \item{mc_conf_level}{A single numeric probability strictly between \code{0.5} and
-\code{1}, giving the confidence
-level for one-sided exact binomial bounds reported as diagnostics of
-finite Monte Carlo uncertainty. The bounds do not alter completed-data
-success classifications or interim decisions, which use strict point-
-estimate comparisons with \code{prob_ha}, \code{Qn}, \code{Sn}, and \code{Fn}. The default is
-\code{0.95}.}
+\code{1}, giving the confidence level for one-sided exact binomial bounds
+reported as diagnostics of finite Monte Carlo uncertainty. The bounds do
+not alter completed-data success classifications or interim decisions,
+which use strict point-estimate comparisons with \code{prob_ha}, \code{Qn}, \code{Sn}, and
+\code{Fn}. The default is \code{0.95}.}
 
-\item{N_trials}{A positive integer giving the number of independent trials
-to simulate. The default is \code{10}.}
+\item{N_trials}{A positive integer giving the number of independent trials to
+simulate. The default is \code{10}.}
 
 \item{method}{A single character string specifying the completed-data and
-final analysis. Available choices are a log-rank
-(\code{method = "logrank"}) test, Cox proportional hazards regression model
-Wald test (\code{method = "cox"}), a restricted mean survival time difference
-Wald test (\code{method = "rmst"}), a fully-Bayesian piecewise-exponential
-analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
-complete binary outcomes (\code{method = "bayes-bin"}), a frequentist
-risk-difference Wald test (\code{method = "riskdiff-wald"}), or a
-Farrington-Manning score test (\code{method = "riskdiff-fm"}) of complete
-binary outcomes. The deprecated \code{method = "riskdiff"} is accepted as an
-alias for \code{"riskdiff-wald"} with a warning. The default is \code{"logrank"}.
-See Details.}
+final analysis. Available choices are a log-rank (\code{method = "logrank"})
+test, Cox proportional hazards regression model Wald test
+(\code{method = "cox"}), a restricted mean survival time difference Wald test
+(\code{method = "rmst"}), a fully-Bayesian piecewise-exponential analysis
+(\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of complete
+binary outcomes (\code{method = "bayes-bin"}), a frequentist risk-difference
+Wald test (\code{method = "riskdiff-wald"}), or a Farrington-Manning score test
+(\code{method = "riskdiff-fm"}) of complete binary outcomes. The deprecated
+\code{method = "riskdiff"} is accepted as an alias for \code{"riskdiff-wald"} with a
+warning. The default is \code{"logrank"}. See Details.}
 
 \item{imputed_final}{A single logical value indicating whether the final
-analysis should be based on imputed outcomes for
-subjects who were LTFU (i.e. right-censored with time less than
-\code{end_of_study}). The default is \code{FALSE}, which means that the final analysis
-incorporates right-censoring. With \code{method = "cox"}, \code{method = "rmst"},
-\code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}, setting this to \code{TRUE}
-analyzes each imputed dataset and pools the scalar treatment effects and
-variances using Rubin's rules; this requires \code{N_impute >= 2}. The pooled
-risk-difference analysis is a Wald test rather than a Farrington-Manning
-test. Imputed final analyses remain unavailable for \code{method = "logrank"}.}
+analysis should be based on imputed outcomes for subjects who were LTFU
+(i.e. right-censored with time less than \code{end_of_study}). The default is
+\code{FALSE}, which uses the observed-data analysis. If no outcomes require
+imputation, the selected complete-data test is used directly with either
+flag. With missing outcomes and \code{method = "cox"}, \code{"rmst"}, or
+\code{"riskdiff-wald"}, setting this to \code{TRUE} pools the scalar treatment
+effects and variances using Rubin's rules; this requires \code{N_impute >= 2}
+and positive total variance. Genuine final imputation is unsupported for
+\code{method = "riskdiff-fm"} because no validated FM pooling rule is
+implemented. Simulations combining FM and \code{imputed_final = TRUE} therefore
+require \code{prop_loss = 0} in both arms. Imputed final analyses remain
+unavailable for \code{method = "logrank"}.}
 
 \item{empty_interval}{A single character string specifying how to handle
 empty piecewise-exponential intervals when updating Gamma hazard models for
-predictive imputation and Bayesian survival analysis. An empty
-interval is an interval with no exposed subjects in a treatment arm at the
-analysis time. \code{"prior"} (the default) leaves the interval at zero exposure
-time and zero events, so its posterior is driven only by its assigned
-survival prior. \code{"propagate"} is a legacy heuristic that copies exposure
-time and event counts from the nearest non-empty interval in the same
-treatment arm and emits a warning. \code{"error"} stops when any empty interval
-is found.}
+predictive imputation and Bayesian survival analysis. An empty interval is
+an interval with no exposed subjects in a treatment arm at the analysis
+time. \code{"prior"} (the default) leaves the interval at zero exposure time and
+zero events, so its posterior is driven only by its assigned survival
+prior. \code{"propagate"} is a legacy heuristic that copies exposure time and
+event counts from the nearest non-empty interval in the same treatment arm
+and emits a warning. \code{"error"} stops when any empty interval is found.}
 
 \item{return_trace}{A single logical value indicating whether to retain the
 compact interim decision trace from every simulated trial. The default,
-\code{FALSE}, preserves the
-compact output. When \code{TRUE}, the returned list also contains a \code{traces}
-data frame with a \code{trial} column linking each trace row to the corresponding
-original simulated trial.}
+\code{FALSE}, preserves the compact output. When \code{TRUE}, the returned list also
+contains a \code{traces} data frame with a \code{trial} column linking each trace row
+to the corresponding original simulated trial.}
 
 \item{ncores}{A positive integer giving the maximum number of processor cores
 to use. The default is \code{1L}, which runs trials sequentially. The number
@@ -288,12 +281,12 @@ including when trials are run in parallel, and leaves the pre-existing
 random-number state unchanged.}
 
 \item{binary_imputation}{A single character string selecting the predictive
-imputation approach for
-\code{method = "bayes-bin"}, \code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}. \code{"event-time"} (the default) draws a conditional
-piecewise-exponential event time and reduces it to event status at
-\code{end_of_study}. \code{"bernoulli"} draws the endpoint status directly from its
-conditional event probability. This argument is ignored for time-to-event
-analysis methods.}
+imputation approach for \code{method = "bayes-bin"}, \code{method = "riskdiff-wald"},
+or \code{method = "riskdiff-fm"}. \code{"event-time"} (the default) draws a
+conditional piecewise-exponential event time and reduces it to event status
+at \code{end_of_study}. \code{"bernoulli"} draws the endpoint status directly from
+its conditional event probability. This argument is ignored for
+time-to-event analysis methods.}
 
 \item{prior_surv_final}{A numeric vector, matrix, or named list specifying
 the Gamma prior used for final-stage piecewise-exponential imputation and,
@@ -308,26 +301,27 @@ also the default analysis prior. See \strong{Predictive and analysis priors}
 below.}
 
 \item{generation_cutpoints}{\code{NULL}, or a numeric vector of finite, positive,
-strictly increasing interior
-follow-up times defining the piecewise-exponential model used to generate
-event times. \code{hazard_treatment} and \code{hazard_control} must each have one
-value per resulting interval. Defaults to \code{cutpoints}, preserving the
-historical behavior in which generation and analysis used one partition.}
+strictly increasing interior follow-up times defining the
+piecewise-exponential model used to generate event times.
+\code{hazard_treatment} and \code{hazard_control} must each have one value per
+resulting interval. Defaults to \code{cutpoints}, preserving the historical
+behavior in which generation and analysis used one partition.}
 
 \item{Qn}{A numeric vector of probabilities in \verb{[0, 1]}. Each value is the
 upper predictive-probability threshold for declaring immediate trial
 success at the \eqn{i}-th look. If there are no interim looks (i.e.
 \code{interim_look = NULL}), then \code{Qn} is not used in the simulations or
-analysis. Supply either one value, which is repeated at every interim
-look, or exactly one value per \code{interim_look}; other lengths are rejected.
-\code{Qn} must be greater than or equal to \code{Sn} at every look. The default, \code{1},
+analysis. Supply either one value, which is repeated at every interim look,
+or exactly one value per \code{interim_look}; other lengths are rejected. \code{Qn}
+must be greater than or equal to \code{Sn} at every look. The default, \code{1},
 disables immediate-success stopping.}
 
-\item{rmst_tau}{A single finite positive restriction time for \code{method = "rmst"}, in the same units as \code{end_of_study}. Defaults to \code{end_of_study}
-and must not exceed it. Prespecify the same horizon for all looks,
-imputations, and simulations. It may precede analysis cutpoints and does
-not shorten the planned follow-up or imputation horizon. Ignored for other
-methods.}
+\item{rmst_tau}{A single finite positive restriction time for
+\code{method = "rmst"}, in the same units as \code{end_of_study}. Defaults to
+\code{end_of_study} and must not exceed it. Prespecify the same horizon for all
+looks, imputations, and simulations. It may precede analysis cutpoints and
+does not shorten the planned follow-up or imputation horizon. Ignored for
+other methods.}
 }
 \value{
 A list containing \code{sims}, a data frame with one row per successfully
@@ -340,14 +334,13 @@ active follow-up at each look. See \code{\link[=survival_adapt]{survival_adapt()
 summary and trace columns, and \code{\link[=summarise_calendar_time]{summarise_calendar_time()}} for wide
 operating-characteristic tables. The returned object also retains the
 evaluated \code{decision_design} and resolved \code{prior_design} attributes from
-\code{\link[=survival_adapt]{survival_adapt()}}. An
-\code{rng_metadata} attribute records the random-number generator, computational
-method, and seed policy. A \code{parallel_metadata} attribute records the
-requested and actual computational method and number of cores. An \code{arguments}
-attribute contains a named list of all evaluated argument values, including
-defaults. Its \code{prop_loss} element contains a named value for every simulated
-arm, and its \code{rand_ratio} element is stored in \code{control}, \code{treatment} order
-for two-arm designs. Its \code{cutpoints} and
+\code{\link[=survival_adapt]{survival_adapt()}}. An \code{rng_metadata} attribute records the random-number
+generator, computational method, and seed policy. A \code{parallel_metadata}
+attribute records the requested and actual computational method and number
+of cores. An \code{arguments} attribute contains a named list of all evaluated
+argument values, including defaults. Its \code{prop_loss} element contains a
+named value for every simulated arm, and its \code{rand_ratio} element is stored
+in \code{control}, \code{treatment} order for two-arm designs. Its \code{cutpoints} and
 \code{generation_cutpoints} elements retain the analysis and data-generation
 partitions, respectively. For \code{method = "bayes-bin"}, it also retains the
 imputation priors (\code{prior_surv} and \code{prior_surv_final}), completed-data
@@ -365,10 +358,10 @@ This function is a wrapper for \code{\link[=survival_adapt]{survival_adapt()}} t
 simulates independent trials under the same design parameters and assumed
 treatment effect.
 
-To use multiple cores (where available), the argument \code{ncores}
-can be increased from the default of 1. The default \code{backend = "auto"}
-stays sequential for fewer than four trials and otherwise uses no more than
-one core per two trials. This avoids parallel-processing overhead for small
+To use multiple cores (where available), the argument \code{ncores} can be
+increased from the default of 1. The default \code{backend = "auto"} stays
+sequential for fewer than four trials and otherwise uses no more than one
+core per two trials. This avoids parallel-processing overhead for small
 simulation studies. On Unix-like systems parallel trials use forked R
 processes; on Windows they use PSOCK processes. Set \code{backend} explicitly
 when a particular computational method is required.

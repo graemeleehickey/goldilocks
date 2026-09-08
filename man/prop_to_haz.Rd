@@ -9,16 +9,14 @@ prop_to_haz(probs, cutpoints = NULL, endtime)
 }
 \arguments{
 \item{probs}{A required numeric vector of finite cumulative event
-probabilities in \verb{[0, 1)} at
-each cutpoint and at \code{endtime}, in that order. Its length must be one
-greater than the number of cutpoints. With no cutpoints, supply a single
-probability at \code{endtime}. Values must be non-decreasing and are not
-recycled.}
+probabilities in \verb{[0, 1)} at each cutpoint and at \code{endtime}, in that order.
+Its length must be one greater than the number of cutpoints. With no
+cutpoints, supply a single probability at \code{endtime}. Values must be
+non-decreasing and are not recycled.}
 
 \item{cutpoints}{\code{NULL} (the default), or a numeric vector of finite,
-positive, strictly increasing interior
-times at which the event hazard changes. \code{NULL}
-corresponds to a simple (non-piecewise) exponential model.}
+positive, strictly increasing interior times at which the event hazard
+changes. \code{NULL} corresponds to a simple (non-piecewise) exponential model.}
 
 \item{endtime}{A required single finite, positive numeric value giving the
 follow-up time corresponding to the final element of \code{probs}. It must be
@@ -36,15 +34,15 @@ interpretable event probabilities.
 }
 \details{
 Given \eqn{J-1} interior cutpoints, then there are J intervals
-defined as: \eqn{[s_0, s_1)}, \eqn{[s_1, s_2)}, \eqn{\dots}, \eqn{[s_{J-1},
-  s_{J})}, with conditions that \eqn{s_0 = 0} and \eqn{s_J = \infty}. Each
-interval corresponds to constant hazard \eqn{\lambda_j}. This is the
-PWEALL representation of the continuous generating hazard. Changing the
-value at an isolated cutpoint does not alter the cumulative probabilities
-calculated here. When observed event times are assigned to analysis
-intervals, \code{goldilocks} uses \verb{(s_\{j-1\}, s_j]}, matching the survival
-counting-process convention, so an event at \eqn{s_j} belongs to the
-interval ending there.
+defined as: \eqn{[s_0, s_1)}, \eqn{[s_1, s_2)}, \eqn{\dots},
+\eqn{[s_{J-1}, s_{J})}, with conditions that \eqn{s_0 = 0} and
+\eqn{s_J = \infty}. Each interval corresponds to constant hazard
+\eqn{\lambda_j}. This is the PWEALL representation of the continuous
+generating hazard. Changing the value at an isolated cutpoint does not
+alter the cumulative probabilities calculated here. When observed event
+times are assigned to analysis intervals, \code{goldilocks} uses
+\verb{(s_\{j-1\}, s_j]}, matching the survival counting-process convention, so an
+event at \eqn{s_j} belongs to the interval ending there.
 }
 \examples{
 lambda <- prop_to_haz(0.15, endtime = 36) # 15\% probability at 36-months

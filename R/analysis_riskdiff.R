@@ -244,8 +244,8 @@ risk_difference_fm_from_counts <- function(
 
 #' Estimate event risks under a null risk-difference constraint
 #'
-#' @description Maximizes the joint binomial likelihood subject to the
-#'   treatment risk minus the control risk equaling `h0`.
+#' @description Maximizes the joint binomial likelihood subject to the treatment
+#'   risk minus the control risk equaling `h0`.
 #'
 #' @inheritParams risk_difference_fm_from_counts
 #'

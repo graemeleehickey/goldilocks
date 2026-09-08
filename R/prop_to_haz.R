@@ -7,29 +7,27 @@
 #'   interpretable event probabilities.
 #'
 #' @param probs A required numeric vector of finite cumulative event
-#'   probabilities in `[0, 1)` at
-#'   each cutpoint and at `endtime`, in that order. Its length must be one
-#'   greater than the number of cutpoints. With no cutpoints, supply a single
-#'   probability at `endtime`. Values must be non-decreasing and are not
-#'   recycled.
+#'   probabilities in `[0, 1)` at each cutpoint and at `endtime`, in that order.
+#'   Its length must be one greater than the number of cutpoints. With no
+#'   cutpoints, supply a single probability at `endtime`. Values must be
+#'   non-decreasing and are not recycled.
 #' @param cutpoints `NULL` (the default), or a numeric vector of finite,
-#'   positive, strictly increasing interior
-#'   times at which the event hazard changes. `NULL`
-#'   corresponds to a simple (non-piecewise) exponential model.
+#'   positive, strictly increasing interior times at which the event hazard
+#'   changes. `NULL` corresponds to a simple (non-piecewise) exponential model.
 #' @param endtime A required single finite, positive numeric value giving the
 #'   follow-up time corresponding to the final element of `probs`. It must be
 #'   later than every cutpoint and use the same time unit.
 #'
 #' @details Given \eqn{J-1} interior cutpoints, then there are J intervals
-#'   defined as: \eqn{[s_0, s_1)}, \eqn{[s_1, s_2)}, \eqn{\dots}, \eqn{[s_{J-1},
-#'   s_{J})}, with conditions that \eqn{s_0 = 0} and \eqn{s_J = \infty}. Each
-#'   interval corresponds to constant hazard \eqn{\lambda_j}. This is the
-#'   PWEALL representation of the continuous generating hazard. Changing the
-#'   value at an isolated cutpoint does not alter the cumulative probabilities
-#'   calculated here. When observed event times are assigned to analysis
-#'   intervals, `goldilocks` uses `(s_{j-1}, s_j]`, matching the survival
-#'   counting-process convention, so an event at \eqn{s_j} belongs to the
-#'   interval ending there.
+#'   defined as: \eqn{[s_0, s_1)}, \eqn{[s_1, s_2)}, \eqn{\dots},
+#'   \eqn{[s_{J-1}, s_{J})}, with conditions that \eqn{s_0 = 0} and
+#'   \eqn{s_J = \infty}. Each interval corresponds to constant hazard
+#'   \eqn{\lambda_j}. This is the PWEALL representation of the continuous
+#'   generating hazard. Changing the value at an isolated cutpoint does not
+#'   alter the cumulative probabilities calculated here. When observed event
+#'   times are assigned to analysis intervals, `goldilocks` uses
+#'   `(s_{j-1}, s_j]`, matching the survival counting-process convention, so an
+#'   event at \eqn{s_j} belongs to the interval ending there.
 #'
 #' @return A numeric vector of non-negative hazard rates, with one value for
 #'   each interval defined by `cutpoints` and `endtime`.

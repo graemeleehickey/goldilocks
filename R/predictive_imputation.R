@@ -1,7 +1,7 @@
 #' Generate a batch of interim predictive imputations
 #'
-#' @description Generates expected-success and optional futility imputations
-#'   for every posterior hazard draw. Only rows that require imputation are
+#' @description Generates expected-success and optional futility imputations for
+#'   every posterior hazard draw. Only rows that require imputation are
 #'   retained; observed outcomes remain unchanged when a completed data set is
 #'   constructed for a posterior draw.
 #'
@@ -18,8 +18,8 @@
 #'   current cohort and, when requested, future subjects.
 #'
 #' @details Random inputs are generated in posterior-draw order. Within each
-#'   draw, current-cohort treatment and control imputations precede future-
-#'   subject treatment and control imputations. This matches the scalar
+#'   draw, current-cohort treatment and control imputations precede
+#'   future-subject treatment and control imputations. This matches the scalar
 #'   imputation order when completed-data analysis itself consumes no random
 #'   numbers. In the batched interim calculation, all imputations precede all
 #'   completed-data analyses.

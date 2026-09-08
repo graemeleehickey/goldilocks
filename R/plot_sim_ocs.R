@@ -9,9 +9,9 @@
 #'   `stop_futility`, `stop_max_N`, and `mean_N`. When present,
 #'   `stop_immediate_success` is plotted separately from `stop_success`, which
 #'   retains its historical expected-success meaning.
-#' @param effect A required numeric vector containing one finite treatment-effect
-#'   value per row of `x`, or a single character string naming such a numeric
-#'   column in `x`.
+#' @param effect A required numeric vector containing one finite
+#'   treatment-effect value per row of `x`, or a single character string naming
+#'   such a numeric column in `x`.
 #' @param xlab A single character string for the treatment-effect axis label.
 #'   The default is `"True treatment effect"`.
 #'

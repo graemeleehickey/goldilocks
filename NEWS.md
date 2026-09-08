@@ -2,6 +2,10 @@
 
 ## Documentation
 
+* Explain that the Bayesian binary normal approximation can reverse success
+  decisions with sparse events or posterior event probabilities near 0 or 1.
+  Clarify that increasing `N_mcmc` does not correct approximation error and
+  describe the alternative methods.
 * Make the predictive and analysis prior roles explicit in the simulation and
   observed-interim help pages, a step-by-step technical explanation, and a
   worked example. Clarify that `prior_surv_final` is used in Bayesian survival
@@ -17,6 +21,14 @@
 
 ## Bug fixes
 
+* Preserve the selected final test when no outcomes require imputation, even
+  with `imputed_final = TRUE`. Genuine FM final imputation is now rejected
+  because no validated pooling rule is implemented. FM simulations requesting
+  final imputation require zero dropout in both arms and reject unsupported
+  configurations before generating trials.
+* Rubin pooling now reports a non-estimability error when total variance is
+  zero, instead of assigning an infinite test statistic. A zero within- or
+  between-imputation component remains supported when total variance is positive.
 * Bayesian survival predictions now use `prior_surv` to generate outstanding
   outcomes and `prior_surv_final` to analyze each hypothetical completed trial,
   at both the current and maximum sample sizes. This permits external evidence
@@ -75,8 +87,8 @@
   previous plug-in Wald test. The former `method = "riskdiff"` remains as a
   deprecated alias for `"riskdiff-wald"` and emits a warning. Both explicit
   methods support nonzero risk-difference margins and all three alternatives.
-  Imputed final risk-difference analyses continue to use Rubin's scalar pooling
-  rules and now define the zero-total-variance case rather than aborting (#63).
+  Imputed final Wald risk-difference analyses use Rubin's scalar pooling rules
+  and require positive total variance. FM final imputation is unsupported.
 * For fixed-time binary endpoints, each completed predictive replicate is now
   summarized by the event count and sample size in each arm. These are the
   sufficient statistics for the risk-difference and beta-binomial analyses.

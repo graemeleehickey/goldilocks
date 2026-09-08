@@ -17,9 +17,9 @@ is zero, \code{maxtime} must be supplied so that subjects without an event can
 be administratively censored.}
 
 \item{cutpoints}{\code{NULL} (the default), or a numeric vector of finite,
-positive, strictly increasing interior
-times at which the hazard rate changes. The number of hazard rates must be
-one greater than the number of cutpoints. Use \code{NULL} for a constant hazard.}
+positive, strictly increasing interior times at which the hazard rate
+changes. The number of hazard rates must be one greater than the number of
+cutpoints. Use \code{NULL} for a constant hazard.}
 
 \item{maxtime}{\code{NULL} (the default), or a single finite, positive numeric
 administrative censoring time. When supplied, it must be later than every
@@ -37,13 +37,12 @@ with optional administrative censoring at a fixed follow-up time.
 \details{
 PWEALL represents the generating hazard with pieces closed on the
 left and open on the right. Because the event-time distribution is
-continuous, the value of
-the hazard at an isolated cutpoint does not alter the cumulative hazard,
-distribution, or generated samples. When realized event times are later
-assigned to analysis intervals, \code{goldilocks} follows the survival
-counting-process convention, open on the left and closed on the right, so
-an event exactly at a cutpoint belongs to the interval ending there. See
-\code{\link[=pwe_impute]{pwe_impute()}} for the conditional sampling details.
+continuous, the value of the hazard at an isolated cutpoint does not alter
+the cumulative hazard, distribution, or generated samples. When realized
+event times are later assigned to analysis intervals, \code{goldilocks} follows
+the survival counting-process convention, open on the left and closed on
+the right, so an event exactly at a cutpoint belongs to the interval ending
+there. See \code{\link[=pwe_impute]{pwe_impute()}} for the conditional sampling details.
 }
 \examples{
 pwe_sim(10, hazard = c(0.005, 0.001), cutpoints = 3, maxtime = 36)

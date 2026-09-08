@@ -7,8 +7,8 @@
 #' @inheritParams survival_adapt
 #' @inheritSection survival_adapt Predictive and analysis priors
 #' @inheritParams sim_comp_data
-#' @param N_trials A positive integer giving the number of independent trials
-#'   to simulate. The default is `10`.
+#' @param N_trials A positive integer giving the number of independent trials to
+#'   simulate. The default is `10`.
 #' @param ncores A positive integer giving the maximum number of processor cores
 #'   to use. The default is `1L`, which runs trials sequentially. The number
 #'   actually used cannot exceed `N_trials`; with `backend = "auto"`, at least
@@ -26,19 +26,18 @@
 #'   random-number state unchanged.
 #' @param return_trace A single logical value indicating whether to retain the
 #'   compact interim decision trace from every simulated trial. The default,
-#'   `FALSE`, preserves the
-#'   compact output. When `TRUE`, the returned list also contains a `traces`
-#'   data frame with a `trial` column linking each trace row to the corresponding
-#'   original simulated trial.
+#'   `FALSE`, preserves the compact output. When `TRUE`, the returned list also
+#'   contains a `traces` data frame with a `trial` column linking each trace row
+#'   to the corresponding original simulated trial.
 #'
 #' @details This function is a wrapper for [survival_adapt()] that repeatedly
 #'   simulates independent trials under the same design parameters and assumed
 #'   treatment effect.
 #'
-#'   To use multiple cores (where available), the argument `ncores`
-#'   can be increased from the default of 1. The default `backend = "auto"`
-#'   stays sequential for fewer than four trials and otherwise uses no more than
-#'   one core per two trials. This avoids parallel-processing overhead for small
+#'   To use multiple cores (where available), the argument `ncores` can be
+#'   increased from the default of 1. The default `backend = "auto"` stays
+#'   sequential for fewer than four trials and otherwise uses no more than one
+#'   core per two trials. This avoids parallel-processing overhead for small
 #'   simulation studies. On Unix-like systems parallel trials use forked R
 #'   processes; on Windows they use PSOCK processes. Set `backend` explicitly
 #'   when a particular computational method is required.
@@ -67,14 +66,13 @@
 #'   summary and trace columns, and [summarise_calendar_time()] for wide
 #'   operating-characteristic tables. The returned object also retains the
 #'   evaluated `decision_design` and resolved `prior_design` attributes from
-#'   [survival_adapt()]. An
-#'   `rng_metadata` attribute records the random-number generator, computational
-#'   method, and seed policy. A `parallel_metadata` attribute records the
-#'   requested and actual computational method and number of cores. An `arguments`
-#'   attribute contains a named list of all evaluated argument values, including
-#'   defaults. Its `prop_loss` element contains a named value for every simulated
-#'   arm, and its `rand_ratio` element is stored in `control`, `treatment` order
-#'   for two-arm designs. Its `cutpoints` and
+#'   [survival_adapt()]. An `rng_metadata` attribute records the random-number
+#'   generator, computational method, and seed policy. A `parallel_metadata`
+#'   attribute records the requested and actual computational method and number
+#'   of cores. An `arguments` attribute contains a named list of all evaluated
+#'   argument values, including defaults. Its `prop_loss` element contains a
+#'   named value for every simulated arm, and its `rand_ratio` element is stored
+#'   in `control`, `treatment` order for two-arm designs. Its `cutpoints` and
 #'   `generation_cutpoints` elements retain the analysis and data-generation
 #'   partitions, respectively. For `method = "bayes-bin"`, it also retains the
 #'   imputation priors (`prior_surv` and `prior_surv_final`), completed-data
@@ -192,6 +190,12 @@ sim_trials <- function(
   if (mc_conf_level <= 0.5) {
     stop("'mc_conf_level' must be greater than 0.5 and less than 1")
   }
+  validate_final_imputation(
+    method,
+    imputed_final,
+    has_missing_outcomes = any(prop_loss > 0),
+    N_impute = N_impute
+  )
 
   if (identical(method, "rmst")) {
     validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
@@ -202,12 +206,6 @@ sim_trials <- function(
       is.null(hazard_control),
       imputed_final
     )
-    if (imputed_final && N_impute < 2) {
-      stop(
-        "Frequentist final-analysis imputation requires at least two imputations ",
-        "to apply Rubin's rules"
-      )
-    }
   }
 
   validate_positive_integer_scalar(ncores, "ncores")
@@ -577,8 +575,8 @@ stop_sim_cluster <- function(cluster) {
 #' @title Resolve a trial-simulation backend
 #'
 #' @description Maps the platform-independent `"auto"` choice to sequential,
-#'   fork, or PSOCK computation. Forking is rejected on Windows because R
-#'   does not support it there.
+#'   fork, or PSOCK computation. Forking is rejected on Windows because R does
+#'   not support it there.
 #'
 #' @param backend A single character string naming the requested computational
 #'   method.
@@ -611,19 +609,19 @@ resolve_sim_backend <- function(backend, ncores) {
 #'
 #' @title Prepare a package function for PSOCK execution
 #'
-#' @description Re-homes the package's R functions in a serializable
-#'   environment so PSOCK workers use the same package function definitions as the
-#'   calling session. The package namespace remains the parent environment to
-#'   provide imported functions and compiled routines. This helper is used by
-#'   multi-core Windows execution, where `sim_trials()` selects PSOCK workers
-#'   because forked processes are unavailable. Before the callable is sent,
-#'   `initialize_sim_cluster()` gives each worker the parent package library
-#'   and loads the namespace so registered compiled routines are available.
+#' @description Re-homes the package's R functions in a serializable environment
+#'   so PSOCK workers use the same package function definitions as the calling
+#'   session. The package namespace remains the parent environment to provide
+#'   imported functions and compiled routines. This helper is used by multi-core
+#'   Windows execution, where `sim_trials()` selects PSOCK workers because
+#'   forked processes are unavailable. Before the callable is sent,
+#'   `initialize_sim_cluster()` gives each worker the parent package library and
+#'   loads the namespace so registered compiled routines are available.
 #'
 #' @param name A single character string naming the package function to prepare.
 #'
-#' @return A function with all package R dependencies available in its
-#'   enclosing environment.
+#' @return A function with all package R dependencies available in its enclosing
+#'   environment.
 #'
 #' @keywords internal
 #' @noRd
@@ -652,11 +650,11 @@ make_psock_callable <- function(name) {
 #'
 #' @title Create per-trial random-number streams
 #'
-#' @description Creates one `"L'Ecuyer-CMRG"` random-number stream per
-#'   simulated trial, while preserving the caller's existing RNG kind and
-#'   global `.Random.seed`. These streams are assigned inside each
-#'   `survival_adapt()` call so seeded simulations are reproducible across
-#'   serial and parallel execution.
+#' @description Creates one `"L'Ecuyer-CMRG"` random-number stream per simulated
+#'   trial, while preserving the caller's existing RNG kind and global
+#'   `.Random.seed`. These streams are assigned inside each `survival_adapt()`
+#'   call so seeded simulations are reproducible across serial and parallel
+#'   execution.
 #'
 #' @param seed A single integer used to initialize the random-number stream
 #'   sequence.

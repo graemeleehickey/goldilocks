@@ -1,13 +1,12 @@
 #' @title Plot predictive-probability decision maps
 #'
-#' @description Draws one decision map per interim look across simulated
-#'   trials. The horizontal axis is the predictive probability of success if
-#'   enrollment continues to the maximum sample size, and the vertical axis is
-#'   the predictive probability of success if enrollment stops at the current
-#'   sample size. Shaded regions and dashed lines show the futility,
-#'   continuation, stopping-accrual-for-expected-success, and immediate-success
-#'   rules. Identical points are aggregated; point size indicates their
-#'   frequency.
+#' @description Draws one decision map per interim look across simulated trials.
+#'   The horizontal axis is the predictive probability of success if enrollment
+#'   continues to the maximum sample size, and the vertical axis is the
+#'   predictive probability of success if enrollment stops at the current sample
+#'   size. Shaded regions and dashed lines show the futility, continuation,
+#'   stopping-accrual-for-expected-success, and immediate-success rules.
+#'   Identical points are aggregated; point size indicates their frequency.
 #'
 #' @param x A required result returned by [sim_trials()] with
 #'   `return_trace = TRUE`, or the corresponding `traces` data frame. The trace
@@ -16,8 +15,8 @@
 #'
 #' @details The upper shaded region represents
 #'   `ppp_stop_now > immediate_success_threshold`; the middle region represents
-#'   `success_threshold < ppp_stop_now <= immediate_success_threshold`.
-#'   Futility applies below or at the expected-success threshold when the
+#'   `success_threshold < ppp_stop_now <= immediate_success_threshold`. Futility
+#'   applies below or at the expected-success threshold when the
 #'   maximum-sample-size prediction is strictly below its threshold. A legacy
 #'   trace without `immediate_success_threshold` is treated as if that threshold
 #'   were one, which disables immediate success.

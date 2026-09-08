@@ -13,9 +13,9 @@ per simulation scenario and columns \code{power}, \code{stop_success},
 \code{stop_immediate_success} is plotted separately from \code{stop_success}, which
 retains its historical expected-success meaning.}
 
-\item{effect}{A required numeric vector containing one finite treatment-effect
-value per row of \code{x}, or a single character string naming such a numeric
-column in \code{x}.}
+\item{effect}{A required numeric vector containing one finite
+treatment-effect value per row of \code{x}, or a single character string naming
+such a numeric column in \code{x}.}
 
 \item{xlab}{A single character string for the treatment-effect axis label.
 The default is \code{"True treatment effect"}.}

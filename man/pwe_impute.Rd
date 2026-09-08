@@ -9,17 +9,17 @@ pwe_impute(time, hazard, cutpoints = NULL, maxtime = NULL)
 \arguments{
 \item{time}{A required numeric vector of finite, non-negative event-free
 follow-up times for subjects who have not had an event. When \code{maxtime} is
-supplied, no value may exceed it. A zero-length vector returns
-a zero-row data frame. Values are not recycled against other arguments.}
+supplied, no value may exceed it. A zero-length vector returns a zero-row
+data frame. Values are not recycled against other arguments.}
 
 \item{hazard}{A required numeric vector of finite, non-negative event rates,
 with one value per interval defined by \code{cutpoints}. If the final rate is
 zero, \code{maxtime} must be supplied.}
 
 \item{cutpoints}{\code{NULL} (the default), or a numeric vector of finite,
-positive, strictly increasing interior
-times at which the hazard rate changes. The number of hazard rates must be
-one greater than the number of cutpoints. Use \code{NULL} for a constant hazard.}
+positive, strictly increasing interior times at which the hazard rate
+changes. The number of hazard rates must be one greater than the number of
+cutpoints. Use \code{NULL} for a constant hazard.}
 
 \item{maxtime}{\code{NULL} (the default), or a single finite, positive numeric
 administrative censoring time. When supplied, it must be later than every
@@ -42,10 +42,10 @@ probability is
 \deqn{F_{T | s}(t | s) = P(T \le t | T > s) = \frac{F(t) - F(s)}{1 - F(s)}}
 
 where \eqn{F(\cdot)} is the cumulative distribution function of the
-piecewise exponential (PWE) distribution. Equivalently, \eqn{F(t) = 1 -
-  S(t)}, where \code{S(t)} is the survival function. If \eqn{U \sim Unif(0, 1)},
-then we can generate an event time (conditional on being event free up
-until \eqn{s}) as
+piecewise exponential (PWE) distribution. Equivalently,
+\eqn{F(t) = 1 - S(t)}, where \code{S(t)} is the survival function. If
+\eqn{U \sim Unif(0, 1)}, then we can generate an event time (conditional on
+being event free up until \eqn{s}) as
 
 \deqn{F^{-1}(U(1 - F(s)) + F(s))}
 

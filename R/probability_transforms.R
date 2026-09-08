@@ -15,8 +15,8 @@ cumulative_hazard_to_probability <- function(cumulative_hazard) {
 
 #' @title Convert event probabilities to cumulative hazards
 #'
-#' @description Uses `log1p()` to retain precision for probabilities near
-#'   zero. Zero maps to zero, one maps to positive infinity, and missing values
+#' @description Uses `log1p()` to retain precision for probabilities near zero.
+#'   Zero maps to zero, one maps to positive infinity, and missing values
 #'   propagate without warnings.
 #'
 #' @param probability A numeric vector of event probabilities in `[0, 1]`.

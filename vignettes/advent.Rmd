@@ -602,10 +602,22 @@ oc_small <- summarise_sims(list(
   "margin: PFA failure 50%" = eff_null_boundary
 ))
 
-knitr::kable(oc_small, digits = 3)
+knitr::kable(
+  oc_small[c(
+    "scenario", "n_used", "n_failed", "power", "stop_success",
+    "stop_futility", "stop_max_N", "mean_N"
+  )],
+  digits = 3,
+  col.names = c(
+    "Scenario", "Trials used", "Failed runs", "Success probability",
+    "Expected success stop", "Futility stop", "Maximum N", "Mean N"
+  )
+)
 ```
 
-Each scenario uses 500 simulated trials and two cores. These results are
+The table displays selected operating characteristics; `oc_small` retains the
+full summary, including Monte Carlo uncertainty. Each scenario uses 500
+simulated trials and two cores. These results are
 illustrative rather than definitive estimates of power or type I error. A
 design evaluation should increase `N_trials` and `N_impute` as needed for
 Monte Carlo precision and examine sensitivity to accrual, loss to follow-up,

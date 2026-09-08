@@ -18,8 +18,8 @@
 #'   success at the maximum sample size.
 #' @inheritParams survival_adapt
 #'
-#' @return A list containing predictive probabilities, the decision, Monte
-#'   Carlo summaries, diagnostics, and a one-row decision trace.
+#' @return A list containing predictive probabilities, the decision, Monte Carlo
+#'   summaries, diagnostics, and a one-row decision trace.
 #'
 #' @keywords internal
 #' @noRd

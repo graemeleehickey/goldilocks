@@ -15,31 +15,30 @@ sizes. Every block size must be a multiple of \code{sum(allocation)}. The
 default is \code{2}.}
 
 \item{allocation}{A length-two positive integer vector giving the control to
-treatment allocation ratio. The default is
-\code{c(control = 1, treatment = 1)}. Name the values
-\code{control} and \code{treatment}; either supplied order is accepted and matched by
-name. A legacy unnamed vector remains accepted in
+treatment allocation ratio. The default is \code{c(control = 1, treatment = 1)}.
+Name the values \code{control} and \code{treatment}; either supplied order is
+accepted and matched by name. A legacy unnamed vector remains accepted in
 \code{c(control, treatment)} order. Unequal unnamed values produce a warning
 because names may be required in a future major release.}
 }
 \value{
-An integer treatment assignment vector, coded \code{0} for control and
-\code{1} for treatment.
+An integer treatment assignment vector, coded \code{0} for control and \code{1}
+for treatment.
 }
 \description{
-Generates a randomized treatment assignment sequence for
-control and treatment arms using a fixed allocation ratio and one or more
-permitted block sizes.
+Generates a randomized treatment assignment sequence for control
+and treatment arms using a fixed allocation ratio and one or more permitted
+block sizes.
 }
 \details{
 Complete randomization may not always be ideal due to the chance of
 drawing a large block assigned to one treatment group, potentially
 impacting the time to enrollment completion. Therefore, a block
 randomization allocation may be preferable. The block randomization
-allocation specification allows for different two-arm randomization
-ratios, but they must be given in integer form. For every value \code{b} in
-\code{block}, the required relationship is \code{b \%\% sum(allocation) == 0}; see the
-equal- and unequal-allocation examples below.
+allocation specification allows for different two-arm randomization ratios,
+but they must be given in integer form. For every value \code{b} in \code{block}, the
+required relationship is \code{b \%\% sum(allocation) == 0}; see the equal- and
+unequal-allocation examples below.
 }
 \examples{
 # Implementing treatment allocation for control to treatment with 1:1.5

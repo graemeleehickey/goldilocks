@@ -6,8 +6,8 @@
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
-#' @param prepared_outcomes A list of fixed outcomes and imputation
-#'   positions returned by `prepare_predictive_outcomes()`.
+#' @param prepared_outcomes A list of fixed outcomes and imputation positions
+#'   returned by `prepare_predictive_outcomes()`.
 #' @param imputations A list of interim predictive imputations returned by
 #'   `impute_predictive_draws()`.
 #' @param draw A positive integer identifying the predictive imputation to
@@ -130,9 +130,9 @@ analyse_predictive_survival <- function(
 #'   beta-binomial analysis uses fresh posterior draws for every replicate,
 #'   including replicates with identical event counts.
 #'
-#' @param completed_counts A list returned by
-#'   `predictive_binary_counts()`, containing arm-specific event counts
-#'   and sample sizes for the current and maximum-sample completions.
+#' @param completed_counts A list returned by `predictive_binary_counts()`,
+#'   containing arm-specific event counts and sample sizes for the current and
+#'   maximum-sample completions.
 #' @param single_arm A single logical value indicating a one-arm design.
 #' @param N_mcmc A positive integer giving the number of beta-posterior draws
 #'   for `method = "bayes-bin"` and `bin_method = "mc"`.
@@ -153,10 +153,10 @@ analyse_predictive_survival <- function(
 #' @param mc_conf_level A numeric probability strictly between `0.5` and `1`
 #'   giving the level of diagnostic Monte Carlo bounds.
 #'
-#' @return A list containing the numbers of successful current and maximum-
-#'   sample predictive replicates, counts of classifications with material
-#'   inner Monte Carlo uncertainty, and a summary of repeated sufficient-
-#'   statistic combinations.
+#' @return A list containing the numbers of successful current and
+#'   maximum-sample predictive replicates, counts of classifications with
+#'   material inner Monte Carlo uncertainty, and a summary of repeated
+#'   sufficient-statistic combinations.
 #'
 #' @keywords internal
 #' @noRd
@@ -275,11 +275,11 @@ analyse_predictive_binary_counts <- function(
 
 #' Identify equivalent completed binary analyses
 #'
-#' @description Creates one identifier per predictive replicate from the arm-
-#'   specific sufficient statistics and all fixed analysis settings. Replicates
-#'   with the same identifier have the same deterministic completed-data
-#'   result. The success threshold is applied afterwards and is not part of
-#'   this result.
+#' @description Creates one identifier per predictive replicate from the
+#'   arm-specific sufficient statistics and all fixed analysis settings.
+#'   Replicates with the same identifier have the same deterministic
+#'   completed-data result. The success threshold is applied afterwards and is
+#'   not part of this result.
 #'
 #' @param counts A data frame containing event counts and sample sizes for the
 #'   control and treatment arms.

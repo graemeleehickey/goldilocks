@@ -37,9 +37,9 @@ complete_predictive_data <- function(
 #' Prepare outcome vectors for repeated survival analyses
 #'
 #' @description Retains the observed `time`, `event`, and `treatment` vectors
-#'   needed for completed-data survival analyses and calculates the positions
-#'   at which current and future imputations will be inserted. This preparation
-#'   is performed once for an interim look.
+#'   needed for completed-data survival analyses and calculates the positions at
+#'   which current and future imputations will be inserted. This preparation is
+#'   performed once for an interim look.
 #'
 #' @param data_in A data frame containing the prepared interim data.
 #' @param imputations Predictive imputations returned by
@@ -131,8 +131,8 @@ prepare_predictive_outcomes <- function(
 #' Complete one predictive survival outcome
 #'
 #' @description Inserts one predictive replicate into the outcome vectors
-#'   prepared by `prepare_predictive_outcomes()`. Treatment assignments
-#'   are reused because they do not vary across predictive replicates.
+#'   prepared by `prepare_predictive_outcomes()`. Treatment assignments are
+#'   reused because they do not vary across predictive replicates.
 #'
 #' @param prepared Prepared predictive outcomes returned by
 #'   `prepare_predictive_outcomes()`.
@@ -192,13 +192,12 @@ complete_predictive_outcomes <- function(
 #' @param imputations A list of current-cohort and future-subject endpoint
 #'   imputations returned by `impute_predictive_draws()`.
 #' @param single_arm A single logical value indicating a one-arm design.
-#' @param check_futility A single logical value indicating whether maximum-
-#'   sample-size completions are required for the futility calculation.
+#' @param check_futility A single logical value indicating whether
+#'   maximum-sample-size completions are required for the futility calculation.
 #'
 #' @return A list containing data frames for the currently enrolled cohort and,
-#'   when requested, the maximum sample size. Each row represents one
-#'   predictive replicate and contains control and treatment event counts and
-#'   sample sizes.
+#'   when requested, the maximum sample size. Each row represents one predictive
+#'   replicate and contains control and treatment event counts and sample sizes.
 #'
 #' @keywords internal
 #' @noRd

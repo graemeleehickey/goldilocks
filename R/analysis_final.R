@@ -1,41 +1,43 @@
 #' @title Conduct the prespecified final analysis
 #'
-#' @description Applies the selected final analysis after accrual has stopped and
-#'   the available follow-up is complete. Depending on `imputed_final`, subjects
-#'   lost to follow-up are either handled as observed censored outcomes or have
-#'   their outcomes multiply imputed.
+#' @description Applies the selected final analysis after accrual has stopped
+#'   and the available follow-up is complete. Depending on `imputed_final`,
+#'   subjects lost to follow-up are either handled as observed censored outcomes
+#'   or have their outcomes multiply imputed.
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
 #' @param data_in A data frame with one row per enrolled subject and columns for
-#'   treatment assignment (`treatment`, coded `1`
-#'   for treatment and `0` for control; single-arm designs use all 1s),
-#'   event time (`time`), event indicator (`event`), and indicator of
-#'   whether the subject requires imputation for expected success
-#'   (`subject_impute_success`).
+#'   treatment assignment (`treatment`, coded `1` for treatment and `0` for
+#'   control; single-arm designs use all 1s), event time (`time`), event
+#'   indicator (`event`), and indicator of whether the subject requires
+#'   imputation for expected success (`subject_impute_success`).
 #'
 #' @details Interim predictive calculations complete all outcomes that are not
 #'   yet observed. At the final analysis, `imputed_final = TRUE` likewise
-#'   imputes outcomes for subjects lost to follow-up before `end_of_study`.
-#'   With `imputed_final = FALSE`, time-to-event analyses retain their observed
+#'   imputes outcomes for subjects lost to follow-up before `end_of_study`. With
+#'   `imputed_final = FALSE`, time-to-event analyses retain their observed
 #'   right-censoring, whereas binary analyses (`method = "riskdiff-wald"`,
 #'   `"riskdiff-fm"`, or `"bayes-bin"`) exclude subjects without complete
 #'   endpoint status. Design evaluations should prespecify this choice and
 #'   assess sensitivity to it when appreciable loss to follow-up is expected.
-#'   Independent dropout supports right-censored survival inference but does
-#'   not imply unbiased complete-case binary inference: an early event can be
+#'   Independent dropout supports right-censored survival inference but does not
+#'   imply unbiased complete-case binary inference: an early event can be
 #'   observed before dropout while a later endpoint outcome is missing.
+#'   If no final outcomes require imputation, the selected complete-data test
+#'   is used directly with either flag. Genuine final imputation is unsupported
+#'   for `method = "riskdiff-fm"` because no validated FM pooling rule is
+#'   implemented.
 #'
 #' @return A length-two numeric vector containing the posterior probability (or
 #'   `1 - P` for a frequentist analysis) for the alternative hypothesis,
-#'   followed by the treatment-effect estimate. For an imputed
-#'   Cox analysis these are the Rubin-pooled Wald-test result and pooled log
-#'   hazard ratio. An imputed RMST analysis likewise pools RMST differences
-#'   and their Greenwood variances and reports a difference in time units.
-#'   For an imputed risk-difference analysis these are the
-#'   Rubin-pooled Wald-test result and pooled treatment-control event-risk
-#'   difference. Bayesian imputed analyses average their summaries over
-#'   imputations.
+#'   followed by the treatment-effect estimate. For an imputed Cox analysis
+#'   these are the Rubin-pooled Wald-test result and pooled log hazard ratio. An
+#'   imputed RMST analysis likewise pools RMST differences and their Greenwood
+#'   variances and reports a difference in time units. For an imputed
+#'   `riskdiff-wald` analysis these are the Rubin-pooled Wald-test result and
+#'   pooled treatment-control event-risk difference. Bayesian imputed analyses
+#'   average their summaries over imputations.
 #' @noRd
 analyse_final <- function(
   data_in,
@@ -64,25 +66,22 @@ analyse_final <- function(
   if (method == "rmst") {
     validate_rmst_args(rmst_tau, end_of_study, h0)
   }
-  interval_widths <- if (imputed_final && method == "bayes-surv") {
+  has_missing_outcomes <- any(data_in$event == 0 & data_in$time < end_of_study)
+  validate_final_imputation(
+    method,
+    imputed_final,
+    has_missing_outcomes,
+    N_impute
+  )
+  # Complete final data use the selected test directly, regardless of the flag.
+  requires_imputation <- imputed_final && has_missing_outcomes
+  interval_widths <- if (requires_imputation && method == "bayes-surv") {
     endpoint_interval_widths(cutpoints, end_of_study)
   } else {
     NULL
   }
 
-  if (imputed_final) {
-    if (
-      method %in%
-        c("cox", "rmst", "riskdiff-wald", "riskdiff-fm") &&
-        N_impute < 2
-    ) {
-      stop(
-        "Frequentist final-analysis imputation requires at least two ",
-        "imputations ",
-        "to apply Rubin's rules"
-      )
-    }
-
+  if (requires_imputation) {
     # Posterior distribution of lambdas: final data
     post_lambda_final <- posterior(
       data = data_in,
@@ -162,7 +161,7 @@ analyse_final <- function(
         )
         effect_final[j] <- fit_rmst$estimate
         variance_final[j] <- fit_rmst$variance
-      } else if (method %in% c("riskdiff-wald", "riskdiff-fm")) {
+      } else if (method == "riskdiff-wald") {
         fit_riskdiff <- risk_difference_estimate_checked(
           data = data,
           end_of_study = end_of_study
@@ -193,7 +192,7 @@ analyse_final <- function(
       }
     }
 
-    if (method %in% c("cox", "rmst", "riskdiff-wald", "riskdiff-fm")) {
+    if (method %in% c("cox", "rmst", "riskdiff-wald")) {
       if (method == "rmst") {
         assert_rmst_variance(
           mean(variance_final) + (1 + 1 / N_impute) * var(effect_final)

@@ -465,7 +465,15 @@ oc_display <- anthem_oc[c(
   "mean_N_mcse"
 )]
 
-knitr::kable(oc_display, digits = 3)
+knitr::kable(
+  oc_display,
+  digits = 3,
+  col.names = c(
+    "Scenario", "Trials used", "Power", "Power MCSE",
+    "Power lower 95% MC", "Power upper 95% MC", "Expected success stop",
+    "Futility stop", "Mean N", "Mean N MCSE"
+  )
+)
 ```
 
 For the corresponding sponsor scenario - 35% control event probability at one

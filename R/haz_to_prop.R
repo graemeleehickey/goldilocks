@@ -1,8 +1,8 @@
 #' @title Convert posterior hazard draws to endpoint event probabilities
 #'
-#' @description Calculates arm-specific event probabilities at a fixed
-#'   follow-up time from draws of piecewise-exponential hazard rates, together
-#'   with the treatment effect on the event-probability scale.
+#' @description Calculates arm-specific event probabilities at a fixed follow-up
+#'   time from draws of piecewise-exponential hazard rates, together with the
+#'   treatment effect on the event-probability scale.
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
@@ -20,7 +20,8 @@
 #'   - `p_control`: Posterior event probabilities for the control arm, or `NA`
 #'     for a single-arm design.
 #'   - `effect`: Treatment-arm event probability for a single-arm design, or the
-#'     treatment-minus-control event-probability difference for a two-arm design.
+#'     treatment-minus-control event-probability difference for a two-arm
+#'     design.
 #'
 #' @noRd
 haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {

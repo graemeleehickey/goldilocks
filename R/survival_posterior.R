@@ -7,22 +7,21 @@
 #' @inheritParams survival_adapt
 #' @inheritParams haz_to_prop
 #' @param data A data frame with one row per subject and at least three columns:
-#'   follow-up time (`time`), event indicator (`event`), and
-#'   treatment assignment (`treatment`, coded `1` for treatment and
-#'   `0` for control). Additional columns are ignored.
+#'   follow-up time (`time`), event indicator (`event`), and treatment
+#'   assignment (`treatment`, coded `1` for treatment and `0` for control).
+#'   Additional columns are ignored.
 #' @param empty_interval A single character string specifying how to handle a
-#'   piecewise interval with no
-#'   exposed subjects in a treatment arm. `"propagate"` copies sufficient
-#'   statistics from the nearest non-empty interval in the same arm;
-#'   `"prior"` (the default) leaves the interval with zero exposure and zero
-#'   events, making
-#'   the posterior prior-driven; `"error"` stops with a clear message.
+#'   piecewise interval with no exposed subjects in a treatment arm.
+#'   `"propagate"` copies sufficient statistics from the nearest non-empty
+#'   interval in the same arm; `"prior"` (the default) leaves the interval with
+#'   zero exposure and zero events, making the posterior prior-driven; `"error"`
+#'   stops with a clear message.
 #'
-#' @return An array of dimension 3. The first dimension is of length
-#'   `N_mcmc`, the second dimension is of length \eqn{J} (one column for
-#'   each hazard piece), and the third dimension is of length 2, with the first
-#'   slice including posterior samples from `post_treatment`, and the
-#'   second slice including posterior samples from `post_control`.
+#' @return An array of dimension 3. The first dimension is of length `N_mcmc`,
+#'   the second dimension is of length \eqn{J} (one column for each hazard
+#'   piece), and the third dimension is of length 2, with the first slice
+#'   including posterior samples from `post_treatment`, and the second slice
+#'   including posterior samples from `post_control`.
 #'
 #' @importFrom stats rgamma
 #'
@@ -87,9 +86,8 @@ posterior <- function(
 #'   combined with the prespecified analysis prior here to form a fresh second
 #'   posterior. For Bayesian survival prediction, the caller supplies
 #'   `prior_surv_final` for this analysis, which may differ from the
-#'   `prior_surv` used to generate the completed data.
-#'   Using the first posterior as the second-stage prior would count the observed
-#'   data twice.
+#'   `prior_surv` used to generate the completed data. Using the first posterior
+#'   as the second-stage prior would count the observed data twice.
 #'
 #' @return See `posterior()`.
 #'

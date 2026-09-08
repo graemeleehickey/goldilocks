@@ -5,8 +5,8 @@
 #'   Threshold crossing uses the point estimate; the bounds are diagnostic and
 #'   do not alter the decision.
 #'
-#' @param successes A non-negative integer giving the number of successful
-#'   Monte Carlo draws.
+#' @param successes A non-negative integer giving the number of successful Monte
+#'   Carlo draws.
 #' @param draws A positive integer giving the total number of Monte Carlo draws.
 #' @param threshold A single numeric probability in `[0, 1]` against which the
 #'   estimated probability is compared.

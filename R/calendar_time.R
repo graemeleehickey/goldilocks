@@ -1,12 +1,11 @@
 #' Summarize operating characteristics on the calendar-time scale
 #'
-#' @description
-#' Summarizes trial duration, follow-up burden, and (when retained) interim-look
-#' timing without adding any new simulation arguments. Calendar time is measured
-#' from the first patient's enrollment at time zero. `analysis_ready_time` is
-#' the time at which the last enrolled subject's observed event or censoring
-#' becomes available; it does not include external data-cleaning or database-lock
-#' delays.
+#' @description Summarizes trial duration, follow-up burden, and (when retained)
+#'   interim-look timing without adding any new simulation arguments. Calendar
+#'   time is measured from the first patient's enrollment at time zero.
+#'   `analysis_ready_time` is the time at which the last enrolled subject's
+#'   observed event or censoring becomes available; it does not include external
+#'   data-cleaning or database-lock delays.
 #'
 #' Pass a complete result from [sim_trials()] to retain requested, analyzed, and
 #' failed simulation counts. Interim timing requires simulations run with
@@ -14,9 +13,8 @@
 #' the trial-duration table can then be calculated.
 #'
 #' @param data A required complete result returned by [sim_trials()], a
-#'   simulation
-#'   `data.frame`, or a list of either form. Named list elements identify
-#'   scenarios. Existing `scenario` columns and grouping variables are
+#'   simulation `data.frame`, or a list of either form. Named list elements
+#'   identify scenarios. Existing `scenario` columns and grouping variables are
 #'   preserved.
 #'
 #' @return An object of class `goldilocks_calendar_summary`, containing two wide

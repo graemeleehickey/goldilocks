@@ -7,16 +7,16 @@
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
 #' @inheritParams haz_to_prop
-#' @param data A data frame with one row per subject and columns `time`, `event`,
-#'   and `treatment`. It contains the observed or imputed outcomes to be analyzed
-#'   using the prespecified method.
+#' @param data A data frame with one row per subject and columns `time`,
+#'   `event`, and `treatment`. It contains the observed or imputed outcomes to
+#'   be analyzed using the prespecified method.
 #'
 #' @return A list with two elements:
 #'
 #'   - `success`: Analysis-specific success score:
-#'     - if `method = "bayes-surv"`, the posterior probability that the treatment
-#'       effect is greater than `h0` when `alternative = "greater"`, or less
-#'       than `h0` when `alternative = "less"`;
+#'     - if `method = "bayes-surv"`, the posterior probability that the
+#'       treatment effect is greater than `h0` when `alternative = "greater"`,
+#'       or less than `h0` when `alternative = "less"`;
 #'     - if `method = "logrank"`, 1 minus the log-rank test *P*-value, using a
 #'       two-sided *P*-value when `alternative = "two.sided"` and a one-sided
 #'       *P*-value otherwise;
@@ -27,21 +27,21 @@
 #'     - if `method = "rmst"`, 1 minus the Wald-test *P*-value for the
 #'       treatment-control RMST difference through `rmst_tau` versus `h0`;
 #'     - if `method = "bayes-bin"`, the posterior probability that the binary
-#'       event proportion (single-arm) or treatment-control difference in
-#'       binary event proportions (two-arm) is greater than `h0` when
+#'       event proportion (single-arm) or treatment-control difference in binary
+#'       event proportions (two-arm) is greater than `h0` when
 #'       `alternative = "greater"`, or less than `h0` when
 #'       `alternative = "less"`;
 #'     - if `method = "riskdiff-wald"`, 1 minus the Wald-test *P*-value for the
-#'       treatment-control difference in binary event proportions compared
-#'       with `h0`;
+#'       treatment-control difference in binary event proportions compared with
+#'       `h0`;
 #'     - if `method = "riskdiff-fm"`, 1 minus the Farrington-Manning score-test
 #'       *P*-value for the same risk difference.
 #'   - `effect`: Posterior mean effect for `method = "bayes-surv"` or
-#'     `method = "bayes-bin"`, the estimated log hazard ratio for `method =
-#'     "cox"`, the estimated treatment-control RMST difference in time units
-#'     for `method = "rmst"`, the estimated treatment-control event-proportion difference for
-#'     `method = "riskdiff-wald"` or `"riskdiff-fm"`, or `NA` for `method =
-#'     "logrank"`.
+#'     `method = "bayes-bin"`, the estimated log hazard ratio for
+#'     `method = "cox"`, the estimated treatment-control RMST difference in time
+#'     units for `method = "rmst"`, the estimated treatment-control
+#'     event-proportion difference for `method = "riskdiff-wald"` or
+#'     `"riskdiff-fm"`, or `NA` for `method = "logrank"`.
 #'
 #' @importFrom stats dbeta integrate pbeta pnorm rbeta
 #' @import Rcpp
@@ -203,8 +203,8 @@ analyse_data <- function(
 #'   through `end_of_study` for a Bayesian survival analysis.
 #' @inheritParams analyse_data
 #'
-#' @return A list containing the analysis-specific success score and treatment-
-#'   effect estimate.
+#' @return A list containing the analysis-specific success score and
+#'   treatment-effect estimate.
 #'
 #' @keywords internal
 #' @noRd

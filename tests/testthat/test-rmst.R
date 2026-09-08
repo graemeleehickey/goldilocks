@@ -175,6 +175,7 @@ test_that("RMST validates outcome data, horizons, margins, and configuration", {
   args$hazard_control <- 0.1
   args$imputed_final <- TRUE
   args$N_impute <- 1
+  args$prop_loss <- 0.1
   expect_error(do.call(survival_adapt, args), "at least two imputations")
   expect_error(
     do.call(sim_trials, c(args, list(N_trials = 1))),
