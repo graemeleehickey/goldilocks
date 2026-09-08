@@ -10,9 +10,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  cache.path = "bayes-piecewise-cache/",
-  cache.extra = as.character(utils::packageVersion("goldilocks"))
+  comment = "#>"
 )
 set.seed(7194)
 ```
@@ -28,6 +26,12 @@ The "Two-arm randomized trials" vignette uses `method = "logrank"` and a single 
 
 We first use a small example to show the analysis of one adaptive trial, then
 outline the repeated simulations needed to evaluate operating characteristics.
+
+The Bayesian rule here targets the difference in event probabilities at
+`end_of_study`. If the prespecified endpoint is instead average event-free
+time through a fixed horizon, see the [RMST vignette](rmst.html). RMST uses the
+same piecewise-exponential predictive machinery but a different completed-data
+test, effect scale, and direction of benefit (`alternative = "greater"`).
 
 ## When piecewise hazards help
 
@@ -174,7 +178,7 @@ distribution with rate 5. For piecewise accrual, `lambda = c(2, 5)` and
 month 6 and five per month thereafter. Enrollment-rate change-points use trial
 calendar time, whereas hazard `cutpoints` use participant follow-up time.
 
-```{r run_one_trial, cache=TRUE}
+```{r run_one_trial}
 set.seed(7194)
 
 out <- survival_adapt(

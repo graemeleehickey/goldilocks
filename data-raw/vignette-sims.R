@@ -1,7 +1,11 @@
 #' Vignette simulations
-#' Run offline (outside of CRAN) and save to ./data-raw
+#' Run offline (outside of CRAN) and save to ./vignettes
 
-library(goldilocks)
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(".", quiet = TRUE)
+} else {
+  library(goldilocks)
+}
 
 hc <- prop_to_haz(0.7, endtime = 12)
 ht <- prop_to_haz(0.5, endtime = 12)
@@ -18,7 +22,7 @@ out_power <- sim_trials(
   end_of_study = 12,
   prior_surv = c(0.1, 0.1),
   block = 2,
-  rand_ratio = c(1, 1),
+  rand_ratio = c(control = 1, treatment = 1),
   prop_loss = 0,
   alternative = "two.sided",
   Fn = rep(0.10, 8),
@@ -44,10 +48,10 @@ out_t1error2 <- update(
 )
 
 summarise_sims(list(
-  out_power$sims,
-  out_t1error$sims,
-  out_power2$sims,
-  out_t1error2$sims
+  out_power,
+  out_t1error,
+  out_power2,
+  out_t1error2
 ))
 
 save(

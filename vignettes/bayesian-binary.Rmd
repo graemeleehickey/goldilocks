@@ -237,7 +237,11 @@ oc <- summarise_sims(list(
   "target: treatment event probability 25%" = out_power,
   "null: treatment event probability 35%" = out_null
 ))
-oc$true_treatment_event_probability <- c(0.25, 0.35)
+effect_by_scenario <- c(
+  "target: treatment event probability 25%" = 0.25,
+  "null: treatment event probability 35%" = 0.35
+)
+oc$true_treatment_event_probability <- unname(effect_by_scenario[oc$scenario])
 
 oc
 plot_sim_ocs(
