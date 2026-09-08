@@ -154,6 +154,111 @@ must have an exactly allocable maximum sample size: for example, a 1:2
 ratio requires `N_total` to be divisible by three. Observed enrollment
 in either arm cannot already exceed its implied maximum.
 
+## Using separate predictive and analysis priors
+
+Suppose a sponsor wants external evidence to inform the prediction of
+future events, while the Bayesian survival success test uses a diffuse
+prior. Supply both `prior_surv` and `prior_surv_final`. **The latter is
+used now, inside each interim predictive replicate, as well as at the
+actual final analysis.**
+
+| Step in one interim predictive replicate | Prior used |
+|----|----|
+| Update observed events and exposure, draw hazards, and generate outstanding outcomes | `prior_surv` |
+| Analyze that hypothetical completed trial and compare its posterior probability with `prob_ha` | `prior_surv_final` |
+
+Repeat these steps and calculate the fraction of completed trials that
+pass. The same pair of priors is used for current-sample and
+maximum-sample predictions. Each completed-data analysis starts from the
+specified analysis prior, rather than using the prediction posterior as
+a new prior.
+
+For this illustration, interpret the data’s time units as months. The
+predictive Gamma priors below have mean hazards of 0.05 and 0.03 per
+month for control and treatment. Their rate parameters use
+patient-months. These values are illustrative; the actual predictive
+prior needs justification from the external evidence and a
+prior-predictive assessment.
+
+``` r
+
+predictive_prior <- list(
+  control = c(shape = 10, rate = 200),
+  treatment = c(shape = 6, rate = 200)
+)
+analysis_prior <- c(shape = 0.1, rate = 0.1)
+
+bayes_prior_result <- evaluate_interim(
+  data = interim_cut,
+  data_cut = 8,
+  look = 2,
+  N_total = 12,
+  end_of_study = 10,
+  method = "bayes-surv",
+  alternative = "less",
+  h0 = 0,
+  prior_surv = predictive_prior,    # Generates outstanding outcomes
+  prior_surv_final = analysis_prior, # Tests each hypothetical completed trial
+  Fn = 0.05,
+  Sn = 0.90,
+  Qn = 1,
+  prob_ha = 0.975,
+  N_impute = 100,
+  N_mcmc = 1000,
+  seed = 20260909
+)
+
+knitr::kable(
+  bayes_prior_result$diagnostics$prior[
+    c("stage", "arm", "shape", "rate", "mean_hazard")
+  ],
+  digits = 3,
+  caption = "Gamma priors used in the two parts of this interim calculation."
+)
+```
+
+| stage   | arm       | shape |  rate | mean_hazard |
+|:--------|:----------|------:|------:|------------:|
+| interim | control   |  10.0 | 200.0 |        0.05 |
+| interim | treatment |   6.0 | 200.0 |        0.03 |
+| final   | control   |   0.1 |   0.1 |        1.00 |
+| final   | treatment |   0.1 |   0.1 |        1.00 |
+
+Gamma priors used in the two parts of this interim calculation. {.table}
+
+``` r
+
+bayes_prior_result$probabilities
+#>              estimand probability threshold direction threshold_crossed
+#> 1 success_if_stop_now        0.00      0.90   greater             FALSE
+#> 2  success_at_maximum        0.03      0.05      less              TRUE
+```
+
+Here the rows labelled `final` describe the analysis prior already used
+to test the hypothetical completed datasets. `diagnostics$posterior`
+describes the predictive posterior based on the observed interim data.
+
+**Omitting `prior_surv_final` would also use `predictive_prior` in the
+success tests. The package does not automatically replace an informative
+predictive prior with a weak analysis prior.** The two priors need not
+be distinct; the default intentionally uses one prior for both roles.
+
+Use these same two arguments in
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+or
+[`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+when calibrating the design. The small Monte Carlo sizes here
+demonstrate the API; precision and operating characteristics must be
+assessed for the deployed design. At the actual final analysis,
+`prior_surv_final` is also used for any optional imputation of missing
+outcomes. Even with a separate analysis prior, predictive borrowing can
+affect the stopping decision and sample size.
+
+This example concerns `method = "bayes-surv"`. With
+`method = "bayes-bin"`, the completed-data success tests use `prior_bin`
+at both interim and final; `prior_surv_final` controls only optional
+final imputation.
+
 ## Using a prespecified RMST endpoint
 
 For a design that prespecifies RMST as its analysis, supply

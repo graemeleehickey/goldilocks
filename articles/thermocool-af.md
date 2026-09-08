@@ -584,11 +584,16 @@ knitr::kable(
     "stopping_reason",
     "decision_time"
   )],
-  digits = 3
+  digits = 3,
+  col.names = c(
+    "Enrolled N", "Predictive success", "Immediate success stop",
+    "Expected success stop", "Futility stop", "Trial success",
+    "Stopping reason", "Decision time"
+  )
 )
 ```
 
-| N_enrolled | ppp_success | stop_immediate_success | stop_expected_success | stop_futility | trial_success | stopping_reason | decision_time |
+| Enrolled N | Predictive success | Immediate success stop | Expected success stop | Futility stop | Trial success | Stopping reason | Decision time |
 |---:|---:|---:|---:|---:|:---|:---|---:|
 | 150 | 1 | 1 | 0 | 0 | TRUE | immediate_success | 31.56 |
 
@@ -615,16 +620,22 @@ knitr::kable(
     "futility_threshold",
     "decision"
   )],
-  digits = 3
+  digits = 3,
+  col.names = c(
+    "Look", "Planned N", "PPSn", "Immediate success cut",
+    "Expected success cut", "PPSmax", "Futility cut", "Decision"
+  )
 )
 ```
 
-| look | planned_N | ppp_stop_now | immediate_success_threshold | success_threshold | ppp_success_at_max | futility_threshold | decision |
+| Look | Planned N | PPSn | Immediate success cut | Expected success cut | PPSmax | Futility cut | Decision |
 |---:|---:|---:|---:|---:|---:|---:|:---|
 | 1 | 150 | 1 | 0.99 | 0.9 | 1 | 0.01 | stop_immediate_success |
 
-Only looks actually reached appear in the trace. An immediate-success
-decision prevents all subsequent looks.
+Here, PPSn is `ppp_stop_now`, PPSmax is `ppp_success_at_max`, and the
+three cut columns show the immediate-success, expected-success, and
+futility thresholds. Only looks actually reached appear in the trace. An
+immediate-success decision prevents all subsequent looks.
 
 ## Small operating-characteristic demonstration
 
@@ -702,10 +713,17 @@ oc_display <- oc_small[, c(
 names(oc_display)[names(oc_display) == "stop_success"] <-
   "stop_expected_success"
 
-knitr::kable(oc_display, digits = 3)
+knitr::kable(
+  oc_display,
+  digits = 3,
+  col.names = c(
+    "Scenario", "Trials analyzed", "Power", "Immediate success stop",
+    "Expected success stop", "Futility stop", "Maximum N", "Mean N"
+  )
+)
 ```
 
-| scenario | n_analyzed | power | stop_immediate_success | stop_expected_success | stop_futility | stop_max_N | mean_N |
+| Scenario | Trials analyzed | Power | Immediate success stop | Expected success stop | Futility stop | Maximum N | Mean N |
 |:---|---:|---:|---:|---:|---:|---:|---:|
 | Published benefit: 0.45 vs 0.20 | 50 | 0.94 | 0.68 | 0.16 | 0.02 | 0.14 | 165.7 |
 | Published null: 0.20 vs 0.20 | 50 | 0.00 | 0.00 | 0.02 | 0.86 | 0.12 | 170.1 |

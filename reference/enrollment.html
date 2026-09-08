@@ -57,9 +57,9 @@ piecewise-constant rate.</p>
 
 <dl><dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
 <dd><p>A numeric vector of finite, positive enrollment rates per unit
-of calendar time. Supply one
-rate for each interval defined by <code>lambda_time</code>, so <code>length(lambda)</code> must
-equal <code>length(lambda_time) + 1</code>. The default is <code>1</code>.</p></dd>
+of calendar time. Supply one rate for each interval defined by
+<code>lambda_time</code>, so <code>length(lambda)</code> must equal <code>length(lambda_time) + 1</code>.
+The default is <code>1</code>.</p></dd>
 
 
 <dt id="arg-n-total">N_total<a class="anchor" aria-label="anchor" href="#arg-n-total"></a></dt>
@@ -69,9 +69,8 @@ equal <code>length(lambda_time) + 1</code>. The default is <code>1</code>.</p></
 <dt id="arg-lambda-time">lambda_time<a class="anchor" aria-label="anchor" href="#arg-lambda-time"></a></dt>
 <dd><p><code>NULL</code> (the default), or a numeric vector of finite,
 positive, strictly increasing interior times at which the enrollment rate
-changes. The initial
-boundary at time zero is implicit and must not be supplied. Use <code>NULL</code> for
-a constant enrollment rate.</p></dd>
+changes. The initial boundary at time zero is implicit and must not be
+supplied. Use <code>NULL</code> for a constant enrollment rate.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -82,13 +81,13 @@ used for <code>lambda_time</code>. The first value is zero.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><strong>Major behavior change from goldilocks 0.5.0 and earlier.</strong> Versions through
-0.5.0 generated Poisson counts in unit-time bins. <code>enrollment()</code> returned
-rebased integer bin times, after which <code><a href="sim_comp_data.html">sim_comp_data()</a></code> added independent
-uniform jitter and sorted the result. From version 0.6.0, enrollment times
-are drawn directly from the exact continuous-time
-piecewise-constant Poisson process. Consequently:</p><ul><li><p>seeded simulations do not reproduce enrollment or downstream trial
-results obtained with version 0.5.0 or earlier;</p></li>
+    <p><strong>Major behavior change from goldilocks 0.5.0 and earlier.</strong>
+Versions through 0.5.0 generated Poisson counts in unit-time bins.
+<code>enrollment()</code> returned rebased integer bin times, after which
+<code><a href="sim_comp_data.html">sim_comp_data()</a></code> added independent uniform jitter and sorted the result.
+From version 0.6.0, enrollment times are drawn directly from the exact
+continuous-time piecewise-constant Poisson process. Consequently:</p><ul><li><p>seeded simulations do not reproduce enrollment or downstream trial results
+obtained with version 0.5.0 or earlier;</p></li>
 <li><p>enrollment times and operating-characteristic estimates can change,
 particularly when rates are low or a rate change is not an integer time;</p></li>
 <li><p>the <code>lambda_time</code> argument now contains internal change times only: change
@@ -102,41 +101,39 @@ continuous-time non-homogeneous Poisson process whose rate is constant
 between the supplied internal knots. Thus, <code>lambda</code> is measured in
 enrollments per unit of <code>lambda_time</code>; for example, when time is measured in
 months, <code>lambda = 5</code> means five enrollments per month on average.</p>
-<p>Write the internal knots as
-\(0 &lt; \tau_1 &lt; \cdots &lt; \tau_K\), with \(\tau_0 = 0\) implicit. The
-enrollment intensity is</p>
+<p>Write the internal knots as \(0 &lt; \tau_1 &lt; \cdots &lt; \tau_K\), with
+\(\tau_0 = 0\) implicit. The enrollment intensity is</p>
 <p>$$
   \lambda(t) = \lambda_j, \qquad \tau_{j-1} \le t &lt; \tau_j,
 $$</p>
 <p>for \(j = 1, \ldots, K\), and \(\lambda(t) = \lambda_{K+1}\) after the
-final knot. The final rate therefore continues for as long as needed to
-reach <code>N_total</code>; there is no finite accrual horizon in this function.
-The value of the intensity at an isolated knot does not change the Poisson
-process. When assigning a realized enrollment time to an interval,
-<code>goldilocks</code> follows the survival counting-process convention: intervals are
-open on the left and closed on the right, so an arrival exactly at
-\(\tau_j\) belongs to the interval ending at \(\tau_j\). The first
-patient at time zero is a fixed origin and is handled separately.</p>
+final knot. The final rate therefore continues for as long as needed to reach
+<code>N_total</code>; there is no finite accrual horizon in this function. The value of
+the intensity at an isolated knot does not change the Poisson process. When
+assigning a realized enrollment time to an interval, <code>goldilocks</code> follows the
+survival counting-process convention: intervals are open on the left and
+closed on the right, so an arrival exactly at \(\tau_j\) belongs to the
+interval ending at \(\tau_j\). The first patient at time zero is a fixed
+origin and is handled separately.</p>
 <p>Arrivals are generated exactly by the time-rescaling theorem. If
 \(E_2, \ldots, E_N\) are independent unit-rate exponential variables and
 \(S_i = \sum_{k=2}^i E_k\), then the enrollment times after first patient
 in are</p>
 <p>$$T_1 = 0, \qquad T_i = \Lambda^{-1}(S_i),$$</p>
-<p>where \(\Lambda(t) = \int_0^t \lambda(u)\,du\) is the cumulative
-enrollment intensity. This construction gives independent Poisson counts
-on disjoint calendar intervals, with expected count
-\(\int_a^b \lambda(u)\,du\) over \((a,b]\). For a constant rate,
-successive enrollment gaps are independent <code>Exponential(lambda)</code> variables.</p>
-<p>The rate-change times are measured from first patient in, not from an
-earlier site-opening or trial-activation date. If operational delays before
-first patient in are important, they must be modelled separately before
-using the returned relative times.</p>
+<p>where \(\Lambda(t) = \int_0^t \lambda(u)\,du\) is the cumulative enrollment
+intensity. This construction gives independent Poisson counts on disjoint
+calendar intervals, with expected count \(\int_a^b \lambda(u)\,du\) over
+\((a,b]\). For a constant rate, successive enrollment gaps are independent
+<code>Exponential(lambda)</code> variables.</p>
+<p>The rate-change times are measured from first patient in, not from an earlier
+site-opening or trial-activation date. If operational delays before first
+patient in are important, they must be modelled separately before using the
+returned relative times.</p>
 <p>For example, <code>lambda = c(0.3, 0.7, 0.9, 1.2)</code> with
 <code>lambda_time = c(5, 10, 15)</code> specifies average enrollment rates of 0.3 over
-positive times in \((0,5]\), 0.7 over \((5,10]\), 0.9 over
-\((10,15]\), and 1.2 after time 15. Fractional knots such as
-<code>lambda_time = 2.5</code> are handled exactly; no unit-time binning or post-hoc
-jitter is used.</p>
+positive times in \((0,5]\), 0.7 over \((5,10]\), 0.9 over \((10,15]\),
+and 1.2 after time 15. Fractional knots such as <code>lambda_time = 2.5</code> are
+handled exactly; no unit-time binning or post-hoc jitter is used.</p>
     </div>
 
     <div class="section level2">

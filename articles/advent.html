@@ -965,201 +965,69 @@ specification:</p>
 <span>  <span class="st">"margin: PFA failure 50%"</span> <span class="op">=</span> <span class="va">eff_null_boundary</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">oc_small</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="va">oc_small</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"scenario"</span>, <span class="st">"n_used"</span>, <span class="st">"n_failed"</span>, <span class="st">"power"</span>, <span class="st">"stop_success"</span>,</span>
+<span>    <span class="st">"stop_futility"</span>, <span class="st">"stop_max_N"</span>, <span class="st">"mean_N"</span></span>
+<span>  <span class="op">)</span><span class="op">]</span>,</span>
+<span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Scenario"</span>, <span class="st">"Trials used"</span>, <span class="st">"Failed runs"</span>, <span class="st">"Success probability"</span>,</span>
+<span>    <span class="st">"Expected success stop"</span>, <span class="st">"Futility stop"</span>, <span class="st">"Maximum N"</span>, <span class="st">"Mean N"</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
 <colgroup>
-<col width="3%">
-<col width="1%">
-<col width="0%">
-<col width="1%">
-<col width="1%">
-<col width="1%">
-<col width="0%">
-<col width="1%">
-<col width="2%">
-<col width="2%">
-<col width="2%">
-<col width="0%">
-<col width="1%">
-<col width="1%">
-<col width="1%">
-<col width="3%">
-<col width="3%">
-<col width="4%">
-<col width="4%">
-<col width="1%">
-<col width="2%">
-<col width="2%">
-<col width="2%">
-<col width="2%">
-<col width="2%">
-<col width="3%">
-<col width="3%">
-<col width="1%">
-<col width="2%">
-<col width="3%">
-<col width="3%">
-<col width="1%">
-<col width="2%">
-<col width="2%">
-<col width="2%">
-<col width="0%">
-<col width="1%">
-<col width="2%">
-<col width="2%">
-<col width="1%">
-<col width="1%">
-<col width="2%">
-<col width="3%">
-<col width="3%">
+<col width="21%">
+<col width="9%">
+<col width="9%">
+<col width="16%">
+<col width="17%">
+<col width="11%">
+<col width="8%">
+<col width="5%">
 </colgroup>
 <thead><tr class="header">
-<th align="left">scenario</th>
-<th align="left">backend</th>
-<th align="right">seed</th>
-<th align="right">n_requested</th>
-<th align="right">n_analyzed</th>
-<th align="right">n_failed</th>
-<th align="right">n_used</th>
-<th align="right">failure_rate</th>
-<th align="right">failure_rate_mcse</th>
-<th align="right">failure_rate_mc_lower</th>
-<th align="right">failure_rate_mc_upper</th>
-<th align="right">power</th>
-<th align="right">power_mcse</th>
-<th align="right">power_mc_lower</th>
-<th align="right">power_mc_upper</th>
-<th align="right">stop_immediate_success</th>
-<th align="right">stop_immediate_success_mcse</th>
-<th align="right">stop_immediate_success_mc_lower</th>
-<th align="right">stop_immediate_success_mc_upper</th>
-<th align="right">stop_success</th>
-<th align="right">stop_success_mcse</th>
-<th align="right">stop_success_mc_lower</th>
-<th align="right">stop_success_mc_upper</th>
-<th align="right">stop_any_success</th>
-<th align="right">stop_any_success_mcse</th>
-<th align="right">stop_any_success_mc_lower</th>
-<th align="right">stop_any_success_mc_upper</th>
-<th align="right">stop_futility</th>
-<th align="right">stop_futility_mcse</th>
-<th align="right">stop_futility_mc_lower</th>
-<th align="right">stop_futility_mc_upper</th>
-<th align="right">stop_max_N</th>
-<th align="right">stop_max_N_mcse</th>
-<th align="right">stop_max_N_mc_lower</th>
-<th align="right">stop_max_N_mc_upper</th>
-<th align="right">mean_N</th>
-<th align="right">mean_N_mcse</th>
-<th align="right">mean_N_mc_lower</th>
-<th align="right">mean_N_mc_upper</th>
-<th align="right">sd_N</th>
-<th align="right">stop_and_fail</th>
-<th align="right">stop_and_fail_mcse</th>
-<th align="right">stop_and_fail_mc_lower</th>
-<th align="right">stop_and_fail_mc_upper</th>
+<th align="left">Scenario</th>
+<th align="right">Trials used</th>
+<th align="right">Failed runs</th>
+<th align="right">Success probability</th>
+<th align="right">Expected success stop</th>
+<th align="right">Futility stop</th>
+<th align="right">Maximum N</th>
+<th align="right">Mean N</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">margin: PFA failure 50%</td>
-<td align="left">fork</td>
-<td align="right">4611</td>
-<td align="right">500</td>
 <td align="right">500</td>
 <td align="right">0</td>
-<td align="right">500</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0.008</td>
 <td align="right">0.068</td>
-<td align="right">0.011</td>
-<td align="right">0.049</td>
-<td align="right">0.094</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0.008</td>
 <td align="right">0.066</td>
-<td align="right">0.011</td>
-<td align="right">0.047</td>
-<td align="right">0.091</td>
-<td align="right">0.066</td>
-<td align="right">0.011</td>
-<td align="right">0.047</td>
-<td align="right">0.091</td>
 <td align="right">0.664</td>
-<td align="right">0.021</td>
-<td align="right">0.621</td>
-<td align="right">0.704</td>
 <td align="right">0.27</td>
-<td align="right">0.02</td>
-<td align="right">0.233</td>
-<td align="right">0.311</td>
 <td align="right">556.8</td>
-<td align="right">6.699</td>
-<td align="right">543.638</td>
-<td align="right">569.962</td>
-<td align="right">149.795</td>
-<td align="right">0.026</td>
-<td align="right">0.007</td>
-<td align="right">0.015</td>
-<td align="right">0.044</td>
 </tr>
 <tr class="even">
 <td align="left">target: equal 35% failure</td>
-<td align="left">fork</td>
-<td align="right">4610</td>
-<td align="right">500</td>
 <td align="right">500</td>
 <td align="right">0</td>
-<td align="right">500</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0.008</td>
 <td align="right">0.984</td>
-<td align="right">0.006</td>
-<td align="right">0.969</td>
-<td align="right">0.992</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0.008</td>
 <td align="right">0.946</td>
-<td align="right">0.010</td>
-<td align="right">0.923</td>
-<td align="right">0.963</td>
-<td align="right">0.946</td>
-<td align="right">0.010</td>
-<td align="right">0.923</td>
-<td align="right">0.963</td>
 <td align="right">0.004</td>
-<td align="right">0.003</td>
-<td align="right">0.001</td>
-<td align="right">0.014</td>
 <td align="right">0.05</td>
-<td align="right">0.01</td>
-<td align="right">0.034</td>
-<td align="right">0.073</td>
 <td align="right">466.2</td>
-<td align="right">5.040</td>
-<td align="right">456.297</td>
-<td align="right">476.103</td>
-<td align="right">112.707</td>
-<td align="right">0.010</td>
-<td align="right">0.004</td>
-<td align="right">0.004</td>
-<td align="right">0.023</td>
 </tr>
 </tbody>
 </table>
-<p>Each scenario uses 500 simulated trials and two cores. These results
-are illustrative rather than definitive estimates of power or type I
-error. A design evaluation should increase <code>N_trials</code> and
-<code>N_impute</code> as needed for Monte Carlo precision and examine
-sensitivity to accrual, loss to follow-up, event rates, and the
-imputation hazard model.</p>
+<p>The table displays selected operating characteristics;
+<code>oc_small</code> retains the full summary, including Monte Carlo
+uncertainty. Each scenario uses 500 simulated trials and two cores.
+These results are illustrative rather than definitive estimates of power
+or type I error. A design evaluation should increase
+<code>N_trials</code> and <code>N_impute</code> as needed for Monte
+Carlo precision and examine sensitivity to accrual, loss to follow-up,
+event rates, and the imputation hazard model.</p>
 </div>
 <div class="section level2">
 <h2 id="graphical-assessment-of-the-simulated-design">Graphical assessment of the simulated design<a class="anchor" aria-label="anchor" href="#graphical-assessment-of-the-simulated-design"></a>

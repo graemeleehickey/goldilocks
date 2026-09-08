@@ -134,8 +134,14 @@ and when required the final trial data, meets the success criterion.
 | `rmst` | Treatment-minus-control RMST through fixed `rmst_tau`, using a Wald test | Pool differences and Greenwood variances using Rubin’s rules | Retain censoring; require support through the fixed horizon |
 | `cox` | Log hazard ratio from a Cox model | Pool estimates and variances using Rubin’s rules | Analyze observed right-censored follow-up |
 | `riskdiff-wald` | Treatment-minus-control event-risk difference using a Wald test | Pool estimates and variances using Rubin’s rules | Exclude participants without complete endpoint ascertainment |
-| `riskdiff-fm` | Treatment-minus-control event-risk difference using a Farrington-Manning score test | Pool estimates and variances using Rubin’s rules, yielding a pooled Wald analysis | Exclude participants without complete endpoint ascertainment |
+| `riskdiff-fm` | Treatment-minus-control event-risk difference using a Farrington-Manning score test | Not available when outcomes are missing: no validated FM pooling rule is implemented | Exclude participants without complete endpoint ascertainment |
 | `logrank` | Difference between survival distributions using a log-rank test | Not available because an imputation-pooling rule has not been specified | Analyze observed right-censored follow-up |
+
+For methods that accept `imputed_final = TRUE`, complete final outcomes
+use the selected test directly. FM simulations with this flag require
+zero dropout in both arms. Rubin pooling requires at least two
+imputations and positive total variance; zero total variance is
+non-estimable.
 
 For a frequentist method, the success measure is 1-p; for a Bayesian
 method, it is the posterior probability of the prespecified alternative.

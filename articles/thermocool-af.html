@@ -1023,28 +1023,33 @@ and 0.01.</p>
 <span>    <span class="st">"stopping_reason"</span>,</span>
 <span>    <span class="st">"decision_time"</span></span>
 <span>  <span class="op">)</span><span class="op">]</span>,</span>
-<span>  digits <span class="op">=</span> <span class="fl">3</span></span>
+<span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Enrolled N"</span>, <span class="st">"Predictive success"</span>, <span class="st">"Immediate success stop"</span>,</span>
+<span>    <span class="st">"Expected success stop"</span>, <span class="st">"Futility stop"</span>, <span class="st">"Trial success"</span>,</span>
+<span>    <span class="st">"Stopping reason"</span>, <span class="st">"Decision time"</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
 <col width="8%">
-<col width="9%">
-<col width="17%">
-<col width="17%">
-<col width="10%">
-<col width="10%">
 <col width="14%">
+<col width="17%">
+<col width="16%">
+<col width="10%">
+<col width="10%">
+<col width="13%">
 <col width="10%">
 </colgroup>
 <thead><tr class="header">
-<th align="right">N_enrolled</th>
-<th align="right">ppp_success</th>
-<th align="right">stop_immediate_success</th>
-<th align="right">stop_expected_success</th>
-<th align="right">stop_futility</th>
-<th align="left">trial_success</th>
-<th align="left">stopping_reason</th>
-<th align="right">decision_time</th>
+<th align="right">Enrolled N</th>
+<th align="right">Predictive success</th>
+<th align="right">Immediate success stop</th>
+<th align="right">Expected success stop</th>
+<th align="right">Futility stop</th>
+<th align="left">Trial success</th>
+<th align="left">Stopping reason</th>
+<th align="right">Decision time</th>
 </tr></thead>
 <tbody><tr class="odd">
 <td align="right">150</td>
@@ -1079,28 +1084,32 @@ be computed, <code>post_prob_ha</code> and <code>est_final</code> are
 <span>    <span class="st">"futility_threshold"</span>,</span>
 <span>    <span class="st">"decision"</span></span>
 <span>  <span class="op">)</span><span class="op">]</span>,</span>
-<span>  digits <span class="op">=</span> <span class="fl">3</span></span>
+<span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Look"</span>, <span class="st">"Planned N"</span>, <span class="st">"PPSn"</span>, <span class="st">"Immediate success cut"</span>,</span>
+<span>    <span class="st">"Expected success cut"</span>, <span class="st">"PPSmax"</span>, <span class="st">"Futility cut"</span>, <span class="st">"Decision"</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="3%">
-<col width="7%">
+<col width="4%">
 <col width="9%">
+<col width="4%">
 <col width="20%">
-<col width="13%">
-<col width="14%">
-<col width="14%">
-<col width="17%">
+<col width="19%">
+<col width="6%">
+<col width="12%">
+<col width="21%">
 </colgroup>
 <thead><tr class="header">
-<th align="right">look</th>
-<th align="right">planned_N</th>
-<th align="right">ppp_stop_now</th>
-<th align="right">immediate_success_threshold</th>
-<th align="right">success_threshold</th>
-<th align="right">ppp_success_at_max</th>
-<th align="right">futility_threshold</th>
-<th align="left">decision</th>
+<th align="right">Look</th>
+<th align="right">Planned N</th>
+<th align="right">PPSn</th>
+<th align="right">Immediate success cut</th>
+<th align="right">Expected success cut</th>
+<th align="right">PPSmax</th>
+<th align="right">Futility cut</th>
+<th align="left">Decision</th>
 </tr></thead>
 <tbody><tr class="odd">
 <td align="right">1</td>
@@ -1113,8 +1122,11 @@ be computed, <code>post_prob_ha</code> and <code>est_final</code> are
 <td align="left">stop_immediate_success</td>
 </tr></tbody>
 </table>
-<p>Only looks actually reached appear in the trace. An immediate-success
-decision prevents all subsequent looks.</p>
+<p>Here, PPSn is <code>ppp_stop_now</code>, PPSmax is
+<code>ppp_success_at_max</code>, and the three cut columns show the
+immediate-success, expected-success, and futility thresholds. Only looks
+actually reached appear in the trace. An immediate-success decision
+prevents all subsequent looks.</p>
 </div>
 <div class="section level2">
 <h2 id="small-operating-characteristic-demonstration">Small operating-characteristic demonstration<a class="anchor" aria-label="anchor" href="#small-operating-characteristic-demonstration"></a>
@@ -1192,27 +1204,34 @@ cases.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">oc_display</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">oc_display</span><span class="op">)</span> <span class="op">==</span> <span class="st">"stop_success"</span><span class="op">]</span> <span class="op">&lt;-</span></span>
 <span>  <span class="st">"stop_expected_success"</span></span>
 <span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">oc_display</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="va">oc_display</span>,</span>
+<span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Scenario"</span>, <span class="st">"Trials analyzed"</span>, <span class="st">"Power"</span>, <span class="st">"Immediate success stop"</span>,</span>
+<span>    <span class="st">"Expected success stop"</span>, <span class="st">"Futility stop"</span>, <span class="st">"Maximum N"</span>, <span class="st">"Mean N"</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="25%">
-<col width="8%">
+<col width="24%">
+<col width="12%">
 <col width="4%">
-<col width="18%">
 <col width="17%">
-<col width="11%">
-<col width="8%">
+<col width="16%">
+<col width="10%">
+<col width="7%">
 <col width="5%">
 </colgroup>
 <thead><tr class="header">
-<th align="left">scenario</th>
-<th align="right">n_analyzed</th>
-<th align="right">power</th>
-<th align="right">stop_immediate_success</th>
-<th align="right">stop_expected_success</th>
-<th align="right">stop_futility</th>
-<th align="right">stop_max_N</th>
-<th align="right">mean_N</th>
+<th align="left">Scenario</th>
+<th align="right">Trials analyzed</th>
+<th align="right">Power</th>
+<th align="right">Immediate success stop</th>
+<th align="right">Expected success stop</th>
+<th align="right">Futility stop</th>
+<th align="right">Maximum N</th>
+<th align="right">Mean N</th>
 </tr></thead>
 <tbody>
 <tr class="odd">

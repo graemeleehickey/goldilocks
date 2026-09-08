@@ -79,6 +79,7 @@
 </ul>
 <p>The former <code>"riskdiff"</code> option remains available as a deprecated alias for <code>"riskdiff-wald"</code> and emits a warning.</p>
 <p>See the package vignettes for worked two-arm, single-arm, piecewise survival, RMST, and Bayesian binary examples. For RMST use <code>alternative = "greater"</code> to test longer event-free time and express <code>h0</code> in the same time units as follow-up.</p>
+<p>For <code>method = "bayes-surv"</code>, <code>prior_surv</code> generates predictive outcomes, while <code>prior_surv_final</code> tests each hypothetical completed trial <strong>at the interim look</strong> and governs the actual final analysis. To incorporate external evidence only in prediction, supply both priors explicitly. Omitting <code>prior_surv_final</code> uses <code>prior_surv</code> for both roles. Bayesian binary success tests instead use <code>prior_bin</code>. See the <a href="https://graemeleehickey.github.io/goldilocks/articles/interim-data.html#using-separate-predictive-and-analysis-priors">worked example of separate priors</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="key-benefits">Key benefits<a class="anchor" aria-label="anchor" href="#key-benefits"></a>

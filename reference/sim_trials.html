@@ -102,18 +102,18 @@ event rates for the treatment arm. Supply one rate per interval defined by
 
 <dt id="arg-hazard-control">hazard_control<a class="anchor" aria-label="anchor" href="#arg-hazard-control"></a></dt>
 <dd><p><code>NULL</code> (the default) for a single-arm trial, or a
-numeric vector of finite, non-negative event rates for the control arm in
-a two-arm trial. It must contain one rate per interval defined by
+numeric vector of finite, non-negative event rates for the control arm in a
+two-arm trial. It must contain one rate per interval defined by
 <code>generation_cutpoints</code>.</p></dd>
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
 <dd><p><code>NULL</code> (the default), or a numeric vector of finite,
-positive, strictly increasing interior follow-up
-times defining the piecewise-exponential model used for interim posterior
-estimation, predictive imputation, and final analysis. The number of
-interval-specific prior columns must be one greater than the number of
-cutpoints. <code>NULL</code> specifies a constant-hazard analysis model.</p></dd>
+positive, strictly increasing interior follow-up times defining the
+piecewise-exponential model used for interim posterior estimation,
+predictive imputation, and final analysis. The number of interval-specific
+prior columns must be one greater than the number of cutpoints. <code>NULL</code>
+specifies a constant-hazard analysis model.</p></dd>
 
 
 <dt id="arg-n-total">N_total<a class="anchor" aria-label="anchor" href="#arg-n-total"></a></dt>
@@ -139,11 +139,10 @@ changes. Time zero is implicit, and <code>length(lambda)</code> must equal
 <dd><p><code>NULL</code> (the default) for no interim analyses, or a
 strictly increasing positive integer vector giving the cumulative sample
 size at each interim look. Do not include the maximum sample size. For
-two-arm designs, each
-interim look must be at least the (largest) block size (see <code>block</code>),
-ensuring both treatment groups are present at every interim analysis; a
-smaller look could enroll subjects from one treatment group only, leaving
-the interim posterior undefined for the missing group.</p></dd>
+two-arm designs, each interim look must be at least the (largest) block
+size (see <code>block</code>), ensuring both treatment groups are present at every
+interim analysis; a smaller look could enroll subjects from one treatment
+group only, leaving the interim posterior undefined for the missing group.</p></dd>
 
 
 <dt id="arg-end-of-study">end_of_study<a class="anchor" aria-label="anchor" href="#arg-end-of-study"></a></dt>
@@ -155,17 +154,17 @@ use the same time unit.</p></dd>
 
 <dt id="arg-prior-surv">prior_surv<a class="anchor" aria-label="anchor" href="#arg-prior-surv"></a></dt>
 <dd><p>A numeric vector, matrix, or named list specifying the
-Gamma prior for the
-piecewise-exponential hazards used during interim prediction. A length-two
-vector supplies shape and rate and applies the same prior to every arm and
-interval. A <code>2</code> by <code>length(cutpoints) + 1</code> matrix supplies
-interval-specific values shared by all arms, with shapes in row 1 and rates
-in row 2. For independent arm-specific priors, supply a list named
-<code>control</code> and <code>treatment</code> in a two-arm design, or <code>treatment</code> in a
-single-arm design. Each list element may be a length-two vector or an
-interval-specific matrix. Both arms must be supplied; no values are
-borrowed or filled from the other arm. Rates must use the same time unit as
-event times, exposure, and cutpoints. The default is <code>c(0.1, 0.1)</code>.</p></dd>
+Gamma prior for the piecewise-exponential hazards used to generate outcomes
+during interim prediction. A length-two vector supplies shape and rate and
+applies the same prior to every arm and interval. A <code>2</code> by
+<code>length(cutpoints) + 1</code> matrix supplies interval-specific values shared by
+all arms, with shapes in row 1 and rates in row 2. For independent
+arm-specific priors, supply a list named <code>control</code> and <code>treatment</code> in a
+two-arm design, or <code>treatment</code> in a single-arm design. Each list element
+may be a length-two vector or an interval-specific matrix. Both arms must
+be supplied; no values are borrowed or filled from the other arm. Rates
+must use the same time unit as event times, exposure, and cutpoints. The
+default is <code>c(0.1, 0.1)</code>.</p></dd>
 
 
 <dt id="arg-prior-bin">prior_bin<a class="anchor" aria-label="anchor" href="#arg-prior-bin"></a></dt>
@@ -177,10 +176,13 @@ is <code>c(1, 1)</code>, a uniform prior.</p></dd>
 
 <dt id="arg-bin-method">bin_method<a class="anchor" aria-label="anchor" href="#arg-bin-method"></a></dt>
 <dd><p>A single character string selecting how to calculate the
-posterior probability for <code>method = "bayes-bin"</code>. It must be one of
-<code>"mc"</code> (Monte Carlo
-sampling), <code>"normal"</code> (normal approximation), or <code>"quadrature"</code> (numerical
-integration). The default is <code>"mc"</code>.</p></dd>
+posterior probability for <code>method = "bayes-bin"</code>. It must be one of <code>"mc"</code>
+(Monte Carlo sampling), <code>"normal"</code> (normal approximation), or
+<code>"quadrature"</code> (numerical integration). The default is <code>"mc"</code>.
+The normal approximation can be inaccurate with sparse events or
+non-events and posterior event probabilities near 0 or 1. It can change
+whether <code>prob_ha</code> is exceeded. Increasing <code>N_mcmc</code> does not improve this
+approximation; use <code>"quadrature"</code> or sufficiently precise <code>"mc"</code> instead.</p></dd>
 
 
 <dt id="arg-block">block<a class="anchor" aria-label="anchor" href="#arg-block"></a></dt>
@@ -192,31 +194,30 @@ sizes. Every value must be a multiple of <code>sum(rand_ratio)</code>. The defau
 <dt id="arg-rand-ratio">rand_ratio<a class="anchor" aria-label="anchor" href="#arg-rand-ratio"></a></dt>
 <dd><p>A length-two positive integer vector giving the control to
 treatment randomization ratio. The default is
-<code>c(control = 1, treatment = 1)</code>. Name
-the values <code>control</code> and <code>treatment</code>; either supplied order is accepted and
-matched by name. A legacy unnamed vector remains accepted in
-<code>c(control, treatment)</code> order. Unequal unnamed values produce a warning
-because names may be required in a future major release. See
-<code><a href="randomization.html">randomization()</a></code> for more details.</p></dd>
+<code>c(control = 1, treatment = 1)</code>. Name the values <code>control</code> and <code>treatment</code>;
+either supplied order is accepted and matched by name. A legacy unnamed
+vector remains accepted in <code>c(control, treatment)</code> order. Unequal unnamed
+values produce a warning because names may be required in a future major
+release. See <code><a href="randomization.html">randomization()</a></code> for more details.</p></dd>
 
 
 <dt id="arg-prop-loss">prop_loss<a class="anchor" aria-label="anchor" href="#arg-prop-loss"></a></dt>
 <dd><p>A numeric vector containing one or two probabilities in
 <code>[0, 1)</code>. Each value is the dropout-time CDF at <code>end_of_study</code>:
-\(P(D \le \tau) = p\), where \(\tau\) is the planned follow-up
-duration per subject. Independently of event time and enrollment, each
-subject's dropout time \(D\) is exponentially distributed with rate
+\(P(D \le \tau) = p\), where \(\tau\) is the planned follow-up duration
+per subject. Independently of event time and enrollment, each subject's
+dropout time \(D\) is exponentially distributed with rate
 \(-\log(1-p)/\tau\). The observed time is the minimum of event time,
 dropout time, and <code>end_of_study</code>; an event occurring before dropout is
 retained. Thus, <code>prop_loss</code> is not the expected proportion actually
 censored by dropout: that proportion can be lower because events occur
-first, and the realized number of dropouts varies between trials.
-A single value applies the same dropout distribution to every arm. For a
-two-arm design, supply a length-two vector named <code>control</code> and <code>treatment</code>
-for arm-specific probabilities; supplied order does not matter.
-Single-arm designs require one probability. The default <code>0</code> sets dropout
-time to infinity without drawing random numbers. A value of <code>1</code> is
-rejected because it requires an infinite exponential rate.</p></dd>
+first, and the realized number of dropouts varies between trials. A single
+value applies the same dropout distribution to every arm. For a two-arm
+design, supply a length-two vector named <code>control</code> and <code>treatment</code> for
+arm-specific probabilities; supplied order does not matter. Single-arm
+designs require one probability. The default <code>0</code> sets dropout time to
+infinity without drawing random numbers. A value of <code>1</code> is rejected because
+it requires an infinite exponential rate.</p></dd>
 
 
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
@@ -225,36 +226,34 @@ hypothesis. It must be one of <code>"greater"</code> (the default), <code>"less"
 <code>"two.sided"</code>. One-sided alternatives (<code>"greater"</code> and <code>"less"</code>) are
 supported for <code>method = "bayes-surv"</code> and <code>method = "bayes-bin"</code>. All three
 options are supported for <code>method = "logrank"</code>, <code>method = "cox"</code>,
-<code>method = "rmst"</code>, <code>method = "riskdiff-wald"</code>, and <code>method = "riskdiff-fm"</code>.
-For an adverse event, benefit is in the <code>"greater"</code> direction for RMST
-(longer event-free time) and the <code>"less"</code> direction for the other methods
-(lower hazard or event probability).</p></dd>
+<code>method = "rmst"</code>, <code>method = "riskdiff-wald"</code>, and
+<code>method = "riskdiff-fm"</code>. For an adverse event, benefit is in the
+<code>"greater"</code> direction for RMST (longer event-free time) and the <code>"less"</code>
+direction for the other methods (lower hazard or event probability).</p></dd>
 
 
 <dt id="arg-h-">h0<a class="anchor" aria-label="anchor" href="#arg-h-"></a></dt>
 <dd><p>A single finite numeric value specifying the null hypothesis or
 margin. The default is <code>0</code>. For Bayesian analyses, <code>h0</code> must lie in
-<code>[0, 1]</code> for a
-single-arm design and <code>[-1, 1]</code> for a two-arm design.</p><ul><li><p>When <code>method = "bayes-surv"</code>, <code>h0</code> is the null value of
+<code>[0, 1]</code> for a single-arm design and <code>[-1, 1]</code> for a two-arm design.</p><ul><li><p>When <code>method = "bayes-surv"</code>, <code>h0</code> is the null value of
 \(p_\textrm{treatment} - p_\textrm{control}\). In a single-arm design,
-<code>h0</code> is the external benchmark event probability, often referred to
-as a performance goal (PG) or objective performance criterion (OPC).</p></li>
+<code>h0</code> is the external benchmark event probability, often referred to as a
+performance goal (PG) or objective performance criterion (OPC).</p></li>
 <li><p>When <code>method = "bayes-bin"</code>, <code>h0</code> is the null value of
 \(p_\textrm{treatment} - p_\textrm{control}\) for a two-arm design, or
 the null event probability for a single-arm design.</p></li>
-<li><p>When <code>method = "cox"</code>, <code>h0</code> is the null log hazard ratio for
-treatment versus control. Use <code>h0 = 0</code> for the usual hazard ratio
-of 1 null, or <code>h0 = log(margin)</code> for a non-inferiority margin
-specified as a hazard ratio. A Cox non-inferiority test should usually
-use <code>alternative = "less"</code>.</p></li>
+<li><p>When <code>method = "cox"</code>, <code>h0</code> is the null log hazard ratio for treatment
+versus control. Use <code>h0 = 0</code> for the usual hazard ratio of 1 null, or
+<code>h0 = log(margin)</code> for a non-inferiority margin specified as a hazard
+ratio. A Cox non-inferiority test should usually use
+<code>alternative = "less"</code>.</p></li>
 <li><p>When <code>method = "rmst"</code>, <code>h0</code> is the null treatment-control RMST
-difference in time units and must lie in <code>[-rmst_tau, rmst_tau]</code>.
-For non-inferiority allowing a loss of <code>m</code> time units, use <code>h0 = -m</code>
-and <code>alternative = "greater"</code>.</p></li>
+difference in time units and must lie in <code>[-rmst_tau, rmst_tau]</code>. For
+non-inferiority allowing a loss of <code>m</code> time units, use <code>h0 = -m</code> and
+<code>alternative = "greater"</code>.</p></li>
 <li><p>When <code>method = "riskdiff-wald"</code> or <code>method = "riskdiff-fm"</code>, <code>h0</code> is the
-null value of
-\(p_\textrm{treatment} - p_\textrm{control}\) and must lie in
-<code>[-1, 1]</code>.</p></li>
+null value of \(p_\textrm{treatment} - p_\textrm{control}\) and must
+lie in <code>[-1, 1]</code>.</p></li>
 <li><p>When <code>method = "logrank"</code>, only <code>h0 = 0</code> is supported; this denotes the
 usual equal-survival null. Nonzero values are rejected because the
 standard log-rank statistic does not implement a nonzero effect margin.</p></li>
@@ -263,112 +262,107 @@ standard log-rank statistic does not implement a nonzero effect margin.</p></li>
 
 <dt id="arg-fn">Fn<a class="anchor" aria-label="anchor" href="#arg-fn"></a></dt>
 <dd><p><code>NULL</code>, or a numeric vector of probabilities in <code>[0, 1]</code>. Each
-value is the predictive-probability
-threshold to stop at the \(i\)-th look early for futility. If there are
-no interim looks (i.e. <code>interim_look = NULL</code>), then <code>Fn</code> is not
-used in the simulations or analysis. Set <code>Fn = 0</code> to disable futility
-monitoring; <code>Fn = NULL</code> has the same effect. Supply either one value,
-which is repeated at every interim look, or exactly one value per
-<code>interim_look</code>. Other lengths are rejected rather than recycled. The
-default is <code>0.05</code>.</p></dd>
+value is the predictive-probability threshold to stop at the \(i\)-th
+look early for futility. If there are no interim looks (i.e.
+<code>interim_look = NULL</code>), then <code>Fn</code> is not used in the simulations or
+analysis. Set <code>Fn = 0</code> to disable futility monitoring; <code>Fn = NULL</code> has the
+same effect. Supply either one value, which is repeated at every interim
+look, or exactly one value per <code>interim_look</code>. Other lengths are rejected
+rather than recycled. The default is <code>0.05</code>.</p></dd>
 
 
 <dt id="arg-sn">Sn<a class="anchor" aria-label="anchor" href="#arg-sn"></a></dt>
 <dd><p>A numeric vector of probabilities in <code>[0, 1]</code>. Each value is the
-predictive-probability
-threshold to stop accrual at the \(i\)-th look for expected success. If
-there are no interim looks (i.e. <code>interim_look = NULL</code>), then
-<code>Sn</code> is not used in the simulations or analysis. Supply either one value,
-which is repeated at every interim look, or exactly one value per
-<code>interim_look</code>. Other lengths are rejected rather than recycled. The
-default is <code>0.9</code>.</p></dd>
+predictive-probability threshold to stop accrual at the \(i\)-th look for
+expected success. If there are no interim looks (i.e.
+<code>interim_look = NULL</code>), then <code>Sn</code> is not used in the simulations or
+analysis. Supply either one value, which is repeated at every interim look,
+or exactly one value per <code>interim_look</code>. Other lengths are rejected rather
+than recycled. The default is <code>0.9</code>.</p></dd>
 
 
 <dt id="arg-prob-ha">prob_ha<a class="anchor" aria-label="anchor" href="#arg-prob-ha"></a></dt>
 <dd><p>A single numeric probability in <code>[0, 1]</code> defining success in
 each completed-data analysis. For Bayesian methods this is compared with
-the posterior probability of the alternative; for frequentist methods it
-is compared with <code>1 - P</code>. The default is <code>0.95</code>.</p></dd>
+the posterior probability of the alternative; for frequentist methods it is
+compared with <code>1 - P</code>. The default is <code>0.95</code>.</p></dd>
 
 
 <dt id="arg-n-impute">N_impute<a class="anchor" aria-label="anchor" href="#arg-n-impute"></a></dt>
 <dd><p>A positive integer giving the number of predictive
-imputations used at each
-interim look and, when requested, for final multiple imputation. The
-default is <code>500</code>. An imputed Cox, RMST, or risk-difference final analysis requires
-at least two.</p></dd>
+imputations used at each interim look and, when requested, for final
+multiple imputation. The default is <code>500</code>. An imputed Cox, RMST, or
+risk-difference final analysis requires at least two.</p></dd>
 
 
 <dt id="arg-n-mcmc">N_mcmc<a class="anchor" aria-label="anchor" href="#arg-n-mcmc"></a></dt>
 <dd><p>A positive integer giving the number of posterior draws used
-within each
-<code>method = "bayes-surv"</code> and by <code>method = "bayes-bin"</code> when
+within each <code>method = "bayes-surv"</code> and by <code>method = "bayes-bin"</code> when
 <code>bin_method = "mc"</code>. The default is <code>1000</code>.</p></dd>
 
 
 <dt id="arg-mc-conf-level">mc_conf_level<a class="anchor" aria-label="anchor" href="#arg-mc-conf-level"></a></dt>
 <dd><p>A single numeric probability strictly between <code>0.5</code> and
-<code>1</code>, giving the confidence
-level for one-sided exact binomial bounds reported as diagnostics of
-finite Monte Carlo uncertainty. The bounds do not alter completed-data
-success classifications or interim decisions, which use strict point-
-estimate comparisons with <code>prob_ha</code>, <code>Qn</code>, <code>Sn</code>, and <code>Fn</code>. The default is
-<code>0.95</code>.</p></dd>
+<code>1</code>, giving the confidence level for one-sided exact binomial bounds
+reported as diagnostics of finite Monte Carlo uncertainty. The bounds do
+not alter completed-data success classifications or interim decisions,
+which use strict point-estimate comparisons with <code>prob_ha</code>, <code>Qn</code>, <code>Sn</code>, and
+<code>Fn</code>. The default is <code>0.95</code>.</p></dd>
 
 
 <dt id="arg-n-trials">N_trials<a class="anchor" aria-label="anchor" href="#arg-n-trials"></a></dt>
-<dd><p>A positive integer giving the number of independent trials
-to simulate. The default is <code>10</code>.</p></dd>
+<dd><p>A positive integer giving the number of independent trials to
+simulate. The default is <code>10</code>.</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
 <dd><p>A single character string specifying the completed-data and
-final analysis. Available choices are a log-rank
-(<code>method = "logrank"</code>) test, Cox proportional hazards regression model
-Wald test (<code>method = "cox"</code>), a restricted mean survival time difference
-Wald test (<code>method = "rmst"</code>), a fully-Bayesian piecewise-exponential
-analysis (<code>method = "bayes-surv"</code>), a Bayesian beta-binomial analysis of
-complete binary outcomes (<code>method = "bayes-bin"</code>), a frequentist
-risk-difference Wald test (<code>method = "riskdiff-wald"</code>), or a
-Farrington-Manning score test (<code>method = "riskdiff-fm"</code>) of complete
-binary outcomes. The deprecated <code>method = "riskdiff"</code> is accepted as an
-alias for <code>"riskdiff-wald"</code> with a warning. The default is <code>"logrank"</code>.
-See Details.</p></dd>
+final analysis. Available choices are a log-rank (<code>method = "logrank"</code>)
+test, Cox proportional hazards regression model Wald test
+(<code>method = "cox"</code>), a restricted mean survival time difference Wald test
+(<code>method = "rmst"</code>), a fully-Bayesian piecewise-exponential analysis
+(<code>method = "bayes-surv"</code>), a Bayesian beta-binomial analysis of complete
+binary outcomes (<code>method = "bayes-bin"</code>), a frequentist risk-difference
+Wald test (<code>method = "riskdiff-wald"</code>), or a Farrington-Manning score test
+(<code>method = "riskdiff-fm"</code>) of complete binary outcomes. The deprecated
+<code>method = "riskdiff"</code> is accepted as an alias for <code>"riskdiff-wald"</code> with a
+warning. The default is <code>"logrank"</code>. See Details.</p></dd>
 
 
 <dt id="arg-imputed-final">imputed_final<a class="anchor" aria-label="anchor" href="#arg-imputed-final"></a></dt>
 <dd><p>A single logical value indicating whether the final
-analysis should be based on imputed outcomes for
-subjects who were LTFU (i.e. right-censored with time less than
-<code>end_of_study</code>). The default is <code>FALSE</code>, which means that the final analysis
-incorporates right-censoring. With <code>method = "cox"</code>, <code>method = "rmst"</code>,
-<code>method = "riskdiff-wald"</code>, or <code>method = "riskdiff-fm"</code>, setting this to <code>TRUE</code>
-analyzes each imputed dataset and pools the scalar treatment effects and
-variances using Rubin's rules; this requires <code>N_impute &gt;= 2</code>. The pooled
-risk-difference analysis is a Wald test rather than a Farrington-Manning
-test. Imputed final analyses remain unavailable for <code>method = "logrank"</code>.</p></dd>
+analysis should be based on imputed outcomes for subjects who were LTFU
+(i.e. right-censored with time less than <code>end_of_study</code>). The default is
+<code>FALSE</code>, which uses the observed-data analysis. If no outcomes require
+imputation, the selected complete-data test is used directly with either
+flag. With missing outcomes and <code>method = "cox"</code>, <code>"rmst"</code>, or
+<code>"riskdiff-wald"</code>, setting this to <code>TRUE</code> pools the scalar treatment
+effects and variances using Rubin's rules; this requires <code>N_impute &gt;= 2</code>
+and positive total variance. Genuine final imputation is unsupported for
+<code>method = "riskdiff-fm"</code> because no validated FM pooling rule is
+implemented. Simulations combining FM and <code>imputed_final = TRUE</code> therefore
+require <code>prop_loss = 0</code> in both arms. Imputed final analyses remain
+unavailable for <code>method = "logrank"</code>.</p></dd>
 
 
 <dt id="arg-empty-interval">empty_interval<a class="anchor" aria-label="anchor" href="#arg-empty-interval"></a></dt>
 <dd><p>A single character string specifying how to handle
 empty piecewise-exponential intervals when updating Gamma hazard models for
-predictive imputation and Bayesian survival analysis. An empty
-interval is an interval with no exposed subjects in a treatment arm at the
-analysis time. <code>"prior"</code> (the default) leaves the interval at zero exposure
-time and zero events, so its posterior is driven only by its assigned
-survival prior. <code>"propagate"</code> is a legacy heuristic that copies exposure
-time and event counts from the nearest non-empty interval in the same
-treatment arm and emits a warning. <code>"error"</code> stops when any empty interval
-is found.</p></dd>
+predictive imputation and Bayesian survival analysis. An empty interval is
+an interval with no exposed subjects in a treatment arm at the analysis
+time. <code>"prior"</code> (the default) leaves the interval at zero exposure time and
+zero events, so its posterior is driven only by its assigned survival
+prior. <code>"propagate"</code> is a legacy heuristic that copies exposure time and
+event counts from the nearest non-empty interval in the same treatment arm
+and emits a warning. <code>"error"</code> stops when any empty interval is found.</p></dd>
 
 
 <dt id="arg-return-trace">return_trace<a class="anchor" aria-label="anchor" href="#arg-return-trace"></a></dt>
 <dd><p>A single logical value indicating whether to retain the
 compact interim decision trace from every simulated trial. The default,
-<code>FALSE</code>, preserves the
-compact output. When <code>TRUE</code>, the returned list also contains a <code>traces</code>
-data frame with a <code>trial</code> column linking each trace row to the corresponding
-original simulated trial.</p></dd>
+<code>FALSE</code>, preserves the compact output. When <code>TRUE</code>, the returned list also
+contains a <code>traces</code> data frame with a <code>trial</code> column linking each trace row
+to the corresponding original simulated trial.</p></dd>
 
 
 <dt id="arg-ncores">ncores<a class="anchor" aria-label="anchor" href="#arg-ncores"></a></dt>
@@ -397,29 +391,35 @@ random-number state unchanged.</p></dd>
 
 <dt id="arg-binary-imputation">binary_imputation<a class="anchor" aria-label="anchor" href="#arg-binary-imputation"></a></dt>
 <dd><p>A single character string selecting the predictive
-imputation approach for
-<code>method = "bayes-bin"</code>, <code>method = "riskdiff-wald"</code>, or <code>method = "riskdiff-fm"</code>. <code>"event-time"</code> (the default) draws a conditional
-piecewise-exponential event time and reduces it to event status at
-<code>end_of_study</code>. <code>"bernoulli"</code> draws the endpoint status directly from its
-conditional event probability. This argument is ignored for time-to-event
-analysis methods.</p></dd>
+imputation approach for <code>method = "bayes-bin"</code>, <code>method = "riskdiff-wald"</code>,
+or <code>method = "riskdiff-fm"</code>. <code>"event-time"</code> (the default) draws a
+conditional piecewise-exponential event time and reduces it to event status
+at <code>end_of_study</code>. <code>"bernoulli"</code> draws the endpoint status directly from
+its conditional event probability. This argument is ignored for
+time-to-event analysis methods.</p></dd>
 
 
 <dt id="arg-prior-surv-final">prior_surv_final<a class="anchor" aria-label="anchor" href="#arg-prior-surv-final"></a></dt>
 <dd><p>A numeric vector, matrix, or named list specifying
-the Gamma prior
-used for final-stage piecewise-exponential imputation and, for <code>method = "bayes-surv"</code>, final analysis. It accepts the same shared or arm-specific
-forms as <code>prior_surv</code> and defaults to <code>prior_surv</code>, preserving the
-historical behavior.</p></dd>
+the Gamma prior used for final-stage piecewise-exponential imputation and,
+for <code>method = "bayes-surv"</code>, both the analysis of each hypothetical
+completed trial at interim looks and the actual final analysis. It accepts
+the same shared or arm-specific forms as <code>prior_surv</code> and defaults to
+<code>prior_surv</code>. An informative <code>prior_surv</code> can therefore predict outstanding
+outcomes while a weak <code>prior_surv_final</code> defines the Bayesian survival
+success criterion. To use different priors for these roles, supply
+<code>prior_surv_final</code> explicitly; an informative predictive prior is otherwise
+also the default analysis prior. See <strong>Predictive and analysis priors</strong>
+below.</p></dd>
 
 
 <dt id="arg-generation-cutpoints">generation_cutpoints<a class="anchor" aria-label="anchor" href="#arg-generation-cutpoints"></a></dt>
 <dd><p><code>NULL</code>, or a numeric vector of finite, positive,
-strictly increasing interior
-follow-up times defining the piecewise-exponential model used to generate
-event times. <code>hazard_treatment</code> and <code>hazard_control</code> must each have one
-value per resulting interval. Defaults to <code>cutpoints</code>, preserving the
-historical behavior in which generation and analysis used one partition.</p></dd>
+strictly increasing interior follow-up times defining the
+piecewise-exponential model used to generate event times.
+<code>hazard_treatment</code> and <code>hazard_control</code> must each have one value per
+resulting interval. Defaults to <code>cutpoints</code>, preserving the historical
+behavior in which generation and analysis used one partition.</p></dd>
 
 
 <dt id="arg-qn">Qn<a class="anchor" aria-label="anchor" href="#arg-qn"></a></dt>
@@ -427,18 +427,19 @@ historical behavior in which generation and analysis used one partition.</p></dd
 upper predictive-probability threshold for declaring immediate trial
 success at the \(i\)-th look. If there are no interim looks (i.e.
 <code>interim_look = NULL</code>), then <code>Qn</code> is not used in the simulations or
-analysis. Supply either one value, which is repeated at every interim
-look, or exactly one value per <code>interim_look</code>; other lengths are rejected.
-<code>Qn</code> must be greater than or equal to <code>Sn</code> at every look. The default, <code>1</code>,
+analysis. Supply either one value, which is repeated at every interim look,
+or exactly one value per <code>interim_look</code>; other lengths are rejected. <code>Qn</code>
+must be greater than or equal to <code>Sn</code> at every look. The default, <code>1</code>,
 disables immediate-success stopping.</p></dd>
 
 
 <dt id="arg-rmst-tau">rmst_tau<a class="anchor" aria-label="anchor" href="#arg-rmst-tau"></a></dt>
-<dd><p>A single finite positive restriction time for <code>method = "rmst"</code>, in the same units as <code>end_of_study</code>. Defaults to <code>end_of_study</code>
-and must not exceed it. Prespecify the same horizon for all looks,
-imputations, and simulations. It may precede analysis cutpoints and does
-not shorten the planned follow-up or imputation horizon. Ignored for other
-methods.</p></dd>
+<dd><p>A single finite positive restriction time for
+<code>method = "rmst"</code>, in the same units as <code>end_of_study</code>. Defaults to
+<code>end_of_study</code> and must not exceed it. Prespecify the same horizon for all
+looks, imputations, and simulations. It may precede analysis cutpoints and
+does not shorten the planned follow-up or imputation horizon. Ignored for
+other methods.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -453,14 +454,13 @@ active follow-up at each look. See <code><a href="survival_adapt.html">survival_
 summary and trace columns, and <code><a href="summarise_calendar_time.html">summarise_calendar_time()</a></code> for wide
 operating-characteristic tables. The returned object also retains the
 evaluated <code>decision_design</code> and resolved <code>prior_design</code> attributes from
-<code><a href="survival_adapt.html">survival_adapt()</a></code>. An
-<code>rng_metadata</code> attribute records the random-number generator, computational
-method, and seed policy. A <code>parallel_metadata</code> attribute records the
-requested and actual computational method and number of cores. An <code>arguments</code>
-attribute contains a named list of all evaluated argument values, including
-defaults. Its <code>prop_loss</code> element contains a named value for every simulated
-arm, and its <code>rand_ratio</code> element is stored in <code>control</code>, <code>treatment</code> order
-for two-arm designs. Its <code>cutpoints</code> and
+<code><a href="survival_adapt.html">survival_adapt()</a></code>. An <code>rng_metadata</code> attribute records the random-number
+generator, computational method, and seed policy. A <code>parallel_metadata</code>
+attribute records the requested and actual computational method and number
+of cores. An <code>arguments</code> attribute contains a named list of all evaluated
+argument values, including defaults. Its <code>prop_loss</code> element contains a
+named value for every simulated arm, and its <code>rand_ratio</code> element is stored
+in <code>control</code>, <code>treatment</code> order for two-arm designs. Its <code>cutpoints</code> and
 <code>generation_cutpoints</code> elements retain the analysis and data-generation
 partitions, respectively. For <code>method = "bayes-bin"</code>, it also retains the
 imputation priors (<code>prior_surv</code> and <code>prior_surv_final</code>), completed-data
@@ -473,10 +473,10 @@ attribute can be saved with <code><a href="https://rdrr.io/r/base/readRDS.html" 
     <p>This function is a wrapper for <code><a href="survival_adapt.html">survival_adapt()</a></code> that repeatedly
 simulates independent trials under the same design parameters and assumed
 treatment effect.</p>
-<p>To use multiple cores (where available), the argument <code>ncores</code>
-can be increased from the default of 1. The default <code>backend = "auto"</code>
-stays sequential for fewer than four trials and otherwise uses no more than
-one core per two trials. This avoids parallel-processing overhead for small
+<p>To use multiple cores (where available), the argument <code>ncores</code> can be
+increased from the default of 1. The default <code>backend = "auto"</code> stays
+sequential for fewer than four trials and otherwise uses no more than one
+core per two trials. This avoids parallel-processing overhead for small
 simulation studies. On Unix-like systems parallel trials use forked R
 processes; on Windows they use PSOCK processes. Set <code>backend</code> explicitly
 when a particular computational method is required.</p>
@@ -492,6 +492,31 @@ stream. The resulting trial-level simulations are identical whether they
 are run sequentially or with a supported parallel method, and the
 pre-existing R random-number state is restored afterward. With
 <code>seed = NULL</code>, the current random-number state is used and advanced.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="predictive-and-analysis-priors">Predictive and analysis priors<a class="anchor" aria-label="anchor" href="#predictive-and-analysis-priors"></a></h2>
+
+
+<p>For <code>method = "bayes-surv"</code>, <code>prior_surv_final</code> is used <strong>during interim
+calculations as well as at the actual final analysis</strong>. The two arguments
+specify different roles, not simply different calendar stages:</p><table class="table table"><tr><td>Calculation</td><td>Gamma prior used</td></tr><tr><td>At interim, generate outstanding outcomes for enrolled and future participants</td><td><code>prior_surv</code></td></tr><tr><td>At interim, test each hypothetical completed trial at the current or maximum sample size</td><td><code>prior_surv_final</code></td></tr><tr><td>At final analysis, impute missing outcomes if <code>imputed_final = TRUE</code></td><td><code>prior_surv_final</code></td></tr><tr><td>Analyze the actual final trial data</td><td><code>prior_surv_final</code></td></tr></table><p>Within one interim predictive replicate, first update <code>prior_surv</code> with the
+observed events and exposure, draw hazards, and generate outstanding
+outcomes. Then start a fresh analysis posterior using <code>prior_surv_final</code>
+and the completed dataset's events and exposure. Compare its posterior
+probability of the alternative with <code>prob_ha</code>. The proportion of replicates
+that pass is the predictive probability used by <code>Qn</code>, <code>Sn</code>, and <code>Fn</code>.</p>
+<p>To incorporate external evidence in prediction while using a weak analysis
+prior, explicitly supply an informative <code>prior_surv</code> and the chosen weak
+<code>prior_surv_final</code>. <strong>Omitting <code>prior_surv_final</code> uses <code>prior_surv</code> for
+both roles; the package does not automatically weaken the analysis prior.</strong>
+The predictive prior can still affect the selected sample size and stopping
+decision, so calibrate the design using both prespecified priors.</p>
+<p>This table describes Bayesian survival analysis. For
+<code>method = "bayes-bin"</code>, completed-data success tests at interim and final
+use <code>prior_bin</code>; <code>prior_surv_final</code> governs only optional final imputation.
+Frequentist completed-data tests use no analysis prior.
+<code><a href="evaluate_interim.html">evaluate_interim()</a></code> performs the two interim calculations; use the same
+prior arguments as in the simulated design.</p>
     </div>
 
     <div class="section level2">

@@ -407,10 +407,18 @@ oc_display <- anthem_oc[c(
   "mean_N_mcse"
 )]
 
-knitr::kable(oc_display, digits = 3)
+knitr::kable(
+  oc_display,
+  digits = 3,
+  col.names = c(
+    "Scenario", "Trials used", "Power", "Power MCSE",
+    "Power lower 95% MC", "Power upper 95% MC", "Expected success stop",
+    "Futility stop", "Mean N", "Mean N MCSE"
+  )
+)
 ```
 
-| scenario | n_used | power | power_mcse | power_mc_lower | power_mc_upper | stop_success | stop_futility | mean_N | mean_N_mcse |
+| Scenario | Trials used | Power | Power MCSE | Power lower 95% MC | Power upper 95% MC | Expected success stop | Futility stop | Mean N | Mean N MCSE |
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | Null: HR = 1.00 | 20 | 0.05 | 0.049 | 0.009 | 0.236 | 0.05 | 0.60 | 750 | 51.555 |
 | Target: HR = 0.70 | 20 | 0.75 | 0.097 | 0.531 | 0.888 | 0.55 | 0.05 | 780 | 47.351 |

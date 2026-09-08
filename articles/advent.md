@@ -745,15 +745,27 @@ oc_small <- summarise_sims(list(
   "margin: PFA failure 50%" = eff_null_boundary
 ))
 
-knitr::kable(oc_small, digits = 3)
+knitr::kable(
+  oc_small[c(
+    "scenario", "n_used", "n_failed", "power", "stop_success",
+    "stop_futility", "stop_max_N", "mean_N"
+  )],
+  digits = 3,
+  col.names = c(
+    "Scenario", "Trials used", "Failed runs", "Success probability",
+    "Expected success stop", "Futility stop", "Maximum N", "Mean N"
+  )
+)
 ```
 
-| scenario | backend | seed | n_requested | n_analyzed | n_failed | n_used | failure_rate | failure_rate_mcse | failure_rate_mc_lower | failure_rate_mc_upper | power | power_mcse | power_mc_lower | power_mc_upper | stop_immediate_success | stop_immediate_success_mcse | stop_immediate_success_mc_lower | stop_immediate_success_mc_upper | stop_success | stop_success_mcse | stop_success_mc_lower | stop_success_mc_upper | stop_any_success | stop_any_success_mcse | stop_any_success_mc_lower | stop_any_success_mc_upper | stop_futility | stop_futility_mcse | stop_futility_mc_lower | stop_futility_mc_upper | stop_max_N | stop_max_N_mcse | stop_max_N_mc_lower | stop_max_N_mc_upper | mean_N | mean_N_mcse | mean_N_mc_lower | mean_N_mc_upper | sd_N | stop_and_fail | stop_and_fail_mcse | stop_and_fail_mc_lower | stop_and_fail_mc_upper |
-|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.068 | 0.011 | 0.049 | 0.094 | 0 | 0 | 0 | 0.008 | 0.066 | 0.011 | 0.047 | 0.091 | 0.066 | 0.011 | 0.047 | 0.091 | 0.664 | 0.021 | 0.621 | 0.704 | 0.27 | 0.02 | 0.233 | 0.311 | 556.8 | 6.699 | 543.638 | 569.962 | 149.795 | 0.026 | 0.007 | 0.015 | 0.044 |
-| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.984 | 0.006 | 0.969 | 0.992 | 0 | 0 | 0 | 0.008 | 0.946 | 0.010 | 0.923 | 0.963 | 0.946 | 0.010 | 0.923 | 0.963 | 0.004 | 0.003 | 0.001 | 0.014 | 0.05 | 0.01 | 0.034 | 0.073 | 466.2 | 5.040 | 456.297 | 476.103 | 112.707 | 0.010 | 0.004 | 0.004 | 0.023 |
+| Scenario | Trials used | Failed runs | Success probability | Expected success stop | Futility stop | Maximum N | Mean N |
+|:---|---:|---:|---:|---:|---:|---:|---:|
+| margin: PFA failure 50% | 500 | 0 | 0.068 | 0.066 | 0.664 | 0.27 | 556.8 |
+| target: equal 35% failure | 500 | 0 | 0.984 | 0.946 | 0.004 | 0.05 | 466.2 |
 
-Each scenario uses 500 simulated trials and two cores. These results are
+The table displays selected operating characteristics; `oc_small`
+retains the full summary, including Monte Carlo uncertainty. Each
+scenario uses 500 simulated trials and two cores. These results are
 illustrative rather than definitive estimates of power or type I error.
 A design evaluation should increase `N_trials` and `N_impute` as needed
 for Monte Carlo precision and examine sensitivity to accrual, loss to

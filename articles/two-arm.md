@@ -4,6 +4,8 @@ Broglio et al. (2014) presented a hypothetical trial example. We use a
 similar setting and show how each statistical and operational assumption
 is represented in `goldilocks`.
 
+## Design assumptions
+
 The setting is a two-arm trial with equal randomization to control or
 treatment. The primary endpoint is overall survival (OS), measured from
 enrollment to death from any cause or last follow-up. The simulation
@@ -71,6 +73,8 @@ From this information, we have:
 Note that the first value of `Sn` is 1. This is because the trial is not
 allowed to stop for predicted success at the first interim analysis of n
 = 100. The remaining elements of `Sn` are 0.9, corresponding to 90%.
+
+## Final analysis and hypotheses
 
 The primary analysis is a two-sided log-rank test, with success declared
 at the \alpha = 0.05 level.
@@ -145,6 +149,8 @@ vignette](https://graemeleehickey.github.io/goldilocks/articles/rmst.md)
 gives a worked example with a delayed treatment effect and explains the
 support required through `rmst_tau`.
 
+## Simulation settings
+
 The operating characteristics will be determined using 500 simulated
 trials. At each interim analysis, we will use 100 imputations and assume
 independent weakly-informative \operatorname{Gamma}(0.1, 0.1) prior
@@ -167,15 +173,19 @@ first. Log-rank, Cox, and RMST analyses retain right-censored follow-up
 with `imputed_final = FALSE`, including when dropout occurs. Imputed
 final analyses are not available for `method = "logrank"`.
 
-For `method = "cox"`, `"rmst"`, `"riskdiff-wald"`, or `"riskdiff-fm"`,
-setting `imputed_final = TRUE` analyzes completed datasets and pools
-scalar estimates and variances using Rubin’s rules; at least two
-imputations are required. This produces a pooled Wald analysis for
-either risk-difference setting. Binary analyses with
-`imputed_final = FALSE` exclude incomplete endpoint statuses; that
-complete-case analysis can be biased even under independent dropout,
-because early events can be observed before dropout. Binary designs with
-dropout should assess final imputation and its model assumptions.
+For methods accepting `imputed_final = TRUE`, complete final outcomes
+use the selected test directly. With missing outcomes, `"cox"`,
+`"rmst"`, and `"riskdiff-wald"` support final imputation and Rubin
+pooling, requiring at least two imputations and positive total variance.
+FM final imputation is unsupported; simulations with
+`method = "riskdiff-fm"` and `imputed_final = TRUE` require zero dropout
+in both arms. Binary analyses with `imputed_final = FALSE` exclude
+incomplete endpoint statuses; that complete-case analysis can be biased
+even under independent dropout, because early events can be observed
+before dropout. Binary designs with dropout should assess final
+imputation and its model assumptions.
+
+## Power and type I error
 
 Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is
@@ -247,11 +257,15 @@ knitr::kable(
     "mean_N"
   )],
   digits = 3,
+  col.names = c(
+    "Scenario", "Requested", "Used", "Failed runs", "Power",
+    "Expected success stop", "Futility stop", "Maximum N", "Mean N"
+  ),
   caption = "Operating characteristics with a two-sided log-rank test at the 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is the null (treatment OS 30%)."
 )
 ```
 
-| scenario | n_requested | n_used | n_failed | power | stop_success | stop_futility | stop_max_N | mean_N |
+| Scenario | Requested | Used | Failed runs | Power | Expected success stop | Futility stop | Maximum N | Mean N |
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|
 | 1 | 500 | 500 | 0 | 0.934 | 0.864 | 0.030 | 0.106 | 180.6 |
 | 2 | 500 | 500 | 0 | 0.062 | 0.044 | 0.754 | 0.202 | 236.6 |
@@ -265,6 +279,8 @@ scenario 2: 6.2%. Its 95% Wilson Monte Carlo interval is 4.4% to 8.7%.
 The point estimate alone does not establish whether the design exceeds
 the intended 0.05 level; both Monte Carlo uncertainty and the complete
 adaptive decision rule matter.
+
+## Calibrating the final threshold
 
 The final-analysis threshold should therefore be calibrated jointly with
 the interim rules. As a preliminary candidate, consider P \< 0.04,
@@ -381,6 +397,8 @@ treatment and control had the same 12-month OS probability, 81.4%
 stopped for futility. Larger simulation studies are appropriate when the
 displayed Monte Carlo precision is insufficient for a final design
 decision.
+
+## Calendar time and follow-up
 
 The same simulation can be summarized on the calendar-time scale without
 adding any design arguments. Time zero is first patient enrolled, and
@@ -503,6 +521,8 @@ knitr::kable(
 | 8 | 275 | 90 (18.0%) | 55.2 \[51.0-59.1\] | 40 \[33-48\] |
 
 Calendar timing and concurrent follow-up at each interim look. {.table}
+
+## Graphical assessment
 
 The same results can be viewed graphically.
 [`plot_sim_ocs()`](https://graemeleehickey.github.io/goldilocks/reference/plot_sim_ocs.md)

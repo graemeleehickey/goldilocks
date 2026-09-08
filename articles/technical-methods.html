@@ -313,7 +313,7 @@ available in closed form.</p>
 <div class="section level3">
 <h3 id="independent-dropout-and-administrative-censoring">3.1 Independent dropout and administrative censoring<a class="anchor" aria-label="anchor" href="#independent-dropout-and-administrative-censoring"></a>
 </h3>
-<p>For treatment arm <span class="math inline">z</span>, let <span class="math inline">p_z</span> be <code>prop_loss</code> and let <span class="math inline">\tau = \texttt{end_of_study}</span> be the planned
+<p>For treatment arm <span class="math inline">z</span>, let <span class="math inline">p_z</span> be <code>prop_loss</code> and let <span class="math inline">\tau = \texttt{end\_of\_study}</span> be the planned
 follow-up duration <strong>per subject</strong>, measured from
 enrollment. The simulator independently draws</p>
 <p><span class="math display">D_i \mid Z_i=z \sim
@@ -391,7 +391,55 @@ length-two vector or a two-row interval-specific matrix. Both arms must
 be specified, and no borrowing occurs between them.
 <code>prior_surv_final</code> accepts the same specifications and
 defaults to <code>prior_surv</code>; priors may therefore differ by
-analysis stage, arm, and interval.</p>
+analysis stage, arm, and interval. For
+<code>method = "bayes-surv"</code>,
+<strong><code>prior_surv_final</code> is used during interim
+calculations as well as at the actual final analysis</strong>:</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>Calculation</th>
+<th>Prior used</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Generate outstanding outcomes at interim, for enrolled and future
+participants</td>
+<td><code>prior_surv</code></td>
+</tr>
+<tr class="even">
+<td>Test each hypothetical completed trial at the current or maximum
+sample size</td>
+<td><code>prior_surv_final</code></td>
+</tr>
+<tr class="odd">
+<td>Impute missing outcomes at final analysis, if
+<code>imputed_final = TRUE</code>
+</td>
+<td><code>prior_surv_final</code></td>
+</tr>
+<tr class="even">
+<td>Analyze the actual final data</td>
+<td><code>prior_surv_final</code></td>
+</tr>
+</tbody>
+</table>
+<p>An informative predictive prior can bring in external evidence while
+a separate weak analysis prior defines the success criterion.
+<strong>Both must be specified explicitly for this separation: omitting
+<code>prior_surv_final</code> makes it equal to <code>prior_surv</code>,
+including when <code>prior_surv</code> is informative.</strong> These
+roles also apply to <code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code>, which performs the
+two interim calculations. See the <a href="interim-data.html#using-separate-predictive-and-analysis-priors">worked
+example</a>.</p>
+<p>The predictive prior can still influence the stopping decision and
+selected sample size. Calibrate the design with both priors fixed to
+their intended values. This table applies to Bayesian survival: Bayesian
+binary completed-data analyses use <code>prior_bin</code>, and
+frequentist completed-data tests have no analysis prior.</p>
 <p>At an analysis, let <span class="math inline">d_{zj}</span> be the
 number of observed events for treatment value <span class="math inline">z</span>, interval <span class="math inline">j</span>, and let <span class="math inline">y_{zj}</span> be the total observed exposure time
 for that treatment value and interval. Gamma-exponential conjugacy
@@ -632,6 +680,31 @@ scenarios.</p>
 and</li>
 <li>record whether that completed trial is successful.</li>
 </ol>
+<p>For Bayesian survival, step 1 uses <code>prior_surv</code> and step 3
+updates <code>prior_surv_final</code> with the completed events and
+exposure. The posterior used to generate outcomes is not substituted for
+the completed-data analysis prior. The maximum-sample calculation uses
+this same separation of priors.</p>
+<p>For example, write <span class="math inline">\pi_{\mathrm{pred}}</span> for
+<code>prior_surv</code> and <span class="math inline">\pi_{\mathrm{ana}}</span> for
+<code>prior_surv_final</code>. For <code>alternative = "less"</code>,
+the predictive target is</p>
+<p><span class="math display">P_{n_\ell} =
+\operatorname{E}_{\mathrm{pred}}\left[
+  I\left\{
+    \Pr_{\mathrm{ana}}\left(\Delta &lt; h_0 \mid
+      \mathcal{D}^{\mathrm{obs}}_\ell,\mathcal{D}^{\mathrm{mis}}\right)
+&gt; c
+  \right\}
+  \mid \mathcal{D}^{\mathrm{obs}}_\ell
+\right].</span></p>
+<p>The outer expectation generates missing outcomes from the posterior
+predictive distribution under <span class="math inline">\pi_{\mathrm{pred}}</span>. The inner probability
+analyzes each completed dataset under <span class="math inline">\pi_{\mathrm{ana}}</span>, with <span class="math inline">c=</span> <code>prob_ha</code>. In a single-arm
+design, replace <span class="math inline">\Delta</span> with the
+treatment event probability. Thus the hypothetical final success test
+and the actual final success test use the same analysis prior, even when
+the predictive prior differs.</p>
 <p>Formally,</p>
 <p><span class="math display">P_{n_\ell}
   =
@@ -940,11 +1013,10 @@ log-rank statistic.</p>
 <p>The risk-difference analysis discards event-time information and
 requires complete binary endpoint status. <code>est_final</code> reports
 <span class="math inline">\widehat\Delta</span>.</p>
-<p>When a Cox, RMST, or risk-difference final analysis uses multiple
-imputation, the analysis is applied separately to each completed
-dataset. Let <span class="math inline">\widehat{\theta}_m</span> and
-<span class="math inline">U_m</span> be the scalar effect estimate and
-its estimated variance from imputation <span class="math inline">m =
+<p>When a Cox, RMST, or <code>riskdiff-wald</code> final analysis uses
+multiple imputation, the analysis is applied separately to each
+completed dataset. Let <span class="math inline">\widehat{\theta}_m</span> and <span class="math inline">U_m</span> be the scalar effect estimate and its
+estimated variance from imputation <span class="math inline">m =
 1,\ldots,M</span>. For Cox regression <span class="math inline">\widehat{\theta}_m</span> is the log hazard ratio;
 for risk difference it is <span class="math inline">\widehat\Delta_m</span>. For RMST it is <span class="math inline">\widehat\Delta_{R,m}</span>, with <span class="math inline">U_m</span> the sum of the arm-specific Greenwood
 variances. Rubin’s scalar pooling rules give</p>
@@ -960,24 +1032,33 @@ large-sample degrees of freedom</p>
 <p><span class="math display">\nu = (M-1)\left(1 + \frac{1}{r}\right)^2,
 \qquad
 r = \frac{(1 + 1/M)B}{\bar{U}}.</span></p>
-<p>When <span class="math inline">B = 0</span>, <span class="math inline">\nu = \infty</span> and the reference distribution
-reduces to the standard normal distribution. If both the within- and
-between-imputation variances are zero, RMST reports a non-estimability
-error; the other pooled methods use the neutral-or-directional boundary
-convention described above. At least two imputations are therefore
-required. The returned <code>est_final</code> is <span class="math inline">\bar{\theta}</span>, while <code>post_prob_ha</code>
-is <span class="math inline">1-p</span> from this pooled test with the
-direction determined by <code>alternative</code>. This
-multiple-imputation result is a pooled Wald analysis for both
-risk-difference method settings; it is not described as a
-Farrington-Manning test.</p>
+<p>When <span class="math inline">B = 0</span> and <span class="math inline">\bar U &gt; 0</span>, <span class="math inline">\nu
+= \infty</span> and the reference distribution reduces to the standard
+normal distribution. If <span class="math inline">\bar U = 0</span> and
+<span class="math inline">B &gt; 0</span>, the package uses <span class="math inline">\nu = M-1</span>. If both variance components are
+zero, the pooled analysis is non-estimable and raises an error. At least
+two imputations and positive total variance are required. The returned
+<code>est_final</code> is <span class="math inline">\bar{\theta}</span>,
+while <code>post_prob_ha</code> is <span class="math inline">1-p</span>
+from this pooled test with the direction determined by
+<code>alternative</code>.</p>
+<p>If final outcomes are complete, the selected test is applied directly
+with either imputation flag. Genuine final imputation is unsupported for
+<code>riskdiff-fm</code> because no validated FM pooling rule is
+implemented; the package does not substitute a Wald test. Simulations
+combining FM with <code>imputed_final = TRUE</code> require zero
+<code>prop_loss</code> in both arms.</p>
 </div>
 <div class="section level3">
 <h3 id="bayesian-survival-final-test">7.2 Bayesian survival final test<a class="anchor" aria-label="anchor" href="#bayesian-survival-final-test"></a>
 </h3>
-<p>For <code>method = "bayes-surv"</code>, posterior hazard draws are
-mapped to cumulative event probabilities at <span class="math inline">\tau</span>. In a two-arm design the treatment
-effect is</p>
+<p>For <code>method = "bayes-surv"</code>, the analysis posterior
+updates <code>prior_surv_final</code> with the dataset’s observed or
+imputed events and exposure. This applies both to hypothetical completed
+trials tested inside an interim prediction and to the actual final
+analysis. Posterior hazard draws are mapped to cumulative event
+probabilities at <span class="math inline">\tau</span>. In a two-arm
+design the treatment effect is</p>
 <p><span class="math display">\Delta = p_1(\tau) - p_0(\tau),</span></p>
 <p>where <span class="math inline">p_1(\tau)</span> is the treatment-arm
 event probability and <span class="math inline">p_0(\tau)</span> is the
@@ -1059,12 +1140,20 @@ declares success when</p>
 \texttt{prob\_ha}.</span></p>
 <p>The posterior probability can be computed in three ways. With
 <code>bin_method = "mc"</code>, the package draws from the beta
-posterior directly. With <code>bin_method = "normal"</code>, it uses a
-normal approximation to the posterior mean or treatment-control
-difference. With <code>bin_method = "quadrature"</code>, it uses
-numerical integration for the two-arm posterior difference. The argument
-<code>N_mcmc</code> controls the number of Monte Carlo beta draws only
-when <code>bin_method = "mc"</code>.</p>
+posterior directly. With <code>bin_method = "normal"</code>, it
+approximates the posterior event probability or treatment-control
+difference by a normal distribution with matching mean and variance.
+With <code>bin_method = "quadrature"</code>, it evaluates the Beta CDF
+directly for a single arm and uses numerical integration for the two-arm
+posterior difference. The argument <code>N_mcmc</code> controls the
+number of Monte Carlo beta draws only when
+<code>bin_method = "mc"</code>.</p>
+<p>With sparse events or non-events and posterior event probabilities
+near 0 or 1, the normal approximation can misrepresent tail
+probabilities and change success or interim stopping decisions.
+Increasing <code>N_mcmc</code> does not correct this error. Use
+<code>bin_method = "quadrature"</code> or sufficiently precise Monte
+Carlo Beta draws when the approximation is unsuitable.</p>
 <p>The completed-data calculation depends on <span class="math inline">(x_z,n_z)</span> directly. Participant- level data
 are reduced to these sufficient statistics after complete endpoint
 ascertainment has been verified. Normal-approximation, quadrature, and
@@ -1078,15 +1167,18 @@ independently for every predictive replicate.</p>
 <p>Interim predictions impute outcomes that are not yet known. At the
 final analysis, <code>imputed_final</code> controls whether subjects
 lost to follow-up are also imputed.</p>
-<p>If <code>imputed_final = TRUE</code>, Bayesian methods
+<p>If no final outcomes require imputation, the selected complete-data
+test is used directly with either flag. Otherwise, with
+<code>imputed_final = TRUE</code>, Bayesian methods
 (<code>method = "bayes-surv"</code> or
 <code>method = "bayes-bin"</code>) analyze each imputed completed
 dataset and average the resulting posterior summaries. Cox regression,
-RMST, and risk-difference analyses instead pool completed-data scalar
+RMST, and <code>riskdiff-wald</code> instead pool completed-data scalar
 estimates and variances using Rubin’s rules as described above;
-<code>N_impute</code> must be at least two. Imputed final analyses
-remain unavailable for <code>method = "logrank"</code> because no
-pooling rule is implemented for that test.</p>
+<code>N_impute</code> must be at least two. Genuine final imputation is
+unsupported for <code>riskdiff-fm</code>. Imputed final analyses remain
+unavailable for <code>method = "logrank"</code> because no pooling rule
+is implemented for that test.</p>
 <p>If <code>imputed_final = FALSE</code>, the final analysis uses
 observed right-censored data for methods that can handle censoring
 (<code>logrank</code>, <code>cox</code>, <code>rmst</code>, and
@@ -1094,8 +1186,8 @@ observed right-censored data for methods that can handle censoring
 <code>riskdiff-fm</code>, and <code>bayes-bin</code>, lost-to-follow-up
 subjects are excluded because these methods require complete binary
 outcomes and have no mechanism for right-censored observations. Rubin
-pooling applies to imputed Cox, RMST, and risk-difference final
-analyses; it does not alter the interim posterior-predictive
+pooling applies to imputed Cox, RMST, and <code>riskdiff-wald</code>
+final analyses; it does not alter the interim posterior-predictive
 calculation, where each simulated completed trial is tested separately
 before the success indicators are averaged.</p>
 <p>The independent dropout mechanism in Section 3.1 supports

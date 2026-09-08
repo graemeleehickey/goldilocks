@@ -318,8 +318,9 @@ benchmark.</p>
 directly. Use <code>N_mcmc</code> to control the number of Monte Carlo
 draws.</li>
 <li>
-<code>bin_method = "normal"</code> uses a normal approximation to
-the posterior mean or treatment-control difference.</li>
+<code>bin_method = "normal"</code> approximates the posterior event
+probability or treatment-control difference by a normal distribution
+with matching mean and variance.</li>
 <li>
 <code>bin_method = "quadrature"</code> uses numerical integration
 for the two-arm posterior difference, and the closed-form beta CDF for
@@ -331,6 +332,11 @@ integration for a two-arm design) and is a useful high-accuracy default
 when it is computationally feasible. The normal approximation is fastest
 in a representative two-arm benchmark, but should be used with care when
 sample sizes are small or event probabilities are near 0 or 1.</p>
+<p>Approximation error can move the posterior probability across
+<code>prob_ha</code>, changing success and interim stopping decisions.
+Increasing <code>N_mcmc</code> does not correct normal-approximation
+error. Use <code>bin_method = "quadrature"</code> or sufficiently
+precise Monte Carlo Beta draws when the approximation is unsuitable.</p>
 </div>
 <div class="section level2">
 <h2 id="operating-characteristics">Operating characteristics<a class="anchor" aria-label="anchor" href="#operating-characteristics"></a>

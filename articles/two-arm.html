@@ -72,6 +72,9 @@
 <p>Broglio et al. (2014) presented a hypothetical trial example. We use
 a similar setting and show how each statistical and operational
 assumption is represented in <code>goldilocks</code>.</p>
+<div class="section level2">
+<h2 id="design-assumptions">Design assumptions<a class="anchor" aria-label="anchor" href="#design-assumptions"></a>
+</h2>
 <p>The setting is a two-arm trial with equal randomization to control or
 treatment. The primary endpoint is overall survival (OS), measured from
 enrollment to death from any cause or last follow-up. The simulation
@@ -152,6 +155,10 @@ parameter)</li>
 the trial is not allowed to stop for predicted success at the first
 interim analysis of <span class="math inline">n = 100</span>. The
 remaining elements of <code>Sn</code> are 0.9, corresponding to 90%.</p>
+</div>
+<div class="section level2">
+<h2 id="final-analysis-and-hypotheses">Final analysis and hypotheses<a class="anchor" aria-label="anchor" href="#final-analysis-and-hypotheses"></a>
+</h2>
 <p>The primary analysis is a two-sided log-rank test, with success
 declared at the <span class="math inline">\alpha = 0.05</span>
 level.</p>
@@ -233,6 +240,11 @@ of one month of RMST. Choose the method, effect scale, direction, and
 horizon together before evaluating the design. The <a href="rmst.html">RMST vignette</a> gives a worked example with a delayed
 treatment effect and explains the support required through
 <code>rmst_tau</code>.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="simulation-settings">Simulation settings<a class="anchor" aria-label="anchor" href="#simulation-settings"></a>
+</h2>
 <p>The operating characteristics will be determined using 500 simulated
 trials. At each interim analysis, we will use 100 imputations and assume
 independent weakly-informative <span class="math inline">\operatorname{Gamma}(0.1, 0.1)</span> prior
@@ -263,17 +275,23 @@ analyses retain right-censored follow-up with
 <code>imputed_final = FALSE</code>, including when dropout occurs.
 Imputed final analyses are not available for
 <code>method = "logrank"</code>.</p>
-<p>For <code>method = "cox"</code>, <code>"rmst"</code>,
-<code>"riskdiff-wald"</code>, or <code>"riskdiff-fm"</code>, setting
-<code>imputed_final = TRUE</code> analyzes completed datasets and pools
-scalar estimates and variances using Rubin’s rules; at least two
-imputations are required. This produces a pooled Wald analysis for
-either risk-difference setting. Binary analyses with
-<code>imputed_final = FALSE</code> exclude incomplete endpoint statuses;
-that complete-case analysis can be biased even under independent
-dropout, because early events can be observed before dropout. Binary
-designs with dropout should assess final imputation and its model
-assumptions.</p>
+<p>For methods accepting <code>imputed_final = TRUE</code>, complete
+final outcomes use the selected test directly. With missing outcomes,
+<code>"cox"</code>, <code>"rmst"</code>, and
+<code>"riskdiff-wald"</code> support final imputation and Rubin pooling,
+requiring at least two imputations and positive total variance. FM final
+imputation is unsupported; simulations with
+<code>method = "riskdiff-fm"</code> and
+<code>imputed_final = TRUE</code> require zero dropout in both arms.
+Binary analyses with <code>imputed_final = FALSE</code> exclude
+incomplete endpoint statuses; that complete-case analysis can be biased
+even under independent dropout, because early events can be observed
+before dropout. Binary designs with dropout should assess final
+imputation and its model assumptions.</p>
+</div>
+<div class="section level2">
+<h2 id="power-and-type-i-error">Power and type I error<a class="anchor" aria-label="anchor" href="#power-and-type-i-error"></a>
+</h2>
 <p>Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is
 50%.</p>
@@ -330,6 +348,10 @@ retains the remaining design specification:</p>
 <span>    <span class="st">"mean_N"</span></span>
 <span>  <span class="op">)</span><span class="op">]</span>,</span>
 <span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Scenario"</span>, <span class="st">"Requested"</span>, <span class="st">"Used"</span>, <span class="st">"Failed runs"</span>, <span class="st">"Power"</span>,</span>
+<span>    <span class="st">"Expected success stop"</span>, <span class="st">"Futility stop"</span>, <span class="st">"Maximum N"</span>, <span class="st">"Mean N"</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  caption <span class="op">=</span> <span class="st">"Operating characteristics with a two-sided log-rank test at the 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2 is the null (treatment OS 30%)."</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <table class="table">
@@ -337,26 +359,26 @@ retains the remaining design specification:</p>
 0.05 level. Scenario 1 is the alternative (treatment OS 50%); scenario 2
 is the null (treatment OS 30%).</caption>
 <colgroup>
+<col width="9%">
 <col width="10%">
-<col width="13%">
-<col width="7%">
-<col width="10%">
-<col width="6%">
-<col width="14%">
-<col width="15%">
+<col width="5%">
 <col width="12%">
+<col width="6%">
+<col width="23%">
+<col width="14%">
+<col width="10%">
 <col width="7%">
 </colgroup>
 <thead><tr class="header">
-<th align="left">scenario</th>
-<th align="right">n_requested</th>
-<th align="right">n_used</th>
-<th align="right">n_failed</th>
-<th align="right">power</th>
-<th align="right">stop_success</th>
-<th align="right">stop_futility</th>
-<th align="right">stop_max_N</th>
-<th align="right">mean_N</th>
+<th align="left">Scenario</th>
+<th align="right">Requested</th>
+<th align="right">Used</th>
+<th align="right">Failed runs</th>
+<th align="right">Power</th>
+<th align="right">Expected success stop</th>
+<th align="right">Futility stop</th>
+<th align="right">Maximum N</th>
+<th align="right">Mean N</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -388,6 +410,10 @@ is the null (treatment OS 30%).</caption>
 Carlo interval is 4.4% to 8.7%. The point estimate alone does not
 establish whether the design exceeds the intended 0.05 level; both Monte
 Carlo uncertainty and the complete adaptive decision rule matter.</p>
+</div>
+<div class="section level2">
+<h2 id="calibrating-the-final-threshold">Calibrating the final threshold<a class="anchor" aria-label="anchor" href="#calibrating-the-final-threshold"></a>
+</h2>
 <p>The final-analysis threshold should therefore be calibrated jointly
 with the interim rules. As a preliminary candidate, consider <span class="math inline">P &lt; 0.04</span>, specified as
 <code>prob_ha = 0.96</code>. The <a href="calibrating-prob-ha.html">calibration vignette</a> gives a
@@ -529,6 +555,10 @@ treatment and control had the same 12-month OS probability, 81.4%
 stopped for futility. Larger simulation studies are appropriate when the
 displayed Monte Carlo precision is insufficient for a final design
 decision.</p>
+</div>
+<div class="section level2">
+<h2 id="calendar-time-and-follow-up">Calendar time and follow-up<a class="anchor" aria-label="anchor" href="#calendar-time-and-follow-up"></a>
+</h2>
 <p>The same simulation can be summarized on the calendar-time scale
 without adding any design arguments. Time zero is first patient
 enrolled, and the time unit is months in this example. “Analysis ready”
@@ -757,6 +787,10 @@ look.</caption>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="section level2">
+<h2 id="graphical-assessment">Graphical assessment<a class="anchor" aria-label="anchor" href="#graphical-assessment"></a>
+</h2>
 <p>The same results can be viewed graphically.
 <code><a href="../reference/plot_sim_ocs.html">plot_sim_ocs()</a></code> compares final success, stopping behavior,
 and expected sample size across the treatment-effect scenarios. Because

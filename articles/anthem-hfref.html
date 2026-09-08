@@ -665,31 +665,39 @@ estimate.</p>
 <span>  <span class="st">"mean_N_mcse"</span></span>
 <span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">oc_display</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="va">oc_display</span>,</span>
+<span>  digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Scenario"</span>, <span class="st">"Trials used"</span>, <span class="st">"Power"</span>, <span class="st">"Power MCSE"</span>,</span>
+<span>    <span class="st">"Power lower 95% MC"</span>, <span class="st">"Power upper 95% MC"</span>, <span class="st">"Expected success stop"</span>,</span>
+<span>    <span class="st">"Futility stop"</span>, <span class="st">"Mean N"</span>, <span class="st">"Mean N MCSE"</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
+<col width="12%">
+<col width="8%">
+<col width="4%">
+<col width="7%">
+<col width="13%">
+<col width="13%">
 <col width="15%">
-<col width="5%">
-<col width="5%">
-<col width="9%">
-<col width="12%">
-<col width="12%">
-<col width="11%">
-<col width="11%">
-<col width="5%">
 <col width="10%">
+<col width="5%">
+<col width="8%">
 </colgroup>
 <thead><tr class="header">
-<th align="left">scenario</th>
-<th align="right">n_used</th>
-<th align="right">power</th>
-<th align="right">power_mcse</th>
-<th align="right">power_mc_lower</th>
-<th align="right">power_mc_upper</th>
-<th align="right">stop_success</th>
-<th align="right">stop_futility</th>
-<th align="right">mean_N</th>
-<th align="right">mean_N_mcse</th>
+<th align="left">Scenario</th>
+<th align="right">Trials used</th>
+<th align="right">Power</th>
+<th align="right">Power MCSE</th>
+<th align="right">Power lower 95% MC</th>
+<th align="right">Power upper 95% MC</th>
+<th align="right">Expected success stop</th>
+<th align="right">Futility stop</th>
+<th align="right">Mean N</th>
+<th align="right">Mean N MCSE</th>
 </tr></thead>
 <tbody>
 <tr class="odd">

@@ -265,8 +265,8 @@ ascertainment</td>
 <td align="left"><code>riskdiff-fm</code></td>
 <td align="left">Treatment-minus-control event-risk difference using a
 Farrington-Manning score test</td>
-<td align="left">Pool estimates and variances using Rubin’s rules,
-yielding a pooled Wald analysis</td>
+<td align="left">Not available when outcomes are missing: no validated
+FM pooling rule is implemented</td>
 <td align="left">Exclude participants without complete endpoint
 ascertainment</td>
 </tr>
@@ -280,6 +280,11 @@ not been specified</td>
 </tr>
 </tbody>
 </table>
+<p>For methods that accept <code>imputed_final = TRUE</code>, complete
+final outcomes use the selected test directly. FM simulations with this
+flag require zero dropout in both arms. Rubin pooling requires at least
+two imputations and positive total variance; zero total variance is
+non-estimable.</p>
 <p>For a frequentist method, the success measure is <span class="math inline">1-p</span>; for a Bayesian method, it is the
 posterior probability of the prespecified alternative. In both cases,
 success requires the measure to be strictly greater than

@@ -35,7 +35,8 @@ evaluate_interim(
   binary_imputation = c("event-time", "bernoulli"),
   seed = NULL,
   Qn = 1,
-  rmst_tau = end_of_study
+  rmst_tau = end_of_study,
+  prior_surv_final = prior_surv
 )
 ```
 
@@ -83,17 +84,18 @@ evaluate_interim(
 - prior_surv:
 
   A numeric vector, matrix, or named list specifying the Gamma prior for
-  the piecewise-exponential hazards used during interim prediction. A
-  length-two vector supplies shape and rate and applies the same prior
-  to every arm and interval. A `2` by `length(cutpoints) + 1` matrix
-  supplies interval-specific values shared by all arms, with shapes in
-  row 1 and rates in row 2. For independent arm-specific priors, supply
-  a list named `control` and `treatment` in a two-arm design, or
-  `treatment` in a single-arm design. Each list element may be a
-  length-two vector or an interval-specific matrix. Both arms must be
-  supplied; no values are borrowed or filled from the other arm. Rates
-  must use the same time unit as event times, exposure, and cutpoints.
-  The default is `c(0.1, 0.1)`.
+  the piecewise-exponential hazards used to generate outcomes during
+  interim prediction. A length-two vector supplies shape and rate and
+  applies the same prior to every arm and interval. A `2` by
+  `length(cutpoints) + 1` matrix supplies interval-specific values
+  shared by all arms, with shapes in row 1 and rates in row 2. For
+  independent arm-specific priors, supply a list named `control` and
+  `treatment` in a two-arm design, or `treatment` in a single-arm
+  design. Each list element may be a length-two vector or an
+  interval-specific matrix. Both arms must be supplied; no values are
+  borrowed or filled from the other arm. Rates must use the same time
+  unit as event times, exposure, and cutpoints. The default is
+  `c(0.1, 0.1)`.
 
 - prior_bin:
 
@@ -107,7 +109,12 @@ evaluate_interim(
   A single character string selecting how to calculate the posterior
   probability for `method = "bayes-bin"`. It must be one of `"mc"`
   (Monte Carlo sampling), `"normal"` (normal approximation), or
-  `"quadrature"` (numerical integration). The default is `"mc"`.
+  `"quadrature"` (numerical integration). The default is `"mc"`. The
+  normal approximation can be inaccurate with sparse events or
+  non-events and posterior event probabilities near 0 or 1. It can
+  change whether `prob_ha` is exceeded. Increasing `N_mcmc` does not
+  improve this approximation; use `"quadrature"` or sufficiently precise
+  `"mc"` instead.
 
 - rand_ratio:
 
@@ -214,7 +221,7 @@ evaluate_interim(
   the confidence level for one-sided exact binomial bounds reported as
   diagnostics of finite Monte Carlo uncertainty. The bounds do not alter
   completed-data success classifications or interim decisions, which use
-  strict point- estimate comparisons with `prob_ha`, `Qn`, `Sn`, and
+  strict point-estimate comparisons with `prob_ha`, `Qn`, `Sn`, and
   `Fn`. The default is `0.95`.
 
 - empty_interval:
@@ -281,6 +288,15 @@ evaluate_interim(
   shorten the planned follow-up or imputation horizon. Ignored for other
   methods.
 
+- prior_surv_final:
+
+  A numeric vector, matrix, or named list specifying the Gamma analysis
+  prior for each hypothetical completed trial when
+  `method = "bayes-surv"`. It accepts the same shared,
+  interval-specific, and arm-specific forms as `prior_surv` and defaults
+  to `prior_surv`. It should match the prior for the actual final
+  analysis. Other methods do not use it in this interim calculation.
+
 ## Value
 
 An object of class `goldilocks_interim`, containing:
@@ -302,6 +318,9 @@ An object of class `goldilocks_interim`, containing:
 
 - `metadata`: the evaluated design, resolved prior design, package
   version, time-origin, data-cut, and random-number policy. For
+  `method = "bayes-surv"`, both Gamma priors are retained in
+  `metadata$design` and `metadata$prior_design`; posterior diagnostics
+  describe the predictive model based on the observed interim data. For
   `method = "bayes-bin"`, `metadata$design` retains the normalized
   imputation prior (`prior_surv`), completed-data analysis prior
   (`prior_bin`), and imputation horizon (`end_of_study`).
@@ -321,6 +340,15 @@ an observed endpoint event, `"complete"` for event-free completion of
 `"censored"` for permanent early censoring. Pending and censored
 outcomes are predictively imputed conditional on `time`.
 
+With `method = "bayes-surv"`, `prior_surv` generates predictive outcomes
+and `prior_surv_final` is the analysis prior used to test each
+hypothetical completed trial for success, at both the current and
+maximum sample sizes. Supply the same final prior as in the prespecified
+trial design. The default `prior_surv_final = prior_surv` uses one prior
+for both roles. Other methods do not use `prior_surv_final` in this
+interim calculation; Bayesian binary completed-data analyses use
+`prior_bin`.
+
 `Qn`, `Sn`, and `Fn` are scalar thresholds for this look. Immediate
 success is declared when the estimated probability of completed-data
 success among the current participants is strictly greater than `Qn`.
@@ -336,6 +364,43 @@ posterior and completed-data analyses. In a blinded trial, an
 independent unblinded statistician or service should join the treatment
 assignments, run this function, and return the aggregate decision
 without distributing the subject-level input.
+
+## Predictive and analysis priors
+
+For `method = "bayes-surv"`, `prior_surv_final` is used **during interim
+calculations as well as at the actual final analysis**. The two
+arguments specify different roles, not simply different calendar stages:
+
+|  |  |
+|----|----|
+| Calculation | Gamma prior used |
+| At interim, generate outstanding outcomes for enrolled and future participants | `prior_surv` |
+| At interim, test each hypothetical completed trial at the current or maximum sample size | `prior_surv_final` |
+| At final analysis, impute missing outcomes if `imputed_final = TRUE` | `prior_surv_final` |
+| Analyze the actual final trial data | `prior_surv_final` |
+
+Within one interim predictive replicate, first update `prior_surv` with
+the observed events and exposure, draw hazards, and generate outstanding
+outcomes. Then start a fresh analysis posterior using `prior_surv_final`
+and the completed dataset's events and exposure. Compare its posterior
+probability of the alternative with `prob_ha`. The proportion of
+replicates that pass is the predictive probability used by `Qn`, `Sn`,
+and `Fn`.
+
+To incorporate external evidence in prediction while using a weak
+analysis prior, explicitly supply an informative `prior_surv` and the
+chosen weak `prior_surv_final`. **Omitting `prior_surv_final` uses
+`prior_surv` for both roles; the package does not automatically weaken
+the analysis prior.** The predictive prior can still affect the selected
+sample size and stopping decision, so calibrate the design using both
+prespecified priors.
+
+This table describes Bayesian survival analysis. For
+`method = "bayes-bin"`, completed-data success tests at interim and
+final use `prior_bin`; `prior_surv_final` governs only optional final
+imputation. Frequentist completed-data tests use no analysis prior.
+`evaluate_interim()` performs the two interim calculations; use the same
+prior arguments as in the simulated design.
 
 ## Examples
 

@@ -148,16 +148,21 @@ Because a beneficial treatment has a *lower* failure probability,
 (`method = "bayes-surv"` does not allow `alternative = "two.sided"` – it
 raises an error.)
 
-The same posterior is also used at each interim look to compute
-predictive probabilities of success. Imputed completions are drawn from
-the posterior predictive distribution of the piecewise-exponential model
-for subjects still under follow-up, and the analysis is repeated on each
-imputed dataset. The fraction of imputations that would declare success
-after enrollment continues to the maximum sample size is compared with
-`Fn` for the futility rule. Separately, the fraction that would declare
-success after completing follow-up for the subjects currently enrolled
-is compared with `Sn` for the expected-success rule. The default
-`Qn = 1` disables the optional immediate-success rule in this example.
+At each interim look, `prior_surv` is updated with the observed events
+and exposure to generate predictive completions for outstanding
+outcomes. Each completed dataset is then analyzed using
+`prior_surv_final`, the prior for the actual final analysis. The default
+`prior_surv_final = prior_surv` uses the same prior for both roles, as
+in this example. A separate informative predictive prior may incorporate
+external evidence while the final analysis prior remains weak. This
+requires explicitly supplying `prior_surv_final`; omitting it also uses
+the predictive prior in the analysis. The fraction of imputations that
+would declare success after enrollment continues to the maximum sample
+size is compared with `Fn` for the futility rule. Separately, the
+fraction that would declare success after completing follow-up for the
+subjects currently enrolled is compared with `Sn` for the
+expected-success rule. The default `Qn = 1` disables the optional
+immediate-success rule in this example.
 
 We use an independent weakly informative \operatorname{Gamma}(0.1, 0.1)
 prior on every hazard component:
@@ -166,6 +171,13 @@ prior on every hazard component:
 
 prior_surv <- c(0.1, 0.1) # shape and rate for each lambda_j
 ```
+
+In this example, leaving `prior_surv_final` at its default makes it
+equal to `prior_surv`. See the [observed-interim
+example](https://graemeleehickey.github.io/goldilocks/articles/interim-data.html#using-separate-predictive-and-analysis-priors)
+for an executable example with an informative predictive prior and a
+separate diffuse analysis prior. Both current-sample and maximum-sample
+predictions use that analysis prior to test their completed datasets.
 
 ## What a simulated trial dataset looks like
 

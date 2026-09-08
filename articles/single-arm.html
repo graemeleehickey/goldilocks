@@ -112,14 +112,21 @@ therapy has a lower failure rate than the benchmark”. Choosing
 <code>alternative = "greater"</code> reverses the direction;
 <code>alternative = "two.sided"</code> is not allowed for
 <code>method = "bayes-surv"</code>.</p>
-<p>The same posterior is used at each interim look to compute the
-predictive probability of eventual success, which drives the futility
-(<code>Fn</code>) and expected-success (<code>Sn</code>) stopping rules.
-The default <code>Qn = 1</code> disables the optional immediate-success
-rule in these examples. Predictive probabilities are obtained by
-imputing remaining follow-up from the posterior predictive distribution
-of the (piecewise-)exponential model and re-evaluating the success
-criterion on each completed dataset.</p>
+<p>At each interim look, <code>prior_surv</code> is updated with
+observed events and exposure to predict remaining follow-up. Each
+hypothetical completed dataset is then analyzed with
+<code>prior_surv_final</code>, the prior used for the actual final
+Bayesian survival analysis. The fraction that passes the posterior
+success threshold drives the futility (<code>Fn</code>) and
+expected-success (<code>Sn</code>) stopping rules. The default
+<code>Qn = 1</code> disables the optional immediate-success rule in
+these examples.</p>
+<p>The default <code>prior_surv_final = prior_surv</code> uses the same
+prior for prediction and analysis. To bring external evidence into
+prediction while using a weak analysis prior, specify both explicitly.
+<code>h0</code> remains the fixed performance goal; it is separate from
+either prior. See the <a href="interim-data.html#using-separate-predictive-and-analysis-priors">observed-interim
+example</a> for a worked specification of the two prior roles.</p>
 </div>
 <div class="section level2">
 <h2 id="setting-up-the-design">Setting up the design<a class="anchor" aria-label="anchor" href="#setting-up-the-design"></a>

@@ -109,17 +109,18 @@ survival_adapt(
 - prior_surv:
 
   A numeric vector, matrix, or named list specifying the Gamma prior for
-  the piecewise-exponential hazards used during interim prediction. A
-  length-two vector supplies shape and rate and applies the same prior
-  to every arm and interval. A `2` by `length(cutpoints) + 1` matrix
-  supplies interval-specific values shared by all arms, with shapes in
-  row 1 and rates in row 2. For independent arm-specific priors, supply
-  a list named `control` and `treatment` in a two-arm design, or
-  `treatment` in a single-arm design. Each list element may be a
-  length-two vector or an interval-specific matrix. Both arms must be
-  supplied; no values are borrowed or filled from the other arm. Rates
-  must use the same time unit as event times, exposure, and cutpoints.
-  The default is `c(0.1, 0.1)`.
+  the piecewise-exponential hazards used to generate outcomes during
+  interim prediction. A length-two vector supplies shape and rate and
+  applies the same prior to every arm and interval. A `2` by
+  `length(cutpoints) + 1` matrix supplies interval-specific values
+  shared by all arms, with shapes in row 1 and rates in row 2. For
+  independent arm-specific priors, supply a list named `control` and
+  `treatment` in a two-arm design, or `treatment` in a single-arm
+  design. Each list element may be a length-two vector or an
+  interval-specific matrix. Both arms must be supplied; no values are
+  borrowed or filled from the other arm. Rates must use the same time
+  unit as event times, exposure, and cutpoints. The default is
+  `c(0.1, 0.1)`.
 
 - prior_bin:
 
@@ -133,7 +134,12 @@ survival_adapt(
   A single character string selecting how to calculate the posterior
   probability for `method = "bayes-bin"`. It must be one of `"mc"`
   (Monte Carlo sampling), `"normal"` (normal approximation), or
-  `"quadrature"` (numerical integration). The default is `"mc"`.
+  `"quadrature"` (numerical integration). The default is `"mc"`. The
+  normal approximation can be inaccurate with sparse events or
+  non-events and posterior event probabilities near 0 or 1. It can
+  change whether `prob_ha` is exceeded. Increasing `N_mcmc` does not
+  improve this approximation; use `"quadrature"` or sufficiently precise
+  `"mc"` instead.
 
 - block:
 
@@ -267,7 +273,7 @@ survival_adapt(
   the confidence level for one-sided exact binomial bounds reported as
   diagnostics of finite Monte Carlo uncertainty. The bounds do not alter
   completed-data success classifications or interim decisions, which use
-  strict point- estimate comparisons with `prob_ha`, `Qn`, `Sn`, and
+  strict point-estimate comparisons with `prob_ha`, `Qn`, `Sn`, and
   `Fn`. The default is `0.95`.
 
 - empty_interval:
@@ -303,14 +309,16 @@ survival_adapt(
   A single logical value indicating whether the final analysis should be
   based on imputed outcomes for subjects who were LTFU (i.e.
   right-censored with time less than `end_of_study`). The default is
-  `FALSE`, which means that the final analysis incorporates
-  right-censoring. With `method = "cox"`, `method = "rmst"`,
-  `method = "riskdiff-wald"`, or `method = "riskdiff-fm"`, setting this
-  to `TRUE` analyzes each imputed dataset and pools the scalar treatment
+  `FALSE`, which uses the observed-data analysis. If no outcomes require
+  imputation, the selected complete-data test is used directly with
+  either flag. With missing outcomes and `method = "cox"`, `"rmst"`, or
+  `"riskdiff-wald"`, setting this to `TRUE` pools the scalar treatment
   effects and variances using Rubin's rules; this requires
-  `N_impute >= 2`. The pooled risk-difference analysis is a Wald test
-  rather than a Farrington-Manning test. Imputed final analyses remain
-  unavailable for `method = "logrank"`.
+  `N_impute >= 2` and positive total variance. Genuine final imputation
+  is unsupported for `method = "riskdiff-fm"` because no validated FM
+  pooling rule is implemented. Simulations combining FM and
+  `imputed_final = TRUE` therefore require `prop_loss = 0` in both arms.
+  Imputed final analyses remain unavailable for `method = "logrank"`.
 
 - return_trace:
 
@@ -334,9 +342,15 @@ survival_adapt(
 
   A numeric vector, matrix, or named list specifying the Gamma prior
   used for final-stage piecewise-exponential imputation and, for
-  `method = "bayes-surv"`, final analysis. It accepts the same shared or
-  arm-specific forms as `prior_surv` and defaults to `prior_surv`,
-  preserving the historical behavior.
+  `method = "bayes-surv"`, both the analysis of each hypothetical
+  completed trial at interim looks and the actual final analysis. It
+  accepts the same shared or arm-specific forms as `prior_surv` and
+  defaults to `prior_surv`. An informative `prior_surv` can therefore
+  predict outstanding outcomes while a weak `prior_surv_final` defines
+  the Bayesian survival success criterion. To use different priors for
+  these roles, supply `prior_surv_final` explicitly; an informative
+  predictive prior is otherwise also the default analysis prior. See
+  **Predictive and analysis priors** below.
 
 - generation_cutpoints:
 
@@ -530,12 +544,12 @@ and final analyses:
   hazard ratio. When `alternative = "less"` or `"greater"`, a one-sided
   *P*-value is derived from the Wald z-statistic relative to `h0`. The
   treatment effect (log hazard ratio) is also reported. When
-  `imputed_final = TRUE`, the Cox model is fitted separately to each of
-  at least two imputed datasets. The log hazard ratios and their
-  within-imputation variances are combined using Rubin's rules; the
-  pooled Wald test uses Rubin's large-sample degrees of freedom. When
-  `imputed_final = FALSE`, the existing single Cox model is fitted
-  directly to the observed right-censored data.
+  `imputed_final = TRUE` and outcomes are missing, the Cox model is
+  fitted to each of at least two imputed datasets. The log hazard ratios
+  and their within-imputation variances are combined using Rubin's
+  rules; the pooled Wald test uses Rubin's large-sample degrees of
+  freedom. When `imputed_final = FALSE`, the existing single Cox model
+  is fitted directly to the observed right-censored data.
 
 - Restricted mean survival time (`method = "rmst"`). Estimates the area
   under each Kaplan-Meier survival curve from zero through the
@@ -556,16 +570,16 @@ and final analyses:
 
 - Bayesian difference in cumulative event probability
   (`method = "bayes-surv"`). Each imputed dataset is used to update the
-  conjugate Gamma prior (defined by `prior_surv` at interim looks and
-  `prior_surv_final` at the final stage), yielding a posterior
-  distribution for the piecewise exponential rate parameters. In turn,
-  the posterior distribution of the cumulative incidence function (\\1 -
-  S(t)\\, where \\S(t)\\ is the survival function) evaluated at time
-  `end_of_study` is calculated. In a single-arm study, inference
-  concerns the treatment-arm event probability. In a two-arm study, the
-  independent arm-specific posteriors define the posterior distribution
-  of the treatment-minus-control difference. The reported posterior
-  probability is determined by `alternative` and `h0`.
+  conjugate Gamma analysis prior `prior_surv_final`, at both interim
+  looks and the final stage, yielding a posterior distribution for the
+  piecewise exponential rate parameters. In turn, the posterior
+  distribution of the cumulative incidence function (\\1 - S(t)\\, where
+  \\S(t)\\ is the survival function) evaluated at time `end_of_study` is
+  calculated. In a single-arm study, inference concerns the
+  treatment-arm event probability. In a two-arm study, the independent
+  arm-specific posteriors define the posterior distribution of the
+  treatment-minus-control difference. The reported posterior probability
+  is determined by `alternative` and `h0`.
 
   For piecewise-exponential analyses, an interim or final dataset may
   contain intervals with no exposed subjects in one treatment arm,
@@ -593,6 +607,14 @@ and final analyses:
   either be followed to `end_of_study`, imputed, or excluded when
   `imputed_final = FALSE`.
 
+  The normal approximation matches posterior moments but can
+  misrepresent tail probabilities when a Beta posterior is skewed,
+  particularly near event-probability boundaries of 0 or 1. This can
+  change success and interim stopping decisions. Use
+  `bin_method = "quadrature"` or sufficiently precise `"mc"` when the
+  approximation is unsuitable; increasing `N_mcmc` does not correct
+  normal-approximation error.
+
   Two equivalent predictive imputation approaches are available through
   `binary_imputation`. With `"event-time"`, the package samples a future
   event time conditional on the available event-free follow-up and then
@@ -613,9 +635,9 @@ and final analyses:
   in the piecewise-exponential model is retained.
 
 - Frequentist risk difference (`method = "riskdiff-wald"` or
-  `"riskdiff-fm"`). Each complete or imputed dataset is reduced to
-  binary event outcomes at `end_of_study`. The estimated treatment
-  effect is \\p\_\textrm{treatment} - p\_\textrm{control}\\.
+  `"riskdiff-fm"`). Each complete or predictively imputed dataset is
+  reduced to binary event outcomes at `end_of_study`. The estimated
+  treatment effect is \\p\_\textrm{treatment} - p\_\textrm{control}\\.
   `"riskdiff-wald"` uses the observed arm risks in an unpooled Wald
   variance. `"riskdiff-fm"` instead uses maximum likelihood arm risks
   constrained by the null difference `h0` in a Farrington-Manning score
@@ -623,16 +645,19 @@ and final analyses:
   including equal-arm all-zero and all-one outcomes. Both methods report
   \\1 - P\\ in `post_prob_ha` and support all three alternatives.
   Because they require complete binary outcomes, lost-to-follow-up
-  subjects are excluded when `imputed_final = FALSE`. When
-  `imputed_final = TRUE`, estimates and within-imputation variances from
-  at least two completed datasets are combined using Rubin's rules,
-  producing a pooled Wald analysis for either method setting.
+  subjects are excluded when `imputed_final = FALSE`. With genuinely
+  missing final outcomes, only `"riskdiff-wald"` supports
+  `imputed_final = TRUE`: estimates and variances from at least two
+  completed datasets are pooled using Rubin's rules, requiring positive
+  total variance. FM final imputation is rejected rather than converted
+  to a Wald test. With complete final outcomes, either flag preserves
+  the selected test.
 
 - Imputed final analysis (`imputed_final`). The overall final analysis
   conducted after accrual is suspended and follow-up is complete can be
   analyzed on imputed datasets for Bayesian methods (`"bayes-surv"` and
   `"bayes-bin"`), Cox regression, RMST, and the frequentist
-  risk-difference analysis, or on the non-imputed dataset. Interim
+  risk-difference Wald analysis, or on the non-imputed dataset. Interim
   prediction completes outcomes that are not yet observed, whereas final
   imputation applies only to subjects right-censored because of loss to
   follow-up before `end_of_study`. Design evaluations should prespecify
@@ -666,8 +691,10 @@ options use the same piecewise-exponential prediction model and do not
 change this separation.
 
 For `method = "bayes-surv"`, the second analysis instead forms a fresh
-piecewise-exponential posterior from the completed data and the original
-survival prior. For frequentist methods (`"logrank"`, `"cox"`, `"rmst"`,
+piecewise-exponential posterior from the completed data and
+`prior_surv_final`. At interim looks the first stage uses `prior_surv`,
+allowing predictive borrowing to differ from the final success
+criterion. For frequentist methods (`"logrank"`, `"cox"`, `"rmst"`,
 `"riskdiff-wald"`, and `"riskdiff-fm"`), each completed dataset uses a
 standard test rather than a posterior. Imputed Cox, RMST, and
 risk-difference final analyses pool estimates and variances using
@@ -680,6 +707,44 @@ exact interim boundary have zero follow-up time. These times are clamped
 to `.Machine$double.eps` (approximately \\2.2 \times 10^{-16}\\) so that
 they contribute negligible but non-zero exposure to the interim
 posterior. This affects at most one subject per interim look.
+
+## Predictive and analysis priors
+
+For `method = "bayes-surv"`, `prior_surv_final` is used **during interim
+calculations as well as at the actual final analysis**. The two
+arguments specify different roles, not simply different calendar stages:
+
+|  |  |
+|----|----|
+| Calculation | Gamma prior used |
+| At interim, generate outstanding outcomes for enrolled and future participants | `prior_surv` |
+| At interim, test each hypothetical completed trial at the current or maximum sample size | `prior_surv_final` |
+| At final analysis, impute missing outcomes if `imputed_final = TRUE` | `prior_surv_final` |
+| Analyze the actual final trial data | `prior_surv_final` |
+
+Within one interim predictive replicate, first update `prior_surv` with
+the observed events and exposure, draw hazards, and generate outstanding
+outcomes. Then start a fresh analysis posterior using `prior_surv_final`
+and the completed dataset's events and exposure. Compare its posterior
+probability of the alternative with `prob_ha`. The proportion of
+replicates that pass is the predictive probability used by `Qn`, `Sn`,
+and `Fn`.
+
+To incorporate external evidence in prediction while using a weak
+analysis prior, explicitly supply an informative `prior_surv` and the
+chosen weak `prior_surv_final`. **Omitting `prior_surv_final` uses
+`prior_surv` for both roles; the package does not automatically weaken
+the analysis prior.** The predictive prior can still affect the selected
+sample size and stopping decision, so calibrate the design using both
+prespecified priors.
+
+This table describes Bayesian survival analysis. For
+`method = "bayes-bin"`, completed-data success tests at interim and
+final use `prior_bin`; `prior_surv_final` governs only optional final
+imputation. Frequentist completed-data tests use no analysis prior.
+[`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
+performs the two interim calculations; use the same prior arguments as
+in the simulated design.
 
 ## References
 

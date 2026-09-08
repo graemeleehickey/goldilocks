@@ -61,8 +61,8 @@ follow-up time, with optional administrative censoring.</p>
 <dl><dt id="arg-time">time<a class="anchor" aria-label="anchor" href="#arg-time"></a></dt>
 <dd><p>A required numeric vector of finite, non-negative event-free
 follow-up times for subjects who have not had an event. When <code>maxtime</code> is
-supplied, no value may exceed it. A zero-length vector returns
-a zero-row data frame. Values are not recycled against other arguments.</p></dd>
+supplied, no value may exceed it. A zero-length vector returns a zero-row
+data frame. Values are not recycled against other arguments.</p></dd>
 
 
 <dt id="arg-hazard">hazard<a class="anchor" aria-label="anchor" href="#arg-hazard"></a></dt>
@@ -73,9 +73,9 @@ zero, <code>maxtime</code> must be supplied.</p></dd>
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
 <dd><p><code>NULL</code> (the default), or a numeric vector of finite,
-positive, strictly increasing interior
-times at which the hazard rate changes. The number of hazard rates must be
-one greater than the number of cutpoints. Use <code>NULL</code> for a constant hazard.</p></dd>
+positive, strictly increasing interior times at which the hazard rate
+changes. The number of hazard rates must be one greater than the number of
+cutpoints. Use <code>NULL</code> for a constant hazard.</p></dd>
 
 
 <dt id="arg-maxtime">maxtime<a class="anchor" aria-label="anchor" href="#arg-maxtime"></a></dt>
@@ -96,10 +96,10 @@ administrative censoring.</p>
 probability is</p>
 <p>$$F_{T | s}(t | s) = P(T \le t | T &gt; s) = \frac{F(t) - F(s)}{1 - F(s)}$$</p>
 <p>where \(F(\cdot)\) is the cumulative distribution function of the
-piecewise exponential (PWE) distribution. Equivalently, \(F(t) = 1 -
-  S(t)\), where <code>S(t)</code> is the survival function. If \(U \sim Unif(0, 1)\),
-then we can generate an event time (conditional on being event free up
-until \(s\)) as</p>
+piecewise exponential (PWE) distribution. Equivalently,
+\(F(t) = 1 - S(t)\), where <code>S(t)</code> is the survival function. If
+\(U \sim Unif(0, 1)\), then we can generate an event time (conditional on
+being event free up until \(s\)) as</p>
 <p>$$F^{-1}(U(1 - F(s)) + F(s))$$</p>
 <p>If \(s = 0\), this is equivalent to a direct unconditional sample from
 the PWE distribution.</p>

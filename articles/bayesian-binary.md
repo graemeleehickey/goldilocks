@@ -254,8 +254,9 @@ The posterior probability can be calculated in three ways:
 
 - `bin_method = "mc"` draws from the beta posterior directly. Use
   `N_mcmc` to control the number of Monte Carlo draws.
-- `bin_method = "normal"` uses a normal approximation to the posterior
-  mean or treatment-control difference.
+- `bin_method = "normal"` approximates the posterior event probability
+  or treatment-control difference by a normal distribution with matching
+  mean and variance.
 - `bin_method = "quadrature"` uses numerical integration for the two-arm
   posterior difference, and the closed-form beta CDF for single-arm
   designs.
@@ -266,6 +267,12 @@ design) and is a useful high-accuracy default when it is computationally
 feasible. The normal approximation is fastest in a representative
 two-arm benchmark, but should be used with care when sample sizes are
 small or event probabilities are near 0 or 1.
+
+Approximation error can move the posterior probability across `prob_ha`,
+changing success and interim stopping decisions. Increasing `N_mcmc`
+does not correct normal-approximation error. Use
+`bin_method = "quadrature"` or sufficiently precise Monte Carlo Beta
+draws when the approximation is unsuitable.
 
 ## Operating characteristics
 

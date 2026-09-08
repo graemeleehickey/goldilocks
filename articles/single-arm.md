@@ -49,14 +49,21 @@ has a lower failure rate than the benchmark”. Choosing
 `alternative = "greater"` reverses the direction;
 `alternative = "two.sided"` is not allowed for `method = "bayes-surv"`.
 
-The same posterior is used at each interim look to compute the
-predictive probability of eventual success, which drives the futility
-(`Fn`) and expected-success (`Sn`) stopping rules. The default `Qn = 1`
-disables the optional immediate-success rule in these examples.
-Predictive probabilities are obtained by imputing remaining follow-up
-from the posterior predictive distribution of the
-(piecewise-)exponential model and re-evaluating the success criterion on
-each completed dataset.
+At each interim look, `prior_surv` is updated with observed events and
+exposure to predict remaining follow-up. Each hypothetical completed
+dataset is then analyzed with `prior_surv_final`, the prior used for the
+actual final Bayesian survival analysis. The fraction that passes the
+posterior success threshold drives the futility (`Fn`) and
+expected-success (`Sn`) stopping rules. The default `Qn = 1` disables
+the optional immediate-success rule in these examples.
+
+The default `prior_surv_final = prior_surv` uses the same prior for
+prediction and analysis. To bring external evidence into prediction
+while using a weak analysis prior, specify both explicitly. `h0` remains
+the fixed performance goal; it is separate from either prior. See the
+[observed-interim
+example](https://graemeleehickey.github.io/goldilocks/articles/interim-data.html#using-separate-predictive-and-analysis-priors)
+for a worked specification of the two prior roles.
 
 ## Setting up the design
 
