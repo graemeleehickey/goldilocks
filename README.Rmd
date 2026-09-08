@@ -93,6 +93,14 @@ survival, RMST, and Bayesian binary examples. For RMST use
 `alternative = "greater"` to test longer event-free time and express `h0`
 in the same time units as follow-up.
 
+For `method = "bayes-surv"`, `prior_surv` generates predictive outcomes,
+while `prior_surv_final` tests each hypothetical completed trial **at the
+interim look** and governs the actual final analysis. To incorporate
+external evidence only in prediction, supply both priors explicitly.
+Omitting `prior_surv_final` uses `prior_surv` for both roles. Bayesian binary
+success tests instead use `prior_bin`. See the
+[worked example of separate priors](https://graemeleehickey.github.io/goldilocks/articles/interim-data.html#using-separate-predictive-and-analysis-priors).
+
 ## Key benefits
 
 Other software and R packages are available to implement this algorithm.

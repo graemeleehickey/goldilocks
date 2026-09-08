@@ -84,7 +84,8 @@ use the same time unit.}
 
 \item{prior_surv}{A numeric vector, matrix, or named list specifying the
 Gamma prior for the
-piecewise-exponential hazards used during interim prediction. A length-two
+piecewise-exponential hazards used to generate outcomes during interim
+prediction. A length-two
 vector supplies shape and rate and applies the same prior to every arm and
 interval. A \code{2} by \code{length(cutpoints) + 1} matrix supplies
 interval-specific values shared by all arms, with shapes in row 1 and rates
@@ -269,10 +270,16 @@ conditional event probability. This argument is ignored for time-to-event
 analysis methods.}
 
 \item{prior_surv_final}{A numeric vector, matrix, or named list specifying
-the Gamma prior
-used for final-stage piecewise-exponential imputation and, for \code{method = "bayes-surv"}, final analysis. It accepts the same shared or arm-specific
-forms as \code{prior_surv} and defaults to \code{prior_surv}, preserving the
-historical behavior.}
+the Gamma prior used for final-stage piecewise-exponential imputation and,
+for \code{method = "bayes-surv"}, both the analysis of each hypothetical
+completed trial at interim looks and the actual final analysis. It accepts
+the same shared or arm-specific forms as \code{prior_surv} and defaults to
+\code{prior_surv}. An informative \code{prior_surv} can therefore predict outstanding
+outcomes while a weak \code{prior_surv_final} defines the Bayesian survival
+success criterion. To use different priors for these roles, supply
+\code{prior_surv_final} explicitly; an informative predictive prior is otherwise
+also the default analysis prior. See \strong{Predictive and analysis priors}
+below.}
 
 \item{generation_cutpoints}{\code{NULL}, or a numeric vector of finite, positive,
 strictly increasing interior
@@ -471,9 +478,9 @@ Interim prediction and final imputation still depend on the specified
 piecewise-exponential model. See \code{vignette("rmst", package = "goldilocks")}.
 \item Bayesian difference in cumulative event probability
 (\code{method = "bayes-surv"}).
-Each imputed dataset is used to update the conjugate Gamma prior
-(defined by \code{prior_surv} at interim looks and \code{prior_surv_final} at the
-final stage), yielding a posterior distribution for the
+Each imputed dataset is used to update the conjugate Gamma analysis
+prior \code{prior_surv_final}, at both interim looks and the final stage,
+yielding a posterior distribution for the
 piecewise exponential rate parameters. In turn, the posterior
 distribution of the cumulative incidence function (\eqn{1 - S(t)}, where
 \eqn{S(t)} is the survival function) evaluated at time
@@ -582,8 +589,10 @@ The \code{"event-time"} and \code{"bernoulli"} binary-imputation options use the
 piecewise-exponential prediction model and do not change this separation.
 
 For \code{method = "bayes-surv"}, the second analysis instead forms a fresh
-piecewise-exponential posterior from the completed data and the original
-survival prior. For frequentist methods (\code{"logrank"}, \code{"cox"},
+piecewise-exponential posterior from the completed data and
+\code{prior_surv_final}. At interim looks the first stage uses \code{prior_surv},
+allowing predictive borrowing to differ from the final success criterion.
+For frequentist methods (\code{"logrank"}, \code{"cox"},
 \code{"rmst"}, \code{"riskdiff-wald"}, and \code{"riskdiff-fm"}), each completed dataset uses a
 standard test rather than a posterior. Imputed Cox, RMST, and risk-difference
 final analyses pool estimates and variances using Rubin's rules.
@@ -596,6 +605,41 @@ interim boundary have zero follow-up time. These times are clamped to
 that they contribute negligible but non-zero exposure to the interim
 posterior. This affects at most one subject per interim look.
 }
+\section{Predictive and analysis priors}{
+
+For \code{method = "bayes-surv"}, \code{prior_surv_final} is used \strong{during interim
+calculations as well as at the actual final analysis}. The two arguments
+specify different roles, not simply different calendar stages:\tabular{ll}{
+   Calculation \tab Gamma prior used \cr
+   At interim, generate outstanding outcomes for enrolled and future participants \tab \code{prior_surv} \cr
+   At interim, test each hypothetical completed trial at the current or maximum sample size \tab \code{prior_surv_final} \cr
+   At final analysis, impute missing outcomes if \code{imputed_final = TRUE} \tab \code{prior_surv_final} \cr
+   Analyze the actual final trial data \tab \code{prior_surv_final} \cr
+}
+
+
+Within one interim predictive replicate, first update \code{prior_surv} with the
+observed events and exposure, draw hazards, and generate outstanding
+outcomes. Then start a fresh analysis posterior using \code{prior_surv_final}
+and the completed dataset's events and exposure. Compare its posterior
+probability of the alternative with \code{prob_ha}. The proportion of replicates
+that pass is the predictive probability used by \code{Qn}, \code{Sn}, and \code{Fn}.
+
+To incorporate external evidence in prediction while using a weak analysis
+prior, explicitly supply an informative \code{prior_surv} and the chosen weak
+\code{prior_surv_final}. \strong{Omitting \code{prior_surv_final} uses \code{prior_surv} for
+both roles; the package does not automatically weaken the analysis prior.}
+The predictive prior can still affect the selected sample size and stopping
+decision, so calibrate the design using both prespecified priors.
+
+This table describes Bayesian survival analysis. For
+\code{method = "bayes-bin"}, completed-data success tests at interim and final
+use \code{prior_bin}; \code{prior_surv_final} governs only optional final imputation.
+Frequentist completed-data tests use no analysis prior.
+\code{\link[=evaluate_interim]{evaluate_interim()}} performs the two interim calculations; use the same
+prior arguments as in the simulated design.
+}
+
 \examples{
 # RCT with exponential hazard (no piecewise breaks)
 # Note: the number of imputations is small to enable this example to run

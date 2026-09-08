@@ -29,7 +29,8 @@ evaluate_interim(
   binary_imputation = c("event-time", "bernoulli"),
   seed = NULL,
   Qn = 1,
-  rmst_tau = end_of_study
+  rmst_tau = end_of_study,
+  prior_surv_final = prior_surv
 )
 }
 \arguments{
@@ -64,7 +65,8 @@ cutpoints. \code{NULL} specifies a constant-hazard analysis model.}
 
 \item{prior_surv}{A numeric vector, matrix, or named list specifying the
 Gamma prior for the
-piecewise-exponential hazards used during interim prediction. A length-two
+piecewise-exponential hazards used to generate outcomes during interim
+prediction. A length-two
 vector supplies shape and rate and applies the same prior to every arm and
 interval. A \code{2} by \code{length(cutpoints) + 1} matrix supplies
 interval-specific values shared by all arms, with shapes in row 1 and rates
@@ -222,6 +224,13 @@ and must not exceed it. Prespecify the same horizon for all looks,
 imputations, and simulations. It may precede analysis cutpoints and does
 not shorten the planned follow-up or imputation horizon. Ignored for other
 methods.}
+
+\item{prior_surv_final}{A numeric vector, matrix, or named list specifying
+the Gamma analysis prior for each hypothetical completed trial when
+\code{method = "bayes-surv"}. It accepts the same shared, interval-specific, and
+arm-specific forms as \code{prior_surv} and defaults to \code{prior_surv}. It should
+match the prior for the actual final analysis. Other methods do not use it
+in this interim calculation.}
 }
 \value{
 An object of class \code{goldilocks_interim}, containing:
@@ -235,9 +244,13 @@ by arm and interval;
 \item \code{trace}: a one-row decision trace compatible with
 \code{\link[=plot_trial_trace]{plot_trial_trace()}} and \code{\link[=summarise_trial_trace]{summarise_trial_trace()}};
 \item \code{metadata}: the evaluated design, resolved prior design, package version,
-time-origin, data-cut, and random-number policy. For \code{method = "bayes-bin"}, \code{metadata$design} retains the normalized imputation prior
-(\code{prior_surv}), completed-data analysis prior (\code{prior_bin}), and
-imputation horizon (\code{end_of_study}).
+time-origin, data-cut, and random-number policy. For
+\code{method = "bayes-surv"}, both Gamma priors are retained in
+\code{metadata$design} and \code{metadata$prior_design}; posterior diagnostics
+describe the predictive model based on the observed interim data. For
+\code{method = "bayes-bin"}, \code{metadata$design} retains the normalized
+imputation prior (\code{prior_surv}), completed-data analysis prior
+(\code{prior_bin}), and imputation horizon (\code{end_of_study}).
 }
 }
 \description{
@@ -261,6 +274,14 @@ observed endpoint event, \code{"complete"} for event-free completion of
 \code{"censored"} for permanent early censoring. Pending and censored outcomes
 are predictively imputed conditional on \code{time}.
 
+With \code{method = "bayes-surv"}, \code{prior_surv} generates predictive outcomes
+and \code{prior_surv_final} is the analysis prior used to test each hypothetical
+completed trial for success, at both the current and maximum sample sizes.
+Supply the same final prior as in the prespecified trial design. The
+default \code{prior_surv_final = prior_surv} uses one prior for both roles.
+Other methods do not use \code{prior_surv_final} in this interim calculation;
+Bayesian binary completed-data analyses use \code{prior_bin}.
+
 \code{Qn}, \code{Sn}, and \code{Fn} are scalar thresholds for this look. Immediate success
 is declared when the estimated probability of completed-data success among
 the current participants is strictly greater than \code{Qn}. Otherwise,
@@ -277,6 +298,41 @@ unblinded statistician or service should join the treatment assignments,
 run this function, and return the aggregate decision without distributing
 the subject-level input.
 }
+\section{Predictive and analysis priors}{
+
+For \code{method = "bayes-surv"}, \code{prior_surv_final} is used \strong{during interim
+calculations as well as at the actual final analysis}. The two arguments
+specify different roles, not simply different calendar stages:\tabular{ll}{
+   Calculation \tab Gamma prior used \cr
+   At interim, generate outstanding outcomes for enrolled and future participants \tab \code{prior_surv} \cr
+   At interim, test each hypothetical completed trial at the current or maximum sample size \tab \code{prior_surv_final} \cr
+   At final analysis, impute missing outcomes if \code{imputed_final = TRUE} \tab \code{prior_surv_final} \cr
+   Analyze the actual final trial data \tab \code{prior_surv_final} \cr
+}
+
+
+Within one interim predictive replicate, first update \code{prior_surv} with the
+observed events and exposure, draw hazards, and generate outstanding
+outcomes. Then start a fresh analysis posterior using \code{prior_surv_final}
+and the completed dataset's events and exposure. Compare its posterior
+probability of the alternative with \code{prob_ha}. The proportion of replicates
+that pass is the predictive probability used by \code{Qn}, \code{Sn}, and \code{Fn}.
+
+To incorporate external evidence in prediction while using a weak analysis
+prior, explicitly supply an informative \code{prior_surv} and the chosen weak
+\code{prior_surv_final}. \strong{Omitting \code{prior_surv_final} uses \code{prior_surv} for
+both roles; the package does not automatically weaken the analysis prior.}
+The predictive prior can still affect the selected sample size and stopping
+decision, so calibrate the design using both prespecified priors.
+
+This table describes Bayesian survival analysis. For
+\code{method = "bayes-bin"}, completed-data success tests at interim and final
+use \code{prior_bin}; \code{prior_surv_final} governs only optional final imputation.
+Frequentist completed-data tests use no analysis prior.
+\code{\link[=evaluate_interim]{evaluate_interim()}} performs the two interim calculations; use the same
+prior arguments as in the simulated design.
+}
+
 \examples{
 interim_data <- data.frame(
   id = 1:6,

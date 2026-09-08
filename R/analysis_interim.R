@@ -48,7 +48,8 @@ evaluate_interim_decision <- function(
   binary_imputation,
   check_futility,
   Qn = 1,
-  rmst_tau = end_of_study
+  rmst_tau = end_of_study,
+  prior_surv_final = prior_surv
 ) {
   required_columns <- c(
     "time",
@@ -189,7 +190,7 @@ evaluate_interim_decision <- function(
           cutpoints = cutpoints,
           interval_widths = interval_widths,
           single_arm = single_arm,
-          prior_surv = prior_surv,
+          prior_surv_final = prior_surv_final,
           N_mcmc = N_mcmc,
           method = method,
           alternative = alternative,
@@ -391,12 +392,23 @@ evaluate_interim_decision <- function(
       binary_count_reuse = binary_count_reuse,
       empty_interval_fallbacks = warning_state$empty_interval_fallbacks,
       warnings = warning_state$messages,
-      prior = gamma_prior_diagnostics(
-        prior_surv = prior_surv,
-        cutpoints = cutpoints,
-        end_of_study = end_of_study,
-        single_arm = single_arm,
-        stage = "interim"
+      prior = rbind(
+        gamma_prior_diagnostics(
+          prior_surv = prior_surv,
+          cutpoints = cutpoints,
+          end_of_study = end_of_study,
+          single_arm = single_arm,
+          stage = "interim"
+        ),
+        if (method == "bayes-surv") {
+          gamma_prior_diagnostics(
+            prior_surv = prior_surv_final,
+            cutpoints = cutpoints,
+            end_of_study = end_of_study,
+            single_arm = single_arm,
+            stage = "final"
+          )
+        }
       ),
       posterior = posterior_diagnostics
     ),

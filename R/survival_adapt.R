@@ -39,7 +39,8 @@
 #'   the interim posterior undefined for the missing group.
 #' @param prior_surv A numeric vector, matrix, or named list specifying the
 #'   Gamma prior for the
-#'   piecewise-exponential hazards used during interim prediction. A length-two
+#'   piecewise-exponential hazards used to generate outcomes during interim
+#'   prediction. A length-two
 #'   vector supplies shape and rate and applies the same prior to every arm and
 #'   interval. A `2` by `length(cutpoints) + 1` matrix supplies
 #'   interval-specific values shared by all arms, with shapes in row 1 and rates
@@ -50,11 +51,16 @@
 #'   borrowed or filled from the other arm. Rates must use the same time unit as
 #'   event times, exposure, and cutpoints. The default is `c(0.1, 0.1)`.
 #' @param prior_surv_final A numeric vector, matrix, or named list specifying
-#'   the Gamma prior
-#'   used for final-stage piecewise-exponential imputation and, for `method =
-#'   "bayes-surv"`, final analysis. It accepts the same shared or arm-specific
-#'   forms as `prior_surv` and defaults to `prior_surv`, preserving the
-#'   historical behavior.
+#'   the Gamma prior used for final-stage piecewise-exponential imputation and,
+#'   for `method = "bayes-surv"`, both the analysis of each hypothetical
+#'   completed trial at interim looks and the actual final analysis. It accepts
+#'   the same shared or arm-specific forms as `prior_surv` and defaults to
+#'   `prior_surv`. An informative `prior_surv` can therefore predict outstanding
+#'   outcomes while a weak `prior_surv_final` defines the Bayesian survival
+#'   success criterion. To use different priors for these roles, supply
+#'   `prior_surv_final` explicitly; an informative predictive prior is otherwise
+#'   also the default analysis prior. See **Predictive and analysis priors**
+#'   below.
 #' @param prior_bin A length-two numeric vector of finite, positive shape
 #'   parameters `c(a, b)` for the `Beta(a, b)` event-probability prior used when
 #'   `method = "bayes-bin"`. The same prior is applied to both arms. The default
@@ -273,9 +279,9 @@
 #'
 #'   * Bayesian difference in cumulative event probability
 #'     (`method = "bayes-surv"`).
-#'      Each imputed dataset is used to update the conjugate Gamma prior
-#'      (defined by `prior_surv` at interim looks and `prior_surv_final` at the
-#'      final stage), yielding a posterior distribution for the
+#'      Each imputed dataset is used to update the conjugate Gamma analysis
+#'      prior `prior_surv_final`, at both interim looks and the final stage,
+#'      yielding a posterior distribution for the
 #'      piecewise exponential rate parameters. In turn, the posterior
 #'      distribution of the cumulative incidence function (\eqn{1 - S(t)}, where
 #'      \eqn{S(t)} is the survival function) evaluated at time
@@ -368,6 +374,40 @@
 #'      variances are pooled with Rubin's rules. It cannot be used with
 #'      `method = "logrank"`.
 #'
+#' @section Predictive and analysis priors:
+#'   For `method = "bayes-surv"`, `prior_surv_final` is used **during interim
+#'   calculations as well as at the actual final analysis**. The two arguments
+#'   specify different roles, not simply different calendar stages:
+#'
+#'   | Calculation | Gamma prior used |
+#'   |---|---|
+#'   | At interim, generate outstanding outcomes for enrolled and future participants | `prior_surv` |
+#'   | At interim, test each hypothetical completed trial at the current or maximum sample size | `prior_surv_final` |
+#'   | At final analysis, impute missing outcomes if `imputed_final = TRUE` | `prior_surv_final` |
+#'   | Analyze the actual final trial data | `prior_surv_final` |
+#'
+#'   Within one interim predictive replicate, first update `prior_surv` with the
+#'   observed events and exposure, draw hazards, and generate outstanding
+#'   outcomes. Then start a fresh analysis posterior using `prior_surv_final`
+#'   and the completed dataset's events and exposure. Compare its posterior
+#'   probability of the alternative with `prob_ha`. The proportion of replicates
+#'   that pass is the predictive probability used by `Qn`, `Sn`, and `Fn`.
+#'
+#'   To incorporate external evidence in prediction while using a weak analysis
+#'   prior, explicitly supply an informative `prior_surv` and the chosen weak
+#'   `prior_surv_final`. **Omitting `prior_surv_final` uses `prior_surv` for
+#'   both roles; the package does not automatically weaken the analysis prior.**
+#'   The predictive prior can still affect the selected sample size and stopping
+#'   decision, so calibrate the design using both prespecified priors.
+#'
+#'   This table describes Bayesian survival analysis. For
+#'   `method = "bayes-bin"`, completed-data success tests at interim and final
+#'   use `prior_bin`; `prior_surv_final` governs only optional final imputation.
+#'   Frequentist completed-data tests use no analysis prior.
+#'   [evaluate_interim()] performs the two interim calculations; use the same
+#'   prior arguments as in the simulated design.
+#'
+#' @details
 #'   When imputation is involved, either at interim analyses or through
 #'   `imputed_final = TRUE`, the package uses a two-stage impute-then-analyze
 #'   procedure. First, the piecewise-exponential model is fitted to the
@@ -386,8 +426,10 @@
 #'   piecewise-exponential prediction model and do not change this separation.
 #'
 #'   For `method = "bayes-surv"`, the second analysis instead forms a fresh
-#'   piecewise-exponential posterior from the completed data and the original
-#'   survival prior. For frequentist methods (`"logrank"`, `"cox"`,
+#'   piecewise-exponential posterior from the completed data and
+#'   `prior_surv_final`. At interim looks the first stage uses `prior_surv`,
+#'   allowing predictive borrowing to differ from the final success criterion.
+#'   For frequentist methods (`"logrank"`, `"cox"`,
 #'   `"rmst"`, `"riskdiff-wald"`, and `"riskdiff-fm"`), each completed dataset uses a
 #'   standard test rather than a posterior. Imputed Cox, RMST, and risk-difference
 #'   final analyses pool estimates and variances using Rubin's rules.
@@ -784,6 +826,7 @@ survival_adapt <- function(
         cutpoints = cutpoints,
         single_arm = single_arm,
         prior_surv = prior_surv,
+        prior_surv_final = prior_surv_final,
         prior_bin = prior_bin,
         bin_method = bin_method,
         alternative = alternative,

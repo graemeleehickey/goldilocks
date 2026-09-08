@@ -84,7 +84,10 @@ posterior <- function(
 #'   Keeping this function separate is important for the package's two-stage
 #'   Bayesian imputation procedure. A first posterior draw generates a completed
 #'   data set; the sufficient statistics of that completed data set are then
-#'   combined with the *original* prior here to form a fresh second posterior.
+#'   combined with the prespecified analysis prior here to form a fresh second
+#'   posterior. For Bayesian survival prediction, the caller supplies
+#'   `prior_surv_final` for this analysis, which may differ from the
+#'   `prior_surv` used to generate the completed data.
 #'   Using the first posterior as the second-stage prior would count the observed
 #'   data twice.
 #'

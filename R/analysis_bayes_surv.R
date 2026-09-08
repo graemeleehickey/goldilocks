@@ -17,7 +17,8 @@
 #'      data.
 #'   2. Use those hazards to impute a completed trial.
 #'   3. Form a fresh posterior from the completed trial's sufficient statistics
-#'      and the original `prior_surv`.
+#'      and the prespecified analysis prior (the caller supplies
+#'      `prior_surv_final` as `prior_surv` for predictive and final analyses).
 #'
 #'   Step 3 deliberately does not update from the first posterior. The first
 #'   posterior is used to generate the missing outcomes; treating it as the new

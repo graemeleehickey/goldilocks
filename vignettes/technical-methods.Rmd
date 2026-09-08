@@ -318,6 +318,28 @@ element may be a length-two vector or a two-row interval-specific matrix. Both
 arms must be specified, and no borrowing occurs between them.
 `prior_surv_final` accepts the same specifications and defaults to
 `prior_surv`; priors may therefore differ by analysis stage, arm, and interval.
+For `method = "bayes-surv"`, **`prior_surv_final` is used during interim
+calculations as well as at the actual final analysis**:
+
+| Calculation | Prior used |
+|---|---|
+| Generate outstanding outcomes at interim, for enrolled and future participants | `prior_surv` |
+| Test each hypothetical completed trial at the current or maximum sample size | `prior_surv_final` |
+| Impute missing outcomes at final analysis, if `imputed_final = TRUE` | `prior_surv_final` |
+| Analyze the actual final data | `prior_surv_final` |
+
+An informative predictive prior can bring in external evidence while a
+separate weak analysis prior defines the success criterion. **Both must be
+specified explicitly for this separation: omitting `prior_surv_final` makes it
+equal to `prior_surv`, including when `prior_surv` is informative.** These roles
+also apply to `evaluate_interim()`, which performs the two interim calculations.
+See the [worked example](interim-data.html#using-separate-predictive-and-analysis-priors).
+
+The predictive prior can still influence the stopping decision and selected
+sample size. Calibrate the design with both priors fixed to their intended
+values. This table applies to Bayesian survival: Bayesian binary completed-data
+analyses use `prior_bin`, and frequentist completed-data tests have no analysis
+prior.
 
 At an analysis, let $d_{zj}$ be the number of observed events for treatment value $z$, interval $j$, and let $y_{zj}$ be the total observed exposure time for that treatment value and interval. Gamma-exponential conjugacy gives
 
@@ -414,6 +436,30 @@ The current-sample-size predictive probability $P_{n_\ell}$ is estimated by:
 2.  impute remaining endpoint outcomes for enrolled subjects only;
 3.  apply the prespecified final analysis rule to the completed data; and
 4.  record whether that completed trial is successful.
+
+For Bayesian survival, step 1 uses `prior_surv` and step 3 updates
+`prior_surv_final` with the completed events and exposure. The posterior used
+to generate outcomes is not substituted for the completed-data analysis prior.
+The maximum-sample calculation uses this same separation of priors.
+
+For example, write $\pi_{\mathrm{pred}}$ for `prior_surv` and
+$\pi_{\mathrm{ana}}$ for `prior_surv_final`. For `alternative = "less"`,
+the predictive target is
+
+$$P_{n_\ell} = \operatorname{E}_{\mathrm{pred}}\left[
+  I\left\{
+    \Pr_{\mathrm{ana}}\left(\Delta < h_0 \mid
+      \mathcal{D}^{\mathrm{obs}}_\ell,\mathcal{D}^{\mathrm{mis}}\right) > c
+  \right\}
+  \mid \mathcal{D}^{\mathrm{obs}}_\ell
+\right].$$
+
+The outer expectation generates missing outcomes from the posterior predictive
+distribution under $\pi_{\mathrm{pred}}$. The inner probability analyzes each
+completed dataset under $\pi_{\mathrm{ana}}$, with $c=$ `prob_ha`. In a
+single-arm design, replace $\Delta$ with the treatment event probability.
+Thus the hypothetical final success test and the actual final success test
+use the same analysis prior, even when the predictive prior differs.
 
 Formally,
 
@@ -645,7 +691,11 @@ When $B = 0$, $\nu = \infty$ and the reference distribution reduces to the stand
 
 ### 7.2 Bayesian survival final test
 
-For `method = "bayes-surv"`, posterior hazard draws are mapped to cumulative event probabilities at $\tau$. In a two-arm design the treatment effect is
+For `method = "bayes-surv"`, the analysis posterior updates
+`prior_surv_final` with the dataset's observed or imputed events and exposure.
+This applies both to hypothetical completed trials tested inside an interim
+prediction and to the actual final analysis. Posterior hazard draws are mapped
+to cumulative event probabilities at $\tau$. In a two-arm design the treatment effect is
 
 $$\Delta = p_1(\tau) - p_0(\tau),$$
 

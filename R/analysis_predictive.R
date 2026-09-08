@@ -32,7 +32,7 @@ analyse_predictive_survival <- function(
   cutpoints,
   interval_widths,
   single_arm,
-  prior_surv,
+  prior_surv_final,
   N_mcmc,
   method,
   alternative,
@@ -58,7 +58,9 @@ analyse_predictive_survival <- function(
     cutpoints = cutpoints,
     end_of_study = end_of_study,
     interval_widths = interval_widths,
-    prior_surv = prior_surv,
+    # Each completed trial is tested with the final analysis prior. Its
+    # outcomes were generated separately using the interim predictive prior.
+    prior_surv = prior_surv_final,
     N_mcmc = N_mcmc,
     single_arm = single_arm,
     method = method,
@@ -84,7 +86,7 @@ analyse_predictive_survival <- function(
       cutpoints = cutpoints,
       end_of_study = end_of_study,
       interval_widths = interval_widths,
-      prior_surv = prior_surv,
+      prior_surv = prior_surv_final,
       N_mcmc = N_mcmc,
       single_arm = single_arm,
       method = method,

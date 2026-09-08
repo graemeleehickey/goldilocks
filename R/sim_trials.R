@@ -5,6 +5,7 @@
 #'   operating characteristics can be estimated.
 #'
 #' @inheritParams survival_adapt
+#' @inheritSection survival_adapt Predictive and analysis priors
 #' @inheritParams sim_comp_data
 #' @param N_trials A positive integer giving the number of independent trials
 #'   to simulate. The default is `10`.

@@ -2,6 +2,11 @@
 
 ## Documentation
 
+* Make the predictive and analysis prior roles explicit in the simulation and
+  observed-interim help pages, a step-by-step technical explanation, and a
+  worked example. Clarify that `prior_surv_final` is used in Bayesian survival
+  success tests inside interim predictions, and that omitting it shares
+  `prior_surv` across both roles. Distinguish this from Bayesian binary analysis.
 * Refresh the existing vignettes for RMST effect direction, restriction time,
   observed interim evaluation, and calibration. Align the two-arm stopping
   narrative with its code, derive reported results from the stored summaries,
@@ -12,6 +17,14 @@
 
 ## Bug fixes
 
+* Bayesian survival predictions now use `prior_surv` to generate outstanding
+  outcomes and `prior_surv_final` to analyze each hypothetical completed trial,
+  at both the current and maximum sample sizes. This permits external evidence
+  in prediction while retaining a separate final analysis prior.
+  `evaluate_interim()` now accepts `prior_surv_final` and records both priors.
+  The default `prior_surv_final = prior_surv` preserves previous calculations.
+  Bayesian survival designs with different priors may change their stopping
+  decisions and operating characteristics and should be recalibrated.
 * Dropout times are now exponential and independent of event times and
   enrollment within each treatment arm (#61). `prop_loss = p` specifies
   `P(D <= end_of_study) = p`, using rate `-log1p(-p) / end_of_study`.

@@ -52,7 +52,14 @@
 #'   Carlo calculation. A supplied seed makes the result reproducible and
 #'   leaves the existing random-number state unchanged. With `seed = NULL`, the call
 #'   uses and advances the current random-number state.
+#' @param prior_surv_final A numeric vector, matrix, or named list specifying
+#'   the Gamma analysis prior for each hypothetical completed trial when
+#'   `method = "bayes-surv"`. It accepts the same shared, interval-specific, and
+#'   arm-specific forms as `prior_surv` and defaults to `prior_surv`. It should
+#'   match the prior for the actual final analysis. Other methods do not use it
+#'   in this interim calculation.
 #' @inheritParams survival_adapt
+#' @inheritSection survival_adapt Predictive and analysis priors
 #'
 #' @details The arm-specific maximum enrollment is
 #'   `N_total * rand_ratio / sum(rand_ratio)`. Potential future accrual in each
@@ -66,6 +73,14 @@
 #'   `end_of_study`, `"pending"` for a subject still under follow-up, and
 #'   `"censored"` for permanent early censoring. Pending and censored outcomes
 #'   are predictively imputed conditional on `time`.
+#'
+#'   With `method = "bayes-surv"`, `prior_surv` generates predictive outcomes
+#'   and `prior_surv_final` is the analysis prior used to test each hypothetical
+#'   completed trial for success, at both the current and maximum sample sizes.
+#'   Supply the same final prior as in the prespecified trial design. The
+#'   default `prior_surv_final = prior_surv` uses one prior for both roles.
+#'   Other methods do not use `prior_surv_final` in this interim calculation;
+#'   Bayesian binary completed-data analyses use `prior_bin`.
 #'
 #'   `Qn`, `Sn`, and `Fn` are scalar thresholds for this look. Immediate success
 #'   is declared when the estimated probability of completed-data success among
@@ -94,10 +109,13 @@
 #'   - `trace`: a one-row decision trace compatible with
 #'     [plot_trial_trace()] and [summarise_trial_trace()];
 #'   - `metadata`: the evaluated design, resolved prior design, package version,
-#'     time-origin, data-cut, and random-number policy. For `method =
-#'     "bayes-bin"`, `metadata$design` retains the normalized imputation prior
-#'     (`prior_surv`), completed-data analysis prior (`prior_bin`), and
-#'     imputation horizon (`end_of_study`).
+#'     time-origin, data-cut, and random-number policy. For
+#'     `method = "bayes-surv"`, both Gamma priors are retained in
+#'     `metadata$design` and `metadata$prior_design`; posterior diagnostics
+#'     describe the predictive model based on the observed interim data. For
+#'     `method = "bayes-bin"`, `metadata$design` retains the normalized
+#'     imputation prior (`prior_surv`), completed-data analysis prior
+#'     (`prior_bin`), and imputation horizon (`end_of_study`).
 #'
 #' @examples
 #' interim_data <- data.frame(
@@ -147,7 +165,8 @@ evaluate_interim <- function(
   binary_imputation = c("event-time", "bernoulli"),
   seed = NULL,
   Qn = 1,
-  rmst_tau = end_of_study
+  rmst_tau = end_of_study,
+  prior_surv_final = prior_surv
 ) {
   Call <- match.call()
   caller_rng_kind <- RNGkind()
@@ -203,6 +222,12 @@ evaluate_interim <- function(
     single_arm = single_arm,
     name = "prior_surv"
   )
+  prior_surv_final <- normalize_gamma_prior(
+    prior_surv_final,
+    n_intervals = n_intervals,
+    single_arm = single_arm,
+    name = "prior_surv_final"
+  )
   requested_N_mcmc <- N_mcmc
   if (!method %in% c("bayes-surv", "bayes-bin")) {
     N_mcmc <- 1L
@@ -255,6 +280,7 @@ evaluate_interim <- function(
     cutpoints = cutpoints,
     single_arm = single_arm,
     prior_surv = prior_surv,
+    prior_surv_final = prior_surv_final,
     prior_bin = prior_bin,
     bin_method = bin_method,
     alternative = alternative,
@@ -318,6 +344,7 @@ evaluate_interim <- function(
     end_of_study = end_of_study,
     cutpoints = cutpoints,
     prior_surv = prior_surv,
+    prior_surv_final = prior_surv_final,
     prior_bin = prior_bin,
     bin_method = bin_method,
     rand_ratio = prepared$rand_ratio,
