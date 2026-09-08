@@ -1,70 +1,46 @@
 # Changelog
 
-## goldilocks 0.6.0.9000
+## goldilocks 1.0.0
 
-### Documentation
+Version 1.0.0 marks the first stable major release. Highlights include
+observed interim evaluation, RMST and Farrington-Manning analyses,
+immediate-success stopping, arm-specific priors, and Monte Carlo and
+calendar-time summaries.
 
-- Explain that the Bayesian binary normal approximation can reverse
-  success decisions with sparse events or posterior event probabilities
-  near 0 or 1. Clarify that increasing `N_mcmc` does not correct
-  approximation error and describe the alternative methods.
-- Make the predictive and analysis prior roles explicit in the
-  simulation and observed-interim help pages, a step-by-step technical
-  explanation, and a worked example. Clarify that `prior_surv_final` is
-  used in Bayesian survival success tests inside interim predictions,
-  and that omitting it shares `prior_surv` across both roles.
-  Distinguish this from Bayesian binary analysis.
-- Refresh the existing vignettes for RMST effect direction, restriction
-  time, observed interim evaluation, and calibration. Align the two-arm
-  stopping narrative with its code, derive reported results from the
-  stored summaries, and remove knit caches that could outlive changes
-  within a development version.
-- Match operating-characteristic plot effects by scenario name in
-  vignette examples, preventing sorted summaries from swapping null and
-  target values.
+### Migration from 0.6.0
 
-### Bug fixes
+- Recalibrate designs after updating. Independent exponential dropout,
+  the prior-driven empty-interval default, full-horizon Bayesian
+  survival analysis, and corrected analysis-prior handling can change
+  operating characteristics. Batched imputation also changes some seeded
+  Bayesian results.
+- `prop_loss` now means the probability of dropout by `end_of_study`
+  under an independent exponential distribution, rather than a fixed
+  fraction removed from the trial. Values must be in `[0, 1)`;
+  `prop_loss = 1` is invalid.
+- Empty intervals use their own prior by default. Set
+  `empty_interval = "propagate"` explicitly only when the legacy
+  adjacent- interval heuristic is intended.
+- For Bayesian survival predictions, `prior_surv` generates outstanding
+  outcomes and `prior_surv_final` analyzes each completed predictive
+  trial as well as the actual final trial. Supply both explicitly to
+  separate the roles.
+- Replace `method = "riskdiff"` with `"riskdiff-wald"` to retain the
+  Wald analysis, or choose `"riskdiff-fm"` for the Farrington-Manning
+  score test. The old name remains a deprecated alias. Genuine FM final
+  imputation is unsupported, and zero total variance in Rubin pooling is
+  non-estimable.
+- In direct calls to
+  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md),
+  rename `cutpoints` to `generation_cutpoints`. The simulation entry
+  points retain `cutpoints` for the analysis partition and accept
+  `generation_cutpoints` separately.
+- The Monte Carlo defaults are now `N_impute = 500` and `N_mcmc = 1000`.
+  Specify them explicitly when reproducing a previous simulation design.
+- Log-rank analyses now reject nonzero `h0`. Use a method whose effect
+  scale supports the intended nonzero margin.
 
-- Preserve the selected final test when no outcomes require imputation,
-  even with `imputed_final = TRUE`. Genuine FM final imputation is now
-  rejected because no validated pooling rule is implemented. FM
-  simulations requesting final imputation require zero dropout in both
-  arms and reject unsupported configurations before generating trials.
-- Rubin pooling now reports a non-estimability error when total variance
-  is zero, instead of assigning an infinite test statistic. A zero
-  within- or between-imputation component remains supported when total
-  variance is positive.
-- Bayesian survival predictions now use `prior_surv` to generate
-  outstanding outcomes and `prior_surv_final` to analyze each
-  hypothetical completed trial, at both the current and maximum sample
-  sizes. This permits external evidence in prediction while retaining a
-  separate final analysis prior.
-  [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
-  now accepts `prior_surv_final` and records both priors. The default
-  `prior_surv_final = prior_surv` preserves previous calculations.
-  Bayesian survival designs with different priors may change their
-  stopping decisions and operating characteristics and should be
-  recalibrated.
-- Dropout times are now exponential and independent of event times and
-  enrollment within each treatment arm
-  ([\#61](https://github.com/graemeleehickey/goldilocks/issues/61)).
-  `prop_loss = p` specifies `P(D <= end_of_study) = p`, using rate
-  `-log1p(-p) / end_of_study`. Observation ends at the first event,
-  dropout, or administrative horizon; events before dropout are
-  retained. The observed fraction censored by dropout can be lower than
-  `p`, and counts vary between trials instead of being fixed by
-  [`ceiling()`](https://rdrr.io/r/base/Round.html). Probabilities must
-  be in `[0, 1)`; `1` is no longer accepted. Positive dropout
-  assumptions change seeded results and operating characteristics;
-  `prop_loss = 0` preserves results and RNG use. Vignettes and help now
-  explain this interpretation, the migration from the previous
-  dependent-censoring mechanism, and the limitations of complete-case
-  binary analysis with dropout. Statistical checks cover dropout
-  probabilities, event preservation, and Kaplan-Meier recovery with
-  common and arm-specific dropout under constant and piecewise event
-  hazards.
-
-### Improvements
+### New features and improvements
 
 - Internal analysis code is grouped into `analysis_*.R` files, with
   separate files for method implementations, shared calculations, and
@@ -272,6 +248,44 @@
 
 ### Bug fixes
 
+- Preserve the selected final test when no outcomes require imputation,
+  even with `imputed_final = TRUE`. Genuine FM final imputation is now
+  rejected because no validated pooling rule is implemented. FM
+  simulations requesting final imputation require zero dropout in both
+  arms and reject unsupported configurations before generating trials.
+- Rubin pooling now reports a non-estimability error when total variance
+  is zero, instead of assigning an infinite test statistic. A zero
+  within- or between-imputation component remains supported when total
+  variance is positive.
+- Bayesian survival predictions now use `prior_surv` to generate
+  outstanding outcomes and `prior_surv_final` to analyze each
+  hypothetical completed trial, at both the current and maximum sample
+  sizes. This permits external evidence in prediction while retaining a
+  separate final analysis prior.
+  [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
+  now accepts `prior_surv_final` and records both priors. The default
+  `prior_surv_final = prior_surv` preserves previous calculations.
+  Bayesian survival designs with different priors may change their
+  stopping decisions and operating characteristics and should be
+  recalibrated.
+- Dropout times are now exponential and independent of event times and
+  enrollment within each treatment arm
+  ([\#61](https://github.com/graemeleehickey/goldilocks/issues/61)).
+  `prop_loss = p` specifies `P(D <= end_of_study) = p`, using rate
+  `-log1p(-p) / end_of_study`. Observation ends at the first event,
+  dropout, or administrative horizon; events before dropout are
+  retained. The observed fraction censored by dropout can be lower than
+  `p`, and counts vary between trials instead of being fixed by
+  [`ceiling()`](https://rdrr.io/r/base/Round.html). Probabilities must
+  be in `[0, 1)`; `1` is no longer accepted. Positive dropout
+  assumptions change seeded results and operating characteristics;
+  `prop_loss = 0` preserves results and RNG use. Vignettes and help now
+  explain this interpretation, the migration from the previous
+  dependent-censoring mechanism, and the limitations of complete-case
+  binary analysis with dropout. Statistical checks cover dropout
+  probabilities, event preservation, and Kaplan-Meier recovery with
+  common and arm-specific dropout under constant and piecewise event
+  hazards.
 - Parallel simulations using PSOCK now load `goldilocks` and its
   compiled log-rank calculation correctly on Windows, including when
   vignettes are built from the source package.
@@ -361,6 +375,32 @@
   a multiple of the sum of the two-arm allocation weights and include
   the observed values
   ([\#79](https://github.com/graemeleehickey/goldilocks/issues/79)).
+
+### Documentation
+
+- Share local JavaScript dependencies across the HTML vignettes
+  containing interactive diagrams, reducing the installed documentation
+  size while retaining offline use. Link the ThermoCool trial report
+  through PubMed.
+- Explain that the Bayesian binary normal approximation can reverse
+  success decisions with sparse events or posterior event probabilities
+  near 0 or 1. Clarify that increasing `N_mcmc` does not correct
+  approximation error and describe the alternative methods.
+- Make the predictive and analysis prior roles explicit in the
+  simulation and observed-interim help pages, a step-by-step technical
+  explanation, and a worked example. Clarify that `prior_surv_final` is
+  used in Bayesian survival success tests inside interim predictions,
+  and that omitting it shares `prior_surv` across both roles.
+  Distinguish this from Bayesian binary analysis.
+- Refresh the existing vignettes for RMST effect direction, restriction
+  time, observed interim evaluation, and calibration. Align the two-arm
+  stopping narrative with its code, derive reported results from the
+  stored summaries, and remove knit caches that could outlive changes
+  within a development version.
+- Match operating-characteristic plot effects by scenario name in
+  vignette examples, preventing sorted summaries from swapping null and
+  target values.
+- Add a Zenodo DOI badge to the README.
 
 ## goldilocks 0.6.0
 

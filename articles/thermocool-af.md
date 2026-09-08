@@ -12,9 +12,8 @@ compared radiofrequency catheter ablation with antiarrhythmic drug
 therapy (ADT) in patients with symptomatic paroxysmal atrial
 fibrillation. It was registered as
 [NCT00116428](https://clinicaltrials.gov/study/NCT00116428), reported by
-[Wilber et
-al. (2010)](https://jamanetwork.com/journals/jama/fullarticle/185277),
-and supported FDA premarket approval supplement
+[Wilber et al. (2010)](https://pubmed.ncbi.nlm.nih.gov/20103757/), and
+supported FDA premarket approval supplement
 [P030031/S011](https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpma/pma.cfm?id=P030031S011).
 
 This vignette uses the trial to explain `Qn`, the upper boundary for
@@ -874,10 +873,10 @@ compared directly with the trial’s regulatory analysis.
 - Wilber DJ, Pappone C, Neuzil P, et al. [Comparison of antiarrhythmic
   drug therapy and radiofrequency catheter ablation in patients with
   paroxysmal atrial fibrillation: a randomized controlled
-  trial](https://jamanetwork.com/journals/jama/fullarticle/185277).
-  *JAMA*. 2010;303(4):333-340. <doi:10.1001/jama.2009.2029>. The article
-  reports the analysis boundaries and observed Kaplan–Meier results, but
-  not the numerical simulation generator or accrual schedule.
+  trial](https://pubmed.ncbi.nlm.nih.gov/20103757/). *JAMA*.
+  2010;303(4):333-340. <doi:10.1001/jama.2009.2029>. The article reports
+  the analysis boundaries and observed Kaplan–Meier results, but not the
+  numerical simulation generator or accrual schedule.
 
 - U.S. Food and Drug Administration. [Summary of Safety and
   Effectiveness Data, PMA

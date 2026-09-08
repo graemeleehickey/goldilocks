@@ -16,8 +16,9 @@ for complete follow-up of all patients before the primary analysis is
 conducted. Time-to-event final analyses include the log-rank test, Cox
 proportional hazards regression Wald test, restricted mean survival time
 (RMST) difference Wald test, and Bayesian piecewise-exponential
-inference. Fixed-time binary final analyses include a frequentist
-risk-difference Wald test and Bayesian beta-binomial inference.
+inference. Fixed-time binary final analyses include frequentist
+risk-difference Wald and Farrington-Manning score tests, and Bayesian
+beta-binomial inference.
 
 Broglio et al. (2014) refer to this as a *Goldilocks trial design*, as
 it is constantly asking the question, “Is the sample size too big, too
@@ -97,7 +98,9 @@ Biopharmaceutical Statistics*, 2014; **24(3)**: 685–705.
 
 ## Installation
 
-The current source release is `goldilocks` 0.6.0.
+The source version is `goldilocks` 1.0.0, prepared for CRAN submission.
+See [NEWS.md](https://graemeleehickey.github.io/goldilocks/NEWS.md) for
+changes and migration guidance from 0.6.0.
 
 You can install the released version of `goldilocks` from CRAN with:
 

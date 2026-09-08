@@ -12,8 +12,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Adaptive Trial Designs for Survival and Binary Endpoints">
-<meta name="description" content="Implements Goldilocks adaptive trial designs for time-to-event and fixed-time binary endpoints. Outcomes are generated with a piecewise exponential model, with conjugate Gamma priors used for predictive imputation. Final analyses may use log-rank, Cox, or restricted mean survival time tests, Bayesian piecewise-exponential inference, frequentist risk differences, or Bayesian beta-binomial inference. The method closely follows Broglio and colleagues &lt;doi:10.1080/10543406.2014.888569&gt; and supports simulation of design operating characteristics.">
-<meta property="og:description" content="Implements Goldilocks adaptive trial designs for time-to-event and fixed-time binary endpoints. Outcomes are generated with a piecewise exponential model, with conjugate Gamma priors used for predictive imputation. Final analyses may use log-rank, Cox, or restricted mean survival time tests, Bayesian piecewise-exponential inference, frequentist risk differences, or Bayesian beta-binomial inference. The method closely follows Broglio and colleagues &lt;doi:10.1080/10543406.2014.888569&gt; and supports simulation of design operating characteristics.">
+<meta name="description" content="Implements Goldilocks adaptive trial designs for time-to-event and fixed-time binary endpoints. Outcomes are generated with a piecewise exponential model, with conjugate Gamma priors used for predictive imputation. Final analyses may use log-rank, Cox, or restricted mean survival time tests, Bayesian piecewise-exponential inference, frequentist risk differences, or Bayesian beta-binomial inference. The method closely follows Broglio et al. (2014) &lt;doi:10.1080/10543406.2014.888569&gt; and supports simulation of design operating characteristics.">
+<meta property="og:description" content="Implements Goldilocks adaptive trial designs for time-to-event and fixed-time binary endpoints. Outcomes are generated with a piecewise exponential model, with conjugate Gamma priors used for predictive imputation. Final analyses may use log-rank, Cox, or restricted mean survival time tests, Bayesian piecewise-exponential inference, frequentist risk differences, or Bayesian beta-binomial inference. The method closely follows Broglio et al. (2014) &lt;doi:10.1080/10543406.2014.888569&gt; and supports simulation of design operating characteristics.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,7 @@
 
 <!-- badges: end -->
 <p>The goal of <code>goldilocks</code> is to implement the Goldilocks Bayesian adaptive design proposed by Broglio et al. (2014), for both one- and two-arm trials. Outcomes are generated from an underlying piecewise-exponential event-time model. Final analyses may retain the time-to-event outcome or reduce complete follow-up to event status at a fixed endpoint time.</p>
-<p>The method can be used for a confirmatory trial to select a trial’s sample size based on accumulating data. During accrual, frequent sample size selection analyses are made and predictive probabilities are used to determine whether the current sample size is sufficient or whether continuing accrual would be futile. The algorithm explicitly accounts for complete follow-up of all patients before the primary analysis is conducted. Time-to-event final analyses include the log-rank test, Cox proportional hazards regression Wald test, restricted mean survival time (RMST) difference Wald test, and Bayesian piecewise-exponential inference. Fixed-time binary final analyses include a frequentist risk-difference Wald test and Bayesian beta-binomial inference.</p>
+<p>The method can be used for a confirmatory trial to select a trial’s sample size based on accumulating data. During accrual, frequent sample size selection analyses are made and predictive probabilities are used to determine whether the current sample size is sufficient or whether continuing accrual would be futile. The algorithm explicitly accounts for complete follow-up of all patients before the primary analysis is conducted. Time-to-event final analyses include the log-rank test, Cox proportional hazards regression Wald test, restricted mean survival time (RMST) difference Wald test, and Bayesian piecewise-exponential inference. Fixed-time binary final analyses include frequentist risk-difference Wald and Farrington-Manning score tests, and Bayesian beta-binomial inference.</p>
 <p>Broglio et al. (2014) refer to this as a <em>Goldilocks trial design</em>, as it is constantly asking the question, “Is the sample size too big, too small, or just right?”</p>
 <div class="section level2">
 <h2 id="endpoint-and-analysis-options">Endpoint and analysis options<a class="anchor" aria-label="anchor" href="#endpoint-and-analysis-options"></a>
@@ -99,7 +99,7 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>The current source release is <code>goldilocks</code> 0.6.0.</p>
+<p>The source version is <code>goldilocks</code> 1.0.0, prepared for CRAN submission. See <a href="NEWS.html">NEWS.md</a> for changes and migration guidance from 0.6.0.</p>
 <p>You can install the released version of <code>goldilocks</code> from CRAN with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"goldilocks"</span><span class="op">)</span></span></code></pre></div>
@@ -147,6 +147,7 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://CRAN.R-project.org/package=goldilocks" class="external-link"><img src="https://www.r-pkg.org/badges/version/goldilocks" alt="CRAN status"></a></li>
+<li><a href="https://doi.org/10.5281/zenodo.21683363" class="external-link"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21683363.svg" alt="DOI"></a></li>
 <li><a href="https://github.com/graemeleehickey/goldilocks/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/graemeleehickey/goldilocks/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://graemeleehickey.github.io/goldilocks/"><img src="https://github.com/graemeleehickey/goldilocks/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
 <li><a href="https://app.codecov.io/gh/graemeleehickey/goldilocks" class="external-link"><img src="https://codecov.io/gh/graemeleehickey/goldilocks/graph/badge.svg" alt="Codecov test coverage"></a></li>
