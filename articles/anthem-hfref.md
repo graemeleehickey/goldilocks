@@ -96,7 +96,7 @@ The status labels have the following meanings:
 | `generation_cutpoints` | 12 months | reported | ADR Table 5 uses 0-12, 12-24, and \>24 month generating intervals; only the 12-month cut-point precedes the 16-month horizon |
 | `hazard_control` | 0.00828, 0.00240 events/week | reported | ADR Table 5, using its two generating hazards that apply before the 16-month horizon |
 | `hazard_treatment` | 0.70 x control hazard | inferred | ADR Sections 5.1 and 7 report the target hazard-ratio scenario |
-| `prop_loss` | 0.10 | reported | ADR Sections 5.3 and 7.2 |
+| `prop_loss` | 0.10 | reported | ADR Sections 5.3 and 7.2; independent exponential dropout CDF of 0.10 at 16 months |
 | `prior_surv` | Gamma shapes 1; rates 1/0.0069, 1/0.0069, 1/0.0035 | reported | ADR Table 1; `goldilocks` applies these independent priors to both arms |
 | `alternative` | less | reported | ADR Equation 1 defines lower treatment hazard as benefit |
 | `h0` | 0 | reported | ADR Equation 1 uses equality of survival distributions |
@@ -225,6 +225,15 @@ plot_enrollment(
 
 ## A one-trial `goldilocks` approximation
 
+The ADR generated independent exponential dropout times with 10%
+cumulative dropout probability by 16 months. The package now uses the
+same dropout distribution: `prop_loss = 0.10` at the 16-month
+`end_of_study` gives rate -\log(0.90)/16 per month (converted to the
+weekly unit below). Events before dropout remain observed, so the actual
+proportion censored by dropout can be below 10% and varies across
+trials. The package’s shorter administrative follow-up for earlier
+recruits remains a separate approximation.
+
 The expected-success threshold is set to 1 at the 400-patient look.
 Since the package stops only when its predictive-probability point
 estimate is greater than `Sn`, this disables expected-success stopping
@@ -280,15 +289,15 @@ anthem_trial <- do.call(survival_adapt, c(
 
 anthem_trial$summary
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
-#> 1          0.981      0        less         667       333       1000  1000
+#> 1          0.981      0        less         267       133        400  1000
 #>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
-#> 1    0.9568078        NA  0.07666667             0                      0
-#>   stop_expected_success trial_success     stopping_reason decision_time
-#> 1                     0         FALSE maximum_sample_size      255.5593
+#> 1    0.5211608        NA           0             1                      0
+#>   stop_expected_success trial_success stopping_reason decision_time
+#> 1                     0         FALSE        futility      85.41171
 #>   accrual_stop_time analysis_ready_time planned_completion_time
-#> 1          186.2259            255.5593                255.5593
+#> 1          85.41171             154.745                 154.745
 #>   followup_person_time peak_active_followup
-#> 1             51978.65                  318
+#> 1             21257.42                  296
 ```
 
 The trace shows the predictive quantities only at looks reached before a
@@ -328,12 +337,7 @@ knitr::kable(
 
 | N | Time | VNS events | Control events | PPSn | Success cut | PPSmax | Futility cut | Decision |
 |---:|---:|---:|---:|---:|---:|---:|---:|:---|
-| 400 | 85.412 | 49 | 23 | 0.003 | 1.00 | 0.053 | 0.01 | continue |
-| 500 | 100.897 | 64 | 36 | 0.040 | 0.95 | 0.197 | 0.01 | continue |
-| 600 | 117.652 | 88 | 43 | 0.007 | 0.95 | 0.040 | 0.01 | continue |
-| 700 | 136.312 | 109 | 61 | 0.077 | 0.95 | 0.267 | 0.01 | continue |
-| 800 | 153.178 | 127 | 75 | 0.197 | 0.95 | 0.333 | 0.01 | continue |
-| 900 | 171.523 | 148 | 83 | 0.077 | 0.95 | 0.133 | 0.01 | continue |
+| 400 | 85.412 | 54 | 24 | 0 | 1 | 0.007 | 0.01 | stop_futility |
 
 ``` r
 
@@ -408,8 +412,8 @@ knitr::kable(oc_display, digits = 3)
 
 | scenario | n_used | power | power_mcse | power_mc_lower | power_mc_upper | stop_success | stop_futility | mean_N | mean_N_mcse |
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Null: HR = 1.00 | 20 | 0.10 | 0.067 | 0.028 | 0.301 | 0.05 | 0.7 | 735 | 49.351 |
-| Target: HR = 0.70 | 20 | 0.75 | 0.097 | 0.531 | 0.888 | 0.50 | 0.0 | 830 | 45.940 |
+| Null: HR = 1.00 | 20 | 0.05 | 0.049 | 0.009 | 0.236 | 0.05 | 0.60 | 750 | 51.555 |
+| Target: HR = 0.70 | 20 | 0.75 | 0.097 | 0.531 | 0.888 | 0.55 | 0.05 | 780 | 47.351 |
 
 For the corresponding sponsor scenario - 35% control event probability
 at one year, hazard ratio 0.70, peak accrual 26/month, and 10% dropout -
@@ -446,16 +450,11 @@ Several distinctions are consequential:
     patients under follow-up until the common final visit 16 months
     after the last randomization, so earlier participants could
     contribute more than 16 months.
-4.  **Dropout.** The ADR generated independent exponential dropout times
-    giving 10% cumulative dropout by 16 months. `prop_loss = 0.10`
-    selects a fixed proportion for loss to follow-up and samples
-    censoring before each selected subject’s potential event or
-    administrative time.
-5.  **Accrual and randomization.** The stepwise accrual approximation
+4.  **Accrual and randomization.** The stepwise accrual approximation
     replaces a linear six-month ramp. The package also cannot reproduce
     geographic and clinical stratification or randomly varying block
     sizes 3, 6, and 9.
-6.  **Monte Carlo diagnostics.** The public ADR defines each predictive
+5.  **Monte Carlo diagnostics.** The public ADR defines each predictive
     probability as the proportion of imputed datasets in which the final
     test succeeds, and compares that point estimate with 0.95 or 0.01.
     `goldilocks` uses the same strict point-estimate comparisons. With

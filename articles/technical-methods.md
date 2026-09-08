@@ -260,6 +260,73 @@ where \boldsymbol{\lambda}\_z =
 (\lambda\_{z1},\ldots,\lambda\_{zJ})^\top. This sufficient-statistic
 form is what makes the Gamma posterior update available in closed form.
 
+### 3.1 Independent dropout and administrative censoring
+
+For treatment arm z, let p_z be `prop_loss` and let \tau =
+\texttt{end_of_study} be the planned follow-up duration **per subject**,
+measured from enrollment. The simulator independently draws
+
+D_i \mid Z_i=z \sim \operatorname{Exponential}(\eta_z), \qquad \eta_z =
+-\log(1-p_z)/\tau,
+
+independently of event times and enrollment within each arm. Thus
+\Pr(D_i \leq \tau \mid Z_i=z)=p_z. With `prop_loss = 0`, D_i=\infty and
+no dropout random numbers are drawn. Values must lie in \[0,1); a
+probability of one would require an infinite exponential hazard and is
+rejected. A scalar applies the same dropout distribution to both arms; a
+vector named `control` and `treatment` supplies separate arm
+probabilities.
+
+The complete simulated observation has
+
+C_i=\min(D_i,\tau), \qquad T_i=\min(T_i^\*,D_i,\tau), \qquad
+\delta_i=I\\T_i^\*\leq\min(D_i,\tau)\\.
+
+The `loss_to_fu` flag is true only if D_i\<\min(T_i^\*,\tau). Events
+before dropout remain observed. Administrative censoring is not counted
+as dropout, and dropout after an observed event does not make that
+endpoint missing. Exact ties retain the event or administrative
+censoring; ties have probability zero under the continuous model. At an
+interim calendar cut, these observations are additionally limited to
+each enrolled subject’s available follow-up.
+
+**`prop_loss` describes the dropout distribution, not the observed
+fraction censored by dropout.** If S_z(t) is the underlying event-free
+survival curve, the probability of observed dropout by the full
+follow-up horizon is
+
+q_z=\Pr(D_i\<T_i^\*,D_i\<\tau\mid Z_i=z) =\int_0^\tau S_z(t)\eta_z
+e^{-\eta_z t}\\dt \leq p_z.
+
+For a constant event hazard \lambda_z, this reduces to
+
+q_z=\frac{\eta_z}{\lambda_z+\eta_z} \\1-e^{-(\lambda_z+\eta_z)\tau}\\.
+
+For example, with 30% event probability by 12 months and
+`prop_loss = 0.05`, the dropout hazard is -\log(0.95)/12 and the
+expected observed dropout proportion is about 4.21%. The realized count
+varies across simulated trials; five losses are not forced in a
+100-subject trial. Subjects censored by dropout still contribute their
+observed event-free follow-up to survival analysis. Equal dropout
+distributions in arms with different event hazards can yield different
+observed dropout proportions. The fraction observed at an interim look
+also depends on enrollment and available follow-up.
+
+To retain an externally specified probability q at reference time t_0
+(for example, 5% annually), supply p=1-(1-q)^{\tau/t_0} at the package
+horizon. Changing `end_of_study` while holding `prop_loss` fixed changes
+the implied dropout hazard. All event, dropout, enrollment, and
+administrative times must use the same unit. Treatment discontinuation
+is not separately modeled: it is not loss to follow-up when endpoint
+collection continues.
+
+This mechanism replaces the previous fixed-count selection with uniform
+censoring before each selected subject’s potential event or
+administrative time. That previous censoring depended on the latent
+event time. Positive `prop_loss` values now change seeded results and
+operating characteristics; design simulations should be rerun.
+Zero-dropout simulations are unchanged.
+
 ## 4. Posterior distribution of hazards
 
 For each treatment value z and interval j, `goldilocks` assumes an
@@ -775,9 +842,15 @@ risk-difference final analyses; it does not alter the interim
 posterior-predictive calculation, where each simulated completed trial
 is tested separately before the success indicators are averaged.
 
-The loss-to-follow-up mechanism in the simulator is non-informative.
-Designs where dropout may depend on prognosis should be assessed with
-sensitivity analyses outside the default data-generating mechanism.
+The independent dropout mechanism in Section 3.1 supports right-censored
+survival inference within each arm. It does **not** imply unbiased
+complete-case binary inference: early events can be ascertained before
+dropout, while later endpoint outcomes can be missing. Excluding the
+latter can overestimate the fixed-time event probability and distort
+treatment comparisons. Binary designs with dropout should assess final
+imputation under a suitable event-time model and sensitivity to that
+model. Designs where dropout depends on prognosis require sensitivity
+analyses outside the default independent mechanism.
 
 ## 8. Operating characteristics
 

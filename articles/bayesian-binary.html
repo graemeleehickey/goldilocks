@@ -126,6 +126,14 @@ imputed (<code>imputed_final = TRUE</code>) or, if
 <code>imputed_final = FALSE</code>, excluded from the final binary
 analysis.</li>
 </ul>
+<p>The examples use <code>prop_loss = 0</code>. If dropout is added,
+<code>prop_loss</code> specifies the CDF of an independent exponential
+dropout time at <code>end_of_study</code>, not an exact fraction of
+missing binary outcomes. Events occurring before dropout remain
+observed. Consequently, excluding early-censored subjects can bias
+binary event probabilities even though censoring is independent for
+survival analysis. Assess final imputation and its event-time-model
+assumptions when evaluating binary designs with dropout.</p>
 <div class="section level2">
 <h2 id="two-arm-design">Two-arm design<a class="anchor" aria-label="anchor" href="#two-arm-design"></a>
 </h2>

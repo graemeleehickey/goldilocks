@@ -17,6 +17,12 @@ This small Bayesian survival design has two interim looks. The treatment
 arm is assumed to have a lower cumulative failure probability by 24
 months.
 
+The common `prop_loss = 0.05` specifies a 5% dropout-time CDF at 24
+months. Dropout is exponential and independent of event time within each
+arm; an event before dropout remains observed. Actual dropout censoring
+can therefore be below 5%, with additional incomplete follow-up at
+interim looks due to staged enrollment.
+
 ``` r
 
 end_of_study <- 24
@@ -54,13 +60,13 @@ trial
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          40        40         80    80
 #>   post_prob_ha   est_final ppp_success stop_futility stop_immediate_success
-#> 1          0.8 -0.08108357        0.45             0                      0
+#> 1         0.85 -0.07467928         0.3             0                      0
 #>   stop_expected_success trial_success     stopping_reason decision_time
 #> 1                     0         FALSE maximum_sample_size      33.09515
 #>   accrual_stop_time analysis_ready_time planned_completion_time
 #> 1          9.095155            33.09515                33.09515
 #>   followup_person_time peak_active_followup
-#> 1             1643.469                   76
+#> 1              1661.71                   76
 #> 
 #> Interim looks completed: 2
 ```
@@ -75,38 +81,38 @@ trial$summary
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          40        40         80    80
 #>   post_prob_ha   est_final ppp_success stop_futility stop_immediate_success
-#> 1          0.8 -0.08108357        0.45             0                      0
+#> 1         0.85 -0.07467928         0.3             0                      0
 #>   stop_expected_success trial_success     stopping_reason decision_time
 #> 1                     0         FALSE maximum_sample_size      33.09515
 #>   accrual_stop_time analysis_ready_time planned_completion_time
 #> 1          9.095155            33.09515                33.09515
 #>   followup_person_time peak_active_followup
-#> 1             1643.469                   76
+#> 1              1661.71                   76
 trial$trace
 #>   look planned_N calendar_time active_followup N_enrolled N_treatment N_control
 #> 1    1        40      4.238838              38         40          20        20
 #> 2    2        60      6.628455              57         60          30        30
 #>   events_treatment events_control N_pending N_not_enrolled ppp_stop_now
-#> 1                0              2        38             40         0.60
-#> 2                1              2        57             20         0.45
+#> 1                0              2        38             40          0.4
+#> 2                1              2        57             20          0.3
 #>   ppp_stop_now_mcse ppp_stop_now_lower ppp_stop_now_upper ppp_stop_now_draws
-#> 1         0.1095445          0.3935849          0.7829314                 20
-#> 2         0.1112430          0.2586506          0.6530686                 20
+#> 1         0.1095445          0.2170686          0.6064151                 20
+#> 2         0.1024695          0.1395537          0.5078184                 20
 #>   success_threshold immediate_success_threshold immediate_success_crossed
 #> 1              0.95                        0.99                     FALSE
 #> 2              0.90                        0.99                     FALSE
 #>   expected_success_crossed ppp_success_at_max ppp_success_at_max_mcse
-#> 1                    FALSE                0.6               0.1095445
-#> 2                    FALSE                0.4               0.1095445
+#> 1                    FALSE               0.40               0.1095445
+#> 2                    FALSE               0.45               0.1112430
 #>   ppp_success_at_max_lower ppp_success_at_max_upper ppp_success_at_max_draws
-#> 1                0.3935849                0.7829314                       20
-#> 2                0.2170686                0.6064151                       20
+#> 1                0.2170686                0.6064151                       20
+#> 2                0.2586506                0.6530686                       20
 #>   futility_threshold futility_crossed inner_mc_uncertain_stop_now
-#> 1               0.05            FALSE                          12
-#> 2               0.05            FALSE                           9
+#> 1               0.05            FALSE                           8
+#> 2               0.05            FALSE                           6
 #>   inner_mc_uncertain_success_at_max decision                 decision_reason
-#> 1                                12 continue continue_thresholds_not_crossed
-#> 2                                 8 continue continue_thresholds_not_crossed
+#> 1                                 8 continue continue_thresholds_not_crossed
+#> 2                                 9 continue continue_thresholds_not_crossed
 #>   empty_interval_fallback_count
 #> 1                             2
 #> 2                             2
@@ -118,9 +124,9 @@ trial$trace
 #> 2
 summarise_trial_trace(trial)
 #>   interim_looks_completed last_look last_decision final_N final_post_prob_ha
-#> 1                       2         2      continue      80                0.8
+#> 1                       2         2      continue      80               0.85
 #>   ppp_stop_now ppp_success_at_max warning_count trial_success
-#> 1         0.45                0.4             0         FALSE
+#> 1          0.3               0.45             0         FALSE
 ```
 
 For each completed look, `ppp_stop_now` is the predictive probability of

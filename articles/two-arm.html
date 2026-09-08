@@ -247,18 +247,24 @@ cores.</p>
 <li>Reproducible Monte Carlo study: <code>seed = 123</code>
 </li>
 </ul>
-<p>Similar to above, the parameter <code>N_mcmc</code> is not required
-when using a log-rank test, meaning we do not need to enter a value for
-this argument. Since we do not allow for attrition, the data at the
-final analysis will be complete, and we can set
-<code>imputed_final = FALSE</code>. If attrition occurred and
-<code>method = "cox"</code>, <code>method = "riskdiff-wald"</code>, or
-<code>method = "riskdiff-fm"</code> were selected,
-<code>imputed_final = TRUE</code> would analyze each completed dataset
-and pool the scalar estimates and variances using Rubin’s rules; at
-least two imputations are required. This produces a pooled Wald analysis
-for either risk-difference setting. Imputed final analyses are not
-available for <code>method = "logrank"</code>.</p>
+<p>The parameter <code>N_mcmc</code> is not used by the log-rank test.
+Here <code>prop_loss = 0</code> means no dropout. A positive value would
+specify the CDF of an independent exponential dropout time at
+<code>end_of_study</code>; actual censoring by dropout can be less
+frequent because events can occur first. Log-rank and Cox analyses
+retain right-censored follow-up with <code>imputed_final = FALSE</code>,
+including when dropout occurs. Imputed final analyses are not available
+for <code>method = "logrank"</code>.</p>
+<p>For <code>method = "cox"</code>, <code>"riskdiff-wald"</code>, or
+<code>"riskdiff-fm"</code>, setting <code>imputed_final = TRUE</code>
+analyzes completed datasets and pools scalar estimates and variances
+using Rubin’s rules; at least two imputations are required. This
+produces a pooled Wald analysis for either risk-difference setting.
+Binary analyses with <code>imputed_final = FALSE</code> exclude
+incomplete endpoint statuses; that complete-case analysis can be biased
+even under independent dropout, because early events can be observed
+before dropout. Binary designs with dropout should assess final
+imputation and its model assumptions.</p>
 <p>Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is
 50%.</p>

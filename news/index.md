@@ -2,6 +2,27 @@
 
 ## goldilocks 0.6.0.9000
 
+### Bug fixes
+
+- Dropout times are now exponential and independent of event times and
+  enrollment within each treatment arm
+  ([\#61](https://github.com/graemeleehickey/goldilocks/issues/61)).
+  `prop_loss = p` specifies `P(D <= end_of_study) = p`, using rate
+  `-log1p(-p) / end_of_study`. Observation ends at the first event,
+  dropout, or administrative horizon; events before dropout are
+  retained. The observed fraction censored by dropout can be lower than
+  `p`, and counts vary between trials instead of being fixed by
+  [`ceiling()`](https://rdrr.io/r/base/Round.html). Probabilities must
+  be in `[0, 1)`; `1` is no longer accepted. Positive dropout
+  assumptions change seeded results and operating characteristics;
+  `prop_loss = 0` preserves results and RNG use. Vignettes and help now
+  explain this interpretation, the migration from the previous
+  dependent-censoring mechanism, and the limitations of complete-case
+  binary analysis with dropout. Statistical checks cover dropout
+  probabilities, event preservation, and Kaplan-Meier recovery with
+  common and arm-specific dropout under constant and piecewise event
+  hazards.
+
 ### Improvements
 
 - A new calibration vignette demonstrates how to screen a prespecified
@@ -133,11 +154,11 @@
   warn that names may be required in a future major release. Retained
   analysis information records the control and treatment allocation
   weights in that order.
-- `prop_loss` now accepts separate loss-to-follow-up proportions for the
-  control and treatment arms through a named vector. A single value
-  continues to apply the same proportion to both arms. Attrition is
-  sampled separately within each randomized arm, and single-arm designs
-  continue to require one value
+- `prop_loss` now accepts separate dropout probabilities at
+  `end_of_study` for the control and treatment arms through a named
+  vector. A single value continues to apply the same dropout
+  distribution to both arms. Dropout is sampled separately within each
+  randomized arm, and single-arm designs continue to require one value
   ([\#69](https://github.com/graemeleehickey/goldilocks/issues/69)).
 - Piecewise event and enrollment times now use the survival
   counting-process convention `(start, stop]`: a time exactly at a

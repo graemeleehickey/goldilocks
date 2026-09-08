@@ -564,18 +564,21 @@ scheme.</p>
 <p>The SAP explicitly designates 5% of subjects as lost to follow-up for
 safety and 7.5% for effectiveness: the same 5% plus another 2.5% who may
 be unassessable for effectiveness while remaining assessable for safety.
-SAP dropout times are uniform over days 0–360, and an event remains
-observed when it precedes dropout. The package’s <code>prop_loss</code>
-mechanism is similar but not identical: every selected subject is
-censored at a uniformly generated time before their potential event or
-administrative censoring time. Separate endpoint runs also cannot
-preserve the SAP’s shared subject-level 5% plus nested 2.5%
-relationship. We therefore use 0.075 and 0.05 to map the SAP’s
-<strong>designated fractions</strong>, not to claim exact reproduction
-of its censoring process. The subsequently observed proportion not
-completing follow-up was approximately 0.04, which is close to 0.05, but
-that post-trial quantity is not the design input and need not equal
-endpoint-specific missingness.</p>
+SAP dropout times among designated subjects are uniform over days 0–360,
+and an event remains observed when it precedes dropout.</p>
+<p>The package instead draws independent exponential dropout times for
+all subjects. We use <code>prop_loss = 0.075</code> and
+<code>0.05</code> to match the endpoint-specific probabilities of
+potential dropout by day 360, with daily hazards <span class="math inline">-\log(0.925)/360</span> and <span class="math inline">-\log(0.95)/360</span>. This approximates the SAP’s
+timing distribution; it does not reproduce its designated-subject
+uniform mechanism. Both approaches retain events occurring before
+dropout, so the observed proportion censored by dropout can be below the
+stated probability. Package dropout counts vary between trials, and
+separate endpoint runs cannot preserve the SAP’s shared subject-level 5%
+plus nested 2.5% relationship. The subsequently observed proportion not
+completing follow-up was approximately 0.04, but that post-trial
+quantity is not the design input and need not equal endpoint-specific
+missingness.</p>
 <p>The SAP reports the expected accrual schedule in subjects per month:
 2, 5, 10, 15, 20, 25, and 30 during months 1–7, then 33 per month from
 month 8 onward. Accrual is into the primary analysis population. The
@@ -594,6 +597,7 @@ patient in fixed at calendar day 0.</p>
 <span><span class="va">enrollment_rate_change_day</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">enrollment_rate_change_month</span> <span class="op">*</span> <span class="va">days_per_month</span></span>
 <span></span>
+<span><span class="co"># Independent exponential dropout CDFs at the 360-day per-subject horizon.</span></span>
 <span><span class="va">effectiveness_prop_loss</span> <span class="op">&lt;-</span> <span class="fl">0.075</span></span>
 <span><span class="va">safety_prop_loss</span> <span class="op">&lt;-</span> <span class="fl">0.05</span></span>
 <span></span>
@@ -727,13 +731,13 @@ repeated trials.</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1          0.956   0.15        less         225       225        450   750</span></span>
 <span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success</span></span>
-<span><span class="co">#&gt; 1    0.9973365 0.02061947           1             0                      0</span></span>
+<span><span class="co">#&gt; 1    0.9975355 0.02070796        0.94             0                      0</span></span>
 <span><span class="co">#&gt;   stop_expected_success trial_success  stopping_reason decision_time</span></span>
 <span><span class="co">#&gt; 1                     1          TRUE expected_success      916.0652</span></span>
 <span><span class="co">#&gt;   accrual_stop_time analysis_ready_time planned_completion_time</span></span>
 <span><span class="co">#&gt; 1          556.0652            916.0652                916.0652</span></span>
 <span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1             123841.1                  285</span></span></code></pre></div>
+<span><span class="co">#&gt; 1             125118.6                  289</span></span></code></pre></div>
 <p>The principal trial-level quantities are:</p>
 <ul>
 <li>
@@ -800,14 +804,14 @@ threshold. Success in the code means:</p>
 <span><span class="va">advent_safety</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1          0.966   0.08        less         275       275        550   750</span></span>
-<span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_immediate_success</span></span>
-<span><span class="co">#&gt; 1    0.9964775 0.0184058        0.94             0                      0</span></span>
+<span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success</span></span>
+<span><span class="co">#&gt; 1    0.9962755 0.01797101        0.98             0                      0</span></span>
 <span><span class="co">#&gt;   stop_expected_success trial_success  stopping_reason decision_time</span></span>
 <span><span class="co">#&gt; 1                     1          TRUE expected_success      972.6321</span></span>
 <span><span class="co">#&gt;   accrual_stop_time analysis_ready_time planned_completion_time</span></span>
 <span><span class="co">#&gt; 1          612.6321            972.6321                972.6321</span></span>
 <span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1             180972.2                  371</span></span></code></pre></div>
+<span><span class="co">#&gt; 1             179515.4                  370</span></span></code></pre></div>
 <p>In the published ADVENT design, a predicted-success stopping
 recommendation required high predictive probability for both endpoints.
 A futility recommendation could be triggered by low predictive
@@ -821,7 +825,7 @@ endpoint-specific Bayesian rule maps to
 </h2>
 <p>For simulations, it is helpful to collect the assumptions that
 genuinely are common and then add endpoint-specific cut-points and
-missingness proportions. Keeping endpoint-specific assumptions separate
+dropout probabilities. Keeping endpoint-specific assumptions separate
 reduces the risk of applying an effectiveness assumption to the safety
 endpoint, or vice versa.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -1068,39 +1072,39 @@ specification:</p>
 <td align="right">0</td>
 <td align="right">0</td>
 <td align="right">0.008</td>
-<td align="right">0.064</td>
+<td align="right">0.068</td>
 <td align="right">0.011</td>
-<td align="right">0.046</td>
-<td align="right">0.089</td>
+<td align="right">0.049</td>
+<td align="right">0.094</td>
 <td align="right">0</td>
 <td align="right">0</td>
 <td align="right">0</td>
 <td align="right">0.008</td>
-<td align="right">0.078</td>
-<td align="right">0.012</td>
-<td align="right">0.058</td>
-<td align="right">0.105</td>
-<td align="right">0.078</td>
-<td align="right">0.012</td>
-<td align="right">0.058</td>
-<td align="right">0.105</td>
-<td align="right">0.65</td>
+<td align="right">0.066</td>
+<td align="right">0.011</td>
+<td align="right">0.047</td>
+<td align="right">0.091</td>
+<td align="right">0.066</td>
+<td align="right">0.011</td>
+<td align="right">0.047</td>
+<td align="right">0.091</td>
+<td align="right">0.664</td>
 <td align="right">0.021</td>
-<td align="right">0.607</td>
-<td align="right">0.691</td>
-<td align="right">0.272</td>
-<td align="right">0.020</td>
-<td align="right">0.235</td>
-<td align="right">0.313</td>
-<td align="right">555.8</td>
-<td align="right">6.698</td>
-<td align="right">542.640</td>
-<td align="right">568.960</td>
-<td align="right">149.771</td>
-<td align="right">0.038</td>
-<td align="right">0.009</td>
-<td align="right">0.024</td>
-<td align="right">0.059</td>
+<td align="right">0.621</td>
+<td align="right">0.704</td>
+<td align="right">0.27</td>
+<td align="right">0.02</td>
+<td align="right">0.233</td>
+<td align="right">0.311</td>
+<td align="right">556.8</td>
+<td align="right">6.699</td>
+<td align="right">543.638</td>
+<td align="right">569.962</td>
+<td align="right">149.795</td>
+<td align="right">0.026</td>
+<td align="right">0.007</td>
+<td align="right">0.015</td>
+<td align="right">0.044</td>
 </tr>
 <tr class="even">
 <td align="left">target: equal 35% failure</td>
@@ -1122,31 +1126,31 @@ specification:</p>
 <td align="right">0</td>
 <td align="right">0</td>
 <td align="right">0.008</td>
-<td align="right">0.958</td>
-<td align="right">0.009</td>
-<td align="right">0.937</td>
-<td align="right">0.972</td>
-<td align="right">0.958</td>
-<td align="right">0.009</td>
-<td align="right">0.937</td>
-<td align="right">0.972</td>
-<td align="right">0.00</td>
-<td align="right">0.000</td>
-<td align="right">0.000</td>
-<td align="right">0.008</td>
-<td align="right">0.042</td>
-<td align="right">0.009</td>
-<td align="right">0.028</td>
-<td align="right">0.063</td>
-<td align="right">469.0</td>
-<td align="right">4.957</td>
-<td align="right">459.262</td>
-<td align="right">478.738</td>
-<td align="right">110.831</td>
-<td align="right">0.012</td>
-<td align="right">0.005</td>
-<td align="right">0.006</td>
-<td align="right">0.026</td>
+<td align="right">0.946</td>
+<td align="right">0.010</td>
+<td align="right">0.923</td>
+<td align="right">0.963</td>
+<td align="right">0.946</td>
+<td align="right">0.010</td>
+<td align="right">0.923</td>
+<td align="right">0.963</td>
+<td align="right">0.004</td>
+<td align="right">0.003</td>
+<td align="right">0.001</td>
+<td align="right">0.014</td>
+<td align="right">0.05</td>
+<td align="right">0.01</td>
+<td align="right">0.034</td>
+<td align="right">0.073</td>
+<td align="right">466.2</td>
+<td align="right">5.040</td>
+<td align="right">456.297</td>
+<td align="right">476.103</td>
+<td align="right">112.707</td>
+<td align="right">0.010</td>
+<td align="right">0.004</td>
+<td align="right">0.004</td>
+<td align="right">0.023</td>
 </tr>
 </tbody>
 </table>

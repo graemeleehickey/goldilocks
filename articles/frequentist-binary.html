@@ -173,6 +173,15 @@ That combined result is a pooled Wald analysis for either method
 setting; it is not a Farrington-Manning test. The same
 neutral-or-directional convention prevents an error when its total
 variance is zero.</p>
+<p>With nonzero <code>prop_loss</code>, the simulator draws dropout
+independently of event time from an exponential distribution whose CDF
+at <code>end_of_study</code> equals <code>prop_loss</code>. Actual
+censoring by dropout can be less frequent because events can occur
+first. Independent censoring supports survival inference, but
+complete-case binary analysis can still overestimate event
+probabilities: early events remain observed while later endpoint
+outcomes can be missing. Evaluate final imputation and sensitivity to
+its event-time model for binary designs with dropout.</p>
 <p>The saved results include the selected method and evaluated design
 arguments, providing an auditable record of the analysis
 specification.</p>

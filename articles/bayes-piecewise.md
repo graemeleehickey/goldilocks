@@ -194,7 +194,7 @@ knitr::kable(head(example_trial_data), digits = 2)
 |  1.90 |         0 |     1 |       0.35 |   3 | FALSE      |
 |  5.34 |         1 |     1 |       0.63 |   4 | FALSE      |
 | 19.77 |         0 |     1 |       0.72 |   5 | FALSE      |
-|  1.04 |         0 |     0 |       0.80 |   6 | TRUE       |
+|  3.10 |         0 |     1 |       0.80 |   6 | FALSE      |
 
 Each row represents one simulated subject:
 
@@ -213,6 +213,14 @@ Each row represents one simulated subject:
 The `time` and `enrollment` columns therefore use the same unit but
 different clocks: `time` is subject-relative follow-up, whereas
 `enrollment` is trial-calendar time.
+
+Here `prop_loss = 0.05` means \Pr(D\leq24)=0.05 for an independent
+exponential dropout time with rate -\log(0.95)/24 per month. The
+observed time is the minimum of the event time, dropout time, and 24
+months. An event before dropout is retained, so the observed proportion
+censored by dropout can be below 5% and can differ between arms despite
+a common dropout distribution. The number of losses varies across
+trials; small examples may have none.
 
 ## A single simulated trial
 
@@ -258,14 +266,14 @@ out <- survival_adapt(
 out
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less          50        50        100   100
-#>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
-#> 1        0.968 -0.185951        0.12             0                      0
+#>   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success
+#> 1       0.9525 -0.1687922        0.12             0                      0
 #>   stop_expected_success trial_success     stopping_reason decision_time
 #> 1                     0         FALSE maximum_sample_size      43.91658
 #>   accrual_stop_time analysis_ready_time planned_completion_time
 #> 1           20.2688            43.91658                 44.2688
 #>   followup_person_time peak_active_followup
-#> 1             1612.338                   71
+#> 1             1560.222                   72
 ```
 
 For this trial replicate, `post_prob_ha` reports the posterior

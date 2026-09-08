@@ -104,7 +104,15 @@ are used for simulated and observed interim analyses.</p>
 times, randomized treatment assignments, event times, and loss to
 follow-up. The first participant enrolls at time zero; subsequent
 enrollment follows a piecewise-constant Poisson process. Event times
-follow arm-specific piecewise-exponential distributions.</p>
+follow arm-specific piecewise-exponential distributions. Dropout times
+are exponential and independent of event times and enrollment within
+each arm, with rate <code>-log1p(-prop_loss) / end_of_study</code>.
+Observed follow-up ends at the earliest event, dropout, or per-subject
+administrative horizon. <code>prop_loss</code> specifies the dropout CDF
+at that horizon, not the fraction actually censored by dropout; events
+can occur first, and dropout counts vary across trials. The technical
+methods vignette gives the full censoring model and its implications for
+binary analyses.</p>
 <p>The event-time distribution used to simulate trials need not equal
 the model used for interim prediction. <code>generation_cutpoints</code>
 defines the data-generating hazard intervals, whereas

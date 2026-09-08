@@ -201,17 +201,21 @@ because names may be required in a future major release. See
 
 <dt id="arg-prop-loss">prop_loss<a class="anchor" aria-label="anchor" href="#arg-prop-loss"></a></dt>
 <dd><p>A numeric vector containing one or two probabilities in
-<code>[0, 1]</code>. A single value applies the same loss-to-follow-up proportion to
-every arm. For a two-arm design, differential attrition can
-be specified with a length-two vector named <code>control</code> and <code>treatment</code>; the
-supplied order does not matter. Within each arm,
-<code>ceiling(prop_loss * arm size)</code> subjects are selected at random regardless
-of event status. Each selected subject's observed time is drawn from a
-<code>Uniform(0, t)</code> distribution, where <code>t</code> is their potential event or
-censoring time. Since the LTFU time is always less than <code>t</code>, the event has
-not yet occurred at dropout and the subject is right-censored. Single-arm
-designs require one probability. The default is <code>0</code>, denoting no loss to
-follow-up.</p></dd>
+<code>[0, 1)</code>. Each value is the dropout-time CDF at <code>end_of_study</code>:
+\(P(D \le \tau) = p\), where \(\tau\) is the planned follow-up
+duration per subject. Independently of event time and enrollment, each
+subject's dropout time \(D\) is exponentially distributed with rate
+\(-\log(1-p)/\tau\). The observed time is the minimum of event time,
+dropout time, and <code>end_of_study</code>; an event occurring before dropout is
+retained. Thus, <code>prop_loss</code> is not the expected proportion actually
+censored by dropout: that proportion can be lower because events occur
+first, and the realized number of dropouts varies between trials.
+A single value applies the same dropout distribution to every arm. For a
+two-arm design, supply a length-two vector named <code>control</code> and <code>treatment</code>
+for arm-specific probabilities; supplied order does not matter.
+Single-arm designs require one probability. The default <code>0</code> sets dropout
+time to infinity without drawing random numbers. A value of <code>1</code> is
+rejected because it requires an infinite exponential rate.</p></dd>
 
 
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>

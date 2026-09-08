@@ -203,17 +203,21 @@ because names may be required in a future major release. See
 
 <dt id="arg-prop-loss">prop_loss<a class="anchor" aria-label="anchor" href="#arg-prop-loss"></a></dt>
 <dd><p>A numeric vector containing one or two probabilities in
-<code>[0, 1]</code>. A single value applies the same loss-to-follow-up proportion to
-every arm. For a two-arm design, differential attrition can
-be specified with a length-two vector named <code>control</code> and <code>treatment</code>; the
-supplied order does not matter. Within each arm,
-<code>ceiling(prop_loss * arm size)</code> subjects are selected at random regardless
-of event status. Each selected subject's observed time is drawn from a
-<code>Uniform(0, t)</code> distribution, where <code>t</code> is their potential event or
-censoring time. Since the LTFU time is always less than <code>t</code>, the event has
-not yet occurred at dropout and the subject is right-censored. Single-arm
-designs require one probability. The default is <code>0</code>, denoting no loss to
-follow-up.</p></dd>
+<code>[0, 1)</code>. Each value is the dropout-time CDF at <code>end_of_study</code>:
+\(P(D \le \tau) = p\), where \(\tau\) is the planned follow-up
+duration per subject. Independently of event time and enrollment, each
+subject's dropout time \(D\) is exponentially distributed with rate
+\(-\log(1-p)/\tau\). The observed time is the minimum of event time,
+dropout time, and <code>end_of_study</code>; an event occurring before dropout is
+retained. Thus, <code>prop_loss</code> is not the expected proportion actually
+censored by dropout: that proportion can be lower because events occur
+first, and the realized number of dropouts varies between trials.
+A single value applies the same dropout distribution to every arm. For a
+two-arm design, supply a length-two vector named <code>control</code> and <code>treatment</code>
+for arm-specific probabilities; supplied order does not matter.
+Single-arm designs require one probability. The default <code>0</code> sets dropout
+time to infinity without drawing random numbers. A value of <code>1</code> is
+rejected because it requires an infinite exponential rate.</p></dd>
 
 
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
@@ -609,7 +613,12 @@ whereas final imputation applies only to subjects right-censored because
 of loss to follow-up before <code>end_of_study</code>. Design evaluations should
 prespecify whether the final analysis imputes these outcomes and assess
 sensitivity to that choice, particularly when appreciable attrition is
-expected. Loss to follow-up is assumed to be non-informative. For Cox
+expected. Simulated dropout is independent of event time within each
+arm, as described under <code>prop_loss</code>. This supports survival analyses
+with right-censoring, but does not make complete-case binary analysis
+unbiased: early events can be observed before dropout, whereas later
+endpoint outcomes can be missing. Binary designs with dropout should
+assess model-based final imputation and its assumptions. For Cox
 regression the final estimates and
 variances are pooled with Rubin's rules. It cannot be used with
 <code>method = "logrank"</code>.</p></li>
@@ -677,14 +686,14 @@ approach to sample size selection. <em>Journal of Biopharmaceutical Statistics</
 <span class="r-in"><span> method <span class="op">=</span> <span class="st">"bayes-surv"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.975      0        less         300       300        600   600</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1            1 -0.105519         0.8             0                      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            1 -0.1083405         0.5             0                      0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   stop_expected_success trial_success     stopping_reason decision_time</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                     0          TRUE maximum_sample_size      63.52808</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                     0          TRUE maximum_sample_size      63.45618</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   accrual_stop_time analysis_ready_time planned_completion_time</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1          27.54104            63.52808                63.54104</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1          27.54104            63.45618                63.54104</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   followup_person_time peak_active_followup</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1             16439.45                  480</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1             16488.21                  478</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

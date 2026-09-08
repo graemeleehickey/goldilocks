@@ -310,6 +310,65 @@ treatment value <span class="math inline">z</span> is</p>
 (\lambda_{z1},\ldots,\lambda_{zJ})^\top</span>. This
 sufficient-statistic form is what makes the Gamma posterior update
 available in closed form.</p>
+<div class="section level3">
+<h3 id="independent-dropout-and-administrative-censoring">3.1 Independent dropout and administrative censoring<a class="anchor" aria-label="anchor" href="#independent-dropout-and-administrative-censoring"></a>
+</h3>
+<p>For treatment arm <span class="math inline">z</span>, let <span class="math inline">p_z</span> be <code>prop_loss</code> and let <span class="math inline">\tau = \texttt{end_of_study}</span> be the planned
+follow-up duration <strong>per subject</strong>, measured from
+enrollment. The simulator independently draws</p>
+<p><span class="math display">D_i \mid Z_i=z \sim
+\operatorname{Exponential}(\eta_z), \qquad
+\eta_z = -\log(1-p_z)/\tau,</span></p>
+<p>independently of event times and enrollment within each arm. Thus
+<span class="math inline">\Pr(D_i \leq \tau \mid Z_i=z)=p_z</span>. With
+<code>prop_loss = 0</code>, <span class="math inline">D_i=\infty</span>
+and no dropout random numbers are drawn. Values must lie in <span class="math inline">[0,1)</span>; a probability of one would require an
+infinite exponential hazard and is rejected. A scalar applies the same
+dropout distribution to both arms; a vector named <code>control</code>
+and <code>treatment</code> supplies separate arm probabilities.</p>
+<p>The complete simulated observation has</p>
+<p><span class="math display">C_i=\min(D_i,\tau), \qquad
+T_i=\min(T_i^*,D_i,\tau), \qquad
+\delta_i=I\{T_i^*\leq\min(D_i,\tau)\}.</span></p>
+<p>The <code>loss_to_fu</code> flag is true only if <span class="math inline">D_i&lt;\min(T_i^*,\tau)</span>. Events before
+dropout remain observed. Administrative censoring is not counted as
+dropout, and dropout after an observed event does not make that endpoint
+missing. Exact ties retain the event or administrative censoring; ties
+have probability zero under the continuous model. At an interim calendar
+cut, these observations are additionally limited to each enrolled
+subject’s available follow-up.</p>
+<p><strong><code>prop_loss</code> describes the dropout distribution,
+not the observed fraction censored by dropout.</strong> If <span class="math inline">S_z(t)</span> is the underlying event-free survival
+curve, the probability of observed dropout by the full follow-up horizon
+is</p>
+<p><span class="math display">q_z=\Pr(D_i&lt;T_i^*,D_i&lt;\tau\mid
+Z_i=z)
+     =\int_0^\tau S_z(t)\eta_z e^{-\eta_z t}\,dt \leq p_z.</span></p>
+<p>For a constant event hazard <span class="math inline">\lambda_z</span>, this reduces to</p>
+<p><span class="math display">q_z=\frac{\eta_z}{\lambda_z+\eta_z}
+      \{1-e^{-(\lambda_z+\eta_z)\tau}\}.</span></p>
+<p>For example, with 30% event probability by 12 months and
+<code>prop_loss = 0.05</code>, the dropout hazard is <span class="math inline">-\log(0.95)/12</span> and the expected observed
+dropout proportion is about 4.21%. The realized count varies across
+simulated trials; five losses are not forced in a 100-subject trial.
+Subjects censored by dropout still contribute their observed event-free
+follow-up to survival analysis. Equal dropout distributions in arms with
+different event hazards can yield different observed dropout
+proportions. The fraction observed at an interim look also depends on
+enrollment and available follow-up.</p>
+<p>To retain an externally specified probability <span class="math inline">q</span> at reference time <span class="math inline">t_0</span> (for example, 5% annually), supply <span class="math inline">p=1-(1-q)^{\tau/t_0}</span> at the package horizon.
+Changing <code>end_of_study</code> while holding <code>prop_loss</code>
+fixed changes the implied dropout hazard. All event, dropout,
+enrollment, and administrative times must use the same unit. Treatment
+discontinuation is not separately modeled: it is not loss to follow-up
+when endpoint collection continues.</p>
+<p>This mechanism replaces the previous fixed-count selection with
+uniform censoring before each selected subject’s potential event or
+administrative time. That previous censoring depended on the latent
+event time. Positive <code>prop_loss</code> values now change seeded
+results and operating characteristics; design simulations should be
+rerun. Zero-dropout simulations are unchanged.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="posterior-distribution-of-hazards">4. Posterior distribution of hazards<a class="anchor" aria-label="anchor" href="#posterior-distribution-of-hazards"></a>
@@ -977,9 +1036,16 @@ right-censored observations. Rubin pooling applies to imputed Cox and
 risk-difference final analyses; it does not alter the interim
 posterior-predictive calculation, where each simulated completed trial
 is tested separately before the success indicators are averaged.</p>
-<p>The loss-to-follow-up mechanism in the simulator is non-informative.
-Designs where dropout may depend on prognosis should be assessed with
-sensitivity analyses outside the default data-generating mechanism.</p>
+<p>The independent dropout mechanism in Section 3.1 supports
+right-censored survival inference within each arm. It does
+<strong>not</strong> imply unbiased complete-case binary inference:
+early events can be ascertained before dropout, while later endpoint
+outcomes can be missing. Excluding the latter can overestimate the
+fixed-time event probability and distort treatment comparisons. Binary
+designs with dropout should assess final imputation under a suitable
+event-time model and sensitivity to that model. Designs where dropout
+depends on prognosis require sensitivity analyses outside the default
+independent mechanism.</p>
 </div>
 </div>
 <div class="section level2">

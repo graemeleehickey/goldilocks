@@ -153,16 +153,23 @@ exploit the option to parallelize the simulations over multiple cores.
 - Parallel computation using eight cores: `ncores = 8`
 - Reproducible Monte Carlo study: `seed = 123`
 
-Similar to above, the parameter `N_mcmc` is not required when using a
-log-rank test, meaning we do not need to enter a value for this
-argument. Since we do not allow for attrition, the data at the final
-analysis will be complete, and we can set `imputed_final = FALSE`. If
-attrition occurred and `method = "cox"`, `method = "riskdiff-wald"`, or
-`method = "riskdiff-fm"` were selected, `imputed_final = TRUE` would
-analyze each completed dataset and pool the scalar estimates and
-variances using Rubin’s rules; at least two imputations are required.
-This produces a pooled Wald analysis for either risk-difference setting.
-Imputed final analyses are not available for `method = "logrank"`.
+The parameter `N_mcmc` is not used by the log-rank test. Here
+`prop_loss = 0` means no dropout. A positive value would specify the CDF
+of an independent exponential dropout time at `end_of_study`; actual
+censoring by dropout can be less frequent because events can occur
+first. Log-rank and Cox analyses retain right-censored follow-up with
+`imputed_final = FALSE`, including when dropout occurs. Imputed final
+analyses are not available for `method = "logrank"`.
+
+For `method = "cox"`, `"riskdiff-wald"`, or `"riskdiff-fm"`, setting
+`imputed_final = TRUE` analyzes completed datasets and pools scalar
+estimates and variances using Rubin’s rules; at least two imputations
+are required. This produces a pooled Wald analysis for either
+risk-difference setting. Binary analyses with `imputed_final = FALSE`
+exclude incomplete endpoint statuses; that complete-case analysis can be
+biased even under independent dropout, because early events can be
+observed before dropout. Binary designs with dropout should assess final
+imputation and its model assumptions.
 
 Initially, we want to determine the power to detect a significant
 treatment effect when the OS rate at 12-months for the treatment arm is

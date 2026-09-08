@@ -62,6 +62,15 @@ Two practical consequences follow:
   (`imputed_final = TRUE`) or, if `imputed_final = FALSE`, excluded from
   the final binary analysis.
 
+The examples use `prop_loss = 0`. If dropout is added, `prop_loss`
+specifies the CDF of an independent exponential dropout time at
+`end_of_study`, not an exact fraction of missing binary outcomes. Events
+occurring before dropout remain observed. Consequently, excluding
+early-censored subjects can bias binary event probabilities even though
+censoring is independent for survival analysis. Assess final imputation
+and its event-time-model assumptions when evaluating binary designs with
+dropout.
+
 ## Two-arm design
 
 Suppose the control event probability by 12 months is 35%, and the

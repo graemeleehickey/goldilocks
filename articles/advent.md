@@ -384,17 +384,22 @@ scheme.
 The SAP explicitly designates 5% of subjects as lost to follow-up for
 safety and 7.5% for effectiveness: the same 5% plus another 2.5% who may
 be unassessable for effectiveness while remaining assessable for safety.
-SAP dropout times are uniform over days 0–360, and an event remains
-observed when it precedes dropout. The package’s `prop_loss` mechanism
-is similar but not identical: every selected subject is censored at a
-uniformly generated time before their potential event or administrative
-censoring time. Separate endpoint runs also cannot preserve the SAP’s
-shared subject-level 5% plus nested 2.5% relationship. We therefore use
-0.075 and 0.05 to map the SAP’s **designated fractions**, not to claim
-exact reproduction of its censoring process. The subsequently observed
-proportion not completing follow-up was approximately 0.04, which is
-close to 0.05, but that post-trial quantity is not the design input and
-need not equal endpoint-specific missingness.
+SAP dropout times among designated subjects are uniform over days 0–360,
+and an event remains observed when it precedes dropout.
+
+The package instead draws independent exponential dropout times for all
+subjects. We use `prop_loss = 0.075` and `0.05` to match the
+endpoint-specific probabilities of potential dropout by day 360, with
+daily hazards -\log(0.925)/360 and -\log(0.95)/360. This approximates
+the SAP’s timing distribution; it does not reproduce its
+designated-subject uniform mechanism. Both approaches retain events
+occurring before dropout, so the observed proportion censored by dropout
+can be below the stated probability. Package dropout counts vary between
+trials, and separate endpoint runs cannot preserve the SAP’s shared
+subject-level 5% plus nested 2.5% relationship. The subsequently
+observed proportion not completing follow-up was approximately 0.04, but
+that post-trial quantity is not the design input and need not equal
+endpoint-specific missingness.
 
 The SAP reports the expected accrual schedule in subjects per month: 2,
 5, 10, 15, 20, 25, and 30 during months 1–7, then 33 per month from
@@ -416,6 +421,7 @@ enrollment_rate_per_day <- enrollment_rate_per_month / days_per_month
 enrollment_rate_change_day <-
   enrollment_rate_change_month * days_per_month
 
+# Independent exponential dropout CDFs at the 360-day per-subject horizon.
 effectiveness_prop_loss <- 0.075
 safety_prop_loss <- 0.05
 
@@ -501,13 +507,13 @@ advent_effectiveness
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.956   0.15        less         225       225        450   750
 #>   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success
-#> 1    0.9973365 0.02061947           1             0                      0
+#> 1    0.9975355 0.02070796        0.94             0                      0
 #>   stop_expected_success trial_success  stopping_reason decision_time
 #> 1                     1          TRUE expected_success      916.0652
 #>   accrual_stop_time analysis_ready_time planned_completion_time
 #> 1          556.0652            916.0652                916.0652
 #>   followup_person_time peak_active_followup
-#> 1             123841.1                  285
+#> 1             125118.6                  289
 ```
 
 The principal trial-level quantities are:
@@ -571,14 +577,14 @@ advent_safety <- survival_adapt(
 advent_safety
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.966   0.08        less         275       275        550   750
-#>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
-#> 1    0.9964775 0.0184058        0.94             0                      0
+#>   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success
+#> 1    0.9962755 0.01797101        0.98             0                      0
 #>   stop_expected_success trial_success  stopping_reason decision_time
 #> 1                     1          TRUE expected_success      972.6321
 #>   accrual_stop_time analysis_ready_time planned_completion_time
 #> 1          612.6321            972.6321                972.6321
 #>   followup_person_time peak_active_followup
-#> 1             180972.2                  371
+#> 1             179515.4                  370
 ```
 
 In the published ADVENT design, a predicted-success stopping
@@ -592,10 +598,10 @@ endpoint-specific Bayesian rule maps to
 ## A reusable design specification
 
 For simulations, it is helpful to collect the assumptions that genuinely
-are common and then add endpoint-specific cut-points and missingness
-proportions. Keeping endpoint-specific assumptions separate reduces the
-risk of applying an effectiveness assumption to the safety endpoint, or
-vice versa.
+are common and then add endpoint-specific cut-points and dropout
+probabilities. Keeping endpoint-specific assumptions separate reduces
+the risk of applying an effectiveness assumption to the safety endpoint,
+or vice versa.
 
 ``` r
 
@@ -744,8 +750,8 @@ knitr::kable(oc_small, digits = 3)
 
 | scenario | backend | seed | n_requested | n_analyzed | n_failed | n_used | failure_rate | failure_rate_mcse | failure_rate_mc_lower | failure_rate_mc_upper | power | power_mcse | power_mc_lower | power_mc_upper | stop_immediate_success | stop_immediate_success_mcse | stop_immediate_success_mc_lower | stop_immediate_success_mc_upper | stop_success | stop_success_mcse | stop_success_mc_lower | stop_success_mc_upper | stop_any_success | stop_any_success_mcse | stop_any_success_mc_lower | stop_any_success_mc_upper | stop_futility | stop_futility_mcse | stop_futility_mc_lower | stop_futility_mc_upper | stop_max_N | stop_max_N_mcse | stop_max_N_mc_lower | stop_max_N_mc_upper | mean_N | mean_N_mcse | mean_N_mc_lower | mean_N_mc_upper | sd_N | stop_and_fail | stop_and_fail_mcse | stop_and_fail_mc_lower | stop_and_fail_mc_upper |
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.064 | 0.011 | 0.046 | 0.089 | 0 | 0 | 0 | 0.008 | 0.078 | 0.012 | 0.058 | 0.105 | 0.078 | 0.012 | 0.058 | 0.105 | 0.65 | 0.021 | 0.607 | 0.691 | 0.272 | 0.020 | 0.235 | 0.313 | 555.8 | 6.698 | 542.640 | 568.960 | 149.771 | 0.038 | 0.009 | 0.024 | 0.059 |
-| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.984 | 0.006 | 0.969 | 0.992 | 0 | 0 | 0 | 0.008 | 0.958 | 0.009 | 0.937 | 0.972 | 0.958 | 0.009 | 0.937 | 0.972 | 0.00 | 0.000 | 0.000 | 0.008 | 0.042 | 0.009 | 0.028 | 0.063 | 469.0 | 4.957 | 459.262 | 478.738 | 110.831 | 0.012 | 0.005 | 0.006 | 0.026 |
+| margin: PFA failure 50% | fork | 4611 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.068 | 0.011 | 0.049 | 0.094 | 0 | 0 | 0 | 0.008 | 0.066 | 0.011 | 0.047 | 0.091 | 0.066 | 0.011 | 0.047 | 0.091 | 0.664 | 0.021 | 0.621 | 0.704 | 0.27 | 0.02 | 0.233 | 0.311 | 556.8 | 6.699 | 543.638 | 569.962 | 149.795 | 0.026 | 0.007 | 0.015 | 0.044 |
+| target: equal 35% failure | fork | 4610 | 500 | 500 | 0 | 500 | 0 | 0 | 0 | 0.008 | 0.984 | 0.006 | 0.969 | 0.992 | 0 | 0 | 0 | 0.008 | 0.946 | 0.010 | 0.923 | 0.963 | 0.946 | 0.010 | 0.923 | 0.963 | 0.004 | 0.003 | 0.001 | 0.014 | 0.05 | 0.01 | 0.034 | 0.073 | 466.2 | 5.040 | 456.297 | 476.103 | 112.707 | 0.010 | 0.004 | 0.004 | 0.023 |
 
 Each scenario uses 500 simulated trials and two cores. These results are
 illustrative rather than definitive estimates of power or type I error.

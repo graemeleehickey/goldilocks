@@ -89,18 +89,22 @@ sim_comp_data(
 
 - prop_loss:
 
-  A numeric vector containing one or two probabilities in `[0, 1]`. A
-  single value applies the same loss-to-follow-up proportion to every
-  arm. For a two-arm design, differential attrition can be specified
-  with a length-two vector named `control` and `treatment`; the supplied
-  order does not matter. Within each arm,
-  `ceiling(prop_loss * arm size)` subjects are selected at random
-  regardless of event status. Each selected subject's observed time is
-  drawn from a `Uniform(0, t)` distribution, where `t` is their
-  potential event or censoring time. Since the LTFU time is always less
-  than `t`, the event has not yet occurred at dropout and the subject is
-  right-censored. Single-arm designs require one probability. The
-  default is `0`, denoting no loss to follow-up.
+  A numeric vector containing one or two probabilities in `[0, 1)`. Each
+  value is the dropout-time CDF at `end_of_study`: \\P(D \le \tau) =
+  p\\, where \\\tau\\ is the planned follow-up duration per subject.
+  Independently of event time and enrollment, each subject's dropout
+  time \\D\\ is exponentially distributed with rate \\-\log(1-p)/\tau\\.
+  The observed time is the minimum of event time, dropout time, and
+  `end_of_study`; an event occurring before dropout is retained. Thus,
+  `prop_loss` is not the expected proportion actually censored by
+  dropout: that proportion can be lower because events occur first, and
+  the realized number of dropouts varies between trials. A single value
+  applies the same dropout distribution to every arm. For a two-arm
+  design, supply a length-two vector named `control` and `treatment` for
+  arm-specific probabilities; supplied order does not matter. Single-arm
+  designs require one probability. The default `0` sets dropout time to
+  infinity without drawing random numbers. A value of `1` is rejected
+  because it requires an infinite exponential rate.
 
 ## Value
 
@@ -121,7 +125,8 @@ A data frame with one row per subject and columns:
 
 - `id`: Integer subject identifier.
 
-- `loss_to_fu`: Logical indicator of loss to follow-up.
+- `loss_to_fu`: Logical indicator that dropout occurred before both the
+  event and the administrative follow-up horizon.
 
 ## Details
 
@@ -146,3 +151,25 @@ open-left, closed-right convention for assigning realized times only at
 the cutpoints themselves, which have probability zero under the
 continuous model. The cumulative hazard, event-time distribution, and
 generated simulations are therefore unchanged.
+
+Dropout is independent censoring conditional on treatment arm. For event
+time \\T\\, `loss_to_fu` is true only when \\D \< \min(T, \tau)\\.
+Administrative censoring and dropout after an observed event are not
+counted as loss to follow-up. For example, `prop_loss = 0.05` with
+`end_of_study = 12` specifies a 5% dropout CDF at 12 months if the time
+unit is months; it does not force five losses in a 100-subject trial.
+Equal dropout probabilities in arms with different event hazards need
+not yield equal observed dropout proportions.
+
+To express a dropout probability \\q\\ supplied at a different reference
+time \\t_0\\, use \\p = 1 - (1-q)^{\tau/t_0}\\ at `end_of_study` to
+preserve the same exponential dropout hazard. Treatment discontinuation
+is not separately modeled and should not be treated as loss to follow-up
+if endpoint collection continues.
+
+This independent exponential mechanism replaces selection of
+`ceiling(prop_loss * arm size)` subjects followed by censoring uniformly
+before each selected subject's potential event or administrative time.
+Positive `prop_loss` values therefore change seeded results and design
+operating characteristics relative to the previous mechanism.
+Simulations with `prop_loss = 0` are unchanged.

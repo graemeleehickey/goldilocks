@@ -136,6 +136,12 @@ to 20%. We use an interim look at 50 of 80 enrolled subjects:</p>
 <span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="va">target</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
 <span><span class="va">ht</span></span>
 <span><span class="co">#&gt; [1] 0.009297648</span></span></code></pre></div>
+<p>We set <code>prop_loss = 0.05</code>: independently of event time,
+dropout time is exponential with rate <span class="math inline">-\log(0.95)/24</span> per month, giving a 5% dropout
+CDF at 24 months. The observed proportion censored by dropout can be
+lower because events can occur first; it is not a fixed count of four
+losses among 80 participants. Survival analyses retain the follow-up
+observed before dropout.</p>
 <p>Now we run <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
@@ -162,13 +168,13 @@ to 20%. We use an interim look at 50 of 80 enrolled subjects:</p>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95    0.3        less          80         0         80    80</span></span>
 <span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_immediate_success</span></span>
-<span><span class="co">#&gt; 1        0.991 0.1829128        0.08             0                      0</span></span>
+<span><span class="co">#&gt; 1       0.9875 0.1910975        0.08             0                      0</span></span>
 <span><span class="co">#&gt;   stop_expected_success trial_success     stopping_reason decision_time</span></span>
 <span><span class="co">#&gt; 1                     0          TRUE maximum_sample_size      39.05894</span></span>
 <span><span class="co">#&gt;   accrual_stop_time analysis_ready_time planned_completion_time</span></span>
 <span><span class="co">#&gt; 1          15.05894            39.05894                39.05894</span></span>
 <span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1             1672.471                   73</span></span></code></pre></div>
+<span><span class="co">#&gt; 1             1702.955                   74</span></span></code></pre></div>
 <p>There is no need to supply <code>block</code> or
 <code>rand_ratio</code>: they are redundant in a single-arm design
 because no randomization is performed.</p>

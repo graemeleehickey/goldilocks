@@ -31,7 +31,14 @@ generates enrollment times, randomized treatment assignments, event
 times, and loss to follow-up. The first participant enrolls at time
 zero; subsequent enrollment follows a piecewise-constant Poisson
 process. Event times follow arm-specific piecewise-exponential
-distributions.
+distributions. Dropout times are exponential and independent of event
+times and enrollment within each arm, with rate
+`-log1p(-prop_loss) / end_of_study`. Observed follow-up ends at the
+earliest event, dropout, or per-subject administrative horizon.
+`prop_loss` specifies the dropout CDF at that horizon, not the fraction
+actually censored by dropout; events can occur first, and dropout counts
+vary across trials. The technical methods vignette gives the full
+censoring model and its implications for binary analyses.
 
 The event-time distribution used to simulate trials need not equal the
 model used for interim prediction. `generation_cutpoints` defines the

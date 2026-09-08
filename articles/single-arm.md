@@ -76,6 +76,13 @@ ht
 #> [1] 0.009297648
 ```
 
+We set `prop_loss = 0.05`: independently of event time, dropout time is
+exponential with rate -\log(0.95)/24 per month, giving a 5% dropout CDF
+at 24 months. The observed proportion censored by dropout can be lower
+because events can occur first; it is not a fixed count of four losses
+among 80 participants. Survival analyses retain the follow-up observed
+before dropout.
+
 Now we run
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md):
 
@@ -105,13 +112,13 @@ out
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95    0.3        less          80         0         80    80
 #>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
-#> 1        0.991 0.1829128        0.08             0                      0
+#> 1       0.9875 0.1910975        0.08             0                      0
 #>   stop_expected_success trial_success     stopping_reason decision_time
 #> 1                     0          TRUE maximum_sample_size      39.05894
 #>   accrual_stop_time analysis_ready_time planned_completion_time
 #> 1          15.05894            39.05894                39.05894
 #>   followup_person_time peak_active_followup
-#> 1             1672.471                   73
+#> 1             1702.955                   74
 ```
 
 There is no need to supply `block` or `rand_ratio`: they are redundant

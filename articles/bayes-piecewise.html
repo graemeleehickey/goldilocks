@@ -288,12 +288,12 @@ time unit as the design below:</p>
 <td align="left">FALSE</td>
 </tr>
 <tr class="even">
-<td align="right">1.04</td>
+<td align="right">3.10</td>
 <td align="right">0</td>
-<td align="right">0</td>
+<td align="right">1</td>
 <td align="right">0.80</td>
 <td align="right">6</td>
-<td align="left">TRUE</td>
+<td align="left">FALSE</td>
 </tr>
 </tbody>
 </table>
@@ -321,6 +321,13 @@ because of simulated loss to follow-up.</li>
 use the same unit but different clocks: <code>time</code> is
 subject-relative follow-up, whereas <code>enrollment</code> is
 trial-calendar time.</p>
+<p>Here <code>prop_loss = 0.05</code> means <span class="math inline">\Pr(D\leq24)=0.05</span> for an independent
+exponential dropout time with rate <span class="math inline">-\log(0.95)/24</span> per month. The observed time
+is the minimum of the event time, dropout time, and 24 months. An event
+before dropout is retained, so the observed proportion censored by
+dropout can be below 5% and can differ between arms despite a common
+dropout distribution. The number of losses varies across trials; small
+examples may have none.</p>
 </div>
 <div class="section level2">
 <h2 id="a-single-simulated-trial">A single simulated trial<a class="anchor" aria-label="anchor" href="#a-single-simulated-trial"></a>
@@ -367,14 +374,14 @@ time.</p>
 <span><span class="va">out</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1          0.975      0        less          50        50        100   100</span></span>
-<span><span class="co">#&gt;   post_prob_ha est_final ppp_success stop_futility stop_immediate_success</span></span>
-<span><span class="co">#&gt; 1        0.968 -0.185951        0.12             0                      0</span></span>
+<span><span class="co">#&gt;   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success</span></span>
+<span><span class="co">#&gt; 1       0.9525 -0.1687922        0.12             0                      0</span></span>
 <span><span class="co">#&gt;   stop_expected_success trial_success     stopping_reason decision_time</span></span>
 <span><span class="co">#&gt; 1                     0         FALSE maximum_sample_size      43.91658</span></span>
 <span><span class="co">#&gt;   accrual_stop_time analysis_ready_time planned_completion_time</span></span>
 <span><span class="co">#&gt; 1           20.2688            43.91658                 44.2688</span></span>
 <span><span class="co">#&gt;   followup_person_time peak_active_followup</span></span>
-<span><span class="co">#&gt; 1             1612.338                   71</span></span></code></pre></div>
+<span><span class="co">#&gt; 1             1560.222                   72</span></span></code></pre></div>
 <p>For this trial replicate, <code>post_prob_ha</code> reports the
 posterior probability of the alternative at the final (or stopped)
 analysis (<code>post_prob_ha</code>), the posterior mean treatment

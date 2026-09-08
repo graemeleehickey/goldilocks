@@ -157,18 +157,22 @@ sim_trials(
 
 - prop_loss:
 
-  A numeric vector containing one or two probabilities in `[0, 1]`. A
-  single value applies the same loss-to-follow-up proportion to every
-  arm. For a two-arm design, differential attrition can be specified
-  with a length-two vector named `control` and `treatment`; the supplied
-  order does not matter. Within each arm,
-  `ceiling(prop_loss * arm size)` subjects are selected at random
-  regardless of event status. Each selected subject's observed time is
-  drawn from a `Uniform(0, t)` distribution, where `t` is their
-  potential event or censoring time. Since the LTFU time is always less
-  than `t`, the event has not yet occurred at dropout and the subject is
-  right-censored. Single-arm designs require one probability. The
-  default is `0`, denoting no loss to follow-up.
+  A numeric vector containing one or two probabilities in `[0, 1)`. Each
+  value is the dropout-time CDF at `end_of_study`: \\P(D \le \tau) =
+  p\\, where \\\tau\\ is the planned follow-up duration per subject.
+  Independently of event time and enrollment, each subject's dropout
+  time \\D\\ is exponentially distributed with rate \\-\log(1-p)/\tau\\.
+  The observed time is the minimum of event time, dropout time, and
+  `end_of_study`; an event occurring before dropout is retained. Thus,
+  `prop_loss` is not the expected proportion actually censored by
+  dropout: that proportion can be lower because events occur first, and
+  the realized number of dropouts varies between trials. A single value
+  applies the same dropout distribution to every arm. For a two-arm
+  design, supply a length-two vector named `control` and `treatment` for
+  arm-specific probabilities; supplied order does not matter. Single-arm
+  designs require one probability. The default `0` sets dropout time to
+  infinity without drawing random numbers. A value of `1` is rejected
+  because it requires an infinite exponential rate.
 
 - alternative:
 

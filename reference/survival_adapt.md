@@ -153,18 +153,22 @@ survival_adapt(
 
 - prop_loss:
 
-  A numeric vector containing one or two probabilities in `[0, 1]`. A
-  single value applies the same loss-to-follow-up proportion to every
-  arm. For a two-arm design, differential attrition can be specified
-  with a length-two vector named `control` and `treatment`; the supplied
-  order does not matter. Within each arm,
-  `ceiling(prop_loss * arm size)` subjects are selected at random
-  regardless of event status. Each selected subject's observed time is
-  drawn from a `Uniform(0, t)` distribution, where `t` is their
-  potential event or censoring time. Since the LTFU time is always less
-  than `t`, the event has not yet occurred at dropout and the subject is
-  right-censored. Single-arm designs require one probability. The
-  default is `0`, denoting no loss to follow-up.
+  A numeric vector containing one or two probabilities in `[0, 1)`. Each
+  value is the dropout-time CDF at `end_of_study`: \\P(D \le \tau) =
+  p\\, where \\\tau\\ is the planned follow-up duration per subject.
+  Independently of event time and enrollment, each subject's dropout
+  time \\D\\ is exponentially distributed with rate \\-\log(1-p)/\tau\\.
+  The observed time is the minimum of event time, dropout time, and
+  `end_of_study`; an event occurring before dropout is retained. Thus,
+  `prop_loss` is not the expected proportion actually censored by
+  dropout: that proportion can be lower because events occur first, and
+  the realized number of dropouts varies between trials. A single value
+  applies the same dropout distribution to every arm. For a two-arm
+  design, supply a length-two vector named `control` and `treatment` for
+  arm-specific probabilities; supplied order does not matter. Single-arm
+  designs require one probability. The default `0` sets dropout time to
+  infinity without drawing random numbers. A value of `1` is rejected
+  because it requires an infinite exponential rate.
 
 - alternative:
 
@@ -598,10 +602,15 @@ and final analyses:
   only to subjects right-censored because of loss to follow-up before
   `end_of_study`. Design evaluations should prespecify whether the final
   analysis imputes these outcomes and assess sensitivity to that choice,
-  particularly when appreciable attrition is expected. Loss to follow-up
-  is assumed to be non-informative. For Cox regression the final
-  estimates and variances are pooled with Rubin's rules. It cannot be
-  used with `method = "logrank"`.
+  particularly when appreciable attrition is expected. Simulated dropout
+  is independent of event time within each arm, as described under
+  `prop_loss`. This supports survival analyses with right-censoring, but
+  does not make complete-case binary analysis unbiased: early events can
+  be observed before dropout, whereas later endpoint outcomes can be
+  missing. Binary designs with dropout should assess model-based final
+  imputation and its assumptions. For Cox regression the final estimates
+  and variances are pooled with Rubin's rules. It cannot be used with
+  `method = "logrank"`.
 
 When imputation is involved, either at interim analyses or through
 `imputed_final = TRUE`, the package uses a two-stage impute-then-analyze
@@ -671,12 +680,12 @@ survival_adapt(
  method = "bayes-surv")
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1          0.975      0        less         300       300        600   600
-#>   post_prob_ha est_final ppp_success stop_futility stop_immediate_success
-#> 1            1 -0.105519         0.8             0                      0
+#>   post_prob_ha  est_final ppp_success stop_futility stop_immediate_success
+#> 1            1 -0.1083405         0.5             0                      0
 #>   stop_expected_success trial_success     stopping_reason decision_time
-#> 1                     0          TRUE maximum_sample_size      63.52808
+#> 1                     0          TRUE maximum_sample_size      63.45618
 #>   accrual_stop_time analysis_ready_time planned_completion_time
-#> 1          27.54104            63.52808                63.54104
+#> 1          27.54104            63.45618                63.54104
 #>   followup_person_time peak_active_followup
-#> 1             16439.45                  480
+#> 1             16488.21                  478
 ```
