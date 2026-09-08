@@ -1,0 +1,3 @@
+^vignettes/libs$
+^vignettes/[^/]+_files$
+^vignettes/shared-vignette-resources[.]R$

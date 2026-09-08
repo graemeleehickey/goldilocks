@@ -1,5 +1,6 @@
 *.html
 *.R
+!shared-vignette-resources.R
 
 /.quarto/
 **/*.quarto_ipynb

@@ -4,15 +4,25 @@ This directory contains optional performance benchmarks for goldilocks hot
 paths. They are intended for maintainers to compare branches before and after
 optimization work, not as pass/fail tests.
 
+The benchmarks are excluded from R package builds with `.Rbuildignore`, so they
+do not run on CRAN or during ordinary package checks.
+
+## Hot-Path Benchmarks
+
+### Enrollment
+
 The hot-path benchmark includes constant and fractional-knot enrollment
 schedules. In particular, its low-rate case guards the continuous-time
 generator against work that scales with empty calendar bins rather than with
 the requested number of enrollments.
 
-It also reports piecewise-exponential posterior sampling from a patient-level
-data frame and from precomputed sufficient statistics. The sufficient-statistic
-pair compares the general route with the prepared-data route used for summaries
-generated inside Bayesian predictive imputation. Both receive the same
+### Bayesian Survival Calculations
+
+The benchmark reports piecewise-exponential posterior sampling from a
+patient-level data frame and from precomputed sufficient statistics. The
+sufficient-statistic pair compares the general route with the prepared-data
+route used for summaries generated inside Bayesian predictive imputation.
+Both receive the same
 normalized prior and reset to the same seed, isolating validation overhead
 without changing the Gamma posterior calculation.
 
@@ -23,6 +33,8 @@ cutpoint validation and temporary probability data frames. It deliberately
 retains the completed-data analysis loop; the separate predictive-imputation
 benchmark below measures batching before that loop begins.
 
+### Predictive Imputation
+
 The predictive-imputation pair generates 100 expected-success and futility
 completions for the same two-arm interim data. The scalar reference calls
 `impute_data()` twice per posterior draw and retains each completed data frame;
@@ -30,6 +42,8 @@ the batch path stores only subject-by-draw time and event matrices for rows that
 need imputation. Both expressions reset to the same seed and use the documented
 draw, cohort, and arm order, so their generated outcomes can also be checked
 directly in unit tests.
+
+### Completed-Data Analyses
 
 The survival completed-data pairs compare the retained patient-data reference
 with the prepared-outcome route used at interim looks. The reference copies the
@@ -50,16 +64,22 @@ The separate `survival_adapt_bayes_bin` row reports the complete trial runtime,
 including generation, posterior prediction, interim decisions, and final
 analysis.
 
+### Risk-Difference Tests
+
 The risk-difference rows apply the Wald and Farrington-Manning calculations to
 the same 1,000 low-event-rate, non-boundary count tables with a nonzero null
 difference. They make the cost of the constrained one-dimensional likelihood
 calculation visible without mixing it with predictive imputation or trial
 generation.
 
+### Probability Transformations
+
 The stable cumulative-hazard/probability transformations are benchmarked over
 100,000 values spanning near-zero inputs through their mathematical
 boundaries. This guards the use of `expm1()` and `log1p()` against a material
 regression in simulation hot paths.
+
+### Cox Model Fitting
 
 The Cox benchmark exercises 1,000 subjects with tied event times through both
 the package's guarded automatic path and its forced public `survival::coxph()`
@@ -75,10 +95,7 @@ hundreds or thousands of imputed Cox models, compare `cox_guarded_auto` with
 depends on the installed `survival` version and hardware; the script prints the
 detected fast-path status and reason with its results.
 
-The benchmarks are excluded from R package builds with `.Rbuildignore`, so they
-do not run on CRAN or during ordinary package checks.
-
-## Running
+### Running
 
 Install the suggested `bench` package, then run from the package root:
 

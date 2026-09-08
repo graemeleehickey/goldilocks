@@ -1,6 +1,10 @@
 ---
 title: "ADVENT: a published Goldilocks design"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette:
+    self_contained: false
+    lib_dir: libs
+    css: libs/vignette.css
 vignette: >
   %\VignetteIndexEntry{ADVENT: a published Goldilocks design}
   %\VignetteEngine{knitr::rmarkdown}
@@ -8,6 +12,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
+source("shared-vignette-resources.R")
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",

@@ -4,6 +4,9 @@
 ^README\.html$
 ^cache$
 ^vignettes/.*-cache$
+^vignettes/libs$
+^vignettes/.*_files$
+^tests/testthat/Rplots\.pdf$
 ^codecov\.yml$
 ^\.travis\.yml$
 ^\.github$

@@ -1,6 +1,10 @@
 ---
 title: "Statistical workflow and reproducibility"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette:
+    self_contained: false
+    lib_dir: libs
+    css: libs/vignette.css
 vignette: >
   %\VignetteIndexEntry{Statistical workflow and reproducibility}
   %\VignetteEngine{knitr::rmarkdown}
@@ -8,6 +12,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
+source("shared-vignette-resources.R")
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
