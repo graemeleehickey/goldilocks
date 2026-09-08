@@ -7,7 +7,7 @@
 #'   Broglio et al. (2014) for single-arm and randomized two-arm trials.
 #'   Outcomes are generated with an underlying piecewise-exponential
 #'   event-time model. Final analyses may retain the time-to-event outcome
-#'   (`method = "logrank"`, `"cox"`, or `"bayes-surv"`) or reduce complete
+#'   (`method = "logrank"`, `"cox"`, `"rmst"`, or `"bayes-surv"`) or reduce complete
 #'   follow-up to event status at a fixed endpoint time (`method =
 #'   "riskdiff-wald"`, `"riskdiff-fm"`, or `"bayes-bin"`).
 #'

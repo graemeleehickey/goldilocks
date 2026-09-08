@@ -395,6 +395,7 @@ where $Q(\mathcal{D})$ is the final analysis quantity and $c$ is the success thr
 | Design setting | `method` | $Q(\mathcal{D})$ | Supported alternatives |
 |------------------|------------------|------------------|------------------|
 | Two-arm randomized trial | `logrank` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the traditional log-rank test P-value, with one-sided variants defined in Section 7.1 | `"less"`, `"greater"`, `"two.sided"` |
+| Two-arm randomized trial | `rmst` | $1-p(\mathcal{D})$ for a Wald test of the treatment-control RMST difference through `rmst_tau` | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `cox` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the traditional Wald-test P-value, with one-sided variants defined in Section 7.1 | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `riskdiff-wald` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the Wald-test P-value for the treatment-control event-risk difference | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `riskdiff-fm` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the Farrington-Manning score-test P-value for the treatment-control event-risk difference | `"less"`, `"greater"`, `"two.sided"` |
@@ -543,6 +544,38 @@ $$Z_{\mathrm{Cox}} = \frac{\widehat{\eta} - h_0}
 
 When `h0 = 0`, this is the usual hazard-ratio-equals-1 null. A non-inferiority margin specified as a hazard ratio can be supplied as `h0 = log(margin)`. Here, lower treatment hazard corresponds to $Z_{\mathrm{Cox}} < 0$. Let $p_{\mathrm{Cox}}$ denote the two-sided Wald-test P-value relative to `h0`. The package uses the following method-specific definitions of $Q(\mathcal{D})$:
 
+For `method = "rmst"`, let $\tau_R$ denote `rmst_tau`, a prespecified
+restriction time in $(0,\tau]$ that defaults to `end_of_study`. The effect is
+
+$$\widehat\Delta_R = \int_0^{\tau_R}\widehat S_1(t)\,dt
+  - \int_0^{\tau_R}\widehat S_0(t)\,dt.$$
+
+The curves are Kaplan-Meier estimates. For arm $z$, the Greenwood plug-in
+variance is
+
+$$U_z = \sum_{j:t_{zj}<\tau_R}
+  \left\{\int_{t_{zj}}^{\tau_R}\widehat S_z(t)\,dt\right\}^{2}
+  \frac{d_{zj}}{Y_{zj}(Y_{zj}-d_{zj})},$$
+
+where $Y_{zj}$ is the risk set immediately before event time $t_{zj}$ and
+$d_{zj}$ is the number of events there. A terminal jump to zero contributes
+zero tail area and zero variance term. The test statistic is
+$Z_R=(\widehat\Delta_R-h_0)/\sqrt{U_0+U_1}$.
+Positive effects mean longer time without the event on treatment. Both the
+estimated effect and `h0` use time units; `h0` must lie in
+$[-\tau_R,\tau_R]$. For an adverse event, superiority uses
+`alternative = "greater"`, and non-inferiority allowing a loss of $m$ time
+units uses the same alternative with `h0 = -m`.
+
+The horizon is identical across arms, looks, and completed replicates; it is
+never selected from the observed follow-up. Positive estimated survival at
+an arm's last follow-up before $\tau_R$ makes the analysis non-estimable.
+A curve reaching zero before that horizon is allowed. The test requires
+positive total variance, although one arm may have zero variance. RMST
+inference does not require proportional hazards, but predictive imputation
+still depends on the piecewise-exponential model. Reducing `rmst_tau` does
+not reduce `end_of_study` or change the calendar-time calculations.
+
 For the risk-difference options, let $\widehat p_1$ and $\widehat p_0$ be the observed event proportions in the treatment and control arms, with sample sizes $n_1$ and $n_0$. Both report the estimated effect
 
 $$\widehat\Delta = \widehat p_1 - \widehat p_0,$$
@@ -576,6 +609,9 @@ No continuity correction is applied. If the constrained variance is zero, the st
 | `logrank` | `"less"`      | $\Phi(Z_{\mathrm{LR}})$      |
 | `logrank` | `"greater"`   | $1 - \Phi(Z_{\mathrm{LR}})$  |
 | `logrank` | `"two.sided"` | $1 - p_{\mathrm{LR}}$        |
+| `rmst` | `"less"` | $1-\Phi(Z_R)$ |
+| `rmst` | `"greater"` | $\Phi(Z_R)$ |
+| `rmst` | `"two.sided"` | $1-2\Phi(-|Z_R|)$ |
 | `cox`     | `"less"`      | $1 - \Phi(Z_{\mathrm{Cox}})$ |
 | `cox`     | `"greater"`   | $\Phi(Z_{\mathrm{Cox}})$     |
 | `cox`     | `"two.sided"` | $1 - p_{\mathrm{Cox}}$       |
@@ -591,7 +627,7 @@ The one-sided directions differ between the log-rank rows and the model-based ro
 The risk-difference analysis discards event-time information and requires
 complete binary endpoint status. `est_final` reports $\widehat\Delta$.
 
-When a Cox or risk-difference final analysis uses multiple imputation, the analysis is applied separately to each completed dataset. Let $\widehat{\theta}_m$ and $U_m$ be the scalar effect estimate and its estimated variance from imputation $m = 1,\ldots,M$. For Cox regression $\widehat{\theta}_m$ is the log hazard ratio; for risk difference it is $\widehat\Delta_m$. Rubin's scalar pooling rules give
+When a Cox, RMST, or risk-difference final analysis uses multiple imputation, the analysis is applied separately to each completed dataset. Let $\widehat{\theta}_m$ and $U_m$ be the scalar effect estimate and its estimated variance from imputation $m = 1,\ldots,M$. For Cox regression $\widehat{\theta}_m$ is the log hazard ratio; for risk difference it is $\widehat\Delta_m$. For RMST it is $\widehat\Delta_{R,m}$, with $U_m$ the sum of the arm-specific Greenwood variances. Rubin's scalar pooling rules give
 
 $$\bar{\theta} = \frac{1}{M}\sum_{m=1}^{M}\widehat{\theta}_m, \qquad
 \bar{U} = \frac{1}{M}\sum_{m=1}^{M}U_m,$$
@@ -605,7 +641,7 @@ The pooled Wald statistic is $(\bar{\theta} - h_0) / \sqrt{T}$. Its P-value uses
 $$\nu = (M-1)\left(1 + \frac{1}{r}\right)^2, \qquad
 r = \frac{(1 + 1/M)B}{\bar{U}}.$$
 
-When $B = 0$, $\nu = \infty$ and the reference distribution reduces to the standard normal distribution. If both the within- and between-imputation variances are zero, the same neutral-or-directional boundary convention described above is used. At least two imputations are therefore required. The returned `est_final` is $\bar{\theta}$, while `post_prob_ha` is $1-p$ from this pooled test with the direction determined by `alternative`. This multiple-imputation result is a pooled Wald analysis for both risk-difference method settings; it is not described as a Farrington-Manning test.
+When $B = 0$, $\nu = \infty$ and the reference distribution reduces to the standard normal distribution. If both the within- and between-imputation variances are zero, RMST reports a non-estimability error; the other pooled methods use the neutral-or-directional boundary convention described above. At least two imputations are therefore required. The returned `est_final` is $\bar{\theta}$, while `post_prob_ha` is $1-p$ from this pooled test with the direction determined by `alternative`. This multiple-imputation result is a pooled Wald analysis for both risk-difference method settings; it is not described as a Farrington-Manning test.
 
 ### 7.2 Bayesian survival final test
 
@@ -690,9 +726,9 @@ predictive replicate.
 
 Interim predictions impute outcomes that are not yet known. At the final analysis, `imputed_final` controls whether subjects lost to follow-up are also imputed.
 
-If `imputed_final = TRUE`, Bayesian methods (`method = "bayes-surv"` or `method = "bayes-bin"`) analyze each imputed completed dataset and average the resulting posterior summaries. Cox regression and risk-difference analyses instead pool completed-data scalar estimates and variances using Rubin's rules as described above; `N_impute` must be at least two. Imputed final analyses remain unavailable for `method = "logrank"` because no pooling rule is implemented for that test.
+If `imputed_final = TRUE`, Bayesian methods (`method = "bayes-surv"` or `method = "bayes-bin"`) analyze each imputed completed dataset and average the resulting posterior summaries. Cox regression, RMST, and risk-difference analyses instead pool completed-data scalar estimates and variances using Rubin's rules as described above; `N_impute` must be at least two. Imputed final analyses remain unavailable for `method = "logrank"` because no pooling rule is implemented for that test.
 
-If `imputed_final = FALSE`, the final analysis uses observed right-censored data for methods that can handle censoring (`logrank`, `cox`, and `bayes-surv`). For `riskdiff-wald`, `riskdiff-fm`, and `bayes-bin`, lost-to-follow-up subjects are excluded because these methods require complete binary outcomes and have no mechanism for right-censored observations. Rubin pooling applies to imputed Cox and risk-difference final analyses; it does not alter the interim posterior-predictive calculation, where each simulated completed trial is tested separately before the success indicators are averaged.
+If `imputed_final = FALSE`, the final analysis uses observed right-censored data for methods that can handle censoring (`logrank`, `cox`, `rmst`, and `bayes-surv`). For `riskdiff-wald`, `riskdiff-fm`, and `bayes-bin`, lost-to-follow-up subjects are excluded because these methods require complete binary outcomes and have no mechanism for right-censored observations. Rubin pooling applies to imputed Cox, RMST, and risk-difference final analyses; it does not alter the interim posterior-predictive calculation, where each simulated completed trial is tested separately before the success indicators are averaged.
 
 The independent dropout mechanism in Section 3.1 supports right-censored
 survival inference within each arm. It does **not** imply unbiased complete-case

@@ -24,6 +24,8 @@
 #'       estimated log hazard ratio compared with `h0`, using a two-sided
 #'       *P*-value when `alternative = "two.sided"` and a one-sided *P*-value
 #'       otherwise;
+#'     - if `method = "rmst"`, 1 minus the Wald-test *P*-value for the
+#'       treatment-control RMST difference through `rmst_tau` versus `h0`;
 #'     - if `method = "bayes-bin"`, the posterior probability that the binary
 #'       event proportion (single-arm) or treatment-control difference in
 #'       binary event proportions (two-arm) is greater than `h0` when
@@ -36,7 +38,8 @@
 #'       *P*-value for the same risk difference.
 #'   - `effect`: Posterior mean effect for `method = "bayes-surv"` or
 #'     `method = "bayes-bin"`, the estimated log hazard ratio for `method =
-#'     "cox"`, the estimated treatment-control event-proportion difference for
+#'     "cox"`, the estimated treatment-control RMST difference in time units
+#'     for `method = "rmst"`, the estimated treatment-control event-proportion difference for
 #'     `method = "riskdiff-wald"` or `"riskdiff-fm"`, or `NA` for `method =
 #'     "logrank"`.
 #'
@@ -58,9 +61,21 @@ analyse_data <- function(
   h0,
   prior_bin = c(1, 1),
   bin_method = "mc",
-  empty_interval = "prior"
+  empty_interval = "prior",
+  rmst_tau = end_of_study
 ) {
   validate_h0(h0, method, single_arm)
+  if (method == "rmst") {
+    validate_rmst_args(rmst_tau, end_of_study, h0)
+    return(analyse_rmst(
+      time = data$time,
+      event = data$event,
+      treatment = data$treatment,
+      rmst_tau = rmst_tau,
+      alternative = alternative,
+      h0 = h0
+    ))
+  }
 
   ####################################################
   ### Bayesian survival estimate test
@@ -204,8 +219,20 @@ analyse_completed_survival <- function(
   method,
   alternative,
   h0,
-  empty_interval
+  empty_interval,
+  rmst_tau = end_of_study
 ) {
+  if (method == "rmst") {
+    validate_rmst_args(rmst_tau, end_of_study, h0)
+    return(analyse_rmst(
+      time = outcome$time,
+      event = outcome$event,
+      treatment = outcome$treatment,
+      rmst_tau = rmst_tau,
+      alternative = alternative,
+      h0 = h0
+    ))
+  }
   if (method == "logrank") {
     return(analyse_logrank(
       time = outcome$time,
@@ -249,74 +276,4 @@ analyse_completed_survival <- function(
     "Internal predictive-analysis invariant failed: unsupported survival method",
     call. = FALSE
   )
-}
-
-#' Calculate a log-rank result from outcome vectors
-#'
-#' @param time A numeric vector of follow-up times.
-#' @param event A binary vector of event indicators.
-#' @param treatment A binary vector of treatment assignments.
-#' @param alternative A character value specifying the direction of the
-#'   alternative hypothesis.
-#'
-#' @return A list containing `1 - P` for the log-rank test and an unavailable
-#'   treatment-effect estimate.
-#'
-#' @keywords internal
-#' @noRd
-analyse_logrank <- function(time, event, treatment, alternative) {
-  control <- treatment == 0
-  lr <- logrank_test(
-    groupa = time[control],
-    groupb = time[!control],
-    groupacensored = event[control],
-    groupbcensored = event[!control]
-  )
-  assert_logrank_estimable(lr)
-
-  if (alternative == "two.sided") {
-    success <- 1 - lr[3]
-  } else {
-    # Log-rank z > 0 when control has excess events (treatment beneficial).
-    # This is opposite to the Cox convention.
-    # "less" => treatment beneficial => large success when z >> 0
-    # "greater" => treatment harmful => large success when z << 0
-    z <- lr[2]
-    if (alternative == "less") {
-      success <- pnorm(z)
-    } else if (alternative == "greater") {
-      success <- 1 - pnorm(z)
-    }
-  }
-
-  list(success = success, effect = NA)
-}
-
-#' Calculate a Cox Wald result from outcome vectors
-#'
-#' @inheritParams analyse_logrank
-#' @param h0 A finite numeric value giving the null log hazard ratio.
-#'
-#' @return A list containing `1 - P` for the Cox Wald test and the estimated log
-#'   hazard ratio.
-#'
-#' @keywords internal
-#' @noRd
-analyse_cox <- function(time, event, treatment, alternative, h0) {
-  fit_cox <- cox_wald_outcomes_checked(time, event, treatment)
-  z <- (fit_cox$estimate - h0) / fit_cox$std_error
-  if (alternative == "two.sided") {
-    success <- 1 - (2 * pnorm(-abs(z)))
-  } else {
-    # Cox z < 0 when the estimated log hazard ratio is less than h0.
-    # "less" => treatment beneficial/non-inferior => large success when z << 0
-    # "greater" => treatment harmful/superior to h0 => large success when z >> 0
-    if (alternative == "less") {
-      success <- 1 - pnorm(z)
-    } else if (alternative == "greater") {
-      success <- pnorm(z)
-    }
-  }
-
-  list(success = success, effect = fit_cox$estimate)
 }

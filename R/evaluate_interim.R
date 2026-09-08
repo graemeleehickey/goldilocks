@@ -146,7 +146,8 @@ evaluate_interim <- function(
   method = "logrank",
   binary_imputation = c("event-time", "bernoulli"),
   seed = NULL,
-  Qn = 1
+  Qn = 1,
+  rmst_tau = end_of_study
 ) {
   Call <- match.call()
   caller_rng_kind <- RNGkind()
@@ -177,6 +178,9 @@ evaluate_interim <- function(
     imputed_final = FALSE
   )
   validate_h0(h0, method, single_arm)
+  if (method == "rmst") {
+    validate_rmst_args(rmst_tau, end_of_study, h0)
+  }
   if (method == "bayes-bin") {
     validate_bayes_binomial_args(prior_bin, bin_method, N_mcmc)
   }
@@ -247,6 +251,7 @@ evaluate_interim <- function(
     calendar_time = data_cut,
     active_followup = prepared$active_followup,
     end_of_study = end_of_study,
+    rmst_tau = rmst_tau,
     cutpoints = cutpoints,
     single_arm = single_arm,
     prior_surv = prior_surv,
@@ -328,7 +333,8 @@ evaluate_interim <- function(
     mc_conf_level = mc_conf_level,
     empty_interval = empty_interval,
     method = method,
-    binary_imputation = binary_imputation
+    binary_imputation = binary_imputation,
+    rmst_tau = rmst_tau
   )
 
   out <- list(

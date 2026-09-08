@@ -34,7 +34,8 @@ survival_adapt(
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
   generation_cutpoints = cutpoints,
-  Qn = 1
+  Qn = 1,
+  rmst_tau = end_of_study
 )
 }
 \arguments{
@@ -140,10 +141,10 @@ hypothesis. It must be one of \code{"greater"} (the default), \code{"less"}, or
 \code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
 supported for \code{method = "bayes-surv"} and \code{method = "bayes-bin"}. All three
 options are supported for \code{method = "logrank"}, \code{method = "cox"},
-\code{method = "riskdiff-wald"}, and \code{method = "riskdiff-fm"}. For
-survival outcomes, \code{"less"} corresponds to the treatment arm having a lower
-cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
-corresponds to the treatment arm having a higher cumulative incidence.}
+\code{method = "rmst"}, \code{method = "riskdiff-wald"}, and \code{method = "riskdiff-fm"}.
+For an adverse event, benefit is in the \code{"greater"} direction for RMST
+(longer event-free time) and the \code{"less"} direction for the other methods
+(lower hazard or event probability).}
 
 \item{h0}{A single finite numeric value specifying the null hypothesis or
 margin. The default is \code{0}. For Bayesian analyses, \code{h0} must lie in
@@ -162,6 +163,10 @@ treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
 of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use \code{alternative = "less"}.
+\item When \code{method = "rmst"}, \code{h0} is the null treatment-control RMST
+difference in time units and must lie in \verb{[-rmst_tau, rmst_tau]}.
+For non-inferiority allowing a loss of \code{m} time units, use \code{h0 = -m}
+and \code{alternative = "greater"}.
 \item When \code{method = "riskdiff-wald"} or \code{method = "riskdiff-fm"}, \code{h0} is the
 null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
@@ -198,7 +203,7 @@ is compared with \code{1 - P}. The default is \code{0.95}.}
 \item{N_impute}{A positive integer giving the number of predictive
 imputations used at each
 interim look and, when requested, for final multiple imputation. The
-default is \code{500}. An imputed Cox or risk-difference final analysis requires
+default is \code{500}. An imputed Cox, RMST, or risk-difference final analysis requires
 at least two.}
 
 \item{N_mcmc}{A positive integer giving the number of posterior draws used
@@ -228,7 +233,8 @@ is found.}
 \item{method}{A single character string specifying the completed-data and
 final analysis. Available choices are a log-rank
 (\code{method = "logrank"}) test, Cox proportional hazards regression model
-Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
+Wald test (\code{method = "cox"}), a restricted mean survival time difference
+Wald test (\code{method = "rmst"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
 complete binary outcomes (\code{method = "bayes-bin"}), a frequentist
 risk-difference Wald test (\code{method = "riskdiff-wald"}), or a
@@ -241,7 +247,8 @@ See Details.}
 analysis should be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 \code{end_of_study}). The default is \code{FALSE}, which means that the final analysis
-incorporates right-censoring. With \code{method = "cox"}, \code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}, setting this to \code{TRUE}
+incorporates right-censoring. With \code{method = "cox"}, \code{method = "rmst"},
+\code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}, setting this to \code{TRUE}
 analyzes each imputed dataset and pools the scalar treatment effects and
 variances using Rubin's rules; this requires \code{N_impute >= 2}. The pooled
 risk-difference analysis is a Wald test rather than a Farrington-Manning
@@ -282,6 +289,12 @@ analysis. Supply either one value, which is repeated at every interim
 look, or exactly one value per \code{interim_look}; other lengths are rejected.
 \code{Qn} must be greater than or equal to \code{Sn} at every look. The default, \code{1},
 disables immediate-success stopping.}
+
+\item{rmst_tau}{A single finite positive restriction time for \code{method = "rmst"}, in the same units as \code{end_of_study}. Defaults to \code{end_of_study}
+and must not exceed it. Prespecify the same horizon for all looks,
+imputations, and simulations. It may precede analysis cutpoints and does
+not shorten the planned follow-up or imputation horizon. Ignored for other
+methods.}
 }
 \value{
 With \code{return_trace = FALSE} (the default), a one-row data frame
@@ -289,8 +302,9 @@ containing the evaluated design and final trial results, including:
 \itemize{
 \item \code{N_treatment}: Number of patients enrolled in the treatment arm.
 \item \code{N_control}: Number of patients enrolled in the control arm.
-\item \code{est_final}: Treatment effect estimated at the final analysis. The final
-analysis occurs when either the maximum sample size is reached and
+\item \code{est_final}: Treatment effect estimated at the final analysis. For RMST
+this is treatment minus control RMST through \code{rmst_tau}, in time units.
+The final analysis occurs when either the maximum sample size is reached and
 follow-up is complete, or the interim analysis triggered early stopping
 of enrollment/accrual and follow-up for those subjects is complete. It is
 \code{NA} after an immediate-success decision, for which no later analysis is
@@ -301,7 +315,7 @@ a Bayesian method uses \code{imputed_final = TRUE}, this is calculated for
 each imputed final-analysis dataset and averaged over \code{N_impute}
 imputations. For an imputed Cox analysis it is \eqn{1 - P} from the
 Rubin-pooled Wald test. The same interpretation applies to imputed
-risk-difference analyses. For non-imputed frequentist analyses it is
+RMST and risk-difference analyses. For non-imputed frequentist analyses it is
 \eqn{1 - P} from the corresponding test. It is \code{NA} after an
 immediate-success decision, for which no later analysis is required, or
 when the optional diagnostic analysis after binding futility cannot be
@@ -440,6 +454,21 @@ hazard ratios and their within-imputation variances are combined using
 Rubin's rules; the pooled Wald test uses Rubin's large-sample degrees of
 freedom. When \code{imputed_final = FALSE}, the existing single Cox model is
 fitted directly to the observed right-censored data.
+\item Restricted mean survival time (\code{method = "rmst"}).
+Estimates the area under each Kaplan-Meier survival curve from zero
+through the prespecified \code{rmst_tau}. The effect is treatment minus
+control RMST, measured in time units. The Wald test uses the sum of
+the independent arm-specific Greenwood variances and reports
+\eqn{1 - P}. All three alternatives and nonzero margins are supported.
+For an adverse event, a positive difference favors treatment.
+Observed censored subjects remain in the analysis. An arm whose last
+follow-up precedes \code{rmst_tau} with positive estimated survival makes
+the analysis non-estimable; the horizon is never reduced automatically.
+A curve reaching zero earlier is allowed. The test requires positive
+total variance, including after Rubin pooling for \code{imputed_final = TRUE}.
+This unadjusted two-arm analysis does not assume proportional hazards.
+Interim prediction and final imputation still depend on the specified
+piecewise-exponential model. See \code{vignette("rmst", package = "goldilocks")}.
 \item Bayesian difference in cumulative event probability
 (\code{method = "bayes-surv"}).
 Each imputed dataset is used to update the conjugate Gamma prior
@@ -517,7 +546,7 @@ either method setting.
 \item Imputed final analysis (\code{imputed_final}).
 The overall final analysis conducted after accrual is suspended and
 follow-up is complete can be analyzed on imputed datasets for Bayesian
-methods (\code{"bayes-surv"} and \code{"bayes-bin"}), Cox regression, and the
+methods (\code{"bayes-surv"} and \code{"bayes-bin"}), Cox regression, RMST, and the
 frequentist risk-difference analysis, or on the non-imputed dataset.
 Interim prediction completes outcomes that are not yet observed,
 whereas final imputation applies only to subjects right-censored because
@@ -530,7 +559,7 @@ with right-censoring, but does not make complete-case binary analysis
 unbiased: early events can be observed before dropout, whereas later
 endpoint outcomes can be missing. Binary designs with dropout should
 assess model-based final imputation and its assumptions. For Cox
-regression the final estimates and
+regression and RMST the final estimates and
 variances are pooled with Rubin's rules. It cannot be used with
 \code{method = "logrank"}.
 }
@@ -555,8 +584,8 @@ piecewise-exponential prediction model and do not change this separation.
 For \code{method = "bayes-surv"}, the second analysis instead forms a fresh
 piecewise-exponential posterior from the completed data and the original
 survival prior. For frequentist methods (\code{"logrank"}, \code{"cox"},
-\code{"riskdiff-wald"}, and \code{"riskdiff-fm"}), each completed dataset uses a
-standard test rather than a posterior. Imputed Cox and risk-difference
+\code{"rmst"}, \code{"riskdiff-wald"}, and \code{"riskdiff-fm"}), each completed dataset uses a
+standard test rather than a posterior. Imputed Cox, RMST, and risk-difference
 final analyses pool estimates and variances using Rubin's rules.
 
 At each interim look, follow-up times are masked (censored) to reflect

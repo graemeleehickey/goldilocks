@@ -38,7 +38,8 @@ sim_trials(
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
   generation_cutpoints = cutpoints,
-  Qn = 1
+  Qn = 1,
+  rmst_tau = end_of_study
 )
 }
 \arguments{
@@ -144,10 +145,10 @@ hypothesis. It must be one of \code{"greater"} (the default), \code{"less"}, or
 \code{"two.sided"}. One-sided alternatives (\code{"greater"} and \code{"less"}) are
 supported for \code{method = "bayes-surv"} and \code{method = "bayes-bin"}. All three
 options are supported for \code{method = "logrank"}, \code{method = "cox"},
-\code{method = "riskdiff-wald"}, and \code{method = "riskdiff-fm"}. For
-survival outcomes, \code{"less"} corresponds to the treatment arm having a lower
-cumulative incidence (i.e., treatment is beneficial), and \code{"greater"}
-corresponds to the treatment arm having a higher cumulative incidence.}
+\code{method = "rmst"}, \code{method = "riskdiff-wald"}, and \code{method = "riskdiff-fm"}.
+For an adverse event, benefit is in the \code{"greater"} direction for RMST
+(longer event-free time) and the \code{"less"} direction for the other methods
+(lower hazard or event probability).}
 
 \item{h0}{A single finite numeric value specifying the null hypothesis or
 margin. The default is \code{0}. For Bayesian analyses, \code{h0} must lie in
@@ -166,6 +167,10 @@ treatment versus control. Use \code{h0 = 0} for the usual hazard ratio
 of 1 null, or \code{h0 = log(margin)} for a non-inferiority margin
 specified as a hazard ratio. A Cox non-inferiority test should usually
 use \code{alternative = "less"}.
+\item When \code{method = "rmst"}, \code{h0} is the null treatment-control RMST
+difference in time units and must lie in \verb{[-rmst_tau, rmst_tau]}.
+For non-inferiority allowing a loss of \code{m} time units, use \code{h0 = -m}
+and \code{alternative = "greater"}.
 \item When \code{method = "riskdiff-wald"} or \code{method = "riskdiff-fm"}, \code{h0} is the
 null value of
 \eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
@@ -202,7 +207,7 @@ is compared with \code{1 - P}. The default is \code{0.95}.}
 \item{N_impute}{A positive integer giving the number of predictive
 imputations used at each
 interim look and, when requested, for final multiple imputation. The
-default is \code{500}. An imputed Cox or risk-difference final analysis requires
+default is \code{500}. An imputed Cox, RMST, or risk-difference final analysis requires
 at least two.}
 
 \item{N_mcmc}{A positive integer giving the number of posterior draws used
@@ -224,7 +229,8 @@ to simulate. The default is \code{10}.}
 \item{method}{A single character string specifying the completed-data and
 final analysis. Available choices are a log-rank
 (\code{method = "logrank"}) test, Cox proportional hazards regression model
-Wald test (\code{method = "cox"}), a fully-Bayesian piecewise-exponential
+Wald test (\code{method = "cox"}), a restricted mean survival time difference
+Wald test (\code{method = "rmst"}), a fully-Bayesian piecewise-exponential
 analysis (\code{method = "bayes-surv"}), a Bayesian beta-binomial analysis of
 complete binary outcomes (\code{method = "bayes-bin"}), a frequentist
 risk-difference Wald test (\code{method = "riskdiff-wald"}), or a
@@ -237,7 +243,8 @@ See Details.}
 analysis should be based on imputed outcomes for
 subjects who were LTFU (i.e. right-censored with time less than
 \code{end_of_study}). The default is \code{FALSE}, which means that the final analysis
-incorporates right-censoring. With \code{method = "cox"}, \code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}, setting this to \code{TRUE}
+incorporates right-censoring. With \code{method = "cox"}, \code{method = "rmst"},
+\code{method = "riskdiff-wald"}, or \code{method = "riskdiff-fm"}, setting this to \code{TRUE}
 analyzes each imputed dataset and pools the scalar treatment effects and
 variances using Rubin's rules; this requires \code{N_impute >= 2}. The pooled
 risk-difference analysis is a Wald test rather than a Farrington-Manning
@@ -308,6 +315,12 @@ analysis. Supply either one value, which is repeated at every interim
 look, or exactly one value per \code{interim_look}; other lengths are rejected.
 \code{Qn} must be greater than or equal to \code{Sn} at every look. The default, \code{1},
 disables immediate-success stopping.}
+
+\item{rmst_tau}{A single finite positive restriction time for \code{method = "rmst"}, in the same units as \code{end_of_study}. Defaults to \code{end_of_study}
+and must not exceed it. Prespecify the same horizon for all looks,
+imputations, and simulations. It may precede analysis cutpoints and does
+not shorten the planned follow-up or imputation horizon. Ignored for other
+methods.}
 }
 \value{
 A list containing \code{sims}, a data frame with one row per successfully

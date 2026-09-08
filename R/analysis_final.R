@@ -30,7 +30,9 @@
 #'   `1 - P` for a frequentist analysis) for the alternative hypothesis,
 #'   followed by the treatment-effect estimate. For an imputed
 #'   Cox analysis these are the Rubin-pooled Wald-test result and pooled log
-#'   hazard ratio. For an imputed risk-difference analysis these are the
+#'   hazard ratio. An imputed RMST analysis likewise pools RMST differences
+#'   and their Greenwood variances and reports a difference in time units.
+#'   For an imputed risk-difference analysis these are the
 #'   Rubin-pooled Wald-test result and pooled treatment-control event-risk
 #'   difference. Bayesian imputed analyses average their summaries over
 #'   imputations.
@@ -50,7 +52,8 @@ analyse_final <- function(
   bin_method,
   binary_imputation,
   empty_interval,
-  end_of_study
+  end_of_study,
+  rmst_tau = end_of_study
 ) {
   validate_analysis_configuration(
     method,
@@ -58,6 +61,9 @@ analyse_final <- function(
     single_arm,
     imputed_final
   )
+  if (method == "rmst") {
+    validate_rmst_args(rmst_tau, end_of_study, h0)
+  }
   interval_widths <- if (imputed_final && method == "bayes-surv") {
     endpoint_interval_widths(cutpoints, end_of_study)
   } else {
@@ -65,7 +71,11 @@ analyse_final <- function(
   }
 
   if (imputed_final) {
-    if (method %in% c("cox", "riskdiff-wald", "riskdiff-fm") && N_impute < 2) {
+    if (
+      method %in%
+        c("cox", "rmst", "riskdiff-wald", "riskdiff-fm") &&
+        N_impute < 2
+    ) {
       stop(
         "Frequentist final-analysis imputation requires at least two ",
         "imputations ",
@@ -143,6 +153,15 @@ analyse_final <- function(
         fit_cox <- cox_wald_test_checked(data)
         effect_final[j] <- fit_cox$estimate
         variance_final[j] <- fit_cox$std_error^2
+      } else if (method == "rmst") {
+        fit_rmst <- rmst_estimate(
+          data$time,
+          data$event,
+          data$treatment,
+          rmst_tau
+        )
+        effect_final[j] <- fit_rmst$estimate
+        variance_final[j] <- fit_rmst$variance
       } else if (method %in% c("riskdiff-wald", "riskdiff-fm")) {
         fit_riskdiff <- risk_difference_estimate_checked(
           data = data,
@@ -174,7 +193,12 @@ analyse_final <- function(
       }
     }
 
-    if (method %in% c("cox", "riskdiff-wald", "riskdiff-fm")) {
+    if (method %in% c("cox", "rmst", "riskdiff-wald", "riskdiff-fm")) {
+      if (method == "rmst") {
+        assert_rmst_variance(
+          mean(variance_final) + (1 + 1 / N_impute) * var(effect_final)
+        )
+      }
       pooled <- pool_rubin_scalar(
         estimates = effect_final,
         variances = variance_final,
@@ -203,6 +227,7 @@ analyse_final <- function(
       data = data_in,
       cutpoints = cutpoints,
       end_of_study = end_of_study,
+      rmst_tau = rmst_tau,
       prior_surv = prior_surv_final,
       N_mcmc = N_mcmc,
       single_arm = single_arm,
@@ -219,87 +244,4 @@ analyse_final <- function(
   }
 
   return(c(post_paa, est_final))
-}
-
-#' @title Pool scalar treatment effects using Rubin's rules
-#'
-#' @description Combines scalar treatment-effect estimates and their
-#'   within-imputation variances, then evaluates the pooled estimate against
-#'   its null value using Rubin's large-sample degrees of freedom.
-#'
-#' @param estimates A numeric vector of treatment-effect estimates, one per
-#'   imputed data set. At least two values are required.
-#' @param variances A numeric vector of corresponding finite, non-negative
-#'   within-imputation variances.
-#' @inheritParams survival_adapt
-#'
-#' @return A list containing the pooled success score, effect estimate, standard
-#'   error, and degrees of freedom.
-#'
-#' @importFrom stats pt var
-#' @noRd
-pool_rubin_scalar <- function(estimates, variances, alternative, h0) {
-  m <- length(estimates)
-  if (m < 2 || length(variances) != m) {
-    stop("Rubin pooling requires at least two paired estimates and variances")
-  }
-  if (
-    anyNA(estimates) ||
-      anyNA(variances) ||
-      any(!is.finite(estimates)) ||
-      any(!is.finite(variances)) ||
-      any(variances < 0)
-  ) {
-    stop(
-      "Rubin pooling requires finite estimates and non-negative variances"
-    )
-  }
-
-  estimate <- mean(estimates)
-  within_variance <- mean(variances)
-  between_variance <- var(estimates)
-  total_variance <- within_variance + (1 + 1 / m) * between_variance
-  if (!is.finite(total_variance) || total_variance < 0) {
-    stop("Rubin pooling requires a finite non-negative total variance")
-  }
-  if (total_variance == 0) {
-    difference_from_null <- estimate - h0
-    statistic <- if (difference_from_null == 0) {
-      0
-    } else {
-      sign(difference_from_null) * Inf
-    }
-    return(list(
-      success = normal_test_success(statistic, alternative),
-      estimate = estimate,
-      std_error = 0,
-      degrees_freedom = Inf
-    ))
-  }
-
-  relative_increase <- if (within_variance == 0) {
-    Inf
-  } else {
-    (1 + 1 / m) * between_variance / within_variance
-  }
-  degrees_freedom <- if (relative_increase == 0) {
-    Inf
-  } else {
-    (m - 1) * (1 + 1 / relative_increase)^2
-  }
-
-  statistic <- (estimate - h0) / sqrt(total_variance)
-  success <- switch(
-    alternative,
-    "less" = 1 - pt(statistic, df = degrees_freedom),
-    "greater" = pt(statistic, df = degrees_freedom),
-    "two.sided" = 1 - 2 * pt(-abs(statistic), df = degrees_freedom)
-  )
-
-  list(
-    success = success,
-    estimate = estimate,
-    std_error = sqrt(total_variance),
-    degrees_freedom = degrees_freedom
-  )
 }

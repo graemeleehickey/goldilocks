@@ -148,7 +148,8 @@ sim_trials <- function(
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
   generation_cutpoints = cutpoints,
-  Qn = 1
+  Qn = 1,
+  rmst_tau = end_of_study
 ) {
   Call <- match.call()
   Arguments <- capture_arguments(sim_trials, environment())
@@ -189,6 +190,23 @@ sim_trials <- function(
   )
   if (mc_conf_level <= 0.5) {
     stop("'mc_conf_level' must be greater than 0.5 and less than 1")
+  }
+
+  if (identical(method, "rmst")) {
+    validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
+    validate_rmst_args(rmst_tau, end_of_study, h0)
+    validate_analysis_configuration(
+      method,
+      alternative,
+      is.null(hazard_control),
+      imputed_final
+    )
+    if (imputed_final && N_impute < 2) {
+      stop(
+        "Frequentist final-analysis imputation requires at least two imputations ",
+        "to apply Rubin's rules"
+      )
+    }
   }
 
   validate_positive_integer_scalar(ncores, "ncores")
@@ -308,7 +326,8 @@ sim_trials <- function(
           empty_interval = empty_interval,
           return_trace = return_trace,
           prior_surv_final = prior_surv_final,
-          generation_cutpoints = generation_cutpoints
+          generation_cutpoints = generation_cutpoints,
+          rmst_tau = rmst_tau
         )
         attr(result, "arguments") <- NULL
         if (inherits(result, "goldilocks_trial")) {

@@ -40,7 +40,8 @@ analyse_predictive_survival <- function(
   empty_interval,
   check_futility,
   prob_ha,
-  mc_conf_level
+  mc_conf_level,
+  rmst_tau = end_of_study
 ) {
   ##############################################################################
   ### Test for success at current sample size (-> stop for success)
@@ -53,6 +54,7 @@ analyse_predictive_survival <- function(
   )
   success_now <- analyse_completed_survival(
     outcome = outcome_now,
+    rmst_tau = rmst_tau,
     cutpoints = cutpoints,
     end_of_study = end_of_study,
     interval_widths = interval_widths,
@@ -78,6 +80,7 @@ analyse_predictive_survival <- function(
     )
     success_max <- analyse_completed_survival(
       outcome = outcome_max,
+      rmst_tau = rmst_tau,
       cutpoints = cutpoints,
       end_of_study = end_of_study,
       interval_widths = interval_widths,

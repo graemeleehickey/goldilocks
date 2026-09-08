@@ -36,10 +36,10 @@ to determine whether the current sample size is sufficient or whether
 continuing accrual would be futile. The algorithm explicitly accounts
 for complete follow-up of all patients before the primary analysis is
 conducted. Time-to-event final analyses include the log-rank test, Cox
-proportional hazards regression Wald test, and Bayesian
-piecewise-exponential inference. Fixed-time binary final analyses
-include a frequentist risk-difference Wald test and Bayesian
-beta-binomial inference.
+proportional hazards regression Wald test, restricted mean survival time
+(RMST) difference Wald test, and Bayesian piecewise-exponential
+inference. Fixed-time binary final analyses include a frequentist
+risk-difference Wald test and Bayesian beta-binomial inference.
 
 Broglio et al. (2014) refer to this as a *Goldilocks trial design*, as
 it is constantly asking the question, “Is the sample size too big, too
@@ -55,23 +55,29 @@ final analysis:
 
 - `"cox"`: Cox model Wald test for a two-arm time-to-event endpoint
 
+- `"rmst"`: RMST difference Wald test for two arms at a prespecified
+  `rmst_tau` (defaults to `end_of_study`); positive differences favor
+  longer event-free time
+
 - `"bayes-surv"`: Bayesian piecewise-exponential analysis for one- or
   two-arm time-to-event endpoints
 
-- `"riskdiff-wald"`: frequentist Wald test for a two-arm fixed-time binary
-  event-risk difference
+- `"riskdiff-wald"`: frequentist Wald test for a two-arm fixed-time
+  binary event-risk difference
 
-- `"riskdiff-fm"`: Farrington-Manning score test for a two-arm fixed-time
-  binary event-risk difference, including sparse outcomes
+- `"riskdiff-fm"`: Farrington-Manning score test for a two-arm
+  fixed-time binary event-risk difference, including sparse outcomes
 
 - `"bayes-bin"`: Bayesian beta-binomial analysis for one- or two-arm
   fixed-time binary endpoints
 
-The former `"riskdiff"` option remains available as a deprecated alias for
-`"riskdiff-wald"` and emits a warning.
+The former `"riskdiff"` option remains available as a deprecated alias
+for `"riskdiff-wald"` and emits a warning.
 
 See the package vignettes for worked two-arm, single-arm, piecewise
-survival, and Bayesian binary examples.
+survival, RMST, and Bayesian binary examples. For RMST use
+`alternative = "greater"` to test longer event-free time and express
+`h0` in the same time units as follow-up.
 
 ## Key benefits
 

@@ -23,6 +23,12 @@
 #'   planned subject-level follow-up time. It must be greater than the final
 #'   value in both `cutpoints` and `generation_cutpoints`, when supplied, and
 #'   use the same time unit.
+#' @param rmst_tau A single finite positive restriction time for `method =
+#'   "rmst"`, in the same units as `end_of_study`. Defaults to `end_of_study`
+#'   and must not exceed it. Prespecify the same horizon for all looks,
+#'   imputations, and simulations. It may precede analysis cutpoints and does
+#'   not shorten the planned follow-up or imputation horizon. Ignored for other
+#'   methods.
 #' @param interim_look `NULL` (the default) for no interim analyses, or a
 #'   strictly increasing positive integer vector giving the cumulative sample
 #'   size at each interim look. Do not include the maximum sample size. For
@@ -71,10 +77,10 @@
 #'   `"two.sided"`. One-sided alternatives (`"greater"` and `"less"`) are
 #'   supported for `method = "bayes-surv"` and `method = "bayes-bin"`. All three
 #'   options are supported for `method = "logrank"`, `method = "cox"`,
-#'   `method = "riskdiff-wald"`, and `method = "riskdiff-fm"`. For
-#'   survival outcomes, `"less"` corresponds to the treatment arm having a lower
-#'   cumulative incidence (i.e., treatment is beneficial), and `"greater"`
-#'   corresponds to the treatment arm having a higher cumulative incidence.
+#'   `method = "rmst"`, `method = "riskdiff-wald"`, and `method = "riskdiff-fm"`.
+#'   For an adverse event, benefit is in the `"greater"` direction for RMST
+#'   (longer event-free time) and the `"less"` direction for the other methods
+#'   (lower hazard or event probability).
 #' @param h0 A single finite numeric value specifying the null hypothesis or
 #'   margin. The default is `0`. For Bayesian analyses, `h0` must lie in
 #'   `[0, 1]` for a
@@ -91,6 +97,10 @@
 #'     of 1 null, or `h0 = log(margin)` for a non-inferiority margin
 #'     specified as a hazard ratio. A Cox non-inferiority test should usually
 #'     use `alternative = "less"`.
+#'   * When `method = "rmst"`, `h0` is the null treatment-control RMST
+#'     difference in time units and must lie in `[-rmst_tau, rmst_tau]`.
+#'     For non-inferiority allowing a loss of `m` time units, use `h0 = -m`
+#'     and `alternative = "greater"`.
 #'   * When `method = "riskdiff-wald"` or `method = "riskdiff-fm"`, `h0` is the
 #'     null value of
 #'     \eqn{p_\textrm{treatment} - p_\textrm{control}} and must lie in
@@ -130,7 +140,7 @@
 #' @param N_impute A positive integer giving the number of predictive
 #'   imputations used at each
 #'   interim look and, when requested, for final multiple imputation. The
-#'   default is `500`. An imputed Cox or risk-difference final analysis requires
+#'   default is `500`. An imputed Cox, RMST, or risk-difference final analysis requires
 #'   at least two.
 #' @param N_mcmc A positive integer giving the number of posterior draws used
 #'   within each
@@ -156,7 +166,8 @@
 #' @param method A single character string specifying the completed-data and
 #'   final analysis. Available choices are a log-rank
 #'   (`method = "logrank"`) test, Cox proportional hazards regression model
-#'   Wald test (`method = "cox"`), a fully-Bayesian piecewise-exponential
+#'   Wald test (`method = "cox"`), a restricted mean survival time difference
+#'   Wald test (`method = "rmst"`), a fully-Bayesian piecewise-exponential
 #'   analysis (`method = "bayes-surv"`), a Bayesian beta-binomial analysis of
 #'   complete binary outcomes (`method = "bayes-bin"`), a frequentist
 #'   risk-difference Wald test (`method = "riskdiff-wald"`), or a
@@ -168,8 +179,8 @@
 #'   analysis should be based on imputed outcomes for
 #'   subjects who were LTFU (i.e. right-censored with time less than
 #'   `end_of_study`). The default is `FALSE`, which means that the final analysis
-#'   incorporates right-censoring. With `method = "cox"`, `method =
-#'   "riskdiff-wald"`, or `method = "riskdiff-fm"`, setting this to `TRUE`
+#'   incorporates right-censoring. With `method = "cox"`, `method = "rmst"`,
+#'   `method = "riskdiff-wald"`, or `method = "riskdiff-fm"`, setting this to `TRUE`
 #'   analyzes each imputed dataset and pools the scalar treatment effects and
 #'   variances using Rubin's rules; this requires `N_impute >= 2`. The pooled
 #'   risk-difference analysis is a Wald test rather than a Farrington-Manning
@@ -243,6 +254,22 @@
 #'      Rubin's rules; the pooled Wald test uses Rubin's large-sample degrees of
 #'      freedom. When `imputed_final = FALSE`, the existing single Cox model is
 #'      fitted directly to the observed right-censored data.
+#'
+#'   * Restricted mean survival time (`method = "rmst"`).
+#'      Estimates the area under each Kaplan-Meier survival curve from zero
+#'      through the prespecified `rmst_tau`. The effect is treatment minus
+#'      control RMST, measured in time units. The Wald test uses the sum of
+#'      the independent arm-specific Greenwood variances and reports
+#'      \eqn{1 - P}. All three alternatives and nonzero margins are supported.
+#'      For an adverse event, a positive difference favors treatment.
+#'      Observed censored subjects remain in the analysis. An arm whose last
+#'      follow-up precedes `rmst_tau` with positive estimated survival makes
+#'      the analysis non-estimable; the horizon is never reduced automatically.
+#'      A curve reaching zero earlier is allowed. The test requires positive
+#'      total variance, including after Rubin pooling for `imputed_final = TRUE`.
+#'      This unadjusted two-arm analysis does not assume proportional hazards.
+#'      Interim prediction and final imputation still depend on the specified
+#'      piecewise-exponential model. See `vignette("rmst", package = "goldilocks")`.
 #'
 #'   * Bayesian difference in cumulative event probability
 #'     (`method = "bayes-surv"`).
@@ -324,7 +351,7 @@
 #'  * Imputed final analysis (`imputed_final`).
 #'      The overall final analysis conducted after accrual is suspended and
 #'      follow-up is complete can be analyzed on imputed datasets for Bayesian
-#'      methods (`"bayes-surv"` and `"bayes-bin"`), Cox regression, and the
+#'      methods (`"bayes-surv"` and `"bayes-bin"`), Cox regression, RMST, and the
 #'      frequentist risk-difference analysis, or on the non-imputed dataset.
 #'      Interim prediction completes outcomes that are not yet observed,
 #'      whereas final imputation applies only to subjects right-censored because
@@ -337,7 +364,7 @@
 #'      unbiased: early events can be observed before dropout, whereas later
 #'      endpoint outcomes can be missing. Binary designs with dropout should
 #'      assess model-based final imputation and its assumptions. For Cox
-#'      regression the final estimates and
+#'      regression and RMST the final estimates and
 #'      variances are pooled with Rubin's rules. It cannot be used with
 #'      `method = "logrank"`.
 #'
@@ -361,8 +388,8 @@
 #'   For `method = "bayes-surv"`, the second analysis instead forms a fresh
 #'   piecewise-exponential posterior from the completed data and the original
 #'   survival prior. For frequentist methods (`"logrank"`, `"cox"`,
-#'   `"riskdiff-wald"`, and `"riskdiff-fm"`), each completed dataset uses a
-#'   standard test rather than a posterior. Imputed Cox and risk-difference
+#'   `"rmst"`, `"riskdiff-wald"`, and `"riskdiff-fm"`), each completed dataset uses a
+#'   standard test rather than a posterior. Imputed Cox, RMST, and risk-difference
 #'   final analyses pool estimates and variances using Rubin's rules.
 #'
 #'   At each interim look, follow-up times are masked (censored) to reflect
@@ -378,8 +405,9 @@
 #'
 #'   - `N_treatment`: Number of patients enrolled in the treatment arm.
 #'   - `N_control`: Number of patients enrolled in the control arm.
-#'   - `est_final`: Treatment effect estimated at the final analysis. The final
-#'     analysis occurs when either the maximum sample size is reached and
+#'   - `est_final`: Treatment effect estimated at the final analysis. For RMST
+#'     this is treatment minus control RMST through `rmst_tau`, in time units.
+#'     The final analysis occurs when either the maximum sample size is reached and
 #'     follow-up is complete, or the interim analysis triggered early stopping
 #'     of enrollment/accrual and follow-up for those subjects is complete. It is
 #'     `NA` after an immediate-success decision, for which no later analysis is
@@ -390,7 +418,7 @@
 #'     each imputed final-analysis dataset and averaged over `N_impute`
 #'     imputations. For an imputed Cox analysis it is \eqn{1 - P} from the
 #'     Rubin-pooled Wald test. The same interpretation applies to imputed
-#'     risk-difference analyses. For non-imputed frequentist analyses it is
+#'     RMST and risk-difference analyses. For non-imputed frequentist analyses it is
 #'     \eqn{1 - P} from the corresponding test. It is `NA` after an
 #'     immediate-success decision, for which no later analysis is required, or
 #'     when the optional diagnostic analysis after binding futility cannot be
@@ -520,7 +548,8 @@ survival_adapt <- function(
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
   generation_cutpoints = cutpoints,
-  Qn = 1
+  Qn = 1,
+  rmst_tau = end_of_study
 ) {
   Call <- match.call()
   Arguments <- capture_arguments(survival_adapt, environment())
@@ -611,7 +640,7 @@ survival_adapt <- function(
   )
   if (
     imputed_final &&
-      method %in% c("cox", "riskdiff-wald", "riskdiff-fm") &&
+      method %in% c("cox", "rmst", "riskdiff-wald", "riskdiff-fm") &&
       N_impute < 2
   ) {
     stop(
@@ -629,6 +658,9 @@ survival_adapt <- function(
   }
 
   validate_h0(h0, method, single_arm)
+  if (method == "rmst") {
+    validate_rmst_args(rmst_tau, end_of_study, h0)
+  }
 
   # Check: Bayesian binomial test arguments
   if (method == "bayes-bin") {
@@ -748,6 +780,7 @@ survival_adapt <- function(
         calendar_time = look_time,
         active_followup = active_followup_at(data_total, look_time),
         end_of_study = end_of_study,
+        rmst_tau = rmst_tau,
         cutpoints = cutpoints,
         single_arm = single_arm,
         prior_surv = prior_surv,
@@ -866,7 +899,8 @@ survival_adapt <- function(
         "event-time"
       },
       empty_interval = empty_interval,
-      end_of_study = end_of_study
+      end_of_study = end_of_study,
+      rmst_tau = rmst_tau
     )
   }
   results_final <- if (stop_immediate_success != 0) {

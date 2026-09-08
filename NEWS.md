@@ -19,6 +19,20 @@
 
 ## Improvements
 
+* Internal analysis code is grouped into `analysis_*.R` files, with separate
+  files for method implementations, shared calculations, and analysis stages.
+  This source reorganization preserves function names and calculations.
+
+* `method = "rmst"` adds a two-arm restricted mean survival time difference
+  Wald analysis to simulations and observed interim monitoring. The fixed
+  `rmst_tau` defaults to `end_of_study`; effects and null margins are in time
+  units, with longer event-free time tested using `alternative = "greater"`.
+  Observed censoring is retained, and final multiple imputation pools RMST
+  differences and Greenwood variances using Rubin's rules. Unsupported
+  positive survival tails and zero total variance produce explicit
+  non-estimability errors. A worked vignette and reference, calibration, and
+  reproducibility checks accompany the option.
+
 * A new calibration vignette demonstrates how to screen a prespecified grid of
   `prob_ha` values against a one-sided type I error target, classify candidates
   using Monte Carlo uncertainty, and independently validate a selected

@@ -70,6 +70,7 @@ articles:
       - anthem-hfref
       - advent
       - bayes-piecewise
+      - rmst
       - bayesian-binary
       - frequentist-binary
       - single-arm

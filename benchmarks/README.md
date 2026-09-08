@@ -141,3 +141,25 @@ On Windows, compare `auto` with `psock`; on macOS, compare those rows with
 Runtime and memory allocation depend on hardware, R version, operating system,
 and BLAS configuration. Compare results relatively on the same machine rather
 than treating any absolute timing as a release threshold.
+
+## RMST
+
+`Rscript benchmarks/rmst.R` compares the exact completed-outcome calculation
+with Kaplan-Meier integration and benchmarks a full predictive trial against
+Cox. An optional integer argument sets the benchmark iterations. The empirical
+calculation uses the Greenwood variance with denominator `n^2`; equivalence
+checks precede timings.
+
+`Rscript benchmarks/rmst-calibration.R 500 /tmp/rmst-calibration.csv` runs
+fixed and adaptive designs under equal-survival and equal-RMST crossing-curve
+nulls, a nonzero null margin, and delayed benefit. Variants include arm-specific
+dropout, final imputation, and a constant-hazard predictive model fitted to
+piecewise-generated outcomes. Output includes failures, success rates, exact
+binomial intervals, Monte Carlo standard errors, and mean enrollment. Rates
+condition on successfully evaluated trials; failures must be assessed alongside
+them. These runs characterize the example thresholds; they do not establish
+calibration for arbitrary designs or remove imputation-model assumptions.
+
+The recorded implementation-validation run is in `rmst-validation.md`, with
+raw grid and independent fixed-null results in `rmst-calibration-results.csv`
+and `rmst-fixed-null-results.csv`.

@@ -47,7 +47,8 @@ evaluate_interim_decision <- function(
   method,
   binary_imputation,
   check_futility,
-  Qn = 1
+  Qn = 1,
+  rmst_tau = end_of_study
 ) {
   required_columns <- c(
     "time",
@@ -183,6 +184,7 @@ evaluate_interim_decision <- function(
           prepared_outcomes = prepared_outcomes,
           imputations = imputations,
           draw = j,
+          rmst_tau = rmst_tau,
           end_of_study = end_of_study,
           cutpoints = cutpoints,
           interval_widths = interval_widths,

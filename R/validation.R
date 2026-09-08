@@ -994,13 +994,14 @@ validate_analysis_configuration <- function(
           "bayes-bin",
           "logrank",
           "cox",
+          "rmst",
           "riskdiff-wald",
           "riskdiff-fm"
         )
   ) {
     stop(
       "'method' must be one of 'bayes-surv', 'bayes-bin', 'logrank', 'cox', ",
-      "'riskdiff-wald', or 'riskdiff-fm'"
+      "'rmst', 'riskdiff-wald', or 'riskdiff-fm'"
     )
   }
 
@@ -1023,7 +1024,7 @@ validate_analysis_configuration <- function(
 
   if (
     single_arm &&
-      method %in% c("logrank", "cox", "riskdiff-wald", "riskdiff-fm")
+      method %in% c("logrank", "cox", "rmst", "riskdiff-wald", "riskdiff-fm")
   ) {
     stop("The selected method can only be used for two-armed trials")
   }
