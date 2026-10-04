@@ -30,6 +30,9 @@ reference:
       - survival_adapt
       - evaluate_interim
       - sim_trials
+      - sim_trial_paths
+      - apply_stopping_rules
+      - print.goldilocks_paths
       - summarise_sims
       - summarise_calendar_time
       - plot_enrollment
@@ -66,6 +69,7 @@ articles:
     contents:
       - two-arm
       - calibrating-prob-ha
+      - calibrating-stopping-rules
       - thermocool-af
       - anthem-hfref
       - advent

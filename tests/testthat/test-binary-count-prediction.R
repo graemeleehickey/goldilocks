@@ -431,3 +431,22 @@ test_that("binary interim diagnostics report bounded summary reuse", {
     reuse$reused_analyses / reuse$analysis_requests
   )
 })
+
+test_that("extreme quadrature probabilities cannot cross a threshold of one", {
+  result <- bayes_binomial_from_counts(
+    events_control = 50,
+    n_control = 50,
+    events_treatment = 0,
+    n_treatment = 50,
+    single_arm = FALSE,
+    alternative = "less",
+    h0 = 0,
+    prior_bin = c(1, 1),
+    bin_method = "quadrature",
+    N_mcmc = 100
+  )
+  expect_gte(result$success, 0)
+  expect_lte(result$success, 1)
+  expect_equal(result$success, 1, tolerance = 1e-12)
+  expect_false(classify_completed_analysis(result, 1, .95)$crossed)
+})

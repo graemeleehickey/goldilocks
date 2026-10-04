@@ -1,3 +1,11 @@
+# goldilocks (development version)
+
+* `sim_trial_paths()` retains predictive scores at every planned interim look and final analyses for every possible stopping cohort. `apply_stopping_rules()` reuses these results to evaluate `Fn`, `Sn`, `Qn`, and `prob_ha` without further simulation or model fitting. The existing simulation interface and random-number scheduling are preserved.
+* Replayed results include the joint probability of binding futility and counterfactual success at maximum N, separately from the ordinary futility probability. Summaries retain available comparison counts and Monte Carlo uncertainty. Calculation failures are recorded by stage and only invalidate candidates that require them.
+* Complete path banks support reproducible trial batches through `trial_offset`, serialization, and sequential, fork, and PSOCK execution. A new vignette demonstrates null and alternative banks, candidate screening, paired comparisons, and independent validation.
+
+* Bayesian binary quadrature probabilities are bounded to [0, 1] to remove floating-point overshoots in extreme posterior tails. This prevents false crossings at `prob_ha = 1` and spurious invalid-score failures in calibration banks.
+
 # goldilocks 1.0.0
 
 Version 1.0.0 marks the first stable major release. Highlights include observed

@@ -102,6 +102,12 @@ Omitting `prior_surv_final` uses `prior_surv` for both roles. Bayesian binary
 success tests instead use `prior_bin`. See the
 [worked example of separate priors](https://graemeleehickey.github.io/goldilocks/articles/interim-data.html#using-separate-predictive-and-analysis-priors).
 
+## Reuse simulations for threshold calibration
+
+`sim_trial_paths()` evaluates every planned interim look and retains final analyses for each possible stopping cohort. `apply_stopping_rules()` then applies different `Fn`, `Sn`, `Qn`, and `prob_ha` values to the saved bank without repeating predictive imputation or model fitting. Data-generating assumptions, analysis settings, and the look schedule remain fixed within a bank.
+
+Replayed results work with `summarise_sims()` and the existing simulation plots. They also distinguish stopping for futility from stopping for futility when the same simulated trial would have succeeded at maximum N. See the [complete-path calibration vignette](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.html) for screening, independent validation, and batch storage.
+
 ## Key benefits
 
 Other software and R packages are available to implement this algorithm.

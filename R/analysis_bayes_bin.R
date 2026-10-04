@@ -113,7 +113,10 @@ bayes_binomial_from_counts <- function(
       }
     }
 
-    integrate(integrand, lower = 0, upper = 1)$value
+    # Numerical integration can exceed one by a few machine epsilons in an
+    # extreme posterior tail. Keep the result on the probability scale so a
+    # threshold of one remains an impossible strict crossing.
+    pmin(1, pmax(0, integrate(integrand, lower = 0, upper = 1)$value))
   }
 
   treatment_stats <- beta_binomial_stats(events_treatment, n_treatment)

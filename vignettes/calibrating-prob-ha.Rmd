@@ -46,6 +46,8 @@ The result is evidence about the simulated scenarios, not a mathematical
 guarantee over every possible data-generating process. A design with a
 composite null may require several prespecified nuisance-parameter scenarios.
 
+For repeated calibration of `Fn`, `Sn`, `Qn`, and `prob_ha`, `sim_trial_paths()` and `apply_stopping_rules()` provide a reusable alternative to rerunning `sim_trials()` for every candidate. See `vignette("calibrating-stopping-rules")` for complete-path simulation banks, both futility measures, and paired candidate comparisons. The screening and independent-validation principles below apply to either workflow.
+
 ## Design and null scenario
 
 The example uses a two-arm design with a one-sided log-rank analysis. Both arms

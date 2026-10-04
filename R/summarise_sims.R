@@ -13,7 +13,8 @@
 #'   for selected estimands. Supported names are `power`,
 #'   `stop_immediate_success`, `stop_success`, `stop_any_success`,
 #'   `stop_futility`, `stop_max_N`, `mean_N`, `stop_and_fail`, and
-#'   `failure_rate`. A warning identifies every scenario and estimand whose
+#'   `failure_rate`, and (for replayed paths) `futility_and_success_at_max`.
+#'   A warning identifies every scenario and estimand whose
 #'   Monte Carlo standard error exceeds its target.
 #'
 #' @return A data frame reporting the operating characteristics, including the
@@ -34,6 +35,15 @@
 #'   simulated trials under fixed design and data-generating assumptions. They
 #'   are **not clinical confidence intervals**, treatment-effect intervals, or
 #'   measures of model uncertainty.
+#'
+#'   Results from [apply_stopping_rules()] additionally report
+#'   `futility_and_success_at_max`: the joint probability of binding futility
+#'   and success if continued to maximum N with the same final analysis and
+#'   `prob_ha`. Its `_n_used` and `_n_missing` columns identify the available
+#'   denominator and unavailable comparisons. Its Monte Carlo interval uses
+#'   available comparisons only; missing counterfactual outcomes may be
+#'   informative. This is distinct from `stop_futility`, which under an
+#'   alternative is the probability of stopping for futility in that scenario.
 #'
 #'   The output always reports `n_used`, the number of successfully analyzed
 #'   simulations used by the operating-characteristic estimands. When complete
@@ -81,7 +91,8 @@ summarise_sims <- function(data, max_mcse = NULL) {
     legacy_probability_metrics,
     immediate_probability_metrics,
     "mean_N",
-    "failure_rate"
+    "failure_rate",
+    "futility_and_success_at_max"
   )
   validate_max_mcse(max_mcse, precision_metrics)
   include_immediate_metrics <-
@@ -281,6 +292,32 @@ summarise_sims <- function(data, max_mcse = NULL) {
     out <- out[c(group_columns, denominator_columns, metric_columns)]
   }
 
+  if ("futility_and_success_at_max" %in% names(data)) {
+    counterfactual <- data |>
+      group_by(!!!rlang::syms(group_columns)) |>
+      summarise(
+        futility_and_success_at_max_n_used = sum(
+          !is.na(.data$futility_and_success_at_max)
+        ),
+        futility_and_success_at_max_n_missing = sum(is.na(
+          .data$futility_and_success_at_max
+        )),
+        futility_and_success_at_max = if (
+          all(is.na(.data$futility_and_success_at_max))
+        ) {
+          NA_real_
+        } else {
+          mean(.data$futility_and_success_at_max, na.rm = TRUE)
+        },
+        .groups = "drop"
+      )
+    counterfactual <- add_binomial_mc_columns(
+      counterfactual,
+      "futility_and_success_at_max",
+      counterfactual$futility_and_success_at_max_n_used
+    )
+    out <- dplyr::left_join(out, counterfactual, by = group_columns)
+  }
   attr(out, "mc_conf_level") <- 0.95
   warn_simulation_precision(out, max_mcse, group_columns)
 
@@ -667,6 +704,7 @@ simulation_result_metadata <- function(x, scenario) {
     prior_design = attr(x, "prior_design", exact = TRUE),
     rng_metadata = rng_metadata,
     parallel_metadata = parallel_metadata,
+    path_metadata = attr(x, "path_metadata", exact = TRUE),
     timing = if (!is.null(x$timing)) {
       x$timing
     } else {
