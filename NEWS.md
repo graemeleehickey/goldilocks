@@ -1,8 +1,23 @@
-# goldilocks (development version)
+# goldilocks 1.1.0
 
-* `sim_trial_paths()` retains predictive scores at every planned interim look and final analyses for every possible stopping cohort. `apply_stopping_rules()` reuses these results to evaluate `Fn`, `Sn`, `Qn`, and `prob_ha` without further simulation or model fitting. The existing simulation interface and random-number scheduling are preserved.
-* Replayed results include the joint probability of binding futility and counterfactual success at maximum N, separately from the ordinary futility probability. Summaries retain available comparison counts and Monte Carlo uncertainty. Calculation failures are recorded by stage and only invalidate candidates that require them.
-* Complete path banks support reproducible trial batches through `trial_offset`, serialization, and sequential, fork, and PSOCK execution. A new vignette demonstrates null and alternative banks, candidate screening, paired comparisons, and independent validation.
+Version 1.1.0 adds reusable simulation banks for calibrating decision thresholds. Simulate every planned look once, then compare candidate stopping rules without repeating predictive imputation or model fitting.
+
+## New features
+
+* `sim_trial_paths()` evaluates every planned interim look regardless of hypothetical stopping decisions. It retains unthresholded predictive scores for the current and maximum cohorts, plus final analyses and calendar metrics for each possible stopping cohort and maximum N.
+* `apply_stopping_rules()` evaluates candidate `Fn`, `Sn`, `Qn`, and `prob_ha` values using a saved bank. It preserves strict boundary comparisons and the decision priority of immediate success, expected success, binding futility, and continuation. Results support the existing operating-characteristic summaries, calendar-time summaries, and simulation plots, with optional per-look traces.
+* Replayed results report `success_at_max` and `futility_and_success_at_max`. The latter is the joint event of binding futility and counterfactual success if the trial continued to maximum N. `summarise_sims()` reports its probability, Monte Carlo standard error, confidence interval, and available and missing comparison counts, separately from `stop_futility`, the ordinary futility probability under the simulated scenario.
+* Banks retain design settings, priors, random-number metadata, runtime versions, and stage-specific failure diagnostics. Rule application excludes a trial only when a failed calculation is needed for that candidate; unavailable counterfactual final analyses are reported separately.
+* Explicit seeds give reproducible banks across sequential, fork, and PSOCK execution while preserving the caller's random-number state. `trial_offset` supports consecutive batches equivalent to a single bank with the same seed and settings. Banks can be saved and restored with `saveRDS()` and `readRDS()`.
+* The new "Calibrating stopping rules from complete trial paths" vignette demonstrates null and alternative banks, candidate screening, paired comparisons, independent validation, batching, and failure handling. A reproducible benchmark compares repeated simulation with bank generation and rule application.
+
+## Scope and compatibility
+
+* Reuse covers decision thresholds only. The data-generating scenario, analysis method, priors, null margin, endpoint horizon, allocation, maximum sample size, planned looks, and Monte Carlo settings remain fixed within a bank. Changing these settings requires a new bank. Interim looks must precede maximum N; the maximum-N final analysis follows completion of follow-up.
+* Existing `sim_trials()`, `survival_adapt()`, and `evaluate_interim()` interfaces and random-number scheduling are preserved. The new bank workflow uses separate trial and stage streams, so a bank need not match an ordinary simulation run with the same seed.
+* Candidate outcomes from a shared bank are paired by trial. Use paired uncertainty calculations when comparing candidates and an independent bank to validate selected thresholds. Banks retain predictive scores in memory, so large simulations may require separate batches.
+
+## Bug fixes
 
 * Bayesian binary quadrature probabilities are bounded to [0, 1] to remove floating-point overshoots in extreme posterior tails. This prevents false crossings at `prob_ha = 1` and spurious invalid-score failures in calibration banks.
 

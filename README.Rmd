@@ -139,8 +139,7 @@ Biopharmaceutical Statistics*, 2014; **24(3)**: 685–705.
 
 ## Installation
 
-The source version is `goldilocks` 1.0.0, prepared for CRAN submission.
-See [NEWS.md](NEWS.md) for changes and migration guidance from 0.6.0.
+The source version is `goldilocks` 1.1.0, which adds reusable trial paths for stopping-rule calibration. See [NEWS.md](NEWS.md) for release changes and migration guidance from 0.6.0.
 
 You can install the released version of `goldilocks` from CRAN with:
 
