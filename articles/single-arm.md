@@ -5,8 +5,11 @@
 library(goldilocks)
 ```
 
-Several other vignettes focus on two-arm randomized designs, although
-the Bayesian binary outcome vignette also includes a single-arm example.
+The [two-arm randomized
+trial](https://graemeleehickey.github.io/goldilocks/articles/two-arm.md)
+example uses a concurrent control group. The Bayesian binary outcome
+vignette includes a [single-arm
+example](https://graemeleehickey.github.io/goldilocks/articles/bayesian-binary.html#single-arm-design).
 Single-arm trials – in which every subject receives the experimental
 therapy and the comparator is an external benchmark, often called a
 performance goal (PG) or objective performance criterion (OPC) – are
@@ -257,12 +260,17 @@ sensitivity.
 
 ## See also
 
-- The “Two-arm randomized trials” vignette covers the corresponding
-  two-arm randomized design with a log-rank decision rule.
-- The “Bayesian piecewise-exponential designs” vignette covers the same
-  decision rule used here, but in a two-arm setting and with
-  non-constant hazards. The same piecewise-exponential specification
-  applies to single-arm trials when `hazard_control = NULL` and
-  `hazard_treatment` contains one hazard per interval.
-- [`?survival_adapt`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+- The [Two-arm randomized
+  trials](https://graemeleehickey.github.io/goldilocks/articles/two-arm.md)
+  vignette covers the corresponding two-arm randomized design with a
+  log-rank decision rule.
+- The [Bayesian piecewise-exponential
+  designs](https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.md)
+  vignette covers the same decision rule used here, but in a two-arm
+  setting and with non-constant hazards. The same piecewise-exponential
+  specification applies to single-arm trials when
+  `hazard_control = NULL` and `hazard_treatment` contains one hazard per
+  interval.
+- The help page for
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.html)
   documents all arguments.

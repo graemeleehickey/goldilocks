@@ -5,12 +5,14 @@
 library(goldilocks)
 ```
 
-The “Two-arm randomized trials” vignette uses `method = "logrank"` and a
-single constant hazard for each treatment group. That is convenient when
-the proportional-hazards assumption is reasonable and the underlying
-event rate is well-approximated by an exponential distribution. In
-practice, neither assumption always holds. This vignette shows how to
-set up a Goldilocks design with:
+The [Two-arm randomized
+trials](https://graemeleehickey.github.io/goldilocks/articles/two-arm.md)
+vignette uses `method = "logrank"` and a single constant hazard for each
+treatment group. That is convenient when the proportional-hazards
+assumption is reasonable and the underlying event rate is
+well-approximated by an exponential distribution. In practice, neither
+assumption always holds. This vignette shows how to set up a Goldilocks
+design with:
 
 - a **piecewise-exponential** hazard, in which the constant hazard rate
   changes at one or more cut-points; and
@@ -384,14 +386,17 @@ rather than “how robust is my analysis cut-point?”.
 
 ## See also
 
-- The “Two-arm randomized trials” vignette covers the same design
-  machinery using a single exponential hazard and a log-rank decision
-  rule.
-- [`?survival_adapt`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+- The [Two-arm randomized
+  trials](https://graemeleehickey.github.io/goldilocks/articles/two-arm.md)
+  vignette covers the same design machinery using a single exponential
+  hazard and a log-rank decision rule.
+- The help page for
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.html)
   documents all arguments, including the requirement that each
   `interim_look` in a two-arm design be at least the block size.
-- [`?prop_to_haz`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
+- The help pages for
+  [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.html)
   and
-  [`?ppwe`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
-  document the conversion between event proportions and piecewise
+  [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.html)
+  describe the conversion between event proportions and piecewise
   hazards.

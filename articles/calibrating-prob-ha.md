@@ -35,8 +35,8 @@ and
 [`apply_stopping_rules()`](https://graemeleehickey.github.io/goldilocks/reference/apply_stopping_rules.md)
 provide a reusable alternative to rerunning
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
-for every candidate. See
-[`vignette("calibrating-stopping-rules")`](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.md)
+for every candidate. See [Calibrating stopping rules from complete trial
+paths](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.md)
 for complete-path simulation banks, both futility measures, and paired
 candidate comparisons. The screening and independent-validation
 principles below apply to either workflow.

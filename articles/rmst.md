@@ -156,7 +156,8 @@ to adapt the workflow to RMST.
 For maintainer validation, `benchmarks/rmst-calibration.R` runs fixed
 and adaptive scenarios with failure counts and Monte Carlo intervals,
 and `benchmarks/rmst.R` compares completed-data and predictive runtimes.
-The technical methods vignette gives the variance and pooling formulas.
+The technical methods vignette gives the [variance and pooling
+formulas](https://graemeleehickey.github.io/goldilocks/articles/technical-methods.html#frequentist-final-tests).
 
 ## References
 

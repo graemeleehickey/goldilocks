@@ -37,8 +37,11 @@ times and enrollment within each arm, with rate
 earliest event, dropout, or per-subject administrative horizon.
 `prop_loss` specifies the dropout CDF at that horizon, not the fraction
 actually censored by dropout; events can occur first, and dropout counts
-vary across trials. The technical methods vignette gives the full
-censoring model and its implications for binary analyses.
+vary across trials. The technical methods vignette describes the
+[censoring
+model](https://graemeleehickey.github.io/goldilocks/articles/technical-methods.html#independent-dropout-and-administrative-censoring)
+and its [implications for binary
+analyses](https://graemeleehickey.github.io/goldilocks/articles/technical-methods.html#loss-to-follow-up-at-the-final-analysis).
 
 The event-time distribution used to simulate trials need not equal the
 model used for interim prediction. `generation_cutpoints` defines the

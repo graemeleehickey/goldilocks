@@ -9,10 +9,15 @@ details of the design, including notation, the continuous-time
 enrollment process, the piecewise-exponential event-time model, Gamma
 posterior updating, posterior **predictive probabilities**, interim
 decision rules, final analysis options, and simulation-based
-calibration. The package vignettes “Two-arm randomized trials”,
-“Bayesian piecewise-exponential designs”, “Bayesian binary outcome
-designs”, and “Single-arm designs with a performance goal” provide more
-application-focused examples in R.
+calibration. The package vignettes [Two-arm randomized
+trials](https://graemeleehickey.github.io/goldilocks/articles/two-arm.md),
+[Bayesian piecewise-exponential
+designs](https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.md),
+[Bayesian binary outcome
+designs](https://graemeleehickey.github.io/goldilocks/articles/bayesian-binary.md),
+and [Single-arm designs with a performance
+goal](https://graemeleehickey.github.io/goldilocks/articles/single-arm.md)
+provide more application-focused examples in R.
 
 ## 1. Design and notation
 
@@ -474,9 +479,9 @@ analysis quantity Q(\mathcal{D}) depends on the analysis method:
 
 | Design setting | `method` | Q(\mathcal{D}) | Supported alternatives |
 |----|----|----|----|
-| Two-arm randomized trial | `logrank` | 1-p(\mathcal{D}), where p(\mathcal{D}) is the traditional log-rank test P-value, with one-sided variants defined in Section 7.1 | `"less"`, `"greater"`, `"two.sided"` |
+| Two-arm randomized trial | `logrank` | 1-p(\mathcal{D}), where p(\mathcal{D}) is the traditional log-rank test P-value, with one-sided variants defined in [Section 7.1](#frequentist-final-tests) | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `rmst` | 1-p(\mathcal{D}) for a Wald test of the treatment-control RMST difference through `rmst_tau` | `"less"`, `"greater"`, `"two.sided"` |
-| Two-arm randomized trial | `cox` | 1-p(\mathcal{D}), where p(\mathcal{D}) is the traditional Wald-test P-value, with one-sided variants defined in Section 7.1 | `"less"`, `"greater"`, `"two.sided"` |
+| Two-arm randomized trial | `cox` | 1-p(\mathcal{D}), where p(\mathcal{D}) is the traditional Wald-test P-value, with one-sided variants defined in [Section 7.1](#frequentist-final-tests) | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `riskdiff-wald` | 1-p(\mathcal{D}), where p(\mathcal{D}) is the Wald-test P-value for the treatment-control event-risk difference | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `riskdiff-fm` | 1-p(\mathcal{D}), where p(\mathcal{D}) is the Farrington-Manning score-test P-value for the treatment-control event-risk difference | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `bayes-surv` | \Pr(\Delta \< h_0 \mid \mathcal{D}) or \Pr(\Delta \> h_0 \mid \mathcal{D}) | `"less"`, `"greater"` |
@@ -947,11 +952,12 @@ and `riskdiff-wald` final analyses; it does not alter the interim
 posterior-predictive calculation, where each simulated completed trial
 is tested separately before the success indicators are averaged.
 
-The independent dropout mechanism in Section 3.1 supports right-censored
-survival inference within each arm. It does **not** imply unbiased
-complete-case binary inference: early events can be ascertained before
-dropout, while later endpoint outcomes can be missing. Excluding the
-latter can overestimate the fixed-time event probability and distort
+The independent dropout mechanism in [Section
+3.1](#independent-dropout-and-administrative-censoring) supports
+right-censored survival inference within each arm. It does **not** imply
+unbiased complete-case binary inference: early events can be ascertained
+before dropout, while later endpoint outcomes can be missing. Excluding
+the latter can overestimate the fixed-time event probability and distort
 treatment comparisons. Binary designs with dropout should assess final
 imputation under a suitable event-time model and sensitivity to that
 model. Designs where dropout depends on prognosis require sensitivity

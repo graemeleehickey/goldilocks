@@ -78,10 +78,10 @@ the technical details of the design, including notation, the
 continuous-time enrollment process, the piecewise-exponential event-time
 model, Gamma posterior updating, posterior <strong>predictive
 probabilities</strong>, interim decision rules, final analysis options,
-and simulation-based calibration. The package vignettes “Two-arm
-randomized trials”, “Bayesian piecewise-exponential designs”, “Bayesian
-binary outcome designs”, and “Single-arm designs with a performance
-goal” provide more application-focused examples in R.</p>
+and simulation-based calibration. The package vignettes <a href="two-arm.html">Two-arm randomized trials</a>, <a href="bayes-piecewise.html">Bayesian piecewise-exponential designs</a>,
+<a href="bayesian-binary.html">Bayesian binary outcome designs</a>, and
+<a href="single-arm.html">Single-arm designs with a performance goal</a>
+provide more application-focused examples in R.</p>
 </div>
 <div class="section level2">
 <h2 id="design-and-notation">1. Design and notation<a class="anchor" aria-label="anchor" href="#design-and-notation"></a>
@@ -562,7 +562,8 @@ method:</p>
 <td><code>logrank</code></td>
 <td>
 <span class="math inline">1-p(\mathcal{D})</span>, where <span class="math inline">p(\mathcal{D})</span> is the traditional log-rank
-test P-value, with one-sided variants defined in Section 7.1</td>
+test P-value, with one-sided variants defined in <a href="#frequentist-final-tests">Section 7.1</a>
+</td>
 <td>
 <code>"less"</code>, <code>"greater"</code>,
 <code>"two.sided"</code>
@@ -585,7 +586,8 @@ the treatment-control RMST difference through <code>rmst_tau</code>
 <td><code>cox</code></td>
 <td>
 <span class="math inline">1-p(\mathcal{D})</span>, where <span class="math inline">p(\mathcal{D})</span> is the traditional Wald-test
-P-value, with one-sided variants defined in Section 7.1</td>
+P-value, with one-sided variants defined in <a href="#frequentist-final-tests">Section 7.1</a>
+</td>
 <td>
 <code>"less"</code>, <code>"greater"</code>,
 <code>"two.sided"</code>
@@ -1190,8 +1192,8 @@ pooling applies to imputed Cox, RMST, and <code>riskdiff-wald</code>
 final analyses; it does not alter the interim posterior-predictive
 calculation, where each simulated completed trial is tested separately
 before the success indicators are averaged.</p>
-<p>The independent dropout mechanism in Section 3.1 supports
-right-censored survival inference within each arm. It does
+<p>The independent dropout mechanism in <a href="#independent-dropout-and-administrative-censoring">Section 3.1</a>
+supports right-censored survival inference within each arm. It does
 <strong>not</strong> imply unbiased complete-case binary inference:
 early events can be ascertained before dropout, while later endpoint
 outcomes can be missing. Excluding the latter can overestimate the

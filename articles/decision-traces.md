@@ -269,5 +269,5 @@ For reproducible simulations, prespecify `seed` in
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md).
 Results are then reproducible whether the trials are evaluated
 sequentially or in parallel. For a detailed explanation of the decision
-algorithm and calibration, see the “Technical details of the Goldilocks
-design” vignette.
+algorithm and calibration, see [Technical details of the Goldilocks
+design](https://graemeleehickey.github.io/goldilocks/articles/technical-methods.md).
