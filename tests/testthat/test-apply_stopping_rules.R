@@ -116,7 +116,8 @@ test_that("look-specific thresholds stop at the first eligible look", {
 
 test_that("replay is pure and does not copy or mutate its input bank", {
   paths <- rule_fixture()
-  before <- serialize(paths, NULL)
+  saved <- unserialize(serialize(paths, NULL))
+  expect_identical(saved$call[[1L]], quote(sim_trial_paths))
   set.seed(515)
   state <- .Random.seed
   local_mocked_bindings(
@@ -139,13 +140,13 @@ test_that("replay is pure and does not copy or mutate its input bank", {
   )
   expect_identical(first, second)
   expect_identical(.Random.seed, state)
-  expect_identical(serialize(paths, NULL), before)
-  roundtrip <- unserialize(before)
+  expect_identical(paths, saved)
   expect_identical(
-    apply_stopping_rules(roundtrip, Sn = .4, prob_ha = .95)$sims,
+    apply_stopping_rules(saved, Sn = .4, prob_ha = .95)$sims,
     first$sims
   )
   via_do_call <- do.call(apply_stopping_rules, list(paths = paths))
+  expect_identical(via_do_call$call[[1L]], quote(apply_stopping_rules))
   expect_identical(via_do_call$call$paths, quote(paths))
 })
 

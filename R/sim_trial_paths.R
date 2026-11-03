@@ -96,6 +96,8 @@ sim_trial_paths <- function(
   trial_offset = 0L
 ) {
   Call <- match.call()
+  # do.call() can put the entire function in the saved call.
+  if (is.function(Call[[1L]])) Call[[1L]] <- quote(sim_trial_paths)
   args <- capture_arguments(sim_trial_paths, environment())
   args$backend <- match.arg(backend)
   args$empty_interval <- match.arg(empty_interval)

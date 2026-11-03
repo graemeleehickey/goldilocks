@@ -72,7 +72,8 @@ apply_stopping_rules <- function(
   return_trace = FALSE
 ) {
   Call <- match.call()
-  # do.call() may otherwise embed the whole bank in the stored call.
+  # Keep the function and bank names in the saved call when using do.call().
+  if (is.function(Call[[1L]])) Call[[1L]] <- quote(apply_stopping_rules)
   Call$paths <- quote(paths)
   validate_trial_paths(paths)
   validate_single_probability(prob_ha, "prob_ha")
