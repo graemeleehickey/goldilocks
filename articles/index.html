@@ -43,10 +43,6 @@
 
       <dl><dt><a href="two-arm.html">Two-arm randomized trials</a></dt>
         <dd>
-        </dd><dt><a href="calibrating-prob-ha.html">Calibrating `prob_ha` for type I error control</a></dt>
-        <dd>
-        </dd><dt><a href="calibrating-stopping-rules.html">Calibrating stopping rules from complete trial paths</a></dt>
-        <dd>
         </dd><dt><a href="bayes-piecewise.html">Bayesian piecewise-exponential designs</a></dt>
         <dd>
         </dd><dt><a href="rmst.html">Restricted mean survival time designs</a></dt>
@@ -57,9 +53,18 @@
         <dd>
         </dd><dt><a href="single-arm.html">Single-arm designs with a performance goal</a></dt>
         <dd>
-        </dd><dt><a href="decision-traces.html">Inspecting adaptive decision paths</a></dt>
-        <dd>
         </dd><dt><a href="interim-data.html">Applying predictive decisions to an observed interim data cut</a></dt>
+        <dd>
+      </dd></dl></div>
+    <div class="section ">
+      <h3>Calibration and Interrogation</h3>
+      <div class="section-desc"></div>
+
+      <dl><dt><a href="calibrating-prob-ha.html">Calibrating prob_ha for type I error control</a></dt>
+        <dd>
+        </dd><dt><a href="calibrating-stopping-rules.html">Calibrating stopping rules from complete trial paths</a></dt>
+        <dd>
+        </dd><dt><a href="decision-traces.html">Inspecting adaptive decision paths</a></dt>
         <dd>
       </dd></dl></div>
     <div class="section ">
@@ -98,7 +103,11 @@
 
 
 
-
-
-  </body></html>
+  <script>
+// pkgdown uses plain text for both the article heading and its index entry.
+const calibrationTitle = document.querySelector('.template-article-index a[href="calibrating-prob-ha.html"], .template-article h1');
+if (calibrationTitle?.textContent.includes('prob_ha')) {
+  calibrationTitle.innerHTML = calibrationTitle.innerHTML.replace(/\bprob_ha\b/, '<code>prob_ha</code>');
+}
+</script></body></html>
 

@@ -832,7 +832,12 @@ JACC supplement</a>.</p>
 
 
 
-
-
-  </body>
+  <script>
+// pkgdown uses plain text for both the article heading and its index entry.
+const calibrationTitle = document.querySelector('.template-article-index a[href="calibrating-prob-ha.html"], .template-article h1');
+if (calibrationTitle?.textContent.includes('prob_ha')) {
+  calibrationTitle.innerHTML = calibrationTitle.innerHTML.replace(/\bprob_ha\b/, '<code>prob_ha</code>');
+}
+</script>
+</body>
 </html>
