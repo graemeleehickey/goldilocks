@@ -1,12 +1,12 @@
 ---
-title: "ThermoCool AF: immediate success from predictive probability"
+title: "ThermoCool AF"
 output:
   rmarkdown::html_vignette:
     self_contained: false
     lib_dir: libs
     css: libs/vignette.css
 vignette: >
-  %\VignetteIndexEntry{ThermoCool AF: immediate success from predictive probability}
+  %\VignetteIndexEntry{ThermoCool AF}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
