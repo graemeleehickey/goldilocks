@@ -109,7 +109,7 @@ banks$null
 #> Goldilocks trial paths
 #> 40 trials; 3 interim looks; maximum N = 100 
 #> Failed calculations: 0 
-#> Memory: 1.5 Mb
+#> Memory: 1.2 Mb
 ```
 
 `N_impute` is part of the implemented stopping algorithm. It is fixed
