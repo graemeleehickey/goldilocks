@@ -1,12 +1,12 @@
 ---
-title: "ADVENT: a published Goldilocks design"
+title: "ADVENT"
 output:
   rmarkdown::html_vignette:
     self_contained: false
     lib_dir: libs
     css: libs/vignette.css
 vignette: >
-  %\VignetteIndexEntry{ADVENT: a published Goldilocks design}
+  %\VignetteIndexEntry{ADVENT}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

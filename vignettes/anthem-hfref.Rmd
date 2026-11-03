@@ -1,12 +1,12 @@
 ---
-title: "ANTHEM-HFrEF: a published adaptive survival design"
+title: "ANTHEM-HFrEF"
 output:
   rmarkdown::html_vignette:
     self_contained: false
     lib_dir: libs
     css: libs/vignette.css
 vignette: >
-  %\VignetteIndexEntry{ANTHEM-HFrEF: a published adaptive survival design}
+  %\VignetteIndexEntry{ANTHEM-HFrEF}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
