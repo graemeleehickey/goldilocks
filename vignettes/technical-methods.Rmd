@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-The `goldilocks` package implements the Goldilocks adaptive sample-size design of Broglio, Connor, and Berry (2014) for time-to-event and fixed-time binary endpoints. This vignette outlines the technical details of the design, including notation, the continuous-time enrollment process, the piecewise-exponential event-time model, Gamma posterior updating, posterior **predictive probabilities**, interim decision rules, final analysis options, and simulation-based calibration. The package vignettes "Two-arm randomized trials", "Bayesian piecewise-exponential designs", "Bayesian binary outcome designs", and "Single-arm designs with a performance goal" provide more application-focused examples in R.
+The `goldilocks` package implements the Goldilocks adaptive sample-size design of Broglio, Connor, and Berry (2014) for time-to-event and fixed-time binary endpoints. This vignette outlines the technical details of the design, including notation, the continuous-time enrollment process, the piecewise-exponential event-time model, Gamma posterior updating, posterior **predictive probabilities**, interim decision rules, final analysis options, and simulation-based calibration. The package vignettes [Two-arm randomized trials](two-arm.html), [Bayesian piecewise-exponential designs](bayes-piecewise.html), [Bayesian binary outcome designs](bayesian-binary.html), and [Single-arm designs with a performance goal](single-arm.html) provide more application-focused examples in R.
 
 ## 1. Design and notation
 
@@ -416,9 +416,9 @@ where $Q(\mathcal{D})$ is the final analysis quantity and $c$ is the success thr
 
 | Design setting | `method` | $Q(\mathcal{D})$ | Supported alternatives |
 |------------------|------------------|------------------|------------------|
-| Two-arm randomized trial | `logrank` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the traditional log-rank test P-value, with one-sided variants defined in Section 7.1 | `"less"`, `"greater"`, `"two.sided"` |
+| Two-arm randomized trial | `logrank` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the traditional log-rank test P-value, with one-sided variants defined in [Section 7.1](#frequentist-final-tests) | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `rmst` | $1-p(\mathcal{D})$ for a Wald test of the treatment-control RMST difference through `rmst_tau` | `"less"`, `"greater"`, `"two.sided"` |
-| Two-arm randomized trial | `cox` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the traditional Wald-test P-value, with one-sided variants defined in Section 7.1 | `"less"`, `"greater"`, `"two.sided"` |
+| Two-arm randomized trial | `cox` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the traditional Wald-test P-value, with one-sided variants defined in [Section 7.1](#frequentist-final-tests) | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `riskdiff-wald` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the Wald-test P-value for the treatment-control event-risk difference | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `riskdiff-fm` | $1-p(\mathcal{D})$, where $p(\mathcal{D})$ is the Farrington-Manning score-test P-value for the treatment-control event-risk difference | `"less"`, `"greater"`, `"two.sided"` |
 | Two-arm randomized trial | `bayes-surv` | $\Pr(\Delta < h_0 \mid \mathcal{D})$ or $\Pr(\Delta > h_0 \mid \mathcal{D})$ | `"less"`, `"greater"` |
@@ -792,14 +792,7 @@ If no final outcomes require imputation, the selected complete-data test is used
 
 If `imputed_final = FALSE`, the final analysis uses observed right-censored data for methods that can handle censoring (`logrank`, `cox`, `rmst`, and `bayes-surv`). For `riskdiff-wald`, `riskdiff-fm`, and `bayes-bin`, lost-to-follow-up subjects are excluded because these methods require complete binary outcomes and have no mechanism for right-censored observations. Rubin pooling applies to imputed Cox, RMST, and `riskdiff-wald` final analyses; it does not alter the interim posterior-predictive calculation, where each simulated completed trial is tested separately before the success indicators are averaged.
 
-The independent dropout mechanism in Section 3.1 supports right-censored
-survival inference within each arm. It does **not** imply unbiased complete-case
-binary inference: early events can be ascertained before dropout, while later
-endpoint outcomes can be missing. Excluding the latter can overestimate the
-fixed-time event probability and distort treatment comparisons. Binary designs
-with dropout should assess final imputation under a suitable event-time model
-and sensitivity to that model. Designs where dropout depends on prognosis
-require sensitivity analyses outside the default independent mechanism.
+The independent dropout mechanism in [Section 3.1](#independent-dropout-and-administrative-censoring) supports right-censored survival inference within each arm. It does **not** imply unbiased complete-case binary inference: early events can be ascertained before dropout, while later endpoint outcomes can be missing. Excluding the latter can overestimate the fixed-time event probability and distort treatment comparisons. Binary designs with dropout should assess final imputation under a suitable event-time model and sensitivity to that model. Designs where dropout depends on prognosis require sensitivity analyses outside the default independent mechanism.
 
 ## 8. Operating characteristics
 

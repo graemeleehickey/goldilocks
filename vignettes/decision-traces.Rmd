@@ -191,7 +191,4 @@ plot_sim_ocs(
 )
 ```
 
-For reproducible simulations, prespecify `seed` in `sim_trials()`. Results are
-then reproducible whether the trials are evaluated sequentially or in parallel.
-For a detailed explanation of the decision algorithm and calibration, see the
-"Technical details of the Goldilocks design" vignette.
+For reproducible simulations, prespecify `seed` in `sim_trials()`. Results are then reproducible whether the trials are evaluated sequentially or in parallel. For a detailed explanation of the decision algorithm and calibration, see [Technical details of the Goldilocks design](technical-methods.html).

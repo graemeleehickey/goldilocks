@@ -19,7 +19,7 @@ set.seed(3081)
 library(goldilocks)
 ```
 
-Several other vignettes focus on two-arm randomized designs, although the Bayesian binary outcome vignette also includes a single-arm example. Single-arm trials -- in which every subject receives the experimental therapy and the comparator is an external benchmark, often called a performance goal (PG) or objective performance criterion (OPC) -- are common in early-phase oncology, rare-disease, and proof-of-concept studies. This vignette shows how to set up a Goldilocks single-arm design with `survival_adapt()`.
+The [two-arm randomized trial](two-arm.html) example uses a concurrent control group. The Bayesian binary outcome vignette includes a [single-arm example](bayesian-binary.html#single-arm-design). Single-arm trials -- in which every subject receives the experimental therapy and the comparator is an external benchmark, often called a performance goal (PG) or objective performance criterion (OPC) -- are common in early-phase oncology, rare-disease, and proof-of-concept studies. This vignette shows how to set up a Goldilocks single-arm design with `survival_adapt()`.
 
 Two practical constraints on single-arm designs in this package:
 
@@ -207,6 +207,6 @@ The validity of a single-arm Goldilocks trial rests entirely on the benchmark `h
 
 ## See also
 
--   The "Two-arm randomized trials" vignette covers the corresponding two-arm randomized design with a log-rank decision rule.
--   The "Bayesian piecewise-exponential designs" vignette covers the same decision rule used here, but in a two-arm setting and with non-constant hazards. The same piecewise-exponential specification applies to single-arm trials when `hazard_control = NULL` and `hazard_treatment` contains one hazard per interval.
--   `?survival_adapt` documents all arguments.
+-   The [Two-arm randomized trials](two-arm.html) vignette covers the corresponding two-arm randomized design with a log-rank decision rule.
+-   The [Bayesian piecewise-exponential designs](bayes-piecewise.html) vignette covers the same decision rule used here, but in a two-arm setting and with non-constant hazards. The same piecewise-exponential specification applies to single-arm trials when `hazard_control = NULL` and `hazard_treatment` contains one hazard per interval.
+-   The help page for [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.html) documents all arguments.

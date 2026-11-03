@@ -132,10 +132,7 @@ The [calibration vignette](calibrating-prob-ha.html) shows how to screen
 thresholds, assess Monte Carlo uncertainty, and validate a selected design
 with independent simulations, including how to adapt the workflow to RMST.
 
-For maintainer validation, `benchmarks/rmst-calibration.R` runs fixed and
-adaptive scenarios with failure counts and Monte Carlo intervals, and
-`benchmarks/rmst.R` compares completed-data and predictive runtimes. The
-technical methods vignette gives the variance and pooling formulas.
+For maintainer validation, `benchmarks/rmst-calibration.R` runs fixed and adaptive scenarios with failure counts and Monte Carlo intervals, and `benchmarks/rmst.R` compares completed-data and predictive runtimes. The technical methods vignette gives the [variance and pooling formulas](technical-methods.html#frequentist-final-tests).
 
 ## References
 
