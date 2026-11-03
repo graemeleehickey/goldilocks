@@ -6,6 +6,15 @@ template:
   theme: github-light
   theme-dark: github-dark
   math-rendering: katex
+  includes:
+    after_body: |
+      <script>
+      // pkgdown uses plain text for both the article heading and its index entry.
+      const calibrationTitle = document.querySelector('.template-article-index a[href="calibrating-prob-ha.html"], .template-article h1');
+      if (calibrationTitle?.textContent.includes('prob_ha')) {
+        calibrationTitle.innerHTML = calibrationTitle.innerHTML.replace(/\bprob_ha\b/, '<code>prob_ha</code>');
+      }
+      </script>
 
 navbar:
   structure:
@@ -68,15 +77,17 @@ articles:
   - title: Getting started
     contents:
       - two-arm
-      - calibrating-prob-ha
-      - calibrating-stopping-rules
       - bayes-piecewise
       - rmst
       - bayesian-binary
       - frequentist-binary
       - single-arm
-      - decision-traces
       - interim-data
+  - title: Calibration and Interrogation
+    contents:
+      - calibrating-prob-ha
+      - calibrating-stopping-rules
+      - decision-traces
   - title: Real trial examples
     contents:
       - advent
