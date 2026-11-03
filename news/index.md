@@ -2,6 +2,8 @@
 
 ## goldilocks 1.0.0
 
+CRAN release: 2026-09-09
+
 Version 1.0.0 marks the first stable major release. Highlights include
 observed interim evaluation, RMST and Farrington-Manning analyses,
 immediate-success stopping, arm-specific priors, and Monte Carlo and

@@ -6,12 +6,6 @@
   trials](https://graemeleehickey.github.io/goldilocks/articles/two-arm.md):
 - [Calibrating \`prob_ha\` for type I error
   control](https://graemeleehickey.github.io/goldilocks/articles/calibrating-prob-ha.md):
-- [ThermoCool AF: immediate success from predictive
-  probability](https://graemeleehickey.github.io/goldilocks/articles/thermocool-af.md):
-- [ANTHEM-HFrEF: a published adaptive survival
-  design](https://graemeleehickey.github.io/goldilocks/articles/anthem-hfref.md):
-- [ADVENT: a published Goldilocks
-  design](https://graemeleehickey.github.io/goldilocks/articles/advent.md):
 - [Bayesian piecewise-exponential
   designs](https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.md):
 - [Restricted mean survival time
@@ -26,6 +20,15 @@
   paths](https://graemeleehickey.github.io/goldilocks/articles/decision-traces.md):
 - [Applying predictive decisions to an observed interim data
   cut](https://graemeleehickey.github.io/goldilocks/articles/interim-data.md):
+
+### Real trial examples
+
+- [ADVENT: a published Goldilocks
+  design](https://graemeleehickey.github.io/goldilocks/articles/advent.md):
+- [ANTHEM-HFrEF: a published adaptive survival
+  design](https://graemeleehickey.github.io/goldilocks/articles/anthem-hfref.md):
+- [ThermoCool AF: immediate success from predictive
+  probability](https://graemeleehickey.github.io/goldilocks/articles/thermocool-af.md):
 
 ### Statistical methods and reproducibility
 
