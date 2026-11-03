@@ -41,7 +41,8 @@ analyse_predictive_survival <- function(
   check_futility,
   prob_ha,
   mc_conf_level,
-  rmst_tau = end_of_study
+  rmst_tau = end_of_study,
+  isolate_errors = FALSE
 ) {
   ##############################################################################
   ### Test for success at current sample size (-> stop for success)
@@ -52,21 +53,24 @@ analyse_predictive_survival <- function(
     imputations = imputations,
     draw = draw
   )
-  success_now <- analyse_completed_survival(
-    outcome = outcome_now,
-    rmst_tau = rmst_tau,
-    cutpoints = cutpoints,
-    end_of_study = end_of_study,
-    interval_widths = interval_widths,
-    # Each completed trial is tested with the final analysis prior. Its
-    # outcomes were generated separately using the interim predictive prior.
-    prior_surv = prior_surv_final,
-    N_mcmc = N_mcmc,
-    single_arm = single_arm,
-    method = method,
-    alternative = alternative,
-    h0 = h0,
-    empty_interval = empty_interval
+  success_now <- capture_predictive_analysis(
+    isolate_errors,
+    analyse_completed_survival(
+      outcome = outcome_now,
+      rmst_tau = rmst_tau,
+      cutpoints = cutpoints,
+      end_of_study = end_of_study,
+      interval_widths = interval_widths,
+      # Each completed trial is tested with the final analysis prior. Its
+      # outcomes were generated separately using the interim predictive prior.
+      prior_surv = prior_surv_final,
+      N_mcmc = N_mcmc,
+      single_arm = single_arm,
+      method = method,
+      alternative = alternative,
+      h0 = h0,
+      empty_interval = empty_interval
+    )
   )
 
   ##############################################################################
@@ -80,30 +84,35 @@ analyse_predictive_survival <- function(
       draw = draw,
       maximum = TRUE
     )
-    success_max <- analyse_completed_survival(
-      outcome = outcome_max,
-      rmst_tau = rmst_tau,
-      cutpoints = cutpoints,
-      end_of_study = end_of_study,
-      interval_widths = interval_widths,
-      prior_surv = prior_surv_final,
-      N_mcmc = N_mcmc,
-      single_arm = single_arm,
-      method = method,
-      alternative = alternative,
-      h0 = h0,
-      empty_interval = empty_interval
+    success_max <- capture_predictive_analysis(
+      isolate_errors,
+      analyse_completed_survival(
+        outcome = outcome_max,
+        rmst_tau = rmst_tau,
+        cutpoints = cutpoints,
+        end_of_study = end_of_study,
+        interval_widths = interval_widths,
+        prior_surv = prior_surv_final,
+        N_mcmc = N_mcmc,
+        single_arm = single_arm,
+        method = method,
+        alternative = alternative,
+        h0 = h0,
+        empty_interval = empty_interval
+      )
     )
   } else {
     success_max <- NA
   }
 
-  classification_now <- classify_completed_analysis(
-    success_now,
-    prob_ha = prob_ha,
-    mc_conf_level = mc_conf_level
-  )
-  classification_max <- if (check_futility) {
+  classification_now <- if (!is.null(prob_ha)) {
+    classify_completed_analysis(
+      success_now,
+      prob_ha = prob_ha,
+      mc_conf_level = mc_conf_level
+    )
+  }
+  classification_max <- if (check_futility && !is.null(prob_ha)) {
     classify_completed_analysis(
       success_max,
       prob_ha = prob_ha,
@@ -171,7 +180,8 @@ analyse_predictive_binary_counts <- function(
   bin_method,
   check_futility,
   prob_ha,
-  mc_conf_level
+  mc_conf_level,
+  isolate_errors = FALSE
 ) {
   n_draws <- nrow(completed_counts$current)
   if (check_futility) {
@@ -207,15 +217,18 @@ analyse_predictive_binary_counts <- function(
   }
 
   analyses_unique <- lapply(analysis_rows, function(row) {
-    analyse_binary_counts(
-      counts = combined[row, , drop = FALSE],
-      single_arm = single_arm,
-      N_mcmc = N_mcmc,
-      method = method,
-      alternative = alternative,
-      h0 = h0,
-      prior_bin = prior_bin,
-      bin_method = bin_method
+    capture_predictive_analysis(
+      isolate_errors,
+      analyse_binary_counts(
+        counts = combined[row, , drop = FALSE],
+        single_arm = single_arm,
+        N_mcmc = N_mcmc,
+        method = method,
+        alternative = alternative,
+        h0 = h0,
+        prior_bin = prior_bin,
+        bin_method = bin_method
+      )
     )
   })
   analyses <- if (deterministic) {
@@ -225,6 +238,31 @@ analyse_predictive_binary_counts <- function(
     )]
   } else {
     analyses_unique
+  }
+  current <- stage == "current"
+  maximum <- stage == "maximum"
+  unique_summaries <- sum(first_in_group)
+  repeated_summaries <- length(analysis_groups) - unique_summaries
+  scores <- list(
+    current = pack_analysis_scores(analyses[current]),
+    maximum = if (check_futility) {
+      pack_analysis_scores(analyses[maximum])
+    } else {
+      NULL
+    }
+  )
+  if (is.null(prob_ha)) {
+    return(list(
+      scores = scores,
+      reuse = binary_count_reuse_summary(
+        method,
+        bin_method,
+        deterministic,
+        analysis_groups,
+        unique_summaries,
+        repeated_summaries
+      )
+    ))
   }
   classifications <- lapply(analyses, function(analysis) {
     classify_completed_analysis(
@@ -236,11 +274,6 @@ analyse_predictive_binary_counts <- function(
 
   crossed <- vapply(classifications, `[[`, logical(1L), "crossed")
   uncertain <- vapply(classifications, `[[`, logical(1L), "uncertain")
-  current <- stage == "current"
-  maximum <- stage == "maximum"
-  unique_summaries <- sum(first_in_group)
-  repeated_summaries <- length(analysis_groups) - unique_summaries
-
   list(
     current_successes = sum(crossed[current]),
     maximum_successes = if (check_futility) {
@@ -254,21 +287,13 @@ analyse_predictive_binary_counts <- function(
     } else {
       0L
     },
-    reuse = data.frame(
-      method = method,
-      bin_method = if (method == "bayes-bin") bin_method else NA_character_,
-      reuse_enabled = deterministic,
-      analysis_requests = length(analysis_groups),
-      unique_count_summaries = unique_summaries,
-      repeated_count_summaries = repeated_summaries,
-      repeated_summary_rate = repeated_summaries / length(analysis_groups),
-      reused_analyses = if (deterministic) repeated_summaries else 0L,
-      reused_analysis_rate = if (deterministic) {
-        repeated_summaries / length(analysis_groups)
-      } else {
-        0
-      },
-      stringsAsFactors = FALSE
+    reuse = binary_count_reuse_summary(
+      method,
+      bin_method,
+      deterministic,
+      analysis_groups,
+      unique_summaries,
+      repeated_summaries
     )
   )
 }
@@ -372,4 +397,31 @@ analyse_binary_counts <- function(
     h0 = h0
   )
   list(success = fit$success, effect = fit$estimate)
+}
+
+# Shared diagnostics for deterministic binary-analysis reuse.
+binary_count_reuse_summary <- function(
+  method,
+  bin_method,
+  deterministic,
+  analysis_groups,
+  unique_summaries,
+  repeated_summaries
+) {
+  data.frame(
+    method = method,
+    bin_method = if (method == "bayes-bin") bin_method else NA_character_,
+    reuse_enabled = deterministic,
+    analysis_requests = length(analysis_groups),
+    unique_count_summaries = unique_summaries,
+    repeated_count_summaries = repeated_summaries,
+    repeated_summary_rate = repeated_summaries / length(analysis_groups),
+    reused_analyses = if (deterministic) repeated_summaries else 0L,
+    reused_analysis_rate = if (deterministic) {
+      repeated_summaries / length(analysis_groups)
+    } else {
+      0
+    },
+    stringsAsFactors = FALSE
+  )
 }

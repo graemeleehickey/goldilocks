@@ -180,3 +180,20 @@ calibration for arbitrary designs or remove imputation-model assumptions.
 The recorded implementation-validation run is in `rmst-validation.md`, with
 raw grid and independent fixed-null results in `rmst-calibration-results.csv`
 and `rmst-fixed-null-results.csv`.
+
+## Reusable trial paths
+
+`Rscript benchmarks/trial-paths.R 100 20 /tmp/trial-path-results.csv` compares one complete bank plus eight threshold replays with eight separate `sim_trials()` calls. It covers null and alternative scenarios for log-rank and Monte Carlo Bayesian binary analyses. The arguments specify the trial and predictive-imputation counts; Bayesian analyses use 100 posterior draws. The script records elapsed times, bank size, operating characteristics, failures, and R/package versions. Larger counts can be supplied for a more precise comparison.
+
+The saved `trial-path-results.csv` run used 100 trials per scenario, 20 imputations, two interim looks, and sequential execution on macOS with R 4.5.3. The times below include bank generation and all eight replays. They describe these workloads, not a guaranteed speedup for other designs or hardware.
+
+| Analysis | Scenario | Bank and eight replays (s) | Eight direct runs (s) | Speedup |
+|:--|:--|--:|--:|--:|
+| Log-rank | Null | 1.742 | 8.125 | 4.66 |
+| Log-rank | Alternative | 1.469 | 8.525 | 5.80 |
+| Bayesian binary | Null | 1.812 | 10.363 | 5.72 |
+| Bayesian binary | Alternative | 1.734 | 11.314 | 6.52 |
+
+No bank calculations or direct trials failed in this run. Across the 32 candidate/scenario/method comparisons, the largest absolute difference in success probability was 1.43 combined Monte Carlo standard errors. The direct simulations use a different seed; these small runs are a consistency check, not evidence of calibrated type I error control. Exact comparisons against a direct early-stopping reference using matched stage streams are covered by the package tests across all seven analysis methods, including final-imputation configurations.
+
+The bank stores scores and cohort summaries, not participant datasets or posterior draws. Its memory requirement grows with the number of trials, looks, and predictive imputations. Use `trial_offset` and separate RDS files when a whole bank would exceed available memory.

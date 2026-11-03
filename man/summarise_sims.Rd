@@ -17,7 +17,8 @@ positive values giving the largest acceptable Monte Carlo standard error
 for selected estimands. Supported names are \code{power},
 \code{stop_immediate_success}, \code{stop_success}, \code{stop_any_success},
 \code{stop_futility}, \code{stop_max_N}, \code{mean_N}, \code{stop_and_fail}, and
-\code{failure_rate}. A warning identifies every scenario and estimand whose
+\code{failure_rate}, and (for replayed paths) \code{futility_and_success_at_max}.
+A warning identifies every scenario and estimand whose
 Monte Carlo standard error exceeds its target.}
 }
 \value{
@@ -39,6 +40,15 @@ These intervals describe uncertainty from using a finite number of
 simulated trials under fixed design and data-generating assumptions. They
 are \strong{not clinical confidence intervals}, treatment-effect intervals, or
 measures of model uncertainty.
+
+Results from \code{\link[=apply_stopping_rules]{apply_stopping_rules()}} additionally report
+\code{futility_and_success_at_max}: the joint probability of binding futility
+and success if continued to maximum N with the same final analysis and
+\code{prob_ha}. Its \verb{_n_used} and \verb{_n_missing} columns identify the available
+denominator and unavailable comparisons. Its Monte Carlo interval uses
+available comparisons only; missing counterfactual outcomes may be
+informative. This is distinct from \code{stop_futility}, which under an
+alternative is the probability of stopping for futility in that scenario.
 
 The output always reports \code{n_used}, the number of successfully analyzed
 simulations used by the operating-characteristic estimands. When complete

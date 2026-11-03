@@ -774,30 +774,11 @@ survival_adapt <- function(
       #                            e.g. if patient enrolled month 3, but look occurs month 7,
       #                            then patient could potentially be observed for 4 months
 
-      data_interim <- within(data_total, {
-        subject_enrolled <- (id <= analysis_at_enrollnumber[i])
-        subject_impute_futility <- !subject_enrolled
-        time_from_rand_at_look <- enrollment[analysis_at_enrollnumber[i]] -
-          enrollment
-        subject_impute_success <-
-          # Had event, but has not occurred yet (based on interim look)
-          ((event == 1) * (time_from_rand_at_look < time) & subject_enrolled) |
-          # Event-free and not had opportunity to complete full follow
-          ((event == 0) *
-            (time_from_rand_at_look < end_of_study) &
-            subject_enrolled) |
-          (loss_to_fu & subject_enrolled)
-      })
-
-      # Mask the data at time of look
-      # Note: subjects at the exact interim boundary have
-      # time_from_rand_at_look = 0, yielding time = 0 after masking.
-      # Clamp to .Machine$double.eps so the boundary subject contributes
-      # negligible but non-zero exposure to the interim posterior.
-      data_interim <- within(data_interim, {
-        time <- pmax(pmin(time, time_from_rand_at_look), .Machine$double.eps)
-        event <- ifelse(subject_impute_success, 0, event)
-      })
+      data_interim <- prepare_simulated_interim(
+        data_total,
+        analysis_at_enrollnumber[i],
+        end_of_study
+      )
 
       look_time <- data_total$enrollment[analysis_at_enrollnumber[i]]
       interim_result <- evaluate_interim_decision(

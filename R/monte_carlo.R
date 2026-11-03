@@ -153,3 +153,76 @@ classify_completed_analysis <- function(
     draws = summary$draws
   )
 }
+
+# Retain only the success scores and posterior counts needed for recalibration.
+pack_analysis_scores <- function(analyses) {
+  errors <- vapply(analyses, inherits, logical(1), what = "error")
+  if (any(errors)) {
+    error <- analyses[[which(errors)[1L]]]
+    return(structure(
+      numeric(),
+      failure = list(
+        error_class = class(error)[1L],
+        message = conditionMessage(error)
+      )
+    ))
+  }
+  scores <- vapply(analyses, `[[`, numeric(1), "success")
+  if (
+    !length(scores) || any(!is.finite(scores)) || any(scores < 0 | scores > 1)
+  ) {
+    return(structure(
+      numeric(),
+      failure = list(
+        error_class = "goldilocks_invalid_predictive_score",
+        message = "Predictive analysis did not return finite probabilities in [0, 1]"
+      )
+    ))
+  }
+  counts <- lapply(analyses, attr, which = "mc_counts", exact = TRUE)
+  has_counts <- !vapply(counts, is.null, logical(1))
+  if (any(has_counts)) {
+    if (!all(has_counts)) {
+      stop("Inconsistent posterior counts in predictive analyses")
+    }
+    draws <- vapply(counts, function(x) as.integer(x$draws), integer(1))
+    attr(scores, "mc_counts") <- list(
+      successes = vapply(
+        counts,
+        function(x) as.integer(x$successes),
+        integer(1)
+      ),
+      draws = if (length(unique(draws)) == 1L) draws[1L] else draws
+    )
+  }
+  scores
+}
+
+classify_analysis_scores <- function(scores, prob_ha, mc_conf_level) {
+  if (
+    !length(scores) || any(!is.finite(scores)) || any(scores < 0 | scores > 1)
+  ) {
+    stop("Predictive scores must be complete, finite probabilities")
+  }
+  crossed <- scores > prob_ha
+  counts <- attr(scores, "mc_counts", exact = TRUE)
+  uncertain <- if (is.null(counts)) {
+    0L
+  } else {
+    lower <- numeric(length(scores))
+    positive <- counts$successes > 0L
+    draws <- rep_len(counts$draws, length(scores))
+    lower[positive] <- stats::qbeta(
+      1 - mc_conf_level,
+      counts$successes[positive],
+      draws[positive] - counts$successes[positive] + 1L
+    )
+    sum(crossed & lower <= prob_ha)
+  }
+  list(successes = sum(crossed), uncertain = uncertain)
+}
+
+# Banks isolate current- and maximum-cohort failures; ordinary analyses still stop.
+capture_predictive_analysis <- function(isolate_errors, expr) {
+  if (isolate_errors) tryCatch(expr, error = identity) else expr
+}
