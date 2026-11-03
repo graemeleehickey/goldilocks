@@ -1,4 +1,4 @@
-# ThermoCool AF: immediate success from predictive probability
+# ThermoCool AF
 
 ``` r
 

@@ -1,4 +1,4 @@
-# ADVENT: a published Goldilocks design
+# ADVENT
 
 ``` r
 

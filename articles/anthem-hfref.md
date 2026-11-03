@@ -1,4 +1,4 @@
-# ANTHEM-HFrEF: a published adaptive survival design
+# ANTHEM-HFrEF
 
 ``` r
 

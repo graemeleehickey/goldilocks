@@ -23,12 +23,10 @@
 
 ### Real trial examples
 
-- [ADVENT: a published Goldilocks
-  design](https://graemeleehickey.github.io/goldilocks/articles/advent.md):
-- [ANTHEM-HFrEF: a published adaptive survival
-  design](https://graemeleehickey.github.io/goldilocks/articles/anthem-hfref.md):
-- [ThermoCool AF: immediate success from predictive
-  probability](https://graemeleehickey.github.io/goldilocks/articles/thermocool-af.md):
+- [ADVENT](https://graemeleehickey.github.io/goldilocks/articles/advent.md):
+- [ANTHEM-HFrEF](https://graemeleehickey.github.io/goldilocks/articles/anthem-hfref.md):
+- [ThermoCool
+  AF](https://graemeleehickey.github.io/goldilocks/articles/thermocool-af.md):
 
 ### Statistical methods and reproducibility
 
