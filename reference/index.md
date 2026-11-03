@@ -16,6 +16,12 @@ designs.
   : Evaluate an externally observed interim data cut
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   : Estimate operating characteristics by trial simulation
+- [`sim_trial_paths()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_paths.md)
+  : Simulate complete trial paths for repeated threshold calibration
+- [`apply_stopping_rules()`](https://graemeleehickey.github.io/goldilocks/reference/apply_stopping_rules.md)
+  : Apply stopping rules to a saved trial-path bank
+- [`print(`*`<goldilocks_paths>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_paths.md)
+  : Print a complete trial-path simulation bank
 - [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
   : Estimate operating characteristics from trial simulations
 - [`summarise_calendar_time()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.md)

@@ -27,8 +27,9 @@ summarise_sims(data, max_mcse = NULL)
   selected estimands. Supported names are `power`,
   `stop_immediate_success`, `stop_success`, `stop_any_success`,
   `stop_futility`, `stop_max_N`, `mean_N`, `stop_and_fail`, and
-  `failure_rate`. A warning identifies every scenario and estimand whose
-  Monte Carlo standard error exceeds its target.
+  `failure_rate`, and (for replayed paths)
+  `futility_and_success_at_max`. A warning identifies every scenario and
+  estimand whose Monte Carlo standard error exceeds its target.
 
 ## Value
 
@@ -51,6 +52,17 @@ These intervals describe uncertainty from using a finite number of
 simulated trials under fixed design and data-generating assumptions.
 They are **not clinical confidence intervals**, treatment-effect
 intervals, or measures of model uncertainty.
+
+Results from
+[`apply_stopping_rules()`](https://graemeleehickey.github.io/goldilocks/reference/apply_stopping_rules.md)
+additionally report `futility_and_success_at_max`: the joint probability
+of binding futility and success if continued to maximum N with the same
+final analysis and `prob_ha`. Its `_n_used` and `_n_missing` columns
+identify the available denominator and unavailable comparisons. Its
+Monte Carlo interval uses available comparisons only; missing
+counterfactual outcomes may be informative. This is distinct from
+`stop_futility`, which under an alternative is the probability of
+stopping for futility in that scenario.
 
 The output always reports `n_used`, the number of successfully analyzed
 simulations used by the operating-characteristic estimands. When

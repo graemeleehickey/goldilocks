@@ -7,6 +7,7 @@
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/bayesian-binary.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/calibrating-prob-ha.html</loc></url>
+<url><loc>https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/decision-traces.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/frequentist-binary.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/articles/index.html</loc></url>
@@ -19,6 +20,7 @@
 <url><loc>https://graemeleehickey.github.io/goldilocks/authors.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/index.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/news/index.html</loc></url>
+<url><loc>https://graemeleehickey.github.io/goldilocks/reference/apply_stopping_rules.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/enrollment.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/goldilocks-package.html</loc></url>
@@ -32,12 +34,14 @@
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/ppwe.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_calendar_summary.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_interim.html</loc></url>
+<url><loc>https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_paths.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_trial.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/pwe_sim.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/randomization.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.html</loc></url>
+<url><loc>https://graemeleehickey.github.io/goldilocks/reference/sim_trial_paths.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/sim_trials.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.html</loc></url>
 <url><loc>https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.html</loc></url>

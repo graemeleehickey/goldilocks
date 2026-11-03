@@ -67,6 +67,25 @@ binary success tests instead use `prior_bin`. See the [worked example of
 separate
 priors](https://graemeleehickey.github.io/goldilocks/articles/interim-data.html#using-separate-predictive-and-analysis-priors).
 
+## Reuse simulations for threshold calibration
+
+[`sim_trial_paths()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_paths.md)
+evaluates every planned interim look and retains final analyses for each
+possible stopping cohort.
+[`apply_stopping_rules()`](https://graemeleehickey.github.io/goldilocks/reference/apply_stopping_rules.md)
+then applies different `Fn`, `Sn`, `Qn`, and `prob_ha` values to the
+saved bank without repeating predictive imputation or model fitting.
+Data-generating assumptions, analysis settings, and the look schedule
+remain fixed within a bank.
+
+Replayed results work with
+[`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
+and the existing simulation plots. They also distinguish stopping for
+futility from stopping for futility when the same simulated trial would
+have succeeded at maximum N. See the [complete-path calibration
+vignette](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.html)
+for screening, independent validation, and batch storage.
+
 ## Key benefits
 
 Other software and R packages are available to implement this algorithm.
@@ -98,9 +117,10 @@ Biopharmaceutical Statistics*, 2014; **24(3)**: 685–705.
 
 ## Installation
 
-The source version is `goldilocks` 1.0.0, prepared for CRAN submission.
-See [NEWS.md](https://graemeleehickey.github.io/goldilocks/NEWS.md) for
-changes and migration guidance from 0.6.0.
+The source version is `goldilocks` 1.1.0, which adds reusable trial
+paths for stopping-rule calibration. See
+[NEWS.md](https://graemeleehickey.github.io/goldilocks/NEWS.md) for
+release changes and migration guidance from 0.6.0.
 
 You can install the released version of `goldilocks` from CRAN with:
 

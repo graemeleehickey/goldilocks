@@ -8,6 +8,7 @@ articles:
   bayes-piecewise: bayes-piecewise.html
   bayesian-binary: bayesian-binary.html
   calibrating-prob-ha: calibrating-prob-ha.html
+  calibrating-stopping-rules: calibrating-stopping-rules.html
   decision-traces: decision-traces.html
   frequentist-binary: frequentist-binary.html
   interim-data: interim-data.html
@@ -16,7 +17,7 @@ articles:
   technical-methods: technical-methods.html
   thermocool-af: thermocool-af.html
   two-arm: two-arm.html
-last_built: 2026-11-03T00:25Z
+last_built: 2026-11-03T00:37Z
 urls:
   reference: https://graemeleehickey.github.io/goldilocks/reference
   article: https://graemeleehickey.github.io/goldilocks/articles

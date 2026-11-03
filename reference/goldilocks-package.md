@@ -6,9 +6,12 @@ exponential model, with conjugate Gamma priors used for predictive
 imputation. Final analyses may use log-rank, Cox, or restricted mean
 survival time tests, Bayesian piecewise-exponential inference,
 frequentist risk differences, or Bayesian beta-binomial inference. The
-method closely follows Broglio et al. (2014)
+method closely follows Broglio and colleagues (2014)
 [doi:10.1080/10543406.2014.888569](https://doi.org/10.1080/10543406.2014.888569)
-and supports simulation of design operating characteristics.
+and supports simulation of design operating characteristics. Complete
+trial paths can be simulated once and reused to calibrate stopping rules
+and final success thresholds without repeating predictive imputation or
+model fitting.
 
 ## See also
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,31 @@
       <small>Source: <a href="https://github.com/graemeleehickey/goldilocks/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.1.0" id="goldilocks-110">goldilocks 1.1.0<a class="anchor" aria-label="anchor" href="#goldilocks-110"></a></h2>
+<p>Version 1.1.0 adds reusable simulation banks for calibrating decision thresholds. Simulate every planned look once, then compare candidate stopping rules without repeating predictive imputation or model fitting.</p>
+<div class="section level3">
+<h3 id="new-features-1-1-0">New features<a class="anchor" aria-label="anchor" href="#new-features-1-1-0"></a></h3>
+<ul><li>
+<code><a href="../reference/sim_trial_paths.html">sim_trial_paths()</a></code> evaluates every planned interim look regardless of hypothetical stopping decisions. It retains unthresholded predictive scores for the current and maximum cohorts, plus final analyses and calendar metrics for each possible stopping cohort and maximum N.</li>
+<li>
+<code><a href="../reference/apply_stopping_rules.html">apply_stopping_rules()</a></code> evaluates candidate <code>Fn</code>, <code>Sn</code>, <code>Qn</code>, and <code>prob_ha</code> values using a saved bank. It preserves strict boundary comparisons and the decision priority of immediate success, expected success, binding futility, and continuation. Results support the existing operating-characteristic summaries, calendar-time summaries, and simulation plots, with optional per-look traces.</li>
+<li>Replayed results report <code>success_at_max</code> and <code>futility_and_success_at_max</code>. The latter is the joint event of binding futility and counterfactual success if the trial continued to maximum N. <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> reports its probability, Monte Carlo standard error, confidence interval, and available and missing comparison counts, separately from <code>stop_futility</code>, the ordinary futility probability under the simulated scenario.</li>
+<li>Banks retain design settings, priors, random-number metadata, runtime versions, and stage-specific failure diagnostics. Rule application excludes a trial only when a failed calculation is needed for that candidate; unavailable counterfactual final analyses are reported separately.</li>
+<li>Explicit seeds give reproducible banks across sequential, fork, and PSOCK execution while preserving the caller’s random-number state. <code>trial_offset</code> supports consecutive batches equivalent to a single bank with the same seed and settings. Banks can be saved and restored with <code><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS()</a></code> and <code><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS()</a></code>.</li>
+<li>The new “Calibrating stopping rules from complete trial paths” vignette demonstrates null and alternative banks, candidate screening, paired comparisons, independent validation, batching, and failure handling. A reproducible benchmark compares repeated simulation with bank generation and rule application.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="scope-and-compatibility-1-1-0">Scope and compatibility<a class="anchor" aria-label="anchor" href="#scope-and-compatibility-1-1-0"></a></h3>
+<ul><li>Reuse covers decision thresholds only. The data-generating scenario, analysis method, priors, null margin, endpoint horizon, allocation, maximum sample size, planned looks, and Monte Carlo settings remain fixed within a bank. Changing these settings requires a new bank. Interim looks must precede maximum N; the maximum-N final analysis follows completion of follow-up.</li>
+<li>Existing <code><a href="../reference/sim_trials.html">sim_trials()</a></code>, <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>, and <code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> interfaces and random-number scheduling are preserved. The new bank workflow uses separate trial and stage streams, so a bank need not match an ordinary simulation run with the same seed.</li>
+<li>Candidate outcomes from a shared bank are paired by trial. Use paired uncertainty calculations when comparing candidates and an independent bank to validate selected thresholds. Banks retain predictive scores in memory, so large simulations may require separate batches.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-1-1-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-1-0"></a></h3>
+<ul><li>Bayesian binary quadrature probabilities are bounded to [0, 1] to remove floating-point overshoots in extreme posterior tails. This prevents false crossings at <code>prob_ha = 1</code> and spurious invalid-score failures in calibration banks.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.0" id="goldilocks-100">goldilocks 1.0.0<a class="anchor" aria-label="anchor" href="#goldilocks-100"></a></h2><p class="text-muted">CRAN release: 2026-09-09</p>
 <p>Version 1.0.0 marks the first stable major release. Highlights include observed interim evaluation, RMST and Farrington-Manning analyses, immediate-success stopping, arm-specific priors, and Monte Carlo and calendar-time summaries.</p>

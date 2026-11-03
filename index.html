@@ -12,8 +12,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Adaptive Trial Designs for Survival and Binary Endpoints">
-<meta name="description" content="Implements Goldilocks adaptive trial designs for time-to-event and fixed-time binary endpoints. Outcomes are generated with a piecewise exponential model, with conjugate Gamma priors used for predictive imputation. Final analyses may use log-rank, Cox, or restricted mean survival time tests, Bayesian piecewise-exponential inference, frequentist risk differences, or Bayesian beta-binomial inference. The method closely follows Broglio et al. (2014) &lt;doi:10.1080/10543406.2014.888569&gt; and supports simulation of design operating characteristics.">
-<meta property="og:description" content="Implements Goldilocks adaptive trial designs for time-to-event and fixed-time binary endpoints. Outcomes are generated with a piecewise exponential model, with conjugate Gamma priors used for predictive imputation. Final analyses may use log-rank, Cox, or restricted mean survival time tests, Bayesian piecewise-exponential inference, frequentist risk differences, or Bayesian beta-binomial inference. The method closely follows Broglio et al. (2014) &lt;doi:10.1080/10543406.2014.888569&gt; and supports simulation of design operating characteristics.">
+<meta name="description" content="Implements Goldilocks adaptive trial designs for time-to-event and fixed-time binary endpoints. Outcomes are generated with a piecewise exponential model, with conjugate Gamma priors used for predictive imputation. Final analyses may use log-rank, Cox, or restricted mean survival time tests, Bayesian piecewise-exponential inference, frequentist risk differences, or Bayesian beta-binomial inference. The method closely follows Broglio and colleagues (2014) &lt;doi:10.1080/10543406.2014.888569&gt; and supports simulation of design operating characteristics. Complete trial paths can be simulated once and reused to calibrate stopping rules and final success thresholds without repeating predictive imputation or model fitting.">
+<meta property="og:description" content="Implements Goldilocks adaptive trial designs for time-to-event and fixed-time binary endpoints. Outcomes are generated with a piecewise exponential model, with conjugate Gamma priors used for predictive imputation. Final analyses may use log-rank, Cox, or restricted mean survival time tests, Bayesian piecewise-exponential inference, frequentist risk differences, or Bayesian beta-binomial inference. The method closely follows Broglio and colleagues (2014) &lt;doi:10.1080/10543406.2014.888569&gt; and supports simulation of design operating characteristics. Complete trial paths can be simulated once and reused to calibrate stopping rules and final success thresholds without repeating predictive imputation or model fitting.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,6 +82,12 @@
 <p>For <code>method = "bayes-surv"</code>, <code>prior_surv</code> generates predictive outcomes, while <code>prior_surv_final</code> tests each hypothetical completed trial <strong>at the interim look</strong> and governs the actual final analysis. To incorporate external evidence only in prediction, supply both priors explicitly. Omitting <code>prior_surv_final</code> uses <code>prior_surv</code> for both roles. Bayesian binary success tests instead use <code>prior_bin</code>. See the <a href="https://graemeleehickey.github.io/goldilocks/articles/interim-data.html#using-separate-predictive-and-analysis-priors">worked example of separate priors</a>.</p>
 </div>
 <div class="section level2">
+<h2 id="reuse-simulations-for-threshold-calibration">Reuse simulations for threshold calibration<a class="anchor" aria-label="anchor" href="#reuse-simulations-for-threshold-calibration"></a>
+</h2>
+<p><code><a href="reference/sim_trial_paths.html">sim_trial_paths()</a></code> evaluates every planned interim look and retains final analyses for each possible stopping cohort. <code><a href="reference/apply_stopping_rules.html">apply_stopping_rules()</a></code> then applies different <code>Fn</code>, <code>Sn</code>, <code>Qn</code>, and <code>prob_ha</code> values to the saved bank without repeating predictive imputation or model fitting. Data-generating assumptions, analysis settings, and the look schedule remain fixed within a bank.</p>
+<p>Replayed results work with <code><a href="reference/summarise_sims.html">summarise_sims()</a></code> and the existing simulation plots. They also distinguish stopping for futility from stopping for futility when the same simulated trial would have succeeded at maximum N. See the <a href="https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.html">complete-path calibration vignette</a> for screening, independent validation, and batch storage.</p>
+</div>
+<div class="section level2">
 <h2 id="key-benefits">Key benefits<a class="anchor" aria-label="anchor" href="#key-benefits"></a>
 </h2>
 <p>Other software and R packages are available to implement this algorithm. However, when designing studies it is generally required that many thousands of trials are simulated to adequately characterize the operating characteristics, e.g. type I error and power. Hence, a computationally efficient and fast algorithm is helpful. The <code>goldilocks</code> package takes advantage of many tools to achieve this:</p>
@@ -99,7 +105,7 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>The source version is <code>goldilocks</code> 1.0.0, prepared for CRAN submission. See <a href="NEWS.html">NEWS.md</a> for changes and migration guidance from 0.6.0.</p>
+<p>The source version is <code>goldilocks</code> 1.1.0, which adds reusable trial paths for stopping-rule calibration. See <a href="NEWS.html">NEWS.md</a> for release changes and migration guidance from 0.6.0.</p>
 <p>You can install the released version of <code>goldilocks</code> from CRAN with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"goldilocks"</span><span class="op">)</span></span></code></pre></div>

@@ -6,6 +6,8 @@
   trials](https://graemeleehickey.github.io/goldilocks/articles/two-arm.md):
 - [Calibrating \`prob_ha\` for type I error
   control](https://graemeleehickey.github.io/goldilocks/articles/calibrating-prob-ha.md):
+- [Calibrating stopping rules from complete trial
+  paths](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.md):
 - [Bayesian piecewise-exponential
   designs](https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.md):
 - [Restricted mean survival time
