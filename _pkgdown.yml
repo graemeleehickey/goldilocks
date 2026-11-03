@@ -66,9 +66,6 @@ articles:
     contents:
       - two-arm
       - calibrating-prob-ha
-      - thermocool-af
-      - anthem-hfref
-      - advent
       - bayes-piecewise
       - rmst
       - bayesian-binary
@@ -76,6 +73,11 @@ articles:
       - single-arm
       - decision-traces
       - interim-data
+  - title: Real trial examples
+    contents:
+      - advent
+      - anthem-hfref
+      - thermocool-af
   - title: Statistical methods and reproducibility
     contents:
       - architecture
