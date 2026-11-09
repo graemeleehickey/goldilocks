@@ -23,6 +23,8 @@
   control](https://graemeleehickey.github.io/goldilocks/articles/calibrating-prob-ha.md):
 - [Calibrating stopping rules from complete trial
   paths](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.md):
+- [Extending an endpoint from 12 to 18
+  months](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-example.md):
 - [Inspecting adaptive decision
   paths](https://graemeleehickey.github.io/goldilocks/articles/decision-traces.md):
 
@@ -39,3 +41,5 @@
   reproducibility](https://graemeleehickey.github.io/goldilocks/articles/architecture.md):
 - [Technical details of the Goldilocks
   design](https://graemeleehickey.github.io/goldilocks/articles/technical-methods.md):
+- [Technical details of prespecified endpoint
+  horizons](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-technical.md):

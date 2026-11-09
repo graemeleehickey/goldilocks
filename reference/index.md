@@ -19,9 +19,17 @@ designs.
 - [`sim_trial_paths()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_paths.md)
   : Simulate complete trial paths for repeated threshold calibration
 - [`apply_stopping_rules()`](https://graemeleehickey.github.io/goldilocks/reference/apply_stopping_rules.md)
-  : Apply stopping rules to a saved trial-path bank
+  : Apply stopping rules to saved trial paths
 - [`print(`*`<goldilocks_paths>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_paths.md)
-  : Print a complete trial-path simulation bank
+  : Print a set of complete trial paths
+- [`sim_horizon_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_horizon_trials.md)
+  : Simulate trials with a prespecified endpoint-horizon schedule
+- [`sim_horizon_paths()`](https://graemeleehickey.github.io/goldilocks/reference/sim_horizon_paths.md)
+  : Simulate complete trial paths for prespecified endpoint horizons
+- [`apply_horizon_rules()`](https://graemeleehickey.github.io/goldilocks/reference/apply_horizon_rules.md)
+  : Apply a prespecified endpoint schedule to saved trial paths
+- [`print(`*`<goldilocks_horizon_paths>`*`)`](https://graemeleehickey.github.io/goldilocks/reference/print.goldilocks_horizon_paths.md)
+  : Print trial paths with multiple endpoint horizons
 - [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
   : Estimate operating characteristics from trial simulations
 - [`summarise_calendar_time()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.md)

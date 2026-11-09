@@ -21,6 +21,13 @@ provide more application-focused examples in R.
 
 ## 1. Design and notation
 
+This vignette uses a fixed endpoint horizon. [Technical details of
+prespecified endpoint
+horizons](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-technical.md)
+extends the calculations to changing horizons, with separate success and
+futility data cuts and flow charts of the prediction and decision
+sequence.
+
 Consider a trial with maximum sample size N\_{\max}, planned endpoint
 time \tau, and interim sample-size selection analyses after
 

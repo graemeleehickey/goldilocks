@@ -5,63 +5,77 @@
 library(goldilocks)
 ```
 
-Repeated threshold calibration can spend most of its time generating and
-analysing the same kinds of predictive completions.
+Calibrating a stopping rule usually involves comparing several
+combinations of thresholds. Repeating the simulation for each
+combination can be slow, as much of the work involves the same
+predictive imputation and analysis.
 [`sim_trial_paths()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_paths.md)
 performs these calculations once at every planned look.
 [`apply_stopping_rules()`](https://graemeleehickey.github.io/goldilocks/reference/apply_stopping_rules.md)
-then evaluates different `Fn`, `Sn`, `Qn`, and `prob_ha` values using
-the saved evidence, without further imputation or model fitting.
+then applies different `Fn`, `Sn`, `Qn`, and `prob_ha` values to the
+saved trial paths.
 
-A bank represents one fixed data-generating scenario and analysis
-specification. Separate banks are required for the null, alternatives,
-or changes to the priors, analysis method, endpoint horizon, allocation,
-maximum sample size, look schedule, or Monte Carlo settings. This
-workflow supplements
-[`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md),
-which remains useful for evaluating individual designs.
+Each set of trial paths represents one data-generating scenario and
+analysis specification. The null and alternative therefore require
+separate simulations. Changes to the priors, analysis method, endpoint
+horizon, allocation, maximum sample size, look schedule, or Monte Carlo
+settings used in the calculations also require new paths.
+[`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
+remains useful when evaluating an individual design.
+
+For a design whose endpoint changes according to a prespecified interim
+schedule, see [Extending an endpoint from 12 to 18
+months](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-example.md).
+That workflow uses
+[`sim_horizon_paths()`](https://graemeleehickey.github.io/goldilocks/reference/sim_horizon_paths.md)
+to retain multiple endpoint horizons and
+[`apply_horizon_rules()`](https://graemeleehickey.github.io/goldilocks/reference/apply_horizon_rules.md)
+to compare candidate schedules.
 
 ## What is saved
 
-At each interim look, the bank retains the success score from every
-predictive completion of the currently enrolled cohort and the maximum
-cohort. A score is a posterior probability for a Bayesian analysis or
-1-p for a frequentist analysis. For a candidate completed-data threshold
-c, the predictive probability is reconstructed as
+At each interim look,
+[`sim_trial_paths()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_paths.md)
+saves the success score from every predictive completion of the
+currently enrolled cohort and the maximum cohort. A score is a posterior
+probability for a Bayesian analysis or 1-p for a frequentist analysis.
+For a completed-data threshold c, the predictive probability is
 
 \widehat P(c) = \frac{1}{M}\sum\_{m=1}^{M} I(s_m \> c),
 
-where M is `N_impute`. Retaining these scores is necessary because
-changing `prob_ha` changes the predictive probabilities themselves. A
-trace containing only the predictive probabilities for one threshold
-cannot support this recalibration.
+where M is `N_impute`. Saving the individual scores allows the
+predictive probability to be recalculated for any `prob_ha`. Saving only
+the predictive probability at one threshold would not be sufficient.
 
-The bank also retains the final analysis and calendar-time measures for
+The paths also include a final analysis and calendar-time measures for
 each possible stopping cohort. If accrual stops at 60 participants for
-expected success, the final outcome comes from those 60 participants
-after follow-up. The final result from the maximum cohort is reserved
-for trials that continue to maximum N and for the separate
-counterfactual comparison.
+expected success, the final result comes from those 60 participants
+after follow-up. The final result for the maximum cohort is used for
+trials that continue to maximum N and for the counterfactual comparison
+described below.
 
-Interim calculations use calendar-masked data. The eventual outcomes
-used for cohort final analyses are not made available to the interim
-predictions. Dropout and final imputation follow the same rules as
+Interim predictions use only the data available at that calendar date.
+The eventual outcomes used in the cohort final analyses are not
+available to these predictions. Dropout and final imputation follow the
+same rules as
 [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
 
-## Create null and alternative banks
+## Simulate null and alternative trial paths
 
-The example has four analyses: interim enrollment looks at 40, 60, and
-80 participants, followed by the final analysis of 100 participants
-after follow-up. Accrual is six participants per month, follow-up is 12
-months, allocation is equal, and there is no dropout. The control event
-risk is 30% at 12 months; the alternative treatment risk is 20%. The
-primary analysis is a Bayesian beta-binomial comparison of the
-treatment-minus-control event risk, using a uniform Beta(1, 1) prior in
-each arm and numerical quadrature.
+The example has interim enrollment looks at 40, 60, and 80 participants,
+followed by a final analysis at a maximum N of 100. Accrual is six
+participants per month, follow-up is 12 months, allocation is equal, and
+there is no dropout. The control event risk is 30% at 12 months; the
+alternative treatment risk is 20%. The primary analysis compares the
+treatment-minus-control event risk using a Bayesian beta-binomial model,
+with a uniform Beta(1, 1) prior in each arm and numerical quadrature.
+Predictive imputation uses a constant-hazard model with independent
+Gamma(0.1, 0.1) priors, specified as shape and rate, in each arm.
 
-The small simulation counts below demonstrate the workflow. They do not
-provide enough precision to establish type I error control or select a
-design.
+We simulate 1,000 trials under each scenario, with 100 predictive
+imputations at each look. These counts provide a useful illustration of
+the differences between rules, although a larger simulation would be
+needed to assess type I error precisely.
 
 ``` r
 
@@ -70,10 +84,7 @@ fixed_design <- list(
   N_total = 100,
   interim_look = c(40, 60, 80),
   lambda = 6,
-  lambda_time = NULL,
   end_of_study = 12,
-  cutpoints = NULL,
-  generation_cutpoints = NULL,
   prior_surv = c(0.1, 0.1),
   prior_surv_final = c(0.1, 0.1),
   block = 2,
@@ -85,61 +96,58 @@ fixed_design <- list(
   prior_bin = c(1, 1),
   bin_method = "quadrature",
   imputed_final = FALSE,
-  N_impute = 10,
-  N_mcmc = 1000,
-  mc_conf_level = 0.95,
+  N_impute = 100,
+  N_trials = 1000,
   ncores = 1,
   backend = "sequential"
 )
 
 null_args <- c(fixed_design, list(
-  hazard_treatment = prop_to_haz(0.30, endtime = 12),
-  N_trials = 40, seed = 8201
+  hazard_treatment = prop_to_haz(0.30, endtime = 12), seed = 8201
 ))
 alternative_args <- c(fixed_design, list(
-  hazard_treatment = prop_to_haz(0.20, endtime = 12),
-  N_trials = 40, seed = 8202
+  hazard_treatment = prop_to_haz(0.20, endtime = 12), seed = 8202
 ))
 
-banks <- list(
+paths <- list(
   null = do.call(sim_trial_paths, null_args),
   alternative = do.call(sim_trial_paths, alternative_args)
 )
-banks$null
+paths$null
 #> Goldilocks trial paths
-#> 40 trials; 3 interim looks; maximum N = 100 
+#> 1000 trials; 3 interim looks; maximum N = 100 
 #> Failed calculations: 0 
-#> Memory: 1.2 Mb
+#> Memory: 34.2 Mb
 ```
 
-`N_impute` is part of the implemented stopping algorithm. It is fixed
-within each bank and should remain fixed when validating a selected
-candidate. `N_mcmc` likewise remains fixed for Monte Carlo Bayesian
-analyses; it is unused for the quadrature calculation in this example.
-Increasing `N_trials` improves operating-characteristic precision
-without changing the decision algorithm.
+`N_mcmc` is omitted because quadrature does not use posterior draws.
+`N_impute` affects the stopping decisions and should be kept fixed when
+comparing rules and validating a selected design. Increasing `N_trials`
+improves the precision of the operating-characteristic estimates without
+changing the decision algorithm.
 
 ## Evaluate candidate rules
 
-This grid varies futility, expected-success, and completed-data
-thresholds. Immediate success remains disabled with `Qn = 1`. Scalars
-are applied at every look; vectors of length three would specify
-separate interim boundaries for this design.
+The grid below varies the futility threshold `Fn`, the expected-success
+threshold `Sn`, and the completed-data threshold `prob_ha`. Immediate
+success is disabled with `Qn = 1`. Each scalar threshold applies at
+every look; a vector of length three would specify a different boundary
+at each interim analysis.
 
 ``` r
 
 grid <- expand.grid(
-  Fn = c(0.05, 0.10),
-  Sn = c(0.85, 0.95),
+  Fn = c(0.05, 0.15),
+  Sn = c(0.80, 0.95),
   Qn = 1,
-  prob_ha = c(0.975, 0.99)
+  prob_ha = c(0.95, 0.975)
 )
 rules <- lapply(seq_len(nrow(grid)), function(i) as.list(grid[i, ]))
 names(rules) <- paste0("rule_", seq_along(rules))
 
-results <- lapply(banks, function(bank) {
+results <- lapply(paths, function(scenario_paths) {
   lapply(rules, function(rule) {
-    do.call(apply_stopping_rules, c(list(paths = bank), rule))
+    do.call(apply_stopping_rules, c(list(paths = scenario_paths), rule))
   })
 })
 null_summary <- summarise_sims(results$null)
@@ -149,199 +157,235 @@ knitr::kable(cbind(candidate = names(rules), grid), digits = 3)
 
 | candidate |   Fn |   Sn |  Qn | prob_ha |
 |:----------|-----:|-----:|----:|--------:|
-| rule_1    | 0.05 | 0.85 |   1 |   0.975 |
-| rule_2    | 0.10 | 0.85 |   1 |   0.975 |
-| rule_3    | 0.05 | 0.95 |   1 |   0.975 |
-| rule_4    | 0.10 | 0.95 |   1 |   0.975 |
-| rule_5    | 0.05 | 0.85 |   1 |   0.990 |
-| rule_6    | 0.10 | 0.85 |   1 |   0.990 |
-| rule_7    | 0.05 | 0.95 |   1 |   0.990 |
-| rule_8    | 0.10 | 0.95 |   1 |   0.990 |
+| rule_1    | 0.05 | 0.80 |   1 |   0.950 |
+| rule_2    | 0.15 | 0.80 |   1 |   0.950 |
+| rule_3    | 0.05 | 0.95 |   1 |   0.950 |
+| rule_4    | 0.15 | 0.95 |   1 |   0.950 |
+| rule_5    | 0.05 | 0.80 |   1 |   0.975 |
+| rule_6    | 0.15 | 0.80 |   1 |   0.975 |
+| rule_7    | 0.05 | 0.95 |   1 |   0.975 |
+| rule_8    | 0.15 | 0.95 |   1 |   0.975 |
 
-The first stopping decision is terminal. Immediate success takes
-precedence over expected success, and either success decision takes
-precedence over futility. Expected success stops accrual and requires
-the corresponding cohort final analysis. Binding futility is an official
-failure even if the maximum-N counterfactual would succeed. All boundary
-comparisons are strict; equality does not cross a boundary.
+The first stopping decision ends accrual. If more than one boundary is
+crossed, immediate success takes precedence over expected success, and
+either success decision takes precedence over futility. Expected success
+still requires a final analysis of the enrolled cohort after follow-up.
+Binding futility is an unsuccessful trial, even if it would have
+succeeded after continuing to maximum N. All comparisons are strict:
+equality with a boundary does not trigger stopping.
 
-Under the null, the `power` column is the type I error estimate. Its
-Monte Carlo interval reflects uncertainty from the finite number of
-simulated trials.
+Under the null, the `power` column returned by
+[`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
+estimates type I error. The table reports its 95% Monte Carlo interval
+and mean sample size alongside the candidate thresholds.
 
 ``` r
 
-display <- null_summary[c(
-  "scenario", "n_used", "power", "power_mc_lower", "power_mc_upper", "mean_N"
-)]
-names(display)[1:5] <- c("Candidate", "Trials", "Type I error", "Lower", "Upper")
-knitr::kable(display, digits = 3)
+display <- cbind(
+  Candidate = names(rules),
+  grid[c("Fn", "Sn", "prob_ha")],
+  null_summary[c("power", "power_mc_lower", "power_mc_upper", "mean_N")]
+)
+knitr::kable(display, digits = 3, row.names = FALSE, col.names = c(
+  "Candidate", "Fn", "Sn", "prob_ha", "Type I error", "Lower", "Upper", "Mean $N$"
+))
 ```
 
-| Candidate | Trials | Type I error | Lower | Upper | mean_N |
-|:----------|-------:|-------------:|------:|------:|-------:|
-| rule_1    |     40 |            0 |     0 | 0.088 |   61.5 |
-| rule_2    |     40 |            0 |     0 | 0.088 |   61.5 |
-| rule_3    |     40 |            0 |     0 | 0.088 |   63.5 |
-| rule_4    |     40 |            0 |     0 | 0.088 |   63.5 |
-| rule_5    |     40 |            0 |     0 | 0.088 |   59.5 |
-| rule_6    |     40 |            0 |     0 | 0.088 |   59.5 |
-| rule_7    |     40 |            0 |     0 | 0.088 |   61.0 |
-| rule_8    |     40 |            0 |     0 | 0.088 |   61.0 |
+| Candidate |   Fn |   Sn | prob_ha | Type I error | Lower | Upper | Mean N |
+|:----------|-----:|-----:|--------:|-------------:|------:|------:|-------:|
+| rule_1    | 0.05 | 0.80 |   0.950 |        0.041 | 0.030 | 0.055 |  71.58 |
+| rule_2    | 0.15 | 0.80 |   0.950 |        0.032 | 0.023 | 0.045 |  60.10 |
+| rule_3    | 0.05 | 0.95 |   0.950 |        0.035 | 0.025 | 0.048 |  74.72 |
+| rule_4    | 0.15 | 0.95 |   0.950 |        0.026 | 0.018 | 0.038 |  62.90 |
+| rule_5    | 0.05 | 0.80 |   0.975 |        0.018 | 0.011 | 0.028 |  69.20 |
+| rule_6    | 0.15 | 0.80 |   0.975 |        0.012 | 0.007 | 0.021 |  58.66 |
+| rule_7    | 0.05 | 0.95 |   0.975 |        0.018 | 0.011 | 0.028 |  71.96 |
+| rule_8    | 0.15 | 0.95 |   0.975 |        0.012 | 0.007 | 0.021 |  61.20 |
+
+The less stringent completed-data threshold generally gives a higher
+type I error and higher power. Changing `Fn` or `Sn` can also affect
+both, as well as the sample size. These are illustrative candidate
+rules, not a calibrated design. After selecting a rule, its operating
+characteristics should be checked using independent simulations with
+sufficient precision; [Calibrating prob_ha for type I error
+control](https://graemeleehickey.github.io/goldilocks/articles/calibrating-prob-ha.md)
+discusses this in more detail.
 
 ## Two distinct futility measures
 
-`stop_futility` estimates the probability of binding futility under the
-specified data-generating scenario. Under the alternative, it answers
-how often that design stops for futility despite the assumed treatment
-effect.
+`stop_futility` estimates the probability of stopping for binding
+futility under the specified scenario. Under the alternative, it
+describes how often the trial stops for futility despite the assumed
+treatment effect.
 
-`futility_and_success_at_max` estimates the joint probability of binding
-futility and success had the same simulated trial continued to maximum N
-without interim stopping. The counterfactual uses the same final
-analysis and the candidate’s `prob_ha`. Its denominator is all available
-joint-outcome comparisons, not only trials stopping for futility. This
-is not the net power loss relative to a fixed maximum-N design: some
-adaptive trials can succeed when their maximum-N counterfactual would
-fail.
+`futility_and_success_at_max` estimates the joint probability of
+stopping for futility and succeeding had the same trial continued to
+maximum N. The latter result uses the same final analysis and the
+candidate’s `prob_ha`. The denominator includes all trials with an
+available joint outcome, rather than only those stopping for futility.
+This is not the net power loss relative to a fixed maximum-N design:
+some adaptive trials can succeed when their maximum-N result would be
+unsuccessful.
 
 ``` r
 
 display <- alternative_summary[c(
   "scenario", "power", "stop_futility", "futility_and_success_at_max", "mean_N"
 )]
-names(display) <- c(
-  "Candidate", "Power", "Futility", "Futility and max-N success", "Mean N"
-)
-knitr::kable(display, digits = 3)
+knitr::kable(display, digits = 3, col.names = c(
+  "Candidate", "Power", "Futility", "Futility and max-$N$ success", "Mean $N$"
+))
 ```
 
 | Candidate | Power | Futility | Futility and max-N success | Mean N |
 |:----------|------:|---------:|---------------------------:|-------:|
-| rule_1    | 0.250 |     0.25 |                      0.050 |   74.0 |
-| rule_2    | 0.250 |     0.25 |                      0.050 |   74.0 |
-| rule_3    | 0.225 |     0.25 |                      0.050 |   77.5 |
-| rule_4    | 0.225 |     0.25 |                      0.050 |   77.5 |
-| rule_5    | 0.100 |     0.30 |                      0.025 |   78.5 |
-| rule_6    | 0.100 |     0.30 |                      0.025 |   78.5 |
-| rule_7    | 0.100 |     0.30 |                      0.025 |   82.0 |
-| rule_8    | 0.100 |     0.30 |                      0.025 |   82.0 |
+| rule_1    | 0.269 |    0.305 |                      0.032 |  74.54 |
+| rule_2    | 0.225 |    0.488 |                      0.078 |  65.46 |
+| rule_3    | 0.279 |    0.305 |                      0.032 |  80.16 |
+| rule_4    | 0.233 |    0.493 |                      0.079 |  70.76 |
+| rule_5    | 0.186 |    0.366 |                      0.029 |  74.22 |
+| rule_6    | 0.158 |    0.539 |                      0.057 |  65.14 |
+| rule_7    | 0.195 |    0.367 |                      0.029 |  78.94 |
+| rule_8    | 0.168 |    0.549 |                      0.057 |  69.58 |
 
-## Audit decisions and failures
+## Review individual decisions
 
-Request a candidate trace when inspecting individual decisions. It
-includes only reached looks. The original bank retains all hypothetical
-looks.
+The summary tables show the overall performance of each rule. To
+understand why a particular trial stopped, we can use
+`return_trace = TRUE` to retain its interim decisions. The resulting
+`traces` table contains only the looks reached under that rule; `paths`
+still contains every planned look.
 
 ``` r
 
-selected_example <- do.call(apply_stopping_rules, c(
-  list(paths = banks$alternative, return_trace = TRUE), rules[[1]]
+example_rule <- rules[[1]]
+example_result <- do.call(apply_stopping_rules, c(
+  list(paths = paths$alternative, return_trace = TRUE), example_rule
 ))
-selected_example$traces[selected_example$traces$trial == 1,
-  c("trial", "planned_N", "ppp_stop_now", "ppp_success_at_max", "decision")]
-#>   trial planned_N ppp_stop_now ppp_success_at_max      decision
-#> 1     1        40            0                  0 stop_futility
-banks$alternative$trials[[1]]$finals[
-  c("planned_N", "post_prob_ha", "analysis_ready_time")
+
+outcomes <- example_result$sims
+trial_ids <- c(
+  futility = outcomes$trial[which(outcomes$stop_futility == 1)[1]],
+  expected_success = outcomes$trial[which(outcomes$stop_expected_success == 1)[1]],
+  maximum_N = outcomes$trial[which(outcomes$N_enrolled == fixed_design$N_total)[1]]
+)
+audit <- example_result$traces[
+  example_result$traces$trial %in% trial_ids,
+  c("trial", "planned_N", "ppp_stop_now", "ppp_success_at_max", "decision")
 ]
-#>   planned_N post_prob_ha analysis_ready_time
-#> 1        40    0.6331412            18.45936
-#> 2        60    0.8647990            21.70470
-#> 3        80    0.7664969            24.49464
-#> 4       100    0.8664249            27.91432
-```
-
-Inspect `bank$failures` for failures by trial, look, and calculation.
-One failed predictive replicate invalidates its entire cohort predictive
-probability; the implementation does not change the denominator by
-dropping that replicate. Later calculations are still attempted. A
-candidate only loses a trial when a calculation required by its decision
-path is unavailable. Its own `result$failures` records those exclusions.
-
-A failed maximum-N final analysis does not invalidate an otherwise known
-early adaptive outcome. For a futility stop it makes
-`futility_and_success_at_max` unavailable. The summary reports
-`futility_and_success_at_max_n_used` and
-`futility_and_success_at_max_n_missing`; its interval uses available
-comparisons only. Missing comparisons may be informative and should be
-reviewed alongside the estimated rates.
-
-## Compare candidates and validate independently
-
-All candidates within a scenario share the same simulated trials.
-Marginal Monte Carlo intervals are suitable for individual operating
-characteristics, but differences between candidates require paired
-calculations. Align results using the original `trial` identifiers,
-particularly if candidates have different failures.
-
-``` r
-
-a <- results$alternative[[1]]$sims
-b <- results$alternative[[2]]$sims
-paired <- merge(a[c("trial", "trial_success")], b[c("trial", "trial_success")],
-  by = "trial", suffixes = c("_a", "_b"))
-difference <- as.numeric(paired$trial_success_b) - as.numeric(paired$trial_success_a)
-c(difference = mean(difference), mcse = sd(difference) / sqrt(length(difference)))
-#> difference       mcse 
-#>          0          0
-```
-
-Prespecify calibration targets and candidate-selection criteria. For
-example, require the upper null Monte Carlo bound to be below the type I
-error target, then assess power, futility, enrollment, and duration
-among qualifying candidates. A composite null may require several null
-banks. Screening many candidates on one bank does not provide
-independent confirmation of the selected rule.
-
-The following template generates an independent validation bank after a
-candidate has been selected using an adequately sized screening study.
-`selected_rule` must contain that candidate’s four threshold settings.
-The Monte Carlo settings governing interim decisions remain unchanged.
-
-``` r
-
-validation_args <- null_args
-validation_args$N_trials <- 10000
-validation_args$seed <- 9201
-validation_bank <- do.call(sim_trial_paths, validation_args)
-validation_result <- do.call(apply_stopping_rules, c(
-  list(paths = validation_bank), selected_rule
+audit <- audit[order(match(audit$trial, trial_ids), audit$planned_N), ]
+knitr::kable(audit, digits = 2, row.names = FALSE, col.names = c(
+  "Trial", "$N$", "Success if stopped now", "Success at max. $N$", "Decision"
 ))
-summarise_sims(validation_result)
 ```
 
-## Save and process batches
+| Trial |   N | Success if stopped now | Success at max. N | Decision              |
+|------:|----:|-----------------------:|------------------:|:----------------------|
+|     4 |  40 |                   0.11 |              0.20 | continue              |
+|     4 |  60 |                   0.00 |              0.09 | continue              |
+|     4 |  80 |                   0.00 |              0.01 | stop_futility         |
+|     2 |  40 |                   0.89 |              0.97 | stop_expected_success |
+|     1 |  40 |                   0.01 |              0.09 | continue              |
+|     1 |  60 |                   0.03 |              0.10 | continue              |
+|     1 |  80 |                   0.18 |              0.21 | continue              |
 
-Save the complete bank with
-[`saveRDS()`](https://rdrr.io/r/base/readRDS.html); exporting only
-scores to CSV loses metadata and posterior Monte Carlo counts. For large
-studies, generate batches with one explicit seed and consecutive
-`trial_offset` values. Each batch is held in memory and can be saved
-separately. Keeping all other settings fixed produces the same paths and
-trial identifiers as a single large call.
+We take the first trial with each of three outcomes: a futility stop, an
+expected-success stop, and continuation to maximum N. The figure shows
+the two predictive probabilities at each reached look. The blue
+probability is compared with `Sn` to decide whether to stop accrual for
+expected success. The orange probability is compared with `Fn` to decide
+whether continuing to maximum N is futile. Dashed lines show the
+corresponding boundaries. No further interim decisions are made after
+stopping.
+
+![Interim decisions for three trials under rule_1 in the alternative
+scenario. Only reached looks are shown. Expected success requires the
+blue probability to exceed its boundary; futility requires the orange
+probability to fall below its
+boundary.](calibrating-stopping-rules_files/figure-html/audit-figure-1.png)
+
+Interim decisions for three trials under rule_1 in the alternative
+scenario. Only reached looks are shown. Expected success requires the
+blue probability to exceed its boundary; futility requires the orange
+probability to fall below its boundary.
+
+An expected-success stop is a decision to stop enrollment, rather than a
+declaration that the trial has succeeded. The final analysis must still
+exceed `prob_ha`. The table below links the stopping decisions to the
+final outcomes. For a futility stop, the official outcome is
+unsuccessful regardless of the saved posterior probability.
+`success_at_max` gives the separate result had enrollment continued to
+maximum N.
 
 ``` r
 
-for (batch in 0:9) {
-  batch_args <- null_args
-  batch_args$N_trials <- 1000
-  batch_args$trial_offset <- batch * 1000L
-  bank <- do.call(sim_trial_paths, batch_args)
-  saveRDS(bank, sprintf("null-paths-%02d.rds", batch + 1L))
-}
+display <- outcomes[match(trial_ids, outcomes$trial), c(
+  "trial", "N_enrolled", "post_prob_ha", "trial_success", "success_at_max"
+)]
+knitr::kable(display, digits = 3, row.names = FALSE, col.names = c(
+  "Trial", "Final $N$", "Posterior probability", "Trial success", "Success at max. $N$"
+))
 ```
 
-Evaluate each saved batch separately when memory is limited. Combine
-trial outcomes and failure records before calculating overall operating
-characteristics; do not average batch confidence limits. Retain the
-requested trial count, scenario, seed, candidate rules, and original
-trial identifiers when combining results.
+| Trial | Final N | Posterior probability | Trial success | Success at max. N |
+|------:|--------:|----------------------:|:--------------|:------------------|
+|     4 |      80 |                 0.598 | FALSE         | FALSE             |
+|     2 |      40 |                 0.990 | TRUE          | TRUE              |
+|     1 |     100 |                 0.866 | FALSE         | FALSE             |
 
-The same explicit seed produces identical bank paths across sequential,
-fork, and PSOCK backends where supported, and preserves the caller’s
-random-number state. The bank uses separate streams for each trial and
-calculation stage. Its seeded results therefore need not match
-[`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md),
-whose existing draw scheduling is preserved. Rule application itself
-consumes no random numbers.
+### Check for calculation failures
+
+A calculation failure is different from an unsuccessful trial. For
+example, an analysis may fail to return a valid success score for a
+predictive imputation. `paths$alternative$failures` records such
+failures by trial, look, and calculation. `example_result$failures`
+records trials that could not be evaluated under the chosen stopping
+rule.
+
+``` r
+
+c(
+  failed_calculations = nrow(paths$alternative$failures),
+  excluded_trials = nrow(example_result$failures)
+)
+#> failed_calculations     excluded_trials 
+#>                   0                   0
+```
+
+If one predictive imputation fails, the predictive probability for that
+cohort is unavailable. The failed imputation is not dropped from the
+denominator, and calculations at later looks are still attempted.
+Whether this excludes the trial depends on the rule: a failure at an
+unreached look does not affect an earlier stopping decision. Failures
+should therefore be reviewed for each candidate, alongside the number of
+trials used in its summary.
+
+A failed maximum-N final analysis does not remove an otherwise known
+early outcome. For a futility stop, however, it leaves
+`futility_and_success_at_max` unknown. The summary reports the numbers
+of available and missing comparisons in
+`futility_and_success_at_max_n_used` and
+`futility_and_success_at_max_n_missing`. Its estimate and interval use
+the available comparisons, so missing results need to be considered when
+interpreting them.
+
+## Save and reuse the trial paths
+
+A single simulation batch can be saved with
+[`saveRDS()`](https://rdrr.io/r/base/readRDS.html) and read into a later
+R session. Saving the complete object preserves the design settings,
+predictive scores, and calculation failures. The same file can then be
+used to evaluate another stopping rule without repeating the simulation.
+
+``` r
+
+saveRDS(paths$null, "null-trial-paths.rds")
+
+# In a later R session:
+library(goldilocks)
+null_paths <- readRDS("null-trial-paths.rds")
+result <- apply_stopping_rules(
+  null_paths, Fn = 0.05, Sn = 0.80, Qn = 1, prob_ha = 0.975
+)
+summarise_sims(result)
+```

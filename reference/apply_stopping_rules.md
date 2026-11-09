@@ -1,4 +1,4 @@
-# Apply stopping rules to a saved trial-path bank
+# Apply stopping rules to saved trial paths
 
 Reconstructs adaptive trial outcomes from
 [`sim_trial_paths()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_paths.md)
@@ -80,12 +80,12 @@ A list compatible with
 and simulation plots, containing `sims`, `failures`, and `call`, plus
 `traces` when requested. Each simulation row retains its original
 `trial` identifier and additionally reports `success_at_max` (the final
-outcome if enrollment continued to maximum N without interim stopping)
-and `futility_and_success_at_max` (binding futility together with that
-counterfactual success). The latter is `FALSE` for non-futility trials
-and `NA` for futility trials whose maximum-N final analysis failed.
-These quantities use the candidate's `prob_ha` and the bank's final
-analysis.
+outcome if enrollment continued to maximum \\N\\ without interim
+stopping) and `futility_and_success_at_max` (binding futility together
+with that counterfactual success). The latter is `FALSE` for
+non-futility trials and `NA` for futility trials whose maximum-\\N\\
+final analysis failed. These quantities use the candidate's `prob_ha`
+and the final analysis saved with the paths.
 
 [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
 reports the joint probability as `futility_and_success_at_max`, with its
@@ -93,13 +93,13 @@ available and unavailable counts. Its ordinary `stop_futility` estimate
 is the futility probability under the simulated scenario; under an
 alternative this is the requested alternative-scenario futility rate.
 The joint probability is not the net power loss relative to a fixed
-maximum-N design.
+maximum-\\N\\ design.
 
-Attributes include the evaluated design, bank provenance
-(`path_metadata`), and `stopping_rules`. The bank itself is not copied
-into the result. If no trial is evaluable, the function stops with a
-`goldilocks_all_trials_failed` error carrying the candidate failure
-table.
+Attributes include the evaluated design, simulation settings
+(`path_metadata`), and `stopping_rules`. The complete paths are not
+copied into the result. If no trial is evaluable, the function stops
+with a `goldilocks_all_trials_failed` error carrying the candidate
+failure table.
 
 ## Details
 
@@ -112,14 +112,16 @@ futility do not.
 
 Only failures needed by the candidate invalidate a trial. Failures at
 unreached looks, unused maximum-cohort predictions, or optional final
-analyses remain in the bank but do not remove an evaluable trial. A
-missing maximum-N final analysis makes the counterfactual comparison
-unavailable, without invalidating an otherwise known adaptive outcome.
+analyses remain in the saved paths but do not remove an evaluable trial.
+A missing maximum-\\N\\ final analysis makes the counterfactual
+comparison unavailable, without invalidating an otherwise known adaptive
+outcome.
 
-Candidate results from the same bank are paired by `trial`. Use paired
-uncertainty calculations for differences; marginal Monte Carlo intervals
-do not describe uncertainty in a difference. Screen candidate rules on
-one bank and validate selected rules on a fresh independent bank.
+Candidate results from the same simulated trials are paired by `trial`.
+Use paired uncertainty calculations for differences; marginal Monte
+Carlo intervals do not describe uncertainty in a difference. Screen
+candidate rules using one set of trial paths and validate selected rules
+using independent simulations.
 
 ## See also
 

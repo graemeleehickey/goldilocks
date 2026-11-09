@@ -37,8 +37,8 @@ provide a reusable alternative to rerunning
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
 for every candidate. See [Calibrating stopping rules from complete trial
 paths](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.md)
-for complete-path simulation banks, both futility measures, and paired
-candidate comparisons. The screening and independent-validation
+for reusable trial paths, both futility measures, and examples of
+individual stopping decisions. The screening and independent-validation
 principles below apply to either workflow.
 
 ## Design and null scenario

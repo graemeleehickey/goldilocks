@@ -1,6 +1,6 @@
-# Print a complete trial-path simulation bank
+# Print a set of complete trial paths
 
-Print a complete trial-path simulation bank
+Print a set of complete trial paths
 
 ## Usage
 

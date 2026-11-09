@@ -11,7 +11,9 @@ method closely follows Broglio and colleagues (2014)
 and supports simulation of design operating characteristics. Complete
 trial paths can be simulated once and reused to calibrate stopping rules
 and final success thresholds without repeating predictive imputation or
-model fitting.
+model fitting. Prespecified changes in endpoint timing use separate
+follow-up data cuts for success and futility prediction, with reusable
+simulation paths for schedule calibration.
 
 ## See also
 
