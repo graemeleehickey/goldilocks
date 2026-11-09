@@ -1,4 +1,4 @@
-#' Apply stopping rules to a saved trial-path bank
+#' Apply stopping rules to saved trial paths
 #'
 #' @description Reconstructs adaptive trial outcomes from [sim_trial_paths()]
 #'   without predictive imputation, model fitting, or random-number generation.
@@ -15,34 +15,34 @@
 #'
 #'   Only failures needed by the candidate invalidate a trial. Failures at
 #'   unreached looks, unused maximum-cohort predictions, or optional final
-#'   analyses remain in the bank but do not remove an evaluable trial. A missing
-#'   maximum-N final analysis makes the counterfactual comparison unavailable,
+#'   analyses remain in the saved paths but do not remove an evaluable trial. A missing
+#'   maximum-\eqn{N} final analysis makes the counterfactual comparison unavailable,
 #'   without invalidating an otherwise known adaptive outcome.
 #'
-#'   Candidate results from the same bank are paired by `trial`. Use paired
+#'   Candidate results from the same simulated trials are paired by `trial`. Use paired
 #'   uncertainty calculations for differences; marginal Monte Carlo intervals
-#'   do not describe uncertainty in a difference. Screen candidate rules on one
-#'   bank and validate selected rules on a fresh independent bank.
+#'   do not describe uncertainty in a difference. Screen candidate rules using one
+#'   set of trial paths and validate selected rules using independent simulations.
 #'
 #' @return A list compatible with [summarise_sims()], [summarise_calendar_time()],
 #'   and simulation plots, containing `sims`, `failures`, and `call`, plus
 #'   `traces` when requested. Each simulation row retains its original `trial`
 #'   identifier and additionally reports `success_at_max` (the final outcome
-#'   if enrollment continued to maximum N without interim stopping) and
+#'   if enrollment continued to maximum \eqn{N} without interim stopping) and
 #'   `futility_and_success_at_max` (binding futility together with that
 #'   counterfactual success). The latter is `FALSE` for non-futility trials and
-#'   `NA` for futility trials whose maximum-N final analysis failed. These
-#'   quantities use the candidate's `prob_ha` and the bank's final analysis.
+#'   `NA` for futility trials whose maximum-\eqn{N} final analysis failed. These
+#'   quantities use the candidate's `prob_ha` and the final analysis saved with the paths.
 #'
 #'   `summarise_sims()` reports the joint probability as
 #'   `futility_and_success_at_max`, with its available and unavailable counts.
 #'   Its ordinary `stop_futility` estimate is the futility probability under
 #'   the simulated scenario; under an alternative this is the requested
 #'   alternative-scenario futility rate. The joint probability is not the net
-#'   power loss relative to a fixed maximum-N design.
+#'   power loss relative to a fixed maximum-\eqn{N} design.
 #'
-#'   Attributes include the evaluated design, bank provenance (`path_metadata`),
-#'   and `stopping_rules`. The bank itself is not copied into the result.
+#'   Attributes include the evaluated design, simulation settings (`path_metadata`),
+#'   and `stopping_rules`. The complete paths are not copied into the result.
 #'   If no trial is evaluable, the function stops with a
 #'   `goldilocks_all_trials_failed` error carrying the candidate failure table.
 #'
@@ -72,7 +72,7 @@ apply_stopping_rules <- function(
   return_trace = FALSE
 ) {
   Call <- match.call()
-  # Keep the function and bank names in the saved call when using do.call().
+  # Keep the function and path names in the saved call when using do.call().
   if (is.function(Call[[1L]])) Call[[1L]] <- quote(apply_stopping_rules)
   Call$paths <- quote(paths)
   validate_trial_paths(paths)
@@ -166,7 +166,7 @@ validate_trial_paths <- function(paths) {
   if (
     !inherits(paths, "goldilocks_paths") || !identical(paths$schema_version, 1L)
   ) {
-    stop("'paths' must be a supported goldilocks_paths bank (schema version 1)")
+    stop("'paths' must be a supported goldilocks_paths object (schema version 1)")
   }
   args <- attr(paths, "arguments", exact = TRUE)
   if (
@@ -176,7 +176,7 @@ validate_trial_paths <- function(paths) {
       length(paths$trials) != args$N_trials ||
       !is.data.frame(paths$failures)
   ) {
-    stop("Incomplete trial-path bank or metadata")
+    stop("Incomplete trial paths or metadata")
   }
   ids <- vapply(paths$trials, function(x) as.integer(x$trial), integer(1))
   if (anyNA(ids) || anyDuplicated(ids)) {
@@ -184,7 +184,7 @@ validate_trial_paths <- function(paths) {
   }
   for (path in paths$trials) {
     if (length(path$interims) != length(args$interim_look)) {
-      stop("Incomplete interim look schedule in bank")
+      stop("Incomplete interim look schedule in saved paths")
     }
     if (
       !is.null(path$finals) &&
@@ -193,7 +193,7 @@ validate_trial_paths <- function(paths) {
           as.numeric(c(args$interim_look, args$N_total))
         )
     ) {
-      stop("Inconsistent final cohort schedule in bank")
+      stop("Inconsistent final cohort schedule in saved paths")
     }
     for (evidence in path$interims) {
       if (!is.null(evidence)) {
@@ -203,7 +203,7 @@ validate_trial_paths <- function(paths) {
               length(scores) != args$N_impute
           ) {
             stop(
-              "Incomplete predictive replicates in bank; no replicates may be dropped"
+              "Incomplete predictive replicates in saved paths; no replicates may be dropped"
             )
           }
         }
@@ -229,7 +229,7 @@ require_path_scores <- function(scores, stage) {
 replay_trial_path <- function(path, args, rules, return_trace) {
   if (is.null(path$finals)) {
     stop(
-      "Trial data generation failed; see the bank failure table",
+      "Trial data generation failed; see the path failure table",
       call. = FALSE
     )
   }
@@ -245,7 +245,7 @@ replay_trial_path <- function(path, args, rules, return_trace) {
       stop(
         "Interim calculation failed at look ",
         i,
-        "; see the bank failure table",
+        "; see the path failure table",
         call. = FALSE
       )
     }

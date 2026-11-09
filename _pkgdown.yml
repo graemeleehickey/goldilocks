@@ -42,6 +42,10 @@ reference:
       - sim_trial_paths
       - apply_stopping_rules
       - print.goldilocks_paths
+      - sim_horizon_trials
+      - sim_horizon_paths
+      - apply_horizon_rules
+      - print.goldilocks_horizon_paths
       - summarise_sims
       - summarise_calendar_time
       - plot_enrollment
@@ -87,6 +91,7 @@ articles:
     contents:
       - calibrating-prob-ha
       - calibrating-stopping-rules
+      - endpoint-horizons-example
       - decision-traces
   - title: Real trial examples
     contents:
@@ -97,3 +102,4 @@ articles:
     contents:
       - architecture
       - technical-methods
+      - endpoint-horizons-technical

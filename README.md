@@ -92,9 +92,33 @@ priors](https://graemeleehickey.github.io/goldilocks/articles/interim-data.html#
 
 ## Reuse simulations for threshold calibration
 
-`sim_trial_paths()` evaluates every planned interim look and retains final analyses for each possible stopping cohort. `apply_stopping_rules()` then applies different `Fn`, `Sn`, `Qn`, and `prob_ha` values to the saved bank without repeating predictive imputation or model fitting. Data-generating assumptions, analysis settings, and the look schedule remain fixed within a bank.
+`sim_trial_paths()` evaluates every planned interim look and retains final analyses for each possible stopping cohort. `apply_stopping_rules()` then applies different `Fn`, `Sn`, `Qn`, and `prob_ha` values to the saved trial paths without repeating predictive imputation or model fitting. Data-generating assumptions, analysis settings, and the look schedule remain fixed within a set of trial paths.
 
-Replayed results work with `summarise_sims()` and the existing simulation plots. They also distinguish stopping for futility from stopping for futility when the same simulated trial would have succeeded at maximum N. See the [complete-path calibration vignette](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.html) for screening, independent validation, and batch storage.
+Replayed results work with `summarise_sims()` and the existing simulation plots. They also distinguish stopping for futility from stopping for futility when the same simulated trial would have succeeded at maximum *N*. See the [complete-path calibration vignette](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.html) for candidate evaluation, decision traces, and saving results.
+
+## Prespecified changes in endpoint timing
+
+`sim_horizon_trials()` supports a nondecreasing endpoint schedule conditional on reaching each interim. For example, the following design evaluates success at 12 months for the first three looks and at 18 months from N = 400. Maximum enrollment is 500, followed by the 18-month final analysis. At the earlier looks, success imputation uses available follow-up through 12 months, while futility imputation uses a separate model fitted to available follow-up through 18 months. All participants have planned outcome collection through 18 months from the outset.
+
+``` r
+schedule <- data.frame(
+  N = c(100, 200, 300, 400),
+  horizon = c(12, 12, 12, 18)
+)
+result <- sim_horizon_trials(
+  hazard_treatment = c(0.04, 0.03),
+  hazard_control = c(0.06, 0.05),
+  generation_cutpoints = 12, cutpoints = 12,
+  N_total = 500, endpoint_schedule = schedule,
+  final_horizon = 18, followup_horizon = 18,
+  method = "bayes-bin", bin_method = "quadrature",
+  alternative = "less", lambda = 10,
+  Fn = 0.05, Sn = 0.9, Qn = 1, prob_ha = 0.975,
+  N_trials = 1000, seed = 123
+)
+```
+
+These are illustrative settings, not a calibrated design. For repeated calibration, use `sim_horizon_paths()` with `interim_look = schedule$N` and `endpoint_horizons = c(12, 18)`, then pass the trial paths and candidate schedules to `apply_horizon_rules()`. Stopping for expected success fixes that cohort's endpoint for its final analysis. `dropout_horizon` fixes the reference time for `prop_loss`, and `horizon_settings` supplies endpoint-specific analysis assumptions when needed. Results identify the endpoint used and distinguish endpoint completion from continued outcome collection. See [Extending an endpoint from 12 to 18 months](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-example.html) for a worked example and [Technical details of prespecified endpoint horizons](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-technical.html) for the calculations and flow charts.
 
 ## Key benefits
 
@@ -127,7 +151,7 @@ Biopharmaceutical Statistics*, 2014; **24(3)**: 685–705.
 
 ## Installation
 
-The source version is `goldilocks` 1.1.0, which adds reusable trial paths for stopping-rule calibration. See [NEWS.md](NEWS.md) for release changes and migration guidance from 0.6.0.
+The development version extends `goldilocks` 1.1.0 with prespecified changes in endpoint timing and reusable paths for schedule calibration. See [NEWS.md](NEWS.md) for changes and migration guidance from 0.6.0.
 
 You can install the released version of `goldilocks` from CRAN with:
 

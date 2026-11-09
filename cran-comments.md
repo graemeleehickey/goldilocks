@@ -1,5 +1,18 @@
 ## Submission notes
 
+The win-builder R-oldrelease check reported one incoming-feasibility NOTE.
+The reported issues have been addressed:
+
+* `DESCRIPTION` now uses `Broglio and colleagues (2014)`, avoiding the words
+  `et al.` flagged by the spelling check and retaining the citation wording
+  used in the previous release.
+* Both links to the Wilber trial report in the ThermoCool AF vignette now use
+  its DOI, `10.1001/jama.2009.2029`, instead of the PubMed URL that returned
+  HTTP 203.
+
+The revised source archive passes `R CMD check --as-cran` on macOS with
+R 4.6.1: 0 errors, 0 warnings, and 0 notes.
+
 This is goldilocks 1.0.0, the first stable major release and an update to
 CRAN version 0.6.0. The main changes are:
 

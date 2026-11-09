@@ -1,6 +1,6 @@
 Package: goldilocks
 Title: Adaptive Trial Designs for Survival and Binary Endpoints
-Version: 1.1.0
+Version: 1.1.0.9000
 Authors@R: c(
     person(given = "Graeme L.", family = "Hickey",
            role = c("aut", "cre"),
@@ -30,7 +30,9 @@ Description: Implements Goldilocks adaptive trial designs for time-to-event and
     <doi:10.1080/10543406.2014.888569> and supports simulation of design
     operating characteristics. Complete trial paths can be simulated once and
     reused to calibrate stopping rules and final success thresholds without
-    repeating predictive imputation or model fitting.
+    repeating predictive imputation or model fitting. Prespecified changes in
+    endpoint timing use separate follow-up data cuts for success and futility
+    prediction, with reusable simulation paths for schedule calibration.
 License: GPL-3
 Encoding: UTF-8
 URL: https://graemeleehickey.github.io/goldilocks/,

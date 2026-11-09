@@ -32,7 +32,7 @@ accrual and declaring immediate trial success. The trial compared radiofrequency
 catheter ablation with antiarrhythmic drug therapy (ADT) in patients with
 symptomatic paroxysmal atrial fibrillation. It was registered as
 [NCT00116428](https://clinicaltrials.gov/study/NCT00116428), reported by
-[Wilber et al. (2010)](https://pubmed.ncbi.nlm.nih.gov/20103757/),
+[Wilber et al. (2010)](https://doi.org/10.1001/jama.2009.2029),
 and supported FDA premarket approval supplement
 [P030031/S011](https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpma/pma.cfm?id=P030031S011).
 
@@ -894,7 +894,7 @@ results should not be compared directly with the trial's regulatory analysis.
 
 -   Wilber DJ, Pappone C, Neuzil P, et al. [Comparison of antiarrhythmic drug
     therapy and radiofrequency catheter ablation in patients with paroxysmal
-    atrial fibrillation: a randomized controlled trial](https://pubmed.ncbi.nlm.nih.gov/20103757/).
+    atrial fibrillation: a randomized controlled trial](https://doi.org/10.1001/jama.2009.2029).
     *JAMA*. 2010;303(4):333-340. doi:10.1001/jama.2009.2029.
     The article reports the analysis boundaries and observed Kaplan--Meier
     results, but not the numerical simulation generator or accrual schedule.
