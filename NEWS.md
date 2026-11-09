@@ -1,3 +1,11 @@
+# goldilocks (development version)
+
+* `sim_horizon_trials()` simulates prespecified, nondecreasing endpoint horizons by interim enrollment size. Success prediction uses only available follow-up through the current endpoint; futility prediction uses a separate predictive model based on available follow-up through the eventual maximum-N endpoint. Both data cuts respect the interim calendar date. An expected-success stop fixes that cohort's endpoint for its final analysis.
+* `sim_horizon_paths()` retains all planned looks at each specified endpoint horizon. `apply_horizon_rules()` reuses this evidence to compare schedules and `Fn`, `Sn`, `Qn`, and `prob_ha` without repeating imputation or fitting. Direct simulation skips unreached interims and agrees with saved-path replay under matched simulation settings and seeds.
+* Horizon designs generate event and dropout histories once through the planned collection period. `dropout_horizon` fixes the time at which `prop_loss` is defined. Success and futility predictions use separate Gamma updates when their endpoint horizons differ, with analysis cutpoints and interval priors restricted consistently. `horizon_settings` allows endpoint-specific null values, RMST restrictions, and beta priors.
+* Results identify the endpoint used at stopping and distinguish endpoint analysis completion from continued outcome collection. Futility probability and the joint probability of futility with counterfactual success at maximum N and the eventual endpoint are reported separately. Banks retain horizon-specific posterior diagnostics and calculation failures, support serialization and consecutive batches, and reproduce across sequential, fork, and PSOCK computation.
+* Existing fixed-horizon functions are unchanged. The new functions use event-time imputation and retain existing restrictions on analysis methods and final imputation. These additions implement prespecified schedules; choosing endpoint extensions from observed interim results is outside their scope.
+
 # goldilocks 1.1.0
 
 Version 1.1.0 adds reusable simulation banks for calibrating decision thresholds. Simulate every planned look once, then compare candidate stopping rules without repeating predictive imputation or model fitting.
