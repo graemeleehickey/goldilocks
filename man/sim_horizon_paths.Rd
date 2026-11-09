@@ -50,7 +50,7 @@ numeric vector of finite, non-negative event rates for the control arm in a
 two-arm trial. It must contain one rate per interval defined by
 \code{generation_cutpoints}.}
 
-\item{cutpoints}{Master piecewise-exponential analysis cutpoints, strictly inside \code{followup_horizon}. Each endpoint uses only cutpoints strictly before that endpoint and the corresponding leading intervals of \code{prior_surv} and \code{prior_surv_final}.}
+\item{cutpoints}{Master piecewise-exponential analysis cutpoints, strictly inside \code{followup_horizon}. Each endpoint uses only cutpoints strictly before that endpoint and the corresponding leading intervals of \code{prior_surv} and \code{prior_surv_final}. If an endpoint H lies inside a master interval, the same hazard parameter and unscaled Gamma prior apply, but its success update uses events and exposure only through H. Available observations beyond H are excluded even within that interval; H is not a new hazard-change assumption in the generating model.}
 
 \item{N_total}{A required positive integer giving the maximum total sample
 size.}
@@ -75,9 +75,9 @@ group only, leaving the interim posterior undefined for the missing group.}
 
 \item{final_horizon}{Required endpoint time for the maximum-\eqn{N} final analysis and all futility predictions. It must equal the largest \code{endpoint_horizons} value.}
 
-\item{endpoint_horizons}{Positive, strictly increasing endpoint times to retain. The default is \code{final_horizon}.}
+\item{endpoint_horizons}{Positive, strictly increasing endpoint times to calculate and save at every interim look. For example, \code{c(12, 18)} saves both 12- and 18-month success predictions at each look, allowing later comparison of schedules that switch at different enrollment sizes. This is a set of candidate endpoint times, not a schedule. The default saves only \code{final_horizon}.}
 
-\item{followup_horizon}{Planned outcome-collection duration for every participant from enrollment, at least \code{final_horizon}. Defaults to \code{final_horizon}. The generating hazards must describe this entire period.}
+\item{followup_horizon}{Planned outcome-collection duration for every participant from enrollment, at least \code{final_horizon}. Defaults to \code{final_horizon}, as used in the 12-to-18-month design. A larger value is needed only when deliberately collecting beyond the final endpoint. The generating hazards must describe this entire period.}
 
 \item{dropout_horizon}{Reference time at which \code{prop_loss} specifies the independent exponential dropout probability. Defaults to \code{followup_horizon}; it remains fixed when the analysis endpoint changes.}
 
@@ -209,7 +209,10 @@ behavior in which generation and analysis used one partition.}
 \item{trial_offset}{A non-negative integer. Trial identifiers start at
 \code{trial_offset + 1}. With an explicit seed, consecutive offsets allow a large
 simulation to be generated, saved, and evaluated in separate batches using the
-same streams as a single call. Keep all other simulation settings fixed.}
+same streams as a single call. For two batches of 1,000 trials, use offsets
+0 and 1,000 with the same explicit seed and design settings. Repeating offset
+0 would repeat the first batch. This counts trial replicates, not participants
+or follow-up time.}
 }
 \value{
 A \code{goldilocks_horizon_paths} object with \code{trials}, a calculation-level \code{failures} table including \code{horizon}, \code{schema_version}, and \code{call}. Each trial retains per-look evidence for each horizon and final analyses for each cohort and horizon. Separate posterior diagnostics record the event counts, exposure, and Gamma updates used at each data cut. Attributes retain evaluated arguments, horizon-specific priors, enrollment design, and random-number and computation settings. Save and restore paths with \code{\link[=saveRDS]{saveRDS()}} and \code{\link[=readRDS]{readRDS()}}. Memory grows with trials, looks, horizons, and imputation count.
@@ -220,7 +223,7 @@ Generates one set of event and dropout histories per trial and evaluates every p
 \details{
 Success prediction at horizon H fits its predictive hazard model using only follow-up through H that is available at the look's calendar date. It imputes completed outcomes through H among currently enrolled participants. Futility prediction uses a separate model fitted to available follow-up through \code{final_horizon}, and predicts success at that horizon at maximum \eqn{N}. Follow-up after H cannot inform the success model, including when a hazard interval crosses H. When H equals \code{final_horizon}, the two predictions share a fitted predictive model.
 
-Event times are generated once through \code{followup_horizon} and re-censored for each analysis. Predictive imputation uses event times; independently imputed binary outcomes at different horizons are not supported. Predictions at different data cuts use their own posterior draws and are not paired latent event trajectories across horizons.
+Event times are generated once through \code{followup_horizon} and re-censored for each analysis. Predictive imputation uses event times; independently imputed binary outcomes at different horizons are not supported. When the success and futility endpoints differ, the two models make separate posterior and imputation draws. The first completed data set from each model is not the same future trial observed for different durations; draw numbers cannot be matched to estimate joint predictive outcomes.
 
 The final analysis after an expected-success stop uses that look's endpoint, even if it fails. It never resumes the trial at a longer endpoint. Futility targets the maximum-\eqn{N} final analysis, rather than success at any remaining interim. Interim sample sizes must be less than \code{N_total}; maximum \eqn{N} is followed by final endpoint ascertainment.
 

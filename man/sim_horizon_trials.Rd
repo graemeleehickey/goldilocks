@@ -55,7 +55,7 @@ numeric vector of finite, non-negative event rates for the control arm in a
 two-arm trial. It must contain one rate per interval defined by
 \code{generation_cutpoints}.}
 
-\item{cutpoints}{Master piecewise-exponential analysis cutpoints, strictly inside \code{followup_horizon}. Each endpoint uses only cutpoints strictly before that endpoint and the corresponding leading intervals of \code{prior_surv} and \code{prior_surv_final}.}
+\item{cutpoints}{Master piecewise-exponential analysis cutpoints, strictly inside \code{followup_horizon}. Each endpoint uses only cutpoints strictly before that endpoint and the corresponding leading intervals of \code{prior_surv} and \code{prior_surv_final}. If an endpoint H lies inside a master interval, the same hazard parameter and unscaled Gamma prior apply, but its success update uses events and exposure only through H. Available observations beyond H are excluded even within that interval; H is not a new hazard-change assumption in the generating model.}
 
 \item{N_total}{A required positive integer giving the maximum total sample
 size.}
@@ -76,7 +76,7 @@ changes. Time zero is implicit, and \code{length(lambda)} must equal
 
 \item{endpoint_horizons}{Endpoint horizons used to allocate reproducible simulation streams. Defaults to the unique scheduled horizons plus \code{final_horizon}, in increasing order. To reproduce a larger set of saved paths exactly, supply the full set of horizons used to generate those paths.}
 
-\item{followup_horizon}{Planned outcome-collection duration for every participant from enrollment, at least \code{final_horizon}. Defaults to \code{final_horizon}. The generating hazards must describe this entire period.}
+\item{followup_horizon}{Planned outcome-collection duration for every participant from enrollment, at least \code{final_horizon}. Defaults to \code{final_horizon}, as used in the 12-to-18-month design. A larger value is needed only when deliberately collecting beyond the final endpoint. The generating hazards must describe this entire period.}
 
 \item{dropout_horizon}{Reference time at which \code{prop_loss} specifies the independent exponential dropout probability. Defaults to \code{followup_horizon}; it remains fixed when the analysis endpoint changes.}
 
@@ -208,7 +208,10 @@ behavior in which generation and analysis used one partition.}
 \item{trial_offset}{A non-negative integer. Trial identifiers start at
 \code{trial_offset + 1}. With an explicit seed, consecutive offsets allow a large
 simulation to be generated, saved, and evaluated in separate batches using the
-same streams as a single call. Keep all other simulation settings fixed.}
+same streams as a single call. For two batches of 1,000 trials, use offsets
+0 and 1,000 with the same explicit seed and design settings. Repeating offset
+0 would repeat the first batch. This counts trial replicates, not participants
+or follow-up time.}
 
 \item{Fn}{Futility threshold: one probability repeated at every interim or one per scheduled look. \code{NULL} or zero disables futility; the default is \code{0.05}.}
 

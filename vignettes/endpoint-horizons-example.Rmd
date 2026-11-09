@@ -5,6 +5,9 @@ output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 2
+    self_contained: false
+    lib_dir: libs
+    css: libs/vignette.css
 vignette: >
   %\VignetteIndexEntry{Extending an endpoint from 12 to 18 months}
   %\VignetteEngine{knitr::rmarkdown}
@@ -12,6 +15,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
+source("shared-vignette-resources.R")
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
@@ -40,7 +44,41 @@ knitr::kable(data.frame(
 ), col.names = c("Analysis", "Success endpoint (months)", "Futility target"))
 ```
 
-If accrual stops for expected success at $N=300$, that cohort's final analysis uses the 12-month endpoint. A subsequent failure at 12 months does not reopen the trial at 18 months. Futility nevertheless remains a prediction about the eventual 18-month maximum-$N$ analysis.
+```{r schedule-flowchart, echo = FALSE, fig.alt = "The prespecified trial schedule: success uses 12 months at enrollment of 100, 200, and 300, and switches to 18 months only if enrollment reaches 400. Every futility prediction targets 500 participants at 18 months. Continuing to maximum enrollment of 500 leads to the final 18-month analysis. A stop fixes the endpoint at the reached look."}
+DiagrammeR::grViz("
+digraph schedule {
+  graph [rankdir=TB, nodesep=0.35, ranksep=0.30]
+  node [shape=box, style='rounded,filled', fontname=Helvetica,
+        fontsize=14, color='#596777', fillcolor='#f3f5f7', margin=0.12]
+  edge [fontname=Helvetica, fontsize=12, color='#596777']
+  start [label='Start trial\nPlan 18-month collection for everyone']
+  n100 [label='N = 100\nSuccess endpoint: 12 months\nFutility target: N = 500, 18 months', fillcolor='#e4effa']
+  n200 [label='N = 200\nSuccess endpoint: 12 months\nFutility target: N = 500, 18 months', fillcolor='#e4effa']
+  n300 [label='N = 300\nSuccess endpoint: 12 months\nFutility target: N = 500, 18 months', fillcolor='#e4effa']
+  n400 [label='N = 400: switch to 18 months\nSuccess endpoint: 18 months\nFutility target: N = 500, 18 months', fillcolor='#e4f2e9']
+  n500 [label='N = 500: end enrollment\nNo enrollment-triggered interim']
+  final [label='Final analysis at 18 months\nSuccess or failure', fillcolor='#e4f2e9']
+  stop12 [label='Futility stop: terminal failure\nExpected-success stop:\nfinal analysis at 12 months\nin the enrolled cohort', fillcolor='#fff0ce']
+  stop18 [label='Futility stop: terminal failure\nExpected-success stop:\nfinal analysis at 18 months\nin the enrolled cohort', fillcolor='#fff0ce']
+  start -> n100
+  n100 -> n200 [label='Continue']
+  n200 -> n300 [label='Continue']
+  n300 -> n400 [label='Continue']
+  n400 -> n500 [label='Continue']
+  n500 -> final [label='Endpoint ascertainment']
+  n100 -> stop12 [label='Stop', constraint=false]
+  n200 -> stop12 [label='Stop', constraint=false]
+  n300 -> stop12 [label='Stop', constraint=false]
+  n400 -> stop18 [label='Stop']
+  {rank=same; n200; stop12}
+  {rank=same; n400; stop18}
+}
+", width = "100%", height = 920)
+```
+
+**Figure 1. The prespecified 12-to-18-month schedule.** Only continued trials reach the next look. The endpoint change occurs at $N=400$, before evaluating that look, without using its results to choose the endpoint. Immediate-success stopping is disabled by `Qn = 1` in this example. Futility always predicts the final outcome at $N=500$ and 18 months, including at the earlier 12-month looks.
+
+> **Stopping for expected success fixes the endpoint.** If accrual stops at $N=300$, the final analysis uses those 300 participants at 12 months. A nonsignificant result is a final failure: the trial does not reopen at 18 months. Continued outcome collection through 18 months does not provide a second opportunity to declare success under this design.
 
 ## Define the generating and analysis assumptions
 
@@ -117,6 +155,8 @@ There are 500 trial replicates per scenario and 100 predictive imputations per l
 
 We first simulate complete trial paths. Both endpoint horizons are evaluated at every planned look, including combinations not used by the current schedule. This permits later comparisons of when to switch endpoints without repeating model fitting or imputation.
 
+`endpoint_horizons = c(12, 18)` means "save calculations for both endpoint times at every look." It does not specify when the trial changes endpoints. `endpoint_schedule` makes that assignment later. For example, these paths support either a switch at $N=300$ or a switch at $N=400$. Omitting `endpoint_horizons` would save only the default `final_horizon = 18`, which would not support the 12-month looks. Collection through 18 months is the default `followup_horizon = final_horizon`; the example states both explicitly.
+
 ```{r simulate-paths}
 null_args <- c(fixed_design, list(
   hazard_treatment = control_hazard,
@@ -171,7 +211,7 @@ knitr::kable(operating[c(
 ))
 ```
 
-The limits are 95% Monte Carlo intervals, describing uncertainty from a finite number of trial replicates. They are not clinical confidence intervals. This example does not establish type I error control at 0.025: the thresholds and endpoint schedule must be evaluated together, under relevant joint null scenarios, and selected settings checked using independent simulations with adequate precision.
+The limits are 95% Monte Carlo intervals, describing uncertainty from a finite number of trial replicates. They are not clinical confidence intervals. Under this example's null, treatment and control have the same event risks at both 12 and 18 months. Any success is therefore a false positive, whichever endpoint establishes it. The example does not establish type I error control at 0.025: the thresholds and schedule need calibration together, followed by independent validation and checks under other plausible null models. Equal risks at 18 months alone would not guarantee equal risks at 12 months; see [Type I error across endpoint times](endpoint-horizons-technical.html#type-i-error-across-endpoint-times).
 
 Futility is reported in two ways. `stop_futility` is the ordinary probability of stopping for binding futility; under the alternative, it is the probability of a futility stop despite the assumed treatment benefit. `futility_and_success_at_max` is the joint probability of a futility stop and success had the same simulated trial continued to $N=500$ with the 18-month endpoint. It is not conditional on having stopped for futility.
 
@@ -186,7 +226,7 @@ knitr::kable(operating[c(
 ))
 ```
 
-The joint outcome is known to be false for trials without a futility stop. For futility trials, an unavailable maximum-$N$ final analysis makes it missing. Its interval uses available comparisons only, and the missing-comparison count should be retained when reporting it. [Calibrating stopping rules from complete trial paths](calibrating-stopping-rules.html) explains this distinction further.
+For example, if 200 of 1,000 trials stopped for futility and 40 of those would have succeeded at maximum $N$, the two reported probabilities would be 20% and 4%. The fraction among futility stops would instead be 40/200 = 20%, which is a different denominator. [Interpreting the two futility measures](endpoint-horizons-technical.html#interpreting-the-two-futility-measures) explains why the 4% is not automatically the power lost by adding futility and distinguishes computational failures from ordinary nonsignificant results. The missing-comparison count refers to unavailable hypothetical final analyses, not to trials that fail to demonstrate benefit.
 
 ## Inspect a trial and its two predictive models
 
@@ -296,7 +336,7 @@ knitr::kable(timing, digits = 1, col.names = c(
 ))
 ```
 
-These are calendar months from first enrollment. Observed events can make the endpoint known before its planned completion time. For futility stops, `analysis_ready_time` describes the stopping cohort's endpoint availability, not the date on which futility was declared; that date is `decision_time`. The [technical companion](endpoint-horizons-technical.html#shared-histories-dropout-and-timing) defines the endpoint and collection measures.
+These are calendar months from first enrollment. `analysis_ready_time` refers to the endpoint selected when accrual stops; `collection_ready_time` refers to collection through month 18 in the same cohort. They can differ after a 12-month stop even though `followup_horizon = final_horizon = 18`. Observed events can make either date earlier than planned completion. For expected-success stops, `decision_time` is the final analysis date, while `accrual_stop_time` is the earlier decision to stop recruitment. For futility or immediate-success stops, `decision_time` is the interim date. The [technical companion](endpoint-horizons-technical.html#analysis-collection-and-decision-dates) gives a numerical example.
 
 ## Add dropout or save results
 
@@ -325,4 +365,20 @@ saveRDS(list(
 ), "endpoint-horizon-calibration.rds")
 ```
 
-For larger simulation studies, use consecutive `trial_offset` batches with a fixed seed and otherwise unchanged settings. See [Calibrating stopping rules from complete trial paths](calibrating-stopping-rules.html) and [Calibrating prob_ha for type I error control](calibrating-prob-ha.html) for further calibration guidance.
+`trial_offset` lets a simulation be split into batches without repeating trial replicates. For example, the following two calls reproduce the 500 alternative-scenario trials above in batches of 250. The second call starts at trial 251, using the same seed and design; it does not continue recruitment within an existing trial.
+
+```{r separate-batches, eval = FALSE}
+batch_args <- alternative_args
+batch_args$N_trials <- 250
+batch_args$trial_offset <- 0
+first_batch <- do.call(sim_horizon_paths, batch_args)
+batch_args$trial_offset <- 250
+second_batch <- do.call(sim_horizon_paths, batch_args)
+
+stopifnot(identical(
+  c(first_batch$trials, second_batch$trials),
+  paths$alternative$trials
+))
+```
+
+Leave `trial_offset = 0`, its default, for an ordinary single call. See [Calibrating stopping rules from complete trial paths](calibrating-stopping-rules.html) and [Calibrating prob_ha for type I error control](calibrating-prob-ha.html) for further calibration guidance.

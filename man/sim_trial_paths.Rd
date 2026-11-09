@@ -285,7 +285,10 @@ other methods.}
 \item{trial_offset}{A non-negative integer. Trial identifiers start at
 \code{trial_offset + 1}. With an explicit seed, consecutive offsets allow a large
 simulation to be generated, saved, and evaluated in separate batches using the
-same streams as a single call. Keep all other simulation settings fixed.}
+same streams as a single call. For two batches of 1,000 trials, use offsets
+0 and 1,000 with the same explicit seed and design settings. Repeating offset
+0 would repeat the first batch. This counts trial replicates, not participants
+or follow-up time.}
 }
 \value{
 A \code{goldilocks_paths} object containing \code{trials} (one record per

@@ -99,6 +99,62 @@ test_that("each horizon uses the leading master-prior intervals", {
   )
 })
 
+test_that("an endpoint inside an interval retains its prior but truncates observations", {
+  bank <- do.call(sim_horizon_paths, horizon_test_args(
+    N_total = 8,
+    interim_look = 6,
+    cutpoints = c(6, 15),
+    generation_cutpoints = NULL,
+    prior_surv = matrix(c(1, 10, 2, 20, 3, 30), nrow = 2),
+    N_trials = 1
+  ))
+  args <- attr(bank, "arguments")
+  config12 <- horizon_analysis_config(args, 12)
+  config18 <- horizon_analysis_config(args, 18)
+  data <- data.frame(
+    id = 1:8,
+    treatment = rep(c(0, 1), 4),
+    time = c(10, 14, 8, 18, 18, 18, 18, 18),
+    event = c(1, 1, 0, 0, 0, 0, 0, 0),
+    enrollment = c(0, 0, 0, 0, 0, 20, 21, 22),
+    loss_to_fu = c(FALSE, FALSE, TRUE, rep(FALSE, 5))
+  )
+  evaluate <- function(data, config) {
+    set.seed(45)
+    horizon_interim_evidence(data, config, 1, 6)
+  }
+  success <- evaluate(data, config12)
+  futility <- evaluate(data, config18)
+  interval <- function(evidence) {
+    posterior <- evidence$diagnostics$posterior
+    posterior <- posterior[posterior$interval_start == 6, ]
+    posterior[match(c("control", "treatment"), posterior$arm), ]
+  }
+  early <- interval(success)
+  later <- interval(futility)
+  # Through month 12, control exposure is (10-6) + (8-6) + (12-6),
+  # and treatment exposure is (12-6) + (12-6). The month-14 event is hidden.
+  expect_equal(early$interval_end, c(12, 12))
+  expect_equal(early$observed_events, c(1, 0))
+  expect_equal(early$observed_exposure, c(12, 12))
+  expect_equal(early$prior_shape, c(2, 2))
+  expect_equal(early$prior_rate, c(20, 20))
+  expect_equal(early$posterior_shape, c(3, 2))
+  expect_equal(early$posterior_rate, c(32, 32))
+  # The final-horizon model uses the full (6,15] interval where observed.
+  expect_equal(later$interval_end, c(15, 15))
+  expect_equal(later$observed_events, c(1, 1))
+  expect_equal(later$observed_exposure, c(15, 17))
+  expect_equal(later$prior_shape, early$prior_shape)
+  expect_equal(later$prior_rate, early$prior_rate)
+  expect_equal(later$posterior_shape, c(3, 3))
+  expect_equal(later$posterior_rate, c(35, 37))
+  changed <- data
+  changed$time[2] <- 16
+  expect_identical(evaluate(changed, config12), success)
+  expect_false(identical(interval(evaluate(changed, config18)), later))
+})
+
 test_that("direct horizon trials agree with full-bank replay for every method", {
   for (method in c(
     "logrank",
@@ -145,14 +201,21 @@ test_that("direct horizon trials agree with full-bank replay for every method", 
   }
 })
 
-test_that("constant horizons reproduce fixed-horizon paths with matched streams", {
-  for (method in c("logrank", "bayes-surv", "bayes-bin", "rmst")) {
+test_that("constant horizons reproduce fixed-horizon evidence and trial outcomes", {
+  for (method in c(
+    "logrank", "cox", "rmst", "bayes-surv", "bayes-bin",
+    "riskdiff-wald", "riskdiff-fm"
+  )) {
     args <- horizon_test_args(
       endpoint_horizons = 18,
       method = method,
       N_trials = 1,
+      N_impute = 8,
+      cutpoints = c(6, 12),
+      generation_cutpoints = NULL,
+      prior_surv = c(2, 40),
       prop_loss = 0.1,
-      imputed_final = method != "logrank",
+      imputed_final = !method %in% c("logrank", "riskdiff-fm"),
       alternative = if (method == "rmst") "greater" else "less"
     )
     bank <- do.call(sim_horizon_paths, args)
@@ -174,6 +237,43 @@ test_that("constant horizons reproduce fixed-horizon paths with matched streams"
       fixed$trials[[1]]$finals,
       info = method
     )
+    expect_equal(nrow(bank$failures), 0L, info = method)
+    schedule <- data.frame(N = args$interim_look, horizon = 18)
+    rule_sets <- list(
+      maximum_sample_size = list(Fn = 0, Sn = 1),
+      futility = list(Fn = 1, Sn = 1, prob_ha = 1),
+      expected_success = list(Fn = 0, Sn = 0, Qn = 1, prob_ha = 0),
+      immediate_success = list(Fn = 0, Sn = 0, Qn = 0, prob_ha = 0)
+    )
+    for (reason in names(rule_sets)) {
+      info <- paste(method, reason)
+      rules <- rule_sets[[reason]]
+      ordinary <- do.call(apply_stopping_rules, c(
+        list(paths = fixed, return_trace = TRUE), rules
+      ))
+      constant <- do.call(apply_horizon_rules, c(
+        list(paths = bank, endpoint_schedule = schedule, return_trace = TRUE),
+        rules
+      ))
+      expect_identical(
+        constant$sims[names(ordinary$sims)], ordinary$sims, info = info
+      )
+      expect_identical(
+        constant$traces[names(ordinary$traces)], ordinary$traces, info = info
+      )
+      expect_equal(constant$sims$stopping_reason, reason, info = info)
+      expect_equal(constant$sims$endpoint_horizon, 18, info = info)
+      expect_identical(
+        constant$sims$analysis_ready_time,
+        constant$sims$collection_ready_time,
+        info = info
+      )
+      expect_identical(
+        constant$sims$planned_completion_time,
+        constant$sims$planned_collection_time,
+        info = info
+      )
+    }
   }
 })
 
