@@ -91,6 +91,7 @@ articles:
     contents:
       - calibrating-prob-ha
       - calibrating-stopping-rules
+      - endpoint-horizons-example
       - decision-traces
   - title: Real trial examples
     contents:
@@ -101,3 +102,4 @@ articles:
     contents:
       - architecture
       - technical-methods
+      - endpoint-horizons-technical

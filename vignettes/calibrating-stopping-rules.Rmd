@@ -23,6 +23,8 @@ Calibrating a stopping rule usually involves comparing several combinations of t
 
 Each set of trial paths represents one data-generating scenario and analysis specification. The null and alternative therefore require separate simulations. Changes to the priors, analysis method, endpoint horizon, allocation, maximum sample size, look schedule, or Monte Carlo settings used in the calculations also require new paths. `sim_trials()` remains useful when evaluating an individual design.
 
+For a design whose endpoint changes according to a prespecified interim schedule, see [Extending an endpoint from 12 to 18 months](endpoint-horizons-example.html). That workflow uses `sim_horizon_paths()` to retain multiple endpoint horizons and `apply_horizon_rules()` to compare candidate schedules.
+
 ## What is saved
 
 At each interim look, `sim_trial_paths()` saves the success score from every predictive completion of the currently enrolled cohort and the maximum cohort. A score is a posterior probability for a Bayesian analysis or $1-p$ for a frequentist analysis. For a completed-data threshold $c$, the predictive probability is

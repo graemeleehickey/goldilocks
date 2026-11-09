@@ -130,7 +130,7 @@ result <- sim_horizon_trials(
 )
 ```
 
-These are illustrative settings, not a calibrated design. For repeated calibration, use `sim_horizon_paths()` with `interim_look = schedule$N` and `endpoint_horizons = c(12, 18)`, then pass the trial paths and candidate schedules to `apply_horizon_rules()`. Stopping for expected success fixes that cohort's endpoint for its final analysis. `dropout_horizon` fixes the reference time for `prop_loss`, and `horizon_settings` supplies endpoint-specific analysis assumptions when needed. Results identify the endpoint used and distinguish endpoint completion from continued outcome collection.
+These are illustrative settings, not a calibrated design. For repeated calibration, use `sim_horizon_paths()` with `interim_look = schedule$N` and `endpoint_horizons = c(12, 18)`, then pass the trial paths and candidate schedules to `apply_horizon_rules()`. Stopping for expected success fixes that cohort's endpoint for its final analysis. `dropout_horizon` fixes the reference time for `prop_loss`, and `horizon_settings` supplies endpoint-specific analysis assumptions when needed. Results identify the endpoint used and distinguish endpoint completion from continued outcome collection. See [Extending an endpoint from 12 to 18 months](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-example.html) for a worked example and [Technical details of prespecified endpoint horizons](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-technical.html) for the calculations and flow charts.
 
 ## Key benefits
 

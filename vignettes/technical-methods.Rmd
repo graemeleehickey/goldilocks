@@ -23,6 +23,8 @@ The `goldilocks` package implements the Goldilocks adaptive sample-size design o
 
 ## 1. Design and notation
 
+This vignette uses a fixed endpoint horizon. [Technical details of prespecified endpoint horizons](endpoint-horizons-technical.html) extends the calculations to changing horizons, with separate success and futility data cuts and flow charts of the prediction and decision sequence.
+
 Consider a trial with maximum sample size $N_{\max}$, planned endpoint time $\tau$, and interim sample-size selection analyses after
 
 $$n_1 < n_2 < \cdots < n_L < N_{\max}$$
