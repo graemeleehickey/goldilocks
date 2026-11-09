@@ -1,4 +1,4 @@
-# Validate a prespecified schedule against the looks and horizons in a bank.
+# Validate a prespecified schedule against the looks and horizons in saved paths.
 validate_endpoint_schedule <- function(endpoint_schedule, args) {
   if (
     !is.data.frame(endpoint_schedule) ||
@@ -14,7 +14,7 @@ validate_endpoint_schedule <- function(endpoint_schedule, args) {
       any(diff(endpoint_schedule$horizon) < 0)
   ) {
     stop(
-      "'endpoint_schedule' must have columns N and horizon, with every planned interim N in order and nondecreasing horizons available in the bank"
+      "'endpoint_schedule' must have columns N and horizon, with every planned interim N in order and nondecreasing horizons available in the saved paths"
     )
   }
   endpoint_schedule

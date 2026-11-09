@@ -73,7 +73,7 @@ size (see \code{block}), ensuring both treatment groups are present at every
 interim analysis; a smaller look could enroll subjects from one treatment
 group only, leaving the interim posterior undefined for the missing group.}
 
-\item{final_horizon}{Required endpoint time for the maximum-N final analysis and all futility predictions. It must equal the largest \code{endpoint_horizons} value.}
+\item{final_horizon}{Required endpoint time for the maximum-\eqn{N} final analysis and all futility predictions. It must equal the largest \code{endpoint_horizons} value.}
 
 \item{endpoint_horizons}{Positive, strictly increasing endpoint times to retain. The default is \code{final_horizon}.}
 
@@ -81,7 +81,7 @@ group only, leaving the interim posterior undefined for the missing group.}
 
 \item{dropout_horizon}{Reference time at which \code{prop_loss} specifies the independent exponential dropout probability. Defaults to \code{followup_horizon}; it remains fixed when the analysis endpoint changes.}
 
-\item{horizon_settings}{Optional data frame with one row per \code{endpoint_horizons} value, identified by column \code{horizon}. Optional columns are \code{h0}, \code{rmst_tau}, and a list column \code{prior_bin}. Missing columns use the common \code{h0}, the endpoint horizon itself for RMST restriction, and the common \code{prior_bin}, respectively. These settings are fixed within a bank.}
+\item{horizon_settings}{Optional data frame with one row per \code{endpoint_horizons} value, identified by column \code{horizon}. Optional columns are \code{h0}, \code{rmst_tau}, and a list column \code{prior_bin}. Missing columns use the common \code{h0}, the endpoint horizon itself for RMST restriction, and the common \code{prior_bin}, respectively. These settings are fixed within a set of trial paths.}
 
 \item{prior_surv}{A numeric vector, matrix, or named list specifying the
 Gamma prior for the piecewise-exponential hazards used to generate outcomes
@@ -208,25 +208,25 @@ behavior in which generation and analysis used one partition.}
 
 \item{trial_offset}{A non-negative integer. Trial identifiers start at
 \code{trial_offset + 1}. With an explicit seed, consecutive offsets allow a large
-bank to be generated, saved, and evaluated in separate batches using the
+simulation to be generated, saved, and evaluated in separate batches using the
 same streams as a single call. Keep all other simulation settings fixed.}
 }
 \value{
-A \code{goldilocks_horizon_paths} bank with \code{trials}, a calculation-level \code{failures} table including \code{horizon}, \code{schema_version}, and \code{call}. Each trial retains per-look evidence for each horizon and final analyses for each cohort and horizon. Separate posterior diagnostics record the event counts, exposure, and Gamma updates used at each data cut. Attributes retain evaluated arguments, horizon-specific priors, enrollment design, and random-number and computation settings. Save and restore banks with \code{\link[=saveRDS]{saveRDS()}} and \code{\link[=readRDS]{readRDS()}}. Memory grows with trials, looks, horizons, and imputation count.
+A \code{goldilocks_horizon_paths} object with \code{trials}, a calculation-level \code{failures} table including \code{horizon}, \code{schema_version}, and \code{call}. Each trial retains per-look evidence for each horizon and final analyses for each cohort and horizon. Separate posterior diagnostics record the event counts, exposure, and Gamma updates used at each data cut. Attributes retain evaluated arguments, horizon-specific priors, enrollment design, and random-number and computation settings. Save and restore paths with \code{\link[=saveRDS]{saveRDS()}} and \code{\link[=readRDS]{readRDS()}}. Memory grows with trials, looks, horizons, and imputation count.
 }
 \description{
 Generates one set of event and dropout histories per trial and evaluates every planned interim at each supported endpoint horizon. The saved evidence can be reused by \code{\link[=apply_horizon_rules]{apply_horizon_rules()}} to calibrate stopping thresholds and prespecified horizon schedules.
 }
 \details{
-Success prediction at horizon H fits its predictive hazard model using only follow-up through H that is available at the look's calendar date. It imputes completed outcomes through H among currently enrolled participants. Futility prediction uses a separate model fitted to available follow-up through \code{final_horizon}, and predicts success at that horizon at maximum N. Follow-up after H cannot inform the success model, including when a hazard interval crosses H. When H equals \code{final_horizon}, the two predictions share a fitted predictive model.
+Success prediction at horizon H fits its predictive hazard model using only follow-up through H that is available at the look's calendar date. It imputes completed outcomes through H among currently enrolled participants. Futility prediction uses a separate model fitted to available follow-up through \code{final_horizon}, and predicts success at that horizon at maximum \eqn{N}. Follow-up after H cannot inform the success model, including when a hazard interval crosses H. When H equals \code{final_horizon}, the two predictions share a fitted predictive model.
 
 Event times are generated once through \code{followup_horizon} and re-censored for each analysis. Predictive imputation uses event times; independently imputed binary outcomes at different horizons are not supported. Predictions at different data cuts use their own posterior draws and are not paired latent event trajectories across horizons.
 
-The final analysis after an expected-success stop uses that look's endpoint, even if it fails. It never resumes the trial at a longer endpoint. Futility targets the maximum-N final analysis, rather than success at any remaining interim. Interim sample sizes must be less than \code{N_total}; maximum N is followed by final endpoint ascertainment.
+The final analysis after an expected-success stop uses that look's endpoint, even if it fails. It never resumes the trial at a longer endpoint. Futility targets the maximum-\eqn{N} final analysis, rather than success at any remaining interim. Interim sample sizes must be less than \code{N_total}; maximum \eqn{N} is followed by final endpoint ascertainment.
 
 \code{prop_loss} describes an exponential dropout distribution independently of the analysis endpoint. For example, \verb{prop_loss = 0.05, dropout_horizon = 12, followup_horizon = 18} retains a 5\% dropout probability by month 12 while generating follow-up through month 18. Dropout after month 12 does not make the 12-month endpoint missing.
 
-All other fixed design settings and analysis restrictions follow \code{\link[=sim_trial_paths]{sim_trial_paths()}}. Explicit seeds preserve the caller's random-number state and reproduce results across supported computation methods and consecutive \code{trial_offset} batches. Changing the set of retained horizons changes the allocation of random numbers. Changing only a candidate schedule or thresholds does not. Select designs using one bank and assess the complete adaptive design on an independent bank.
+All other fixed design settings and analysis restrictions follow \code{\link[=sim_trial_paths]{sim_trial_paths()}}. Explicit seeds preserve the caller's random-number state and reproduce results across supported computation methods and consecutive \code{trial_offset} batches. Changing the set of retained horizons changes the allocation of random numbers. Changing only a candidate schedule or thresholds does not. Select designs using one set of trial paths and assess the complete adaptive design using independent simulations.
 }
 \examples{
 paths <- sim_horizon_paths(

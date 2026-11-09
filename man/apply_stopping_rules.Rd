@@ -2,7 +2,7 @@
 % Please edit documentation in R/apply_stopping_rules.R
 \name{apply_stopping_rules}
 \alias{apply_stopping_rules}
-\title{Apply stopping rules to a saved trial-path bank}
+\title{Apply stopping rules to saved trial paths}
 \usage{
 apply_stopping_rules(
   paths,
@@ -58,21 +58,21 @@ A list compatible with \code{\link[=summarise_sims]{summarise_sims()}}, \code{\l
 and simulation plots, containing \code{sims}, \code{failures}, and \code{call}, plus
 \code{traces} when requested. Each simulation row retains its original \code{trial}
 identifier and additionally reports \code{success_at_max} (the final outcome
-if enrollment continued to maximum N without interim stopping) and
+if enrollment continued to maximum \eqn{N} without interim stopping) and
 \code{futility_and_success_at_max} (binding futility together with that
 counterfactual success). The latter is \code{FALSE} for non-futility trials and
-\code{NA} for futility trials whose maximum-N final analysis failed. These
-quantities use the candidate's \code{prob_ha} and the bank's final analysis.
+\code{NA} for futility trials whose maximum-\eqn{N} final analysis failed. These
+quantities use the candidate's \code{prob_ha} and the final analysis saved with the paths.
 
 \code{summarise_sims()} reports the joint probability as
 \code{futility_and_success_at_max}, with its available and unavailable counts.
 Its ordinary \code{stop_futility} estimate is the futility probability under
 the simulated scenario; under an alternative this is the requested
 alternative-scenario futility rate. The joint probability is not the net
-power loss relative to a fixed maximum-N design.
+power loss relative to a fixed maximum-\eqn{N} design.
 
-Attributes include the evaluated design, bank provenance (\code{path_metadata}),
-and \code{stopping_rules}. The bank itself is not copied into the result.
+Attributes include the evaluated design, simulation settings (\code{path_metadata}),
+and \code{stopping_rules}. The complete paths are not copied into the result.
 If no trial is evaluable, the function stops with a
 \code{goldilocks_all_trials_failed} error carrying the candidate failure table.
 }
@@ -89,14 +89,14 @@ analysis of the stopping cohort; immediate success and futility do not.
 
 Only failures needed by the candidate invalidate a trial. Failures at
 unreached looks, unused maximum-cohort predictions, or optional final
-analyses remain in the bank but do not remove an evaluable trial. A missing
-maximum-N final analysis makes the counterfactual comparison unavailable,
+analyses remain in the saved paths but do not remove an evaluable trial. A missing
+maximum-\eqn{N} final analysis makes the counterfactual comparison unavailable,
 without invalidating an otherwise known adaptive outcome.
 
-Candidate results from the same bank are paired by \code{trial}. Use paired
+Candidate results from the same simulated trials are paired by \code{trial}. Use paired
 uncertainty calculations for differences; marginal Monte Carlo intervals
-do not describe uncertainty in a difference. Screen candidate rules on one
-bank and validate selected rules on a fresh independent bank.
+do not describe uncertainty in a difference. Screen candidate rules using one
+set of trial paths and validate selected rules using independent simulations.
 }
 \examples{
 paths <- sim_trial_paths(

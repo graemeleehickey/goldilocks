@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim_trial_paths.R
 \name{print.goldilocks_paths}
 \alias{print.goldilocks_paths}
-\title{Print a complete trial-path simulation bank}
+\title{Print a set of complete trial paths}
 \usage{
 \method{print}{goldilocks_paths}(x, ...)
 }
@@ -15,5 +15,5 @@
 The object, invisibly.
 }
 \description{
-Print a complete trial-path simulation bank
+Print a set of complete trial paths
 }

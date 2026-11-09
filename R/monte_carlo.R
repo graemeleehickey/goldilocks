@@ -222,7 +222,7 @@ classify_analysis_scores <- function(scores, prob_ha, mc_conf_level) {
   list(successes = sum(crossed), uncertain = uncertain)
 }
 
-# Banks isolate current- and maximum-cohort failures; ordinary analyses still stop.
+# Saved paths isolate current- and maximum-cohort failures; ordinary analyses still stop.
 capture_predictive_analysis <- function(isolate_errors, expr) {
   if (isolate_errors) tryCatch(expr, error = identity) else expr
 }

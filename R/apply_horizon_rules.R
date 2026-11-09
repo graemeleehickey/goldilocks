@@ -1,22 +1,22 @@
 #' Apply a prespecified endpoint schedule to saved trial paths
 #'
 #' @description Applies endpoint horizons and stopping thresholds without further imputation, fitting, or random-number generation.
-#' @param paths A complete `goldilocks_horizon_paths` bank from [sim_horizon_paths()].
-#' @param endpoint_schedule Data frame with exactly two columns, `N` and `horizon`, containing every planned interim enrollment size in increasing order and a nondecreasing endpoint horizon at each look. Horizons must be available in the bank. Use a zero-row data frame with numeric columns when there are no interims.
+#' @param paths A complete `goldilocks_horizon_paths` object from [sim_horizon_paths()].
+#' @param endpoint_schedule Data frame with exactly two columns, `N` and `horizon`, containing every planned interim enrollment size in increasing order and a nondecreasing endpoint horizon at each look. Horizons must be available in the saved paths. Use a zero-row data frame with numeric columns when there are no interims.
 #' @inheritParams apply_stopping_rules
 #' @param Fn Futility threshold: one probability repeated at every interim or one per scheduled look. `NULL` or zero disables futility; the default is `0.05`.
 #' @param Sn Expected-success threshold: one probability repeated at every interim or one per scheduled look. The default is `0.9`; one disables expected-success stopping.
 #' @param Qn Immediate-success threshold: one probability repeated at every interim or one per scheduled look. It must be at least `Sn` at every look. The default, one, disables immediate-success stopping.
 #' @param return_trace Logical; whether to include a `traces` data frame containing the reached interim decisions in the returned list. Defaults to `FALSE`.
-#' @details Success uses the scheduled endpoint and its own prediction data cut. Futility always uses the bank's final endpoint and its separate data cut, regardless of the scheduled success endpoint. Immediate success, expected success, and binding futility retain their existing priority and strict threshold comparisons. The first stop is terminal. An expected-success stop fixes the endpoint for that cohort's final analysis; failure there does not trigger extension.
+#' @details Success uses the scheduled endpoint and its own prediction data cut. Futility always uses the final endpoint specified when simulating the paths and its separate data cut, regardless of the scheduled success endpoint. Immediate success, expected success, and binding futility retain their existing priority and strict threshold comparisons. The first stop is terminal. An expected-success stop fixes the endpoint for that cohort's final analysis; failure there does not trigger extension.
 #'
-#' Only calculations needed by a candidate determine whether its trial is evaluable. A failed maximum-N counterfactual makes that comparison unavailable without discarding a known adaptive outcome. Both the ordinary futility probability and joint futility with counterfactual success are available through [summarise_sims()]. The latter always refers to maximum N at `final_horizon`.
+#' Only calculations needed by a candidate determine whether its trial is evaluable. A failed maximum-\eqn{N} counterfactual makes that comparison unavailable without discarding a known adaptive outcome. Both the ordinary futility probability and joint futility with counterfactual success are available through [summarise_sims()]. The latter always refers to maximum \eqn{N} at `final_horizon`.
 #'
 #' Calibrate type I error for the complete adaptive design under the relevant joint null scenarios across endpoint horizons. Overall success across different endpoints cannot be interpreted as rejection of the final-horizon null alone when an earlier endpoint can establish success.
 #'
 #' @return A list compatible with [summarise_sims()] and [summarise_calendar_time()], containing `sims`, `failures`, and `call`, and optionally `traces`. Simulation rows additionally identify `endpoint_horizon`, `final_horizon`, and `followup_horizon`, and the null `margin` used for the selected endpoint. Treatment-effect estimates from different endpoint horizons should be reported separately. Overall success is success under the complete prespecified adaptive design, which may declare success at different endpoints.
 #'
-#' Calendar columns `analysis_ready_time`, `planned_completion_time`, and `followup_person_time` refer to the selected endpoint. Separate `collection_ready_time`, `planned_collection_time`, and `collection_person_time` refer to continued collection through `followup_horizon` among the enrolled cohort, even after a stop. Event and dropout times can precede planned completion. Trace columns identify both prediction data horizons and futility event and pending-outcome counts; the unprefixed counts refer to success prediction. Bank posterior diagnostics remain separate by horizon.
+#' Calendar columns `analysis_ready_time`, `planned_completion_time`, and `followup_person_time` refer to the selected endpoint. Separate `collection_ready_time`, `planned_collection_time`, and `collection_person_time` refer to continued collection through `followup_horizon` among the enrolled cohort, even after a stop. Event and dropout times can precede planned completion. Trace columns identify both prediction data horizons and futility event and pending-outcome counts; the unprefixed counts refer to success prediction. Saved posterior diagnostics remain separate by horizon.
 #' @seealso [sim_horizon_paths()], [sim_horizon_trials()]
 #' @export
 apply_horizon_rules <- function(
@@ -86,7 +86,7 @@ validate_horizon_paths <- function(paths) {
       !identical(paths$schema_version, 1L)
   ) {
     stop(
-      "'paths' must be a supported goldilocks_horizon_paths bank (schema version 1)"
+      "'paths' must be a supported goldilocks_horizon_paths object (schema version 1)"
     )
   }
   args <- attr(paths, "arguments", exact = TRUE)
@@ -97,7 +97,7 @@ validate_horizon_paths <- function(paths) {
       length(paths$trials) != args$N_trials ||
       !is.data.frame(paths$failures)
   ) {
-    stop("Incomplete horizon bank or metadata")
+    stop("Incomplete horizon paths or metadata")
   }
   args <- validate_horizon_arguments(args)
   horizons <- args$endpoint_horizons
@@ -105,7 +105,7 @@ validate_horizon_paths <- function(paths) {
   expected_H <- rep(horizons, length(args$interim_look) + 1L)
   for (path in paths$trials) {
     if (length(path$interims) != length(args$interim_look)) {
-      stop("Incomplete interim schedule in horizon bank")
+      stop("Incomplete interim schedule in horizon paths")
     }
     if (
       !is.null(path$finals) &&
@@ -115,7 +115,7 @@ validate_horizon_paths <- function(paths) {
         ) ||
           !identical(as.numeric(path$finals$horizon), as.numeric(expected_H)))
     ) {
-      stop("Inconsistent final cohort or horizon schedule in bank")
+      stop("Inconsistent final cohort or horizon schedule in saved paths")
     }
     for (look in path$interims) {
       if (is.null(look)) {
@@ -135,7 +135,7 @@ validate_horizon_paths <- function(paths) {
               length(scores) != args$N_impute
           ) {
             stop(
-              "Incomplete predictive replicates in horizon bank; no replicates may be dropped"
+              "Incomplete predictive replicates in horizon paths; no replicates may be dropped"
             )
           }
         }

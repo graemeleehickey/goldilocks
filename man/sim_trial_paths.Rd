@@ -284,7 +284,7 @@ other methods.}
 
 \item{trial_offset}{A non-negative integer. Trial identifiers start at
 \code{trial_offset + 1}. With an explicit seed, consecutive offsets allow a large
-bank to be generated, saved, and evaluated in separate batches using the
+simulation to be generated, saved, and evaluated in separate batches using the
 same streams as a single call. Keep all other simulation settings fixed.}
 }
 \value{
@@ -297,13 +297,13 @@ evaluated \code{arguments}, \code{prior_design}, \code{enrollment_design}, \code
 \code{\link[=saveRDS]{saveRDS()}} to retain its metadata and posterior counts.
 }
 \description{
-Generates one reusable simulation bank under fixed design and
+Generates a reusable set of trial paths under fixed design and
 data-generating assumptions. Every planned interim look is evaluated,
 regardless of hypothetical stopping decisions. Use \code{\link[=apply_stopping_rules]{apply_stopping_rules()}}
 to calibrate \code{Fn}, \code{Sn}, \code{Qn}, and \code{prob_ha} without new simulations.
 }
 \details{
-The bank retains the success score (posterior probability or
+Each trial path retains the success score (posterior probability or
 frequentist \code{1 - p}) of every predictive replicate, for the current and
 maximum cohorts, plus posterior Monte Carlo counts when applicable. It also
 retains a final analysis and calendar metrics for each possible stopping
@@ -312,21 +312,24 @@ specified dropout and final-imputation policy. Interim evidence only uses
 information available at its calendar cut.
 
 The data-generating model, priors, method, null margin, endpoint horizon,
-allocation, look schedule, maximum sample size, \code{N_impute}, and \code{N_mcmc}
-are fixed within a bank. Changing them requires a new bank. Interim looks
-must be strictly below \code{N_total}; the maximum-N analysis is after follow-up.
+allocation, look schedule, maximum sample size, and \code{N_impute} are fixed
+within a set of trial paths. \code{N_mcmc} is also fixed when posterior draws
+are used; it can be omitted for Bayesian binary quadrature or normal
+approximation and for frequentist analyses. Changing settings used in the
+calculations requires new trial paths. Interim looks must be strictly below
+\code{N_total}; the maximum-\eqn{N} analysis is after follow-up.
 
-A bank costs more than one early-stopping simulation but can be reused for
+Complete paths take longer to simulate than trials that stop early, but can be reused for
 many candidate rules. Score storage alone requires approximately
 \code{16 * N_trials * length(interim_look) * N_impute} bytes, or 24 bytes per
 trial/look/imputation for Monte Carlo Bayesian methods, plus object and
-diagnostic overhead. Large estimates are reported before simulation. Banks
+diagnostic overhead. Large estimates are reported before simulation. Paths
 are held in memory; use \code{trial_offset} and \code{\link[=saveRDS]{saveRDS()}} for separate batches.
 
 Each trial and stage receives a separate L'Ecuyer-CMRG stream or substream.
 An explicit seed preserves the caller's RNG state and gives identical paths
 across supported backends. With \code{seed = NULL}, exactly one integer seed is
-drawn from the caller's RNG; all backends use that seed. Seeded bank results
+drawn from the caller's RNG; all backends use that seed. Seeded path results
 need not equal \code{\link[=sim_trials]{sim_trials()}} results, whose draw scheduling is unchanged.
 
 Failures are retained at the calculation level. A failed predictive

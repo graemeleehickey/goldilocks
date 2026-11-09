@@ -70,17 +70,17 @@ positive, strictly increasing calendar times at which the enrollment rate
 changes. Time zero is implicit, and \code{length(lambda)} must equal
 \code{length(lambda_time) + 1}.}
 
-\item{endpoint_schedule}{Data frame with exactly two columns, \code{N} and \code{horizon}, containing every planned interim enrollment size in increasing order and a nondecreasing endpoint horizon at each look. Horizons must be available in the bank. Use a zero-row data frame with numeric columns when there are no interims.}
+\item{endpoint_schedule}{Data frame with exactly two columns, \code{N} and \code{horizon}, containing every planned interim enrollment size in increasing order and a nondecreasing endpoint horizon at each look. Horizons must be available in the saved paths. Use a zero-row data frame with numeric columns when there are no interims.}
 
-\item{final_horizon}{Required endpoint time for the maximum-N final analysis and all futility predictions. It must equal the largest \code{endpoint_horizons} value.}
+\item{final_horizon}{Required endpoint time for the maximum-\eqn{N} final analysis and all futility predictions. It must equal the largest \code{endpoint_horizons} value.}
 
-\item{endpoint_horizons}{Endpoint horizons used to allocate reproducible simulation streams. Defaults to the unique scheduled horizons plus \code{final_horizon}, in increasing order. To reproduce a larger saved bank exactly, supply that bank's full set of horizons.}
+\item{endpoint_horizons}{Endpoint horizons used to allocate reproducible simulation streams. Defaults to the unique scheduled horizons plus \code{final_horizon}, in increasing order. To reproduce a larger set of saved paths exactly, supply the full set of horizons used to generate those paths.}
 
 \item{followup_horizon}{Planned outcome-collection duration for every participant from enrollment, at least \code{final_horizon}. Defaults to \code{final_horizon}. The generating hazards must describe this entire period.}
 
 \item{dropout_horizon}{Reference time at which \code{prop_loss} specifies the independent exponential dropout probability. Defaults to \code{followup_horizon}; it remains fixed when the analysis endpoint changes.}
 
-\item{horizon_settings}{Optional data frame with one row per \code{endpoint_horizons} value, identified by column \code{horizon}. Optional columns are \code{h0}, \code{rmst_tau}, and a list column \code{prior_bin}. Missing columns use the common \code{h0}, the endpoint horizon itself for RMST restriction, and the common \code{prior_bin}, respectively. These settings are fixed within a bank.}
+\item{horizon_settings}{Optional data frame with one row per \code{endpoint_horizons} value, identified by column \code{horizon}. Optional columns are \code{h0}, \code{rmst_tau}, and a list column \code{prior_bin}. Missing columns use the common \code{h0}, the endpoint horizon itself for RMST restriction, and the common \code{prior_bin}, respectively. These settings are fixed within a set of trial paths.}
 
 \item{prior_surv}{A numeric vector, matrix, or named list specifying the
 Gamma prior for the piecewise-exponential hazards used to generate outcomes
@@ -207,7 +207,7 @@ behavior in which generation and analysis used one partition.}
 
 \item{trial_offset}{A non-negative integer. Trial identifiers start at
 \code{trial_offset + 1}. With an explicit seed, consecutive offsets allow a large
-bank to be generated, saved, and evaluated in separate batches using the
+simulation to be generated, saved, and evaluated in separate batches using the
 same streams as a single call. Keep all other simulation settings fixed.}
 
 \item{Fn}{Futility threshold: one probability repeated at every interim or one per scheduled look. \code{NULL} or zero disables futility; the default is \code{0.05}.}
@@ -224,7 +224,7 @@ compared with \code{1 - P}. The default is \code{0.95}.}
 \item{return_trace}{Logical; whether to include a \code{traces} data frame containing the reached interim decisions in the returned list. Defaults to \code{FALSE}.}
 }
 \value{
-A simulation result as described in \code{\link[=apply_horizon_rules]{apply_horizon_rules()}}. The \code{calculation_failures} component additionally records failed simulation stages. The complete path bank is not retained.
+A simulation result as described in \code{\link[=apply_horizon_rules]{apply_horizon_rules()}}. The \code{calculation_failures} component additionally records failed simulation stages. The complete trial paths are not retained.
 }
 \description{
 Simulates only reached interim looks under a prespecified schedule, using separate success and futility prediction data cuts. Use \code{\link[=sim_horizon_paths]{sim_horizon_paths()}} when comparing many schedules or stopping thresholds.
@@ -232,7 +232,7 @@ Simulates only reached interim looks under a prespecified schedule, using separa
 \details{
 At a 12-month look with an eventual 18-month final endpoint, success imputation is fitted only to available data through month 12; futility imputation is fitted to available data through month 18. Both respect the look's calendar date. The schedule changes only if the trial reaches the corresponding look. It is not selected using interim outcomes.
 
-Later interim calculations are skipped after a stop. The selected cohort's final analysis and the maximum-N final analysis are retained, including the counterfactual futility comparison. For the same seed, set of horizons, and other simulation settings, results agree with \code{\link[=sim_horizon_paths]{sim_horizon_paths()}} followed by \code{\link[=apply_horizon_rules]{apply_horizon_rules()}}. Event-time imputation, dropout interpretation, horizon-specific analysis settings, and the endpoint lock after a stop are described in \code{\link[=sim_horizon_paths]{sim_horizon_paths()}}.
+Later interim calculations are skipped after a stop. The selected cohort's final analysis and the maximum-\eqn{N} final analysis are retained, including the counterfactual futility comparison. For the same seed, set of horizons, and other simulation settings, results agree with \code{\link[=sim_horizon_paths]{sim_horizon_paths()}} followed by \code{\link[=apply_horizon_rules]{apply_horizon_rules()}}. Event-time imputation, dropout interpretation, horizon-specific analysis settings, and the endpoint lock after a stop are described in \code{\link[=sim_horizon_paths]{sim_horizon_paths()}}.
 }
 \examples{
 schedule <- data.frame(N = c(20, 40), horizon = c(12, 18))

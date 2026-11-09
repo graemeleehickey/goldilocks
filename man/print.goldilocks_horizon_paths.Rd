@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim_horizon_paths.R
 \name{print.goldilocks_horizon_paths}
 \alias{print.goldilocks_horizon_paths}
-\title{Print a bank of trial paths with multiple endpoint horizons}
+\title{Print trial paths with multiple endpoint horizons}
 \usage{
 \method{print}{goldilocks_horizon_paths}(x, ...)
 }
@@ -15,5 +15,5 @@
 The object, invisibly.
 }
 \description{
-Print a bank of trial paths with multiple endpoint horizons
+Print trial paths with multiple endpoint horizons
 }
