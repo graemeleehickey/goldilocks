@@ -181,7 +181,9 @@ sim_trials <- function(
   Arguments$prop_loss <- prop_loss
   validate_logical_scalar(return_trace, "return_trace")
   validate_positive_integer_scalar(N_impute, "N_impute")
-  validate_positive_integer_scalar(N_mcmc, "N_mcmc")
+  if (uses_posterior_draws(method, bin_method)) {
+    validate_positive_integer_scalar(N_mcmc, "N_mcmc")
+  }
   validate_single_probability(
     mc_conf_level,
     "mc_conf_level",

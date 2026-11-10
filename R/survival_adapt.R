@@ -143,9 +143,7 @@
 #'   imputations used at each interim look and, when requested, for final
 #'   multiple imputation. The default is `500`. An imputed Cox, RMST, or
 #'   risk-difference final analysis requires at least two.
-#' @param N_mcmc A positive integer giving the number of posterior draws used
-#'   within each `method = "bayes-surv"` and by `method = "bayes-bin"` when
-#'   `bin_method = "mc"`. The default is `1000`.
+#' @param N_mcmc A positive integer giving the number of posterior draws used for Bayesian survival analyses and Bayesian binomial analyses with `bin_method = "mc"`. The default is `1000`. Ignored for all other analyses, including `bin_method = "normal"` and `"quadrature"` with `method = "bayes-bin"`; `NULL` is allowed when ignored.
 #' @param mc_conf_level A single numeric probability strictly between `0.5` and
 #'   `1`, giving the confidence level for one-sided exact binomial bounds
 #'   reported as diagnostics of finite Monte Carlo uncertainty. The bounds do
@@ -617,7 +615,9 @@ survival_adapt <- function(
   Arguments$prop_loss <- prop_loss
   validate_single_probability(prob_ha, "prob_ha")
   validate_positive_integer_scalar(N_impute, "N_impute")
-  validate_positive_integer_scalar(N_mcmc, "N_mcmc")
+  if (uses_posterior_draws(method, bin_method)) {
+    validate_positive_integer_scalar(N_mcmc, "N_mcmc")
+  }
   validate_single_probability(
     mc_conf_level,
     "mc_conf_level",
@@ -718,9 +718,9 @@ survival_adapt <- function(
     mc_conf_level = mc_conf_level
   )
 
-  # Posterior samples are not used by frequentist methods
-  if (!method %in% c("bayes-surv", "bayes-bin")) {
-    N_mcmc <- 1
+  # Keep a numeric placeholder in shared calculations when no posterior draws are used.
+  if (!uses_posterior_draws(method, bin_method)) {
+    N_mcmc <- 1L
   }
 
   ##############################################################################
@@ -861,12 +861,8 @@ survival_adapt <- function(
         break # No further SS looks
       }
     }
-
-    # Number of patients enrolled at trial stop
-    N_enrolled <- nrow(data_interim[data_interim$id <= stage_trial_stopped, ])
   } else {
     # Assigning stage trial stopped given no interim look
-    N_enrolled <- N_total
     stage_trial_stopped <- N_total
     stop_futility <- 0
     stop_expected_success <- 0

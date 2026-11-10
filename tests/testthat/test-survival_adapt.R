@@ -125,6 +125,23 @@ test_that("survival_adapt supports Bernoulli binary imputation", {
   expect_true(out$ppp_success >= 0 && out$ppp_success <= 1)
 })
 
+test_that("small variable-block trials report the final enrolled cohort", {
+  args <- list(
+    hazard_treatment = 0.05, hazard_control = 0.08,
+    N_total = 8, block = c(4, 6), interim_look = 6,
+    lambda = 4, end_of_study = 12, alternative = "less",
+    method = "bayes-bin", bin_method = "quadrature", N_mcmc = NULL,
+    N_impute = 3, prob_ha = 1, Sn = 1
+  )
+  for (futility in c(0, 1)) {
+    set.seed(213)
+    out <- do.call(survival_adapt, c(args, list(Fn = futility)))
+    expect_equal(out$N_enrolled, if (futility == 1) 6 else 8)
+    expect_equal(out$N_enrolled, out$N_treatment + out$N_control)
+    expect_equal(out$stop_futility, futility)
+  }
+})
+
 test_that("survival_adapt-logrank", {
   out <- survival_adapt(
     hazard_treatment = -log(0.85) / 36,
@@ -1018,7 +1035,10 @@ test_that("survival_adapt validates probability, count, and prior arguments", {
     "N_impute"
   )
   expect_error(
-    do.call(survival_adapt, modifyList(common_args, list(N_mcmc = 1.5))),
+    do.call(
+      survival_adapt,
+      modifyList(common_args, list(method = "bayes-surv", N_mcmc = 1.5))
+    ),
     "N_mcmc"
   )
   expect_error(

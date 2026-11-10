@@ -7,8 +7,7 @@
 randomization(N_total, block = 2, allocation = c(control = 1, treatment = 1))
 }
 \arguments{
-\item{N_total}{A required positive integer giving the total number of
-treatment assignments.}
+\item{N_total}{A required positive integer giving the total number of treatment assignments. It must be at least the largest value in \code{block}, but need not be as large as their sum.}
 
 \item{block}{A positive integer vector containing one or more permitted block
 sizes. Every block size must be a multiple of \code{sum(allocation)}. The

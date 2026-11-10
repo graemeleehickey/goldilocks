@@ -4,8 +4,7 @@
 #'   and treatment arms using a fixed allocation ratio and one or more permitted
 #'   block sizes.
 #'
-#' @param N_total A required positive integer giving the total number of
-#'   treatment assignments.
+#' @param N_total A required positive integer giving the total number of treatment assignments. It must be at least the largest value in `block`, but need not be as large as their sum.
 #' @param block A positive integer vector containing one or more permitted block
 #'   sizes. Every block size must be a multiple of `sum(allocation)`. The
 #'   default is `2`.

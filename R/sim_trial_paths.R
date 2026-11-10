@@ -103,12 +103,11 @@ sim_trial_paths <- function(
   args <- validate_path_arguments(args)
   config <- args
   config$single_arm <- is.null(args$hazard_control)
-  if (!args$method %in% c("bayes-surv", "bayes-bin")) {
+  if (!uses_posterior_draws(args$method, args$bin_method)) {
     config$N_mcmc <- 1L
   }
   execution <- resolve_sim_execution(args$backend, args$ncores, args$N_trials)
-  inner_mc <- args$method == "bayes-surv" ||
-    (args$method == "bayes-bin" && args$bin_method == "mc")
+  inner_mc <- uses_posterior_draws(args$method, args$bin_method)
   score_bytes <- as.double(N_trials) *
     length(interim_look) *
     N_impute *
@@ -217,8 +216,11 @@ sim_trial_paths <- function(
 # Validate fixed settings before workers or random-number generation begin.
 validate_path_arguments <- function(args) {
   args$method <- normalize_analysis_method(args$method)
-  for (name in c("N_total", "N_trials", "N_impute", "N_mcmc", "ncores")) {
+  for (name in c("N_total", "N_trials", "N_impute", "ncores")) {
     validate_positive_integer_scalar(args[[name]], name)
+  }
+  if (uses_posterior_draws(args$method, args$bin_method)) {
+    validate_positive_integer_scalar(args$N_mcmc, "N_mcmc")
   }
   if (args$N_trials > .Machine$integer.max) {
     stop("'N_trials' exceeds the supported trial identifier range")

@@ -133,9 +133,7 @@ imputations used at each interim look and, when requested, for final
 multiple imputation. The default is \code{500}. An imputed Cox, RMST, or
 risk-difference final analysis requires at least two.}
 
-\item{N_mcmc}{A positive integer giving the number of posterior draws used
-within each \code{method = "bayes-surv"} and by \code{method = "bayes-bin"} when
-\code{bin_method = "mc"}. The default is \code{1000}.}
+\item{N_mcmc}{A positive integer giving the number of posterior draws used for Bayesian survival analyses and Bayesian binomial analyses with \code{bin_method = "mc"}. The default is \code{1000}. Ignored for all other analyses, including \code{bin_method = "normal"} and \code{"quadrature"} with \code{method = "bayes-bin"}; \code{NULL} is allowed when ignored.}
 
 \item{mc_conf_level}{A single numeric probability strictly between \code{0.5} and
 \code{1}, giving the confidence level for one-sided exact binomial bounds

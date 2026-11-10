@@ -72,6 +72,31 @@ test_that("randomization works with multiple block sizes", {
   expect_true(all(out %in% c(0, 1)))
 })
 
+test_that("randomization permits totals below the sum of allowed block sizes", {
+  cases <- list(
+    list(block = c(2, 6), allocation = c(control = 1, treatment = 1)),
+    list(block = c(6, 2), allocation = c(control = 1, treatment = 1)),
+    list(block = c(4, 4), allocation = c(control = 1, treatment = 1)),
+    list(block = c(6, 3), allocation = c(control = 1, treatment = 2))
+  )
+  for (case in cases) {
+    for (n in max(case$block) + 0:1) {
+      set.seed(214)
+      out <- randomization(n, case$block, case$allocation)
+      expect_length(out, n)
+      expect_true(all(out %in% c(0, 1)))
+      first_block <- out[seq_len(case$block[1])]
+      expect_equal(
+        sum(first_block),
+        unname(case$block[1] * case$allocation["treatment"] / sum(case$allocation))
+      )
+      set.seed(214)
+      expect_identical(randomization(n, case$block, case$allocation), out)
+    }
+  }
+  expect_error(randomization(4, c(2, 6)), "at least max\\('block'\\) \\(6\\)")
+})
+
 test_that("randomization errors on non-integer block", {
   expect_error(
     randomization(N_total = 100, block = 2.5, allocation = c(1, 1)),
@@ -100,7 +125,7 @@ test_that("randomization errors when block not divisible by allocation sum", {
 test_that("randomization errors when N_total < block", {
   expect_error(
     randomization(N_total = 1, block = 4, allocation = c(1, 1)),
-    "'N_total' must be at least sum\\('block'\\) \\(4\\); observed 'N_total': 1"
+    "'N_total' must be at least max\\('block'\\) \\(4\\); observed 'N_total': 1"
   )
 })
 

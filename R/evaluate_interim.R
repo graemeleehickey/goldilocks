@@ -177,7 +177,9 @@ evaluate_interim <- function(
   validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
   validate_single_probability(prob_ha, "prob_ha")
   validate_positive_integer_scalar(N_impute, "N_impute")
-  validate_positive_integer_scalar(N_mcmc, "N_mcmc")
+  if (uses_posterior_draws(method, bin_method)) {
+    validate_positive_integer_scalar(N_mcmc, "N_mcmc")
+  }
   validate_single_probability(
     mc_conf_level,
     "mc_conf_level",
@@ -225,7 +227,7 @@ evaluate_interim <- function(
     name = "prior_surv_final"
   )
   requested_N_mcmc <- N_mcmc
-  if (!method %in% c("bayes-surv", "bayes-bin")) {
+  if (!uses_posterior_draws(method, bin_method)) {
     N_mcmc <- 1L
   }
 
@@ -352,7 +354,11 @@ evaluate_interim <- function(
     Qn = Qn,
     prob_ha = prob_ha,
     N_impute = as.integer(N_impute),
-    N_mcmc = as.integer(requested_N_mcmc),
+    N_mcmc = if (uses_posterior_draws(method, bin_method)) {
+      as.integer(requested_N_mcmc)
+    } else {
+      requested_N_mcmc
+    },
     mc_conf_level = mc_conf_level,
     empty_interval = empty_interval,
     method = method,

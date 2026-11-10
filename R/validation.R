@@ -781,10 +781,10 @@ validate_randomization_args <- function(
     )
   }
 
-  if (N_total < sum(block)) {
+  if (N_total < max(block)) {
     stop(
-      "'N_total' must be at least sum('block') (",
-      sum(block),
+      "'N_total' must be at least max('block') (",
+      max(block),
       "); observed 'N_total': ",
       N_total
     )
@@ -1107,6 +1107,12 @@ validate_interim_looks <- function(interim_look, N_total, min_look = NULL) {
   invisible(TRUE)
 }
 
+# Whether completed-data analyses use posterior draws rather than deterministic calculations.
+uses_posterior_draws <- function(method, bin_method) {
+  isTRUE(method == "bayes-surv") ||
+    (isTRUE(method == "bayes-bin") && isTRUE(bin_method == "mc"))
+}
+
 #' @title Validate Bayesian binomial analysis settings
 #'
 #' @description Checks the Beta prior, computational method, and Monte Carlo
@@ -1116,7 +1122,7 @@ validate_interim_looks <- function(interim_look, N_total, min_look = NULL) {
 #'   parameters.
 #' @param bin_method A single character string naming the posterior-probability
 #'   calculation.
-#' @param N_mcmc A positive integer giving the number of Monte Carlo draws.
+#' @param N_mcmc A positive integer giving the number of Monte Carlo draws. Ignored unless `bin_method = "mc"`.
 #'
 #' @noRd
 validate_bayes_binomial_args <- function(prior_bin, bin_method, N_mcmc) {
@@ -1132,15 +1138,8 @@ validate_bayes_binomial_args <- function(prior_bin, bin_method, N_mcmc) {
   if (!bin_method %in% c("mc", "normal", "quadrature")) {
     stop("'bin_method' must be one of 'mc', 'normal', or 'quadrature'")
   }
-  if (
-    length(N_mcmc) != 1 ||
-      !is.numeric(N_mcmc) ||
-      is.na(N_mcmc) ||
-      !is.finite(N_mcmc) ||
-      N_mcmc <= 0 ||
-      N_mcmc != floor(N_mcmc)
-  ) {
-    stop("'N_mcmc' must be a single positive integer")
+  if (bin_method == "mc") {
+    validate_positive_integer_scalar(N_mcmc, "N_mcmc")
   }
 
   invisible(TRUE)
