@@ -13,9 +13,7 @@ sim_horizon_trials(
   lambda_time = NULL,
   endpoint_schedule,
   final_horizon,
-  endpoint_horizons = sort(unique(c(endpoint_schedule$horizon, final_horizon))),
-  followup_horizon = final_horizon,
-  dropout_horizon = followup_horizon,
+  dropout_horizon = final_horizon,
   horizon_settings = NULL,
   prior_surv = c(0.1, 0.1),
   prior_bin = c(1, 1),
@@ -37,7 +35,6 @@ sim_horizon_trials(
   seed = NULL,
   prior_surv_final = prior_surv,
   generation_cutpoints = cutpoints,
-  trial_offset = 0L,
   Fn = 0.05,
   Sn = 0.9,
   Qn = 1,
@@ -55,7 +52,7 @@ numeric vector of finite, non-negative event rates for the control arm in a
 two-arm trial. It must contain one rate per interval defined by
 \code{generation_cutpoints}.}
 
-\item{cutpoints}{Master piecewise-exponential analysis cutpoints, strictly inside \code{followup_horizon}. Each endpoint uses only cutpoints strictly before that endpoint and the corresponding leading intervals of \code{prior_surv} and \code{prior_surv_final}.}
+\item{cutpoints}{Master piecewise-exponential analysis cutpoints, strictly inside \code{final_horizon}. Each endpoint uses only cutpoints strictly before that endpoint and the corresponding leading intervals of \code{prior_surv} and \code{prior_surv_final}. If an endpoint H lies inside a master interval, the same hazard parameter and unscaled Gamma prior apply, but its success update uses events and exposure only through H. Available observations beyond H are excluded even within that interval; H is not a new hazard-change assumption in the generating model.}
 
 \item{N_total}{A required positive integer giving the maximum total sample
 size.}
@@ -70,17 +67,13 @@ positive, strictly increasing calendar times at which the enrollment rate
 changes. Time zero is implicit, and \code{length(lambda)} must equal
 \code{length(lambda_time) + 1}.}
 
-\item{endpoint_schedule}{Data frame with exactly two columns, \code{N} and \code{horizon}, containing every planned interim enrollment size in increasing order and a nondecreasing endpoint horizon at each look. Horizons must be available in the saved paths. Use a zero-row data frame with numeric columns when there are no interims.}
+\item{endpoint_schedule}{Data frame with exactly two numeric columns, \code{N} and \code{horizon}, containing every planned interim enrollment size in increasing order and a positive, nondecreasing endpoint horizon at each look. All interim sizes must be less than \code{N_total}. The saved horizons are derived as \code{sort(unique(c(endpoint_schedule$horizon, final_horizon)))} and evaluated at every look, allowing subsequent comparison of schedules using the same looks and endpoint times. Use a zero-row data frame with numeric columns when there are no interims.}
 
-\item{final_horizon}{Required endpoint time for the maximum-\eqn{N} final analysis and all futility predictions. It must equal the largest \code{endpoint_horizons} value.}
+\item{final_horizon}{Required endpoint time for the maximum-\eqn{N} final analysis, all futility predictions, and planned outcome collection for every participant from enrollment. It must be at least every scheduled horizon. The generating hazards must describe this entire period.}
 
-\item{endpoint_horizons}{Endpoint horizons used to allocate reproducible simulation streams. Defaults to the unique scheduled horizons plus \code{final_horizon}, in increasing order. To reproduce a larger set of saved paths exactly, supply the full set of horizons used to generate those paths.}
+\item{dropout_horizon}{Reference time at which \code{prop_loss} specifies the independent exponential dropout probability. Defaults to \code{final_horizon}; it remains fixed when the analysis endpoint changes.}
 
-\item{followup_horizon}{Planned outcome-collection duration for every participant from enrollment, at least \code{final_horizon}. Defaults to \code{final_horizon}. The generating hazards must describe this entire period.}
-
-\item{dropout_horizon}{Reference time at which \code{prop_loss} specifies the independent exponential dropout probability. Defaults to \code{followup_horizon}; it remains fixed when the analysis endpoint changes.}
-
-\item{horizon_settings}{Optional data frame with one row per \code{endpoint_horizons} value, identified by column \code{horizon}. Optional columns are \code{h0}, \code{rmst_tau}, and a list column \code{prior_bin}. Missing columns use the common \code{h0}, the endpoint horizon itself for RMST restriction, and the common \code{prior_bin}, respectively. These settings are fixed within a set of trial paths.}
+\item{horizon_settings}{Optional data frame with one row per distinct scheduled horizon plus \code{final_horizon}, identified by column \code{horizon}. Optional columns are \code{h0}, \code{rmst_tau}, and a list column \code{prior_bin}. Missing columns use the common \code{h0}, the endpoint horizon itself for RMST restriction, and the common \code{prior_bin}, respectively. These settings are fixed within a set of trial paths.}
 
 \item{prior_surv}{A numeric vector, matrix, or named list specifying the
 Gamma prior for the piecewise-exponential hazards used to generate outcomes
@@ -204,11 +197,6 @@ piecewise-exponential model used to generate event times.
 \code{hazard_treatment} and \code{hazard_control} must each have one value per
 resulting interval. Defaults to \code{cutpoints}, preserving the historical
 behavior in which generation and analysis used one partition.}
-
-\item{trial_offset}{A non-negative integer. Trial identifiers start at
-\code{trial_offset + 1}. With an explicit seed, consecutive offsets allow a large
-simulation to be generated, saved, and evaluated in separate batches using the
-same streams as a single call. Keep all other simulation settings fixed.}
 
 \item{Fn}{Futility threshold: one probability repeated at every interim or one per scheduled look. \code{NULL} or zero disables futility; the default is \code{0.05}.}
 

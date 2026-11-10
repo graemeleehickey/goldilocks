@@ -12,11 +12,11 @@
 #'
 #' Only calculations needed by a candidate determine whether its trial is evaluable. A failed maximum-\eqn{N} counterfactual makes that comparison unavailable without discarding a known adaptive outcome. Both the ordinary futility probability and joint futility with counterfactual success are available through [summarise_sims()]. The latter always refers to maximum \eqn{N} at `final_horizon`.
 #'
-#' Calibrate type I error for the complete adaptive design under the relevant joint null scenarios across endpoint horizons. Overall success across different endpoints cannot be interpreted as rejection of the final-horizon null alone when an earlier endpoint can establish success.
+#' Under a generating scenario where every endpoint null hypothesis is true, the fraction of trials declaring success at any selected endpoint estimates the overall type I error. Calibrate the schedule and thresholds together. If some endpoint hypotheses are false, overall success includes legitimate findings; assessing false positives then requires identifying success at a truly null endpoint. A success at an earlier endpoint does not by itself reject the final-horizon null.
 #'
 #' @return A list compatible with [summarise_sims()] and [summarise_calendar_time()], containing `sims`, `failures`, and `call`, and optionally `traces`. Simulation rows additionally identify `endpoint_horizon`, `final_horizon`, and `followup_horizon`, and the null `margin` used for the selected endpoint. Treatment-effect estimates from different endpoint horizons should be reported separately. Overall success is success under the complete prespecified adaptive design, which may declare success at different endpoints.
 #'
-#' Calendar columns `analysis_ready_time`, `planned_completion_time`, and `followup_person_time` refer to the selected endpoint. Separate `collection_ready_time`, `planned_collection_time`, and `collection_person_time` refer to continued collection through `followup_horizon` among the enrolled cohort, even after a stop. Event and dropout times can precede planned completion. Trace columns identify both prediction data horizons and futility event and pending-outcome counts; the unprefixed counts refer to success prediction. Saved posterior diagnostics remain separate by horizon.
+#' Calendar columns `analysis_ready_time`, `planned_completion_time`, and `followup_person_time` refer to the selected endpoint. `decision_time` equals the interim date for immediate success or futility and `analysis_ready_time` for an expected-success or maximum-N final analysis. An expected-success stop therefore ends recruitment at `accrual_stop_time` but determines final success or failure later. Event and dropout times can precede planned completion. The retained result column `followup_horizon` equals `final_horizon` for newly simulated paths; older saved paths retain their original collection duration. Trace columns identify both prediction data horizons and futility event and pending-outcome counts; the unprefixed counts refer to success prediction. Saved posterior diagnostics remain separate by horizon.
 #' @seealso [sim_horizon_paths()], [sim_horizon_trials()]
 #' @export
 apply_horizon_rules <- function(
@@ -33,8 +33,7 @@ apply_horizon_rules <- function(
     Call[[1L]] <- quote(apply_horizon_rules)
   }
   Call$paths <- quote(paths)
-  validate_horizon_paths(paths)
-  args <- attr(paths, "arguments", exact = TRUE)
+  args <- validate_horizon_paths(paths)
   schedule <- validate_endpoint_schedule(endpoint_schedule, args)
   projected <- project_horizon_paths(paths, schedule)
   out <- apply_stopping_rules(projected, Fn, Sn, Qn, prob_ha, return_trace)
@@ -50,49 +49,40 @@ apply_horizon_rules <- function(
     out$sims$endpoint_horizon,
     args$horizon_settings$horizon
   )]
-  collection <- dplyr::bind_rows(lapply(projected$trials, function(path) {
-    if (is.null(path$finals)) {
-      return(NULL)
-    }
-    data.frame(
-      trial = path$trial,
-      path$finals[c(
-        "planned_N",
-        "collection_ready_time",
-        "planned_collection_time",
-        "collection_person_time"
-      )]
-    )
-  }))
-  out$sims <- dplyr::left_join(
-    out$sims,
-    collection,
-    by = c("trial", "N_enrolled" = "planned_N")
-  )
   attr(out, "endpoint_schedule") <- schedule
+  result_args <- args
+  result_args$endpoint_schedule <- schedule
+  result_args$return_trace <- return_trace
   attr(out, "arguments") <- c(
-    args,
-    attr(out, "stopping_rules", exact = TRUE),
-    list(endpoint_schedule = schedule, return_trace = return_trace)
+    result_args, attr(out, "stopping_rules", exact = TRUE)
   )
   attr(out, "path_metadata")$arguments <- args
   attr(out, "path_metadata")$bank_type <- "goldilocks_horizon_paths"
+  attr(out, "path_metadata")$schema_version <- paths$schema_version
   out
 }
 
 validate_horizon_paths <- function(paths) {
   if (
     !inherits(paths, "goldilocks_horizon_paths") ||
-      !identical(paths$schema_version, 1L)
+      (!identical(paths$schema_version, 1L) &&
+        !identical(paths$schema_version, 2L))
   ) {
     stop(
-      "'paths' must be a supported goldilocks_horizon_paths object (schema version 1)"
+      "'paths' must be a supported goldilocks_horizon_paths object (schema version 1 or 2)"
     )
   }
   args <- attr(paths, "arguments", exact = TRUE)
+  required <- names(formals(sim_horizon_paths))
+  if (identical(paths$schema_version, 1L)) {
+    required <- c(
+      setdiff(required, "endpoint_schedule"),
+      "interim_look", "endpoint_horizons", "followup_horizon"
+    )
+  }
   if (
     !is.list(args) ||
-      !all(names(formals(sim_horizon_paths)) %in% names(args)) ||
+      !all(required %in% names(args)) ||
       !is.list(paths$trials) ||
       length(paths$trials) != args$N_trials ||
       !is.data.frame(paths$failures)
@@ -142,7 +132,7 @@ validate_horizon_paths <- function(paths) {
       }
     }
   }
-  invisible(TRUE)
+  invisible(args)
 }
 
 # Project the chosen horizon at each look into the existing stopping-rule
@@ -153,6 +143,7 @@ project_horizon_paths <- function(paths, schedule) {
   final_index <- match(args$final_horizon, horizons)
   selected <- match(c(schedule$horizon, args$final_horizon), horizons)
   out <- paths
+  out$schema_version <- 1L
   attr(out, "arguments") <- args
   class(out) <- "goldilocks_paths"
   out$trials <- lapply(paths$trials, function(path) {

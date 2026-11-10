@@ -34,8 +34,7 @@ sim_trial_paths(
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
   generation_cutpoints = cutpoints,
-  rmst_tau = end_of_study,
-  trial_offset = 0L
+  rmst_tau = end_of_study
 )
 }
 \arguments{
@@ -281,11 +280,6 @@ behavior in which generation and analysis used one partition.}
 looks, imputations, and simulations. It may precede analysis cutpoints and
 does not shorten the planned follow-up or imputation horizon. Ignored for
 other methods.}
-
-\item{trial_offset}{A non-negative integer. Trial identifiers start at
-\code{trial_offset + 1}. With an explicit seed, consecutive offsets allow a large
-simulation to be generated, saved, and evaluated in separate batches using the
-same streams as a single call. Keep all other simulation settings fixed.}
 }
 \value{
 A \code{goldilocks_paths} object containing \code{trials} (one record per
@@ -324,7 +318,7 @@ many candidate rules. Score storage alone requires approximately
 \code{16 * N_trials * length(interim_look) * N_impute} bytes, or 24 bytes per
 trial/look/imputation for Monte Carlo Bayesian methods, plus object and
 diagnostic overhead. Large estimates are reported before simulation. Paths
-are held in memory; use \code{trial_offset} and \code{\link[=saveRDS]{saveRDS()}} for separate batches.
+are held in memory; use different explicit seeds and \code{\link[=saveRDS]{saveRDS()}} for separate batches. Trial identifiers start at 1 in each call, so retain a batch identifier when combining results.
 
 Each trial and stage receives a separate L'Ecuyer-CMRG stream or substream.
 An explicit seed preserves the caller's RNG state and gives identical paths
