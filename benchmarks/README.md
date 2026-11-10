@@ -159,6 +159,33 @@ Runtime and memory allocation depend on hardware, R version, operating system,
 and BLAS configuration. Compare results relatively on the same machine rather
 than treating any absolute timing as a release threshold.
 
+## Bayesian binary quadrature
+
+Author: Graeme L. Hickey.
+
+`beta-quadrature.R` compares the current two-arm Beta probability calculation with two experimental alternatives: integration over treatment Beta quantiles, and the same transformation with intervals placed around changes in the control posterior CDF. Both alternatives use direct upper-tail probabilities and absolute and relative integration tolerances of `1e-10`. The split version uses a bounded-error midpoint calculation on negligible intervals to avoid numerical roundoff near probability zero or one. These alternatives are defined only in the benchmark; the package implementation is unchanged.
+
+Run from the package root with `bench`, `pkgload`, and `Rmpfr` installed:
+
+```sh
+Rscript benchmarks/beta-quadrature.R 200 5 benchmarks/beta-quadrature-results.csv
+```
+
+The arguments specify the number of repetitions per probability calculation, repetitions per ten-trial batch, and output file. Sixteen count tables cover ordinary trial sizes, sparse outcomes, Jeffreys priors, concentrated posteriors, unequal arm sizes, and a nonzero risk-difference margin. Both one-sided alternatives are evaluated, giving 32 probability comparisons. References use symmetry, positive finite sums evaluated with 128-bit arithmetic, or separately partitioned density integration checked in both arm orientations. Accuracy is assessed separately from timing.
+
+The saved run used R 4.5.3 on an Apple ARM64 Mac. Probability timings exclude iterations affected by garbage collection; full-trial timings include it. The first row below takes the median of the ten case-specific timings for the five ordinary count tables in both directions. Full-trial times are medians of five batches using the same simulated histories.
+
+| Workload | Current calculation | Split quantile prototype | Runtime ratio |
+|:--|--:|--:|--:|
+| One probability calculation, ordinary count tables | 61.0 microseconds | 739.2 microseconds | 12.1 |
+| Ten adaptive trials | 0.729 seconds | 4.075 seconds | 5.59 |
+
+The trial workload has maximum enrollment of 500, interims at 100, 200, 300, and 400, a 12-month endpoint, 100 predictive imputations, equal randomization, and no dropout. Control and treatment event risks are 30% and 22%, with accrual averaging ten participants per month. It uses Gamma(0.5, 20) shape-rate hazard priors, uniform Beta priors, `Fn = 0.05`, `Sn = 0.9`, `Qn = 1`, `prob_ha = 0.95`, and seed 92502. Both the current calculation and the split prototype completed all ten trials with identical enrollment, stopping reasons, and success classifications. Their largest final-probability difference was `1.75e-12`. This is a timing example, not a calibrated design or an estimate of power with useful precision.
+
+Across the 32 probability comparisons, the split prototype's largest absolute difference from its reference was `9.1e-14`. The current calculation had five discrepancies exceeding `1e-8`, all in concentrated stress cases; the largest was approximately 0.750012. The unsplit quantile prototype missed a tail of approximately 0.000563 in the unequal-arm stress case and failed one of ten trial calculations with an integration error. Its incomplete trial batch is therefore recorded without a runtime comparison. Failure counts and the error message are retained in the CSV.
+
+The split prototype improves accuracy in these checks at a substantial computational cost. These results support further work on a cheaper robust calculation before adopting this prototype throughout the package; they do not establish accuracy for every possible prior, margin, or count table. The CSV retains all case settings, probabilities, reference methods, timing quartiles, failure information, software versions, and the package source commit.
+
 ## RMST
 
 `Rscript benchmarks/rmst.R` compares the exact completed-outcome calculation
