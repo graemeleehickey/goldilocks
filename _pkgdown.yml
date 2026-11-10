@@ -87,7 +87,7 @@ articles:
       - frequentist-binary
       - single-arm
       - interim-data
-  - title: Calibration and Interrogation
+  - title: Calibration and interrogation
     contents:
       - calibrating-prob-ha
       - calibrating-stopping-rules
