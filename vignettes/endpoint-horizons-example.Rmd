@@ -23,9 +23,9 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(goldilocks)
 ```
 
-This example starts with a 12-month endpoint and extends it to 18 months if the trial reaches enrollment of 400 participants. The change is prespecified; it is not chosen from the interim results. All participants have planned outcome collection through 18 months from enrollment, so earlier recruits can contribute their observed longer-term outcomes after the switch.
+This example plans four interim analyses at enrollment of 100, 200, 300, and 400 participants. The success endpoint is 12 months at the first three interims and switches to 18 months if the trial reaches the fourth. If no early stop occurs, enrollment ends at 500 participants, followed by one final analysis after 18-month endpoint ascertainment. There is no enrollment-triggered interim at 500.
 
-At enrollment looks of 100, 200, and 300, success imputation uses only available follow-up through 12 months. Futility imputation uses a separate model fitted to available follow-up through 18 months and predicts success at maximum enrollment of 500 with the 18-month endpoint. At the 400-participant look, both predictions use the 18-month endpoint. If the trial continues, enrollment ends at 500 and the final analysis follows endpoint ascertainment. There is no enrollment-triggered interim at 500.
+The schedule is prespecified; it is not chosen from interim results. All participants have planned outcome collection through 18 months from enrollment. At each look, success imputation uses only available follow-up through that look's endpoint. Futility imputation uses a separate model fitted to available follow-up through 18 months and predicts success at $N=500$ with the 18-month endpoint. At the fourth interim, both predictions use the 18-month endpoint.
 
 The [technical companion](endpoint-horizons-technical.html) explains the separate data cuts, predictive models, and stopping sequence with generic flow charts. The settings below illustrate the workflow; they have not been selected to satisfy a type I error or power requirement.
 
@@ -86,12 +86,12 @@ The outcome is an adverse event. Under the null scenario, both arms have a 30% e
 
 ```{r generating-hazards}
 control_hazard <- c(
-  -log1p(-0.30) / 12,
-  -log1p(-0.15) / 6
+  -log(1 - 0.30) / 12,
+  -log(1 - 0.15) / 6
 )
 treatment_hazard <- c(
-  -log1p(-0.22) / 12,
-  -log1p(-0.12) / 6
+  -log(1 - 0.22) / 12,
+  -log(1 - 0.12) / 6
 )
 
 risk_table <- data.frame(
@@ -108,6 +108,37 @@ knitr::kable(risk_table, digits = 4, col.names = c(
 ```
 
 The 18-month risks are cumulative risks from enrollment, not the conditional risks in the second interval. All times are measured in months and hazards in events per participant-month.
+
+```{r generating-event-curves, echo = FALSE, fig.width = 7, fig.height = 4.2, out.width = "100%", dev.args = list(bg = "white"), fig.alt = "Cumulative event risk from enrollment to 18 months. Control and null-scenario treatment share the same curve, reaching 30 percent at 12 months and 40.5 percent at 18 months. Alternative treatment reaches 22 percent and 31.36 percent, respectively. A vertical dotted line marks month 12."}
+plot_event_risk <- function(control_hazard, treatment_hazard, treatment_label) {
+  months <- seq(0, 18, by = 0.1)
+  event_risk <- sapply(list(control_hazard, treatment_hazard), function(hazard) {
+    1 - exp(-hazard[1] * pmin(months, 12) -
+      hazard[2] * pmax(months - 12, 0))
+  })
+  colours <- c("#0072B2", "#D55E00")
+  plot(months, 100 * event_risk[, 1], type = "n",
+    xlim = c(0, 18.4), ylim = c(0, 50), xaxs = "i", yaxs = "i",
+    xlab = "Months from enrollment", ylab = "Cumulative event risk (%)",
+    xaxt = "n", yaxt = "n", bty = "l"
+  )
+  abline(h = seq(0, 50, 10), col = "#e5e7eb")
+  abline(v = 12, col = "#666666", lty = 3)
+  axis(1, at = seq(0, 18, 3))
+  axis(2, at = seq(0, 50, 10), las = 1)
+  matlines(months, 100 * event_risk, col = colours, lty = c(1, 2), lwd = 2.5)
+  endpoint_rows <- match(c(12, 18), months)
+  matpoints(months[endpoint_rows], 100 * event_risk[endpoint_rows, ],
+    col = colours, pch = c(16, 17), cex = 1.1
+  )
+  legend("topleft", c("Control", treatment_label), col = colours,
+    lty = c(1, 2), lwd = 2.5, pch = c(16, 17), bty = "n"
+  )
+}
+plot_event_risk(control_hazard, treatment_hazard, "Treatment under the alternative")
+```
+
+**Figure 2. Cumulative event risk under the main generating assumptions.** The curves show $1-S(t)$. Under the null, treatment follows the control curve. Under the alternative, treatment has lower event risk at both endpoints: 22% versus 30% at month 12, and 31.36% versus 40.5% at month 18. The dotted vertical line marks month 12.
 
 Participants are randomized equally in blocks of two and accrue at an average rate of 10 per month. There is no dropout in the main example. Predictive imputation uses independent Gamma(0.5, 20) shape-rate priors for each arm and hazard interval. These have mean hazard 0.025 per month, with prior contributions of 0.5 events and 20 participant-months in each interval. The second interval can be entirely prior-driven at early looks, so its prior is part of the design specification even while success is assessed at 12 months.
 
@@ -174,7 +205,7 @@ paths$alternative
 
 Separate seeds generate independent null and alternative simulations. Within a scenario, candidate schedules will share the same trial histories and saved predictive evidence.
 
-```{r apply-schedule}
+```{r apply-schedule, include = FALSE}
 results <- lapply(paths, function(scenario_paths) {
   do.call(apply_horizon_rules, c(list(
     paths = scenario_paths,
@@ -182,18 +213,7 @@ results <- lapply(paths, function(scenario_paths) {
     return_trace = TRUE
   ), rule))
 })
-
-failure_counts <- data.frame(
-  Scenario = names(paths),
-  Failed_calculations = vapply(paths, function(x) nrow(x$failures), integer(1)),
-  Excluded_trials = vapply(results, function(x) nrow(x$failures), integer(1))
-)
-knitr::kable(failure_counts, row.names = FALSE, col.names = c(
-  "Scenario", "Failed path calculations", "Trials excluded by this rule"
-))
 ```
-
-These are different failure counts. A calculation at an unreached look can fail without invalidating the candidate's known trial outcome. Required failures exclude that trial and should be investigated before interpreting its operating characteristics. The complete path object retains the calculation details.
 
 ## Examine operating characteristics
 
@@ -233,8 +253,8 @@ Equal event risks at the final endpoint do not imply equality at every earlier e
 ```{r endpoint-null-assumptions}
 control_risk18 <- 1 - exp(-sum(control_hazard * c(12, 6)))
 early_benefit_hazard <- c(
-  -log1p(-0.22) / 12,
-  (-log1p(-control_risk18) + log1p(-0.22)) / 6
+  -log(1 - 0.22) / 12,
+  (-log(1 - control_risk18) + log(1 - 0.22)) / 6
 )
 early_benefit_risks <- data.frame(
   Arm = c("Control", "Treatment: early benefit only"),
@@ -255,7 +275,13 @@ knitr::kable(early_benefit_risks, digits = 4, col.names = c(
 ))
 ```
 
-This scenario has a true treatment benefit at 12 months and a true equality null at 18 months. We simulate it with the same enrollment, analysis settings, priors, endpoint schedule, and decision thresholds, using an independent seed. Each participant still has one event history spanning both endpoints.
+```{r early-benefit-event-curves, echo = FALSE, fig.width = 7, fig.height = 4.2, out.width = "100%", dev.args = list(bg = "white"), fig.alt = "Cumulative event risk from enrollment to 18 months for control and treatment with early benefit only. At 12 months, treatment has 22 percent risk compared with 30 percent on control. Treatment risk then rises faster, and both curves meet at 40.5 percent at 18 months. A vertical dotted line marks month 12."}
+plot_event_risk(control_hazard, early_benefit_hazard, "Treatment with early benefit only")
+```
+
+**Figure 3. Early benefit followed by equal event risks at 18 months.** The curves show $1-S(t)$, using the same scale as Figure 2. Treatment has lower risk at month 12, followed by a higher hazard than control between months 12 and 18, so both arms reach 40.5% risk at month 18. This scenario has a true treatment benefit at 12 months and a true equality null at 18 months.
+
+We simulate this scenario with the same enrollment, analysis settings, priors, endpoint schedule, and decision thresholds, using an independent seed. Each participant still has one event history spanning both endpoints.
 
 ```{r endpoint-null-simulation}
 early_benefit_args <- c(fixed_design, list(
@@ -402,9 +428,13 @@ direct <- do.call(sim_horizon_trials, c(direct_args, rule))
 
 reference <- results$alternative$sims[results$alternative$sims$trial <= 3, ]
 stopifnot(identical(direct$sims, reference))
-knitr::kable(direct$sims[c(
+direct_table <- direct$sims[c(
   "trial", "N_enrolled", "endpoint_horizon", "stopping_reason", "trial_success"
-)], col.names = c("Trial", "N enrolled", "Endpoint", "Stopping reason", "Success"))
+)]
+direct_table$stopping_reason <- paste0("`", direct_table$stopping_reason, "`")
+knitr::kable(direct_table, format = "pipe", col.names = c(
+  "Trial", "N enrolled", "Endpoint", "Stopping reason", "Success"
+))
 ```
 
 The final analysis uses the endpoint fixed when accrual stops. The following table summarizes the analysis and decision dates in the alternative scenario, separately by stopping reason and endpoint.
@@ -418,7 +448,8 @@ timing <- results$alternative$sims |>
     Mean_decision = mean(decision_time),
     .groups = "drop"
   )
-knitr::kable(timing, digits = 1, col.names = c(
+timing$stopping_reason <- paste0("`", timing$stopping_reason, "`")
+knitr::kable(timing, format = "pipe", digits = 1, col.names = c(
   "Stopping reason", "Endpoint", "Trials", "Analysis ready", "Decision"
 ))
 ```
@@ -453,4 +484,4 @@ saveRDS(list(
 ), "endpoint-horizon-calibration.rds")
 ```
 
-See [Calibrating stopping rules from complete trial paths](calibrating-stopping-rules.html) and [Calibrating prob_ha for type I error control](calibrating-prob-ha.html) for further calibration guidance.
+See [Calibrating stopping rules from complete trial paths](calibrating-stopping-rules.html) and [Calibrating `prob_ha` for type I error control](calibrating-prob-ha.html) for further calibration guidance.
