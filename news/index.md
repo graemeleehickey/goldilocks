@@ -132,8 +132,15 @@ Both respect the interim calendar date.
 ### Bug fixes
 
 - The internal log-rank calculation now returns a single signed
-  statistic when `onlyz = TRUE`. Standard trial analyses use
-  `onlyz = FALSE` and are unchanged.
+  statistic when `onlyz = TRUE`.
+- Log-rank calculations reject mismatched time and event vectors,
+  invalid follow-up times, non-binary or missing event indicators, and
+  invalid `onlyz` values before sorting or indexing the data. Fractional
+  event indicators are no longer silently converted to integers.
+- Log-rank p-values use a direct upper-tail calculation, preserving very
+  small probabilities that previously rounded to zero. Comparisons with
+  zero variance now return an unavailable p-value instead of 1; trial
+  analyses continue to reject these non-estimable comparisons.
 - Bayesian binary quadrature probabilities are bounded to \[0, 1\] to
   remove floating-point overshoots in extreme posterior tails. This
   prevents false crossings at `prob_ha = 1` and spurious invalid-score
