@@ -107,7 +107,7 @@ std::vector<double> logrank_instance(std::vector<double>& groupa, std::vector<do
     n = na + nb;
   }
   long double zstat = (oa-ea)/sqrt(var);
-  if (onlyz) { return std::vector<double>(static_cast<double>(zstat)); }
+  if (onlyz) { return std::vector<double>{static_cast<double>(zstat)}; }
   else {
     long double logrank = ((oa - ea) * (oa - ea)) / var;
     double pvalue = 1.0;

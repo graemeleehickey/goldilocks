@@ -1,3 +1,35 @@
+test_that("log-rank onlyz returns one signed statistic", {
+  # For the untied examples, O - E = +/-7/6 and variance = 17/36.
+  cases <- list(
+    list(groupa = c(1, 2), groupb = c(3, 4), expected = 7 / sqrt(17)),
+    list(groupa = c(3, 4), groupb = c(1, 2), expected = -7 / sqrt(17)),
+    list(groupa = c(1, 2), groupb = c(1, 2), expected = 0)
+  )
+
+  for (case in cases) {
+    args <- list(
+      groupa = case$groupa,
+      groupb = case$groupb,
+      groupacensored = c(1L, 1L),
+      groupbcensored = c(1L, 1L)
+    )
+    z <- do.call(logrank_test, c(args, list(onlyz = TRUE)))
+    expect_type(z, "double")
+    expect_length(z, 1L)
+    expect_equal(z, case$expected)
+    expect_equal(
+      do.call(logrank_test, args),
+      c(case$expected^2, case$expected, 2 * pnorm(-abs(case$expected)))
+    )
+  }
+})
+
+test_that("log-rank onlyz preserves a non-estimable statistic", {
+  z <- logrank_test(c(1, 2), c(3, 4), c(0L, 0L), c(0L, 0L), onlyz = TRUE)
+  expect_length(z, 1L)
+  expect_true(is.nan(z))
+})
+
 test_that("analyse_data works with method = 'logrank'", {
   set.seed(6184)
   data <- data.frame(
