@@ -131,6 +131,9 @@ Both respect the interim calendar date.
 
 ### Bug fixes
 
+- The internal log-rank calculation now returns a single signed
+  statistic when `onlyz = TRUE`. Standard trial analyses use
+  `onlyz = FALSE` and are unchanged.
 - Bayesian binary quadrature probabilities are bounded to \[0, 1\] to
   remove floating-point overshoots in extreme posterior tails. This
   prevents false crossings at `prob_ha = 1` and spurious invalid-score

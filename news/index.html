@@ -81,7 +81,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-1-1-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-1-0"></a></h3>
-<ul><li>Bayesian binary quadrature probabilities are bounded to [0, 1] to remove floating-point overshoots in extreme posterior tails. This prevents false crossings at <code>prob_ha = 1</code> and spurious invalid-score failures in saved trial paths.</li>
+<ul><li>The internal log-rank calculation now returns a single signed statistic when <code>onlyz = TRUE</code>. Standard trial analyses use <code>onlyz = FALSE</code> and are unchanged.</li>
+<li>Bayesian binary quadrature probabilities are bounded to [0, 1] to remove floating-point overshoots in extreme posterior tails. This prevents false crossings at <code>prob_ha = 1</code> and spurious invalid-score failures in saved trial paths.</li>
 </ul></div>
 </div>
     <div class="section level2">
