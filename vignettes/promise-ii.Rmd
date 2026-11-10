@@ -1,5 +1,5 @@
 ---
-title: "PROMISE II: 120-patient design"
+title: "PROMISE II"
 author: "Graeme L. Hickey"
 output:
   rmarkdown::html_vignette:
@@ -7,7 +7,7 @@ output:
     lib_dir: libs
     css: libs/vignette.css
 vignette: >
-  %\VignetteIndexEntry{PROMISE II: 120-patient design}
+  %\VignetteIndexEntry{PROMISE II}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
