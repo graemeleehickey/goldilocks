@@ -1,46 +1,35 @@
-# goldilocks 1.2.0
-
-Version 1.2.0 adds prespecified changes in endpoint timing. Success prediction uses observed follow-up through the current endpoint, while futility prediction uses a separate model fitted to available follow-up through the eventual final endpoint. Both respect the interim calendar date.
-
-## New features
-
-* `sim_horizon_trials()` simulates nondecreasing endpoint horizons by interim enrollment size and skips unreached looks. An expected-success stop fixes the enrolled cohort and its endpoint for final analysis; a failed final analysis does not restart enrollment or extend the endpoint.
-* `sim_horizon_paths()` retains every planned look at each saved endpoint horizon. `apply_horizon_rules()` reuses these paths to compare prespecified schedules and `Fn`, `Sn`, `Qn`, and `prob_ha` without repeating imputation or fitting. Direct simulation and saved-path evaluation agree for the same settings and seed.
-* `endpoint_schedule` defines the interim looks and endpoint times; `final_horizon` defines the maximum-*N* endpoint, every futility prediction, and planned outcome collection from enrollment. Event and dropout histories are generated once and re-censored for each analysis. `dropout_horizon` fixes the time at which `prop_loss` is defined.
-* Success and futility models use separate Gamma updates when their horizons differ. An endpoint inside a hazard interval retains that interval's hazard parameter and prior, but success updating uses only events and exposure through the endpoint. `horizon_settings` allows endpoint-specific null values, RMST restrictions, and beta priors.
-* Results identify the selected endpoint and its analysis and decision times. They report ordinary futility probability separately from the joint probability of futility and counterfactual success at maximum *N* and the final endpoint. Saved paths retain posterior diagnostics and calculation failures, support `saveRDS()`, and reproduce across sequential, fork, and PSOCK computation.
-
-## Changes to arguments and outputs
-
-* Removed `trial_offset` from the simulation functions that accepted it. Use different explicit seeds for separate batches and retain a batch identifier when combining results, since trial numbering starts at 1 in each call. Seeded results previously obtained with the default offset are unchanged, and previously saved paths remain usable for applying stopping rules.
-* The development endpoint-horizon functions no longer require separate `interim_look`, `endpoint_horizons`, or `followup_horizon` arguments. The separate collection summaries `collection_ready_time`, `planned_collection_time`, and `collection_person_time` have also been removed; analysis and decision times remain available.
-* `sim_trials()`, `survival_adapt()`, and `evaluate_interim()` are unchanged. Horizon designs use event-time imputation and retain existing analysis-method and final-imputation restrictions. Endpoint schedules are prespecified; choosing extensions from observed interim results is outside their scope.
-
-## Documentation and verification
-
-* [Technical details of prespecified endpoint horizons](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-technical.html) explains the separate data restrictions, predictive calculations, stopping sequence, and error interpretation, with flow charts and references.
-* [Extending an endpoint from 12 to 18 months](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-example.html) demonstrates the schedule, cumulative event-risk curves, operating characteristics, posterior diagnostics, and endpoint-specific margins. A scenario with early benefit but equal final risks illustrates which successes count as false positives.
-* Tests compare constant-horizon evidence and all stopping outcomes with the fixed-horizon procedure across all seven analysis methods, and verify Gamma updates when an endpoint falls inside an interval.
-* Vignettes write probability-to-hazard formulas explicitly as `-log(1 - p)` and use hyperlinks for cross-references.
-
 # goldilocks 1.1.0
 
-Version 1.1.0 adds reusable trial paths for calibrating decision thresholds. Simulate every planned look once, then compare candidate stopping rules without repeating predictive imputation or model fitting.
+Version 1.1.0 adds reusable trial paths for calibrating stopping rules and prespecified changes in endpoint timing. Simulate every planned look once, then compare candidate rules without repeating predictive imputation or model fitting.
+
+For changing endpoints, success prediction uses observed follow-up through the current endpoint, while futility prediction uses a separate model fitted to available follow-up through the eventual final endpoint. Both respect the interim calendar date.
 
 ## New features
 
 * `sim_trial_paths()` evaluates every planned interim look regardless of hypothetical stopping decisions. It retains unthresholded predictive scores for the current and maximum cohorts, plus final analyses and calendar metrics for each possible stopping cohort and maximum *N*.
-* `apply_stopping_rules()` evaluates candidate `Fn`, `Sn`, `Qn`, and `prob_ha` values using saved trial paths. It preserves strict boundary comparisons and the decision priority of immediate success, expected success, binding futility, and continuation. Results support the existing operating-characteristic summaries, calendar-time summaries, and simulation plots, with optional per-look traces.
-* Replayed results report `success_at_max` and `futility_and_success_at_max`. The latter is the joint event of binding futility and counterfactual success if the trial continued to maximum *N*. `summarise_sims()` reports its probability, Monte Carlo standard error, confidence interval, and available and missing comparison counts, separately from `stop_futility`, the ordinary futility probability under the simulated scenario.
-* Trial paths retain design settings, priors, random-number metadata, runtime versions, and stage-specific failure diagnostics. Rule application excludes a trial only when a failed calculation is needed for that candidate; unavailable counterfactual final analyses are reported separately.
-* Explicit seeds give reproducible trial paths across sequential, fork, and PSOCK execution while preserving the caller's random-number state. `trial_offset` supports consecutive batches equivalent to a single simulation with the same seed and settings. Trial paths can be saved and restored with `saveRDS()` and `readRDS()`.
-* The new "Calibrating stopping rules from complete trial paths" vignette demonstrates null and alternative trial paths, candidate evaluation, decision traces, saving results, and failure handling. A reproducible benchmark compares repeated simulation with complete-path simulation and rule application.
+* `apply_stopping_rules()` evaluates candidate `Fn`, `Sn`, `Qn`, and `prob_ha` values using saved trial paths. It preserves strict boundary comparisons and the priority of immediate success, expected success, binding futility, and continuation. Results support the existing operating-characteristic summaries, calendar-time summaries, and simulation plots, with optional per-look traces.
+* `sim_horizon_trials()` simulates nondecreasing endpoint horizons by interim enrollment size and skips unreached looks. An expected-success stop fixes the enrolled cohort and its endpoint for final analysis; a failed final analysis does not restart enrollment or extend the endpoint.
+* `sim_horizon_paths()` retains every planned look at each saved endpoint horizon. `apply_horizon_rules()` reuses these paths to compare prespecified schedules and `Fn`, `Sn`, `Qn`, and `prob_ha` without repeating imputation or fitting. Direct simulation and saved-path evaluation agree for the same settings and seed.
+* `endpoint_schedule` defines the interim looks and endpoint times; `final_horizon` defines the maximum-*N* endpoint, every futility prediction, and planned outcome collection from enrollment. Event and dropout histories are generated once and re-censored for each analysis. `dropout_horizon` fixes the time at which `prop_loss` is defined.
+* Success and futility models use separate Gamma updates when their horizons differ. An endpoint inside a hazard interval retains that interval's hazard parameter and prior, but success updating uses only events and exposure through the endpoint. `horizon_settings` allows endpoint-specific null values, RMST restrictions, and beta priors.
+* Path-based results report `success_at_max` and `futility_and_success_at_max`. The latter is the joint event of binding futility and counterfactual success at maximum *N* and the final endpoint. `summarise_sims()` reports its probability, Monte Carlo standard error, confidence interval, and available and missing comparison counts, separately from ordinary `stop_futility`. Horizon results also identify the selected endpoint and its analysis and decision times.
+* Saved paths retain design settings, priors, posterior diagnostics, random-number settings, runtime versions, and calculation failures. A trial is excluded only when a failed calculation is needed for the candidate's actual outcome; unavailable counterfactual final analyses are reported separately. Paths can be saved and restored with `saveRDS()` and `readRDS()`.
+* Explicit seeds preserve the caller's random-number state and reproduce trial paths across sequential, fork, and PSOCK computation.
 
 ## Scope and compatibility
 
-* Reuse covers decision thresholds only. The data-generating scenario, analysis method, priors, null margin, endpoint horizon, allocation, maximum sample size, planned looks, and Monte Carlo settings remain fixed within a set of trial paths. Changing these settings requires new trial paths. Interim looks must precede maximum *N*; the maximum-*N* final analysis follows completion of follow-up.
-* Existing `sim_trials()`, `survival_adapt()`, and `evaluate_interim()` interfaces and random-number scheduling are preserved. The complete-path workflow uses separate trial and stage streams, so its results need not match an ordinary simulation run with the same seed.
-* Candidate outcomes from shared trial paths are paired by trial. Use paired uncertainty calculations when comparing candidates and independent simulations to validate selected thresholds. Trial paths retain predictive scores in memory, so large simulations may require separate batches.
+* Within a set of trial paths, the generating model, analysis method, priors, null margins, allocation, look sizes, maximum sample size, and Monte Carlo settings are fixed. Changes require new paths. Interim looks precede maximum *N*; the maximum-*N* final analysis follows follow-up. Candidate outcomes from shared paths are paired by trial, so comparisons should use paired uncertainty calculations.
+* The development `trial_offset` argument has been removed. Use different explicit seeds for separate batches and retain a batch identifier when combining results, since trial numbering starts at 1 in each call. Seeded results previously obtained with the default offset are unchanged, and previously saved paths remain usable for applying stopping rules.
+* The development endpoint-horizon functions no longer require separate `interim_look`, `endpoint_horizons`, or `followup_horizon` arguments. The separate collection summaries `collection_ready_time`, `planned_collection_time`, and `collection_person_time` have also been removed; analysis and decision times remain available.
+* `sim_trials()`, `survival_adapt()`, and `evaluate_interim()` interfaces and random-number scheduling are unchanged. Complete paths use separate trial and stage streams, so their results need not match ordinary simulations with the same seed. Horizon designs use event-time imputation and retain existing analysis-method and final-imputation restrictions. Endpoint schedules are prespecified; choosing extensions from observed interim results is outside their scope.
+
+## Documentation and verification
+
+* [Calibrating stopping rules from complete trial paths](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.html) demonstrates null and alternative paths, candidate evaluation, decision traces, saving results, and failure handling. A reproducible benchmark compares repeated simulation with complete-path simulation and rule application.
+* [Technical details of prespecified endpoint horizons](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-technical.html) explains the separate data restrictions, predictive calculations, stopping sequence, and error interpretation, with flow charts and references.
+* [Extending an endpoint from 12 to 18 months](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-example.html) demonstrates the schedule, cumulative event-risk curves, operating characteristics, posterior diagnostics, and endpoint-specific margins. A scenario with early benefit but equal final risks illustrates which successes count as false positives.
+* Tests compare constant-horizon evidence and all stopping outcomes with the fixed-horizon procedure across all seven analysis methods, and verify Gamma updates when an endpoint falls inside an interval.
+* Vignettes write probability-to-hazard formulas explicitly as `-log(1 - p)` and use hyperlinks for cross-references.
 
 ## Bug fixes
 
