@@ -218,7 +218,8 @@ sim_trial_paths(
 
   - When `method = "riskdiff-wald"` or `method = "riskdiff-fm"`, `h0` is
     the null value of \\p\_\textrm{treatment} - p\_\textrm{control}\\
-    and must lie in `[-1, 1]`.
+    and must lie in `(-1, 1)`; the degenerate boundary null values are
+    not supported.
 
   - When `method = "logrank"`, only `h0 = 0` is supported; this denotes
     the usual equal-survival null. Nonzero values are rejected because

@@ -131,6 +131,10 @@ Both respect the interim calendar date.
 
 ### Bug fixes
 
+- Frequentist risk-difference analyses (`method = "riskdiff-wald"` or
+  `"riskdiff-fm"`) require `-1 < h0 < 1`, rejecting the degenerate
+  boundary null values. Bayesian probability-scale margins retain their
+  existing inclusive bounds.
 - `N_mcmc` is required to be a positive integer only for analyses that
   use posterior draws: `method = "bayes-surv"` and
   `method = "bayes-bin"` with `bin_method = "mc"`. Other analyses ignore

@@ -81,7 +81,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-1-1-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-1-0"></a></h3>
-<ul><li>
+<ul><li>Frequentist risk-difference analyses (<code>method = "riskdiff-wald"</code> or <code>"riskdiff-fm"</code>) require <code>-1 &lt; h0 &lt; 1</code>, rejecting the degenerate boundary null values. Bayesian probability-scale margins retain their existing inclusive bounds.</li>
+<li>
 <code>N_mcmc</code> is required to be a positive integer only for analyses that use posterior draws: <code>method = "bayes-surv"</code> and <code>method = "bayes-bin"</code> with <code>bin_method = "mc"</code>. Other analyses ignore it and accept <code>NULL</code>, consistently across direct simulation, observed interim evaluation, and saved trial paths.</li>
 <li>Block-randomization validation requires <code>N_total &gt;= max(block)</code> rather than <code>N_total &gt;= sum(block)</code>. This permits smaller trials with several allowed block sizes while retaining the existing allocation sequence for previously valid settings.</li>
 <li>Removed unused intermediate enrollment counts from <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>; the reported <code>N_enrolled</code> continues to use the final enrolled cohort.</li>

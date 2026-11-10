@@ -255,7 +255,7 @@ non-inferiority allowing a loss of <code>m</code> time units, use <code>h0 = -m<
 <code>alternative = "greater"</code>.</p></li>
 <li><p>When <code>method = "riskdiff-wald"</code> or <code>method = "riskdiff-fm"</code>, <code>h0</code> is the
 null value of \(p_\textrm{treatment} - p_\textrm{control}\) and must
-lie in <code>[-1, 1]</code>.</p></li>
+lie in <code>(-1, 1)</code>; the degenerate boundary null values are not supported.</p></li>
 <li><p>When <code>method = "logrank"</code>, only <code>h0 = 0</code> is supported; this denotes the
 usual equal-survival null. Nonzero values are rejected because the
 standard log-rank statistic does not implement a nonzero effect margin.</p></li>
