@@ -530,6 +530,25 @@ test_that("dropout probability retains its fixed reference horizon", {
   )
 })
 
+test_that("horizon-specific risk-difference margins exclude boundary nulls", {
+  for (method in c("riskdiff-wald", "riskdiff-fm")) {
+    for (margin in c(-1, 1)) {
+      args <- horizon_test_args(
+        method = method,
+        h0 = 0,
+        horizon_settings = data.frame(horizon = c(12, 18), h0 = c(0, margin))
+      )
+      for (simulate in list(sim_horizon_paths, sim_horizon_trials)) {
+        expect_error(
+          do.call(simulate, args),
+          "'h0' must lie in (-1, 1)",
+          fixed = TRUE
+        )
+      }
+    }
+  }
+})
+
 test_that("invalid horizon settings fail before simulation", {
   for (override in list(
     list(endpoint_schedule = data.frame(N = c(40, 60), horizon = c(18, 12))),

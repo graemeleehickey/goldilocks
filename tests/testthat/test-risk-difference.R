@@ -1,3 +1,45 @@
+test_that("frequentist risk-difference analyses require interior null margins", {
+  args <- list(
+    data = data.frame(
+      time = rep(12, 40),
+      event = c(rep(1, 5), rep(0, 15), rep(1, 8), rep(0, 12)),
+      treatment = rep(0:1, each = 20)
+    ),
+    cutpoints = NULL,
+    end_of_study = 12,
+    prior_surv = c(0.1, 0.1),
+    N_mcmc = NULL,
+    single_arm = FALSE,
+    alternative = "less"
+  )
+  for (method in c("riskdiff-wald", "riskdiff-fm")) {
+    args$method <- method
+    for (margin in c(-1.01, -1, 1, 1.01)) {
+      expect_error(
+        do.call(analyse_data, c(args, list(h0 = margin))),
+        "'h0' must lie in (-1, 1)",
+        fixed = TRUE
+      )
+    }
+    for (margin in c(-0.999, 0, 0.999)) {
+      result <- do.call(analyse_data, c(args, list(h0 = margin)))
+      expect_true(is.finite(result$success))
+      expect_equal(result$effect, 0.15)
+    }
+  }
+})
+
+test_that("Bayesian probability-scale null margins retain inclusive bounds", {
+  for (method in c("bayes-surv", "bayes-bin")) {
+    for (margin in c(-1, 1)) {
+      expect_true(validate_h0(margin, method, single_arm = FALSE))
+    }
+    for (margin in c(0, 1)) {
+      expect_true(validate_h0(margin, method, single_arm = TRUE))
+    }
+  }
+})
+
 test_that("Farrington-Manning statistics agree with reference values", {
   # Independently generated with gsDesign::testBinomial() 3.9.0 using
   # scale = "Difference" and no Miettinen-Nurminen adjustment.

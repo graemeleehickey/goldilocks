@@ -169,7 +169,7 @@ non-inferiority allowing a loss of \code{m} time units, use \code{h0 = -m} and
 \code{alternative = "greater"}.
 \item When \code{method = "riskdiff-wald"} or \code{method = "riskdiff-fm"}, \code{h0} is the
 null value of \eqn{p_\textrm{treatment} - p_\textrm{control}} and must
-lie in \verb{[-1, 1]}.
+lie in \verb{(-1, 1)}; the degenerate boundary null values are not supported.
 \item When \code{method = "logrank"}, only \code{h0 = 0} is supported; this denotes the
 usual equal-survival null. Nonzero values are rejected because the
 standard log-rank statistic does not implement a nonzero effect margin.

@@ -863,17 +863,22 @@ test_that("survival_adapt maps deprecated riskdiff to riskdiff-wald", {
 })
 
 test_that("survival_adapt validates risk-difference margins", {
-  expect_error(
-    survival_adapt(
-      hazard_treatment = -log(0.85) / 36,
-      hazard_control = -log(0.7) / 36,
-      N_total = 100,
-      end_of_study = 36,
-      method = "riskdiff-wald",
-      h0 = 1.1
-    ),
-    "\\[-1, 1\\]"
-  )
+  for (method in c("riskdiff-wald", "riskdiff-fm")) {
+    for (margin in c(-1.1, -1, 1, 1.1)) {
+      expect_error(
+        survival_adapt(
+          hazard_treatment = -log(0.85) / 36,
+          hazard_control = -log(0.7) / 36,
+          N_total = 100,
+          end_of_study = 36,
+          method = method,
+          h0 = margin
+        ),
+        "'h0' must lie in (-1, 1)",
+        fixed = TRUE
+      )
+    }
+  }
 })
 
 test_that("error-logrank-single_arm", {

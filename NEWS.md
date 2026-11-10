@@ -34,6 +34,7 @@ For changing endpoints, success prediction uses observed follow-up through the c
 
 ## Bug fixes
 
+* Frequentist risk-difference analyses (`method = "riskdiff-wald"` or `"riskdiff-fm"`) require `-1 < h0 < 1`, rejecting the degenerate boundary null values. Bayesian probability-scale margins retain their existing inclusive bounds.
 * `N_mcmc` is required to be a positive integer only for analyses that use posterior draws: `method = "bayes-surv"` and `method = "bayes-bin"` with `bin_method = "mc"`. Other analyses ignore it and accept `NULL`, consistently across direct simulation, observed interim evaluation, and saved trial paths.
 * Block-randomization validation requires `N_total >= max(block)` rather than `N_total >= sum(block)`. This permits smaller trials with several allowed block sizes while retaining the existing allocation sequence for previously valid settings.
 * Removed unused intermediate enrollment counts from `survival_adapt()`; the reported `N_enrolled` continues to use the final enrolled cohort.

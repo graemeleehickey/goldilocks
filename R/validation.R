@@ -822,9 +822,16 @@ validate_h0 <- function(h0, method, single_arm) {
   }
 
   if (
-    method %in%
-      c("bayes-surv", "bayes-bin", "riskdiff-wald", "riskdiff-fm")
+    method %in% c("riskdiff-wald", "riskdiff-fm") &&
+      (h0 <= -1 || h0 >= 1)
   ) {
+    stop(
+      "'h0' must lie in (-1, 1) for frequentist risk-difference analyses; ",
+      "boundary null values are not supported"
+    )
+  }
+
+  if (method %in% c("bayes-surv", "bayes-bin")) {
     lower <- if (single_arm) 0 else -1
     upper <- 1
     if (h0 < lower || h0 > upper) {
@@ -835,11 +842,7 @@ validate_h0 <- function(h0, method, single_arm) {
         upper,
         "] for ",
         if (single_arm) "single-arm" else "two-arm",
-        if (method %in% c("riskdiff-wald", "riskdiff-fm")) {
-          " risk-difference analyses"
-        } else {
-          " Bayesian analyses"
-        }
+        " Bayesian analyses"
       )
     }
   }
