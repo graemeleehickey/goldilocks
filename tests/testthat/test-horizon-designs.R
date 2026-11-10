@@ -3,10 +3,9 @@ horizon_test_args <- function(...) {
     hazard_treatment = 0.05,
     hazard_control = 0.08,
     N_total = 80,
-    interim_look = c(40, 60),
+    endpoint_schedule = horizon_test_schedule(),
     lambda = 3,
     final_horizon = 18,
-    endpoint_horizons = c(12, 18),
     alternative = "less",
     method = "bayes-bin",
     bin_method = "quadrature",
@@ -102,7 +101,7 @@ test_that("each horizon uses the leading master-prior intervals", {
 test_that("an endpoint inside an interval retains its prior but truncates observations", {
   bank <- do.call(sim_horizon_paths, horizon_test_args(
     N_total = 8,
-    interim_look = 6,
+    endpoint_schedule = data.frame(N = 6, horizon = 12),
     cutpoints = c(6, 15),
     generation_cutpoints = NULL,
     prior_surv = matrix(c(1, 10, 2, 20, 3, 30), nrow = 2),
@@ -186,12 +185,11 @@ test_that("direct horizon trials agree with full-bank replay for every method", 
         )
       )
       direct_args <- args
-      direct_args$interim_look <- NULL
       direct <- do.call(
         sim_horizon_trials,
         c(
           direct_args,
-          list(endpoint_schedule = schedule, return_trace = TRUE),
+          list(return_trace = TRUE),
           rules
         )
       )
@@ -207,7 +205,7 @@ test_that("constant horizons reproduce fixed-horizon evidence and trial outcomes
     "riskdiff-wald", "riskdiff-fm"
   )) {
     args <- horizon_test_args(
-      endpoint_horizons = 18,
+      endpoint_schedule = data.frame(N = c(40, 60), horizon = 18),
       method = method,
       N_trials = 1,
       N_impute = 8,
@@ -221,8 +219,9 @@ test_that("constant horizons reproduce fixed-horizon evidence and trial outcomes
     bank <- do.call(sim_horizon_paths, args)
     old_args <- args[setdiff(
       names(args),
-      c("endpoint_horizons", "final_horizon")
+      c("endpoint_schedule", "final_horizon")
     )]
+    old_args$interim_look <- args$endpoint_schedule$N
     old_args$end_of_study <- 18
     fixed <- do.call(sim_trial_paths, old_args)
     for (i in 1:2) {
@@ -238,7 +237,7 @@ test_that("constant horizons reproduce fixed-horizon evidence and trial outcomes
       info = method
     )
     expect_equal(nrow(bank$failures), 0L, info = method)
-    schedule <- data.frame(N = args$interim_look, horizon = 18)
+    schedule <- args$endpoint_schedule
     rule_sets <- list(
       maximum_sample_size = list(Fn = 0, Sn = 1),
       futility = list(Fn = 1, Sn = 1, prob_ha = 1),
@@ -294,10 +293,9 @@ test_that("single-arm horizon-specific hypotheses and imputed finals are retaine
     expect_equal(replay$sims$margin, 0.6)
     expect_equal(replay$sims$N_control, 0)
     expect_true(is.finite(replay$sims$post_prob_ha))
-    args$interim_look <- NULL
     direct <- do.call(
       sim_horizon_trials,
-      c(args, list(endpoint_schedule = horizon_test_schedule(), Fn = 0, Sn = 1))
+      c(args, list(Fn = 0, Sn = 1))
     )
     expect_identical(direct$sims, replay$sims)
   }
@@ -396,13 +394,11 @@ test_that("direct simulation skips unreached interim fits", {
     original(data, config, look, n)
   })
   args <- horizon_test_args(N_trials = 1)
-  args$interim_look <- NULL
   out <- do.call(
     sim_horizon_trials,
     c(
       args,
       list(
-        endpoint_schedule = horizon_test_schedule(),
         Sn = 1,
         Fn = 1,
         prob_ha = 1
@@ -462,6 +458,44 @@ test_that("horizon banks agree across computation methods", {
   }
 })
 
+test_that("the schedule derives all saved looks and includes the final horizon", {
+  schedule <- data.frame(N = c(40, 60), horizon = c(12, 12))
+  args <- horizon_test_args(endpoint_schedule = schedule, N_trials = 1)
+  bank <- do.call(sim_horizon_paths, args)
+  expect_identical(bank$schema_version, 2L)
+  expect_identical(attr(bank, "arguments")$endpoint_schedule, schedule)
+  for (look in bank$trials[[1]]$interims) {
+    expect_length(look, 2)
+    expect_equal(look[[1]]$diagnostics$posterior$interval_end, c(12, 12))
+    expect_equal(look[[2]]$diagnostics$posterior$interval_end, c(18, 18))
+  }
+  expect_equal(bank$trials[[1]]$finals$horizon, rep(c(12, 18), 3))
+  replay <- apply_horizon_rules(bank, schedule, Fn = 0, Sn = 1)
+  direct <- do.call(sim_horizon_trials, c(args, list(Fn = 0, Sn = 1)))
+  expect_identical(direct$sims, replay$sims)
+  # A different switch time uses the same saved evidence, without new fits.
+  switched <- apply_horizon_rules(bank, horizon_test_schedule(), Fn = 0, Sn = 1)
+  expect_identical(switched$sims, replay$sims)
+  expect_equal(replay$sims$followup_horizon, 18)
+})
+
+test_that("previously saved horizon paths remain usable", {
+  bank <- do.call(sim_horizon_paths, horizon_test_args(N_trials = 1))
+  previous <- bank
+  previous$schema_version <- 1L
+  args <- validate_horizon_arguments(attr(bank, "arguments"))
+  old_names <- c(
+    setdiff(names(formals(sim_horizon_paths)), "endpoint_schedule"),
+    "interim_look", "endpoint_horizons", "followup_horizon"
+  )
+  attr(previous, "arguments") <- args[old_names]
+  actual <- apply_horizon_rules(previous, horizon_test_schedule(), return_trace = TRUE)
+  expected <- apply_horizon_rules(bank, horizon_test_schedule(), return_trace = TRUE)
+  expect_identical(actual$sims, expected$sims)
+  expect_identical(actual$traces, expected$traces)
+  expect_output(print(previous), "2 interim looks; horizons: 12, 18")
+})
+
 test_that("dropout probability retains its fixed reference horizon", {
   a <- horizon_test_args(prop_loss = 0.2, dropout_horizon = 12, N_trials = 1)
   b <- horizon_test_args(
@@ -477,12 +511,18 @@ test_that("dropout probability retains its fixed reference horizon", {
 
 test_that("invalid horizon settings fail before simulation", {
   for (override in list(
-    list(endpoint_horizons = c(18, 12)),
-    list(endpoint_horizons = c(12, 12, 18)),
+    list(endpoint_schedule = data.frame(N = c(40, 60), horizon = c(18, 12))),
+    list(endpoint_schedule = data.frame(N = c(40, 60), horizon = c(0, 18))),
+    list(endpoint_schedule = data.frame(N = c(40, 60), horizon = c(12, Inf))),
+    list(endpoint_schedule = data.frame(N = c(40, 60), horizon = c(NA, 18))),
+    list(endpoint_schedule = data.frame(N = c(40, 60), horizon = c("12", "18"))),
+    list(endpoint_schedule = data.frame(N = c(60, 40), horizon = c(12, 18))),
+    list(endpoint_schedule = data.frame(N = c(40, 40), horizon = c(12, 18))),
+    list(endpoint_schedule = data.frame(N = c(40, 60), horizon = c(12, 18), x = 1)),
+    list(endpoint_schedule = NULL),
     list(final_horizon = 12),
-    list(followup_horizon = 12),
     list(dropout_horizon = 0),
-    list(interim_look = c(40, 80)),
+    list(endpoint_schedule = data.frame(N = c(40, 80), horizon = c(12, 18))),
     list(cutpoints = 18),
     list(horizon_settings = data.frame(horizon = 12)),
     list(horizon_settings = data.frame(horizon = c(12, 18), h0 = c(0, NA))),
@@ -513,16 +553,15 @@ test_that("invalid horizon settings fail before simulation", {
 })
 
 test_that("designs without interims use the final endpoint only", {
-  bank <- do.call(sim_horizon_paths, horizon_test_args(interim_look = NULL))
   schedule <- data.frame(N = numeric(), horizon = numeric())
+  bank <- do.call(sim_horizon_paths, horizon_test_args(endpoint_schedule = schedule))
   out <- apply_horizon_rules(bank, schedule, return_trace = TRUE)
   expect_equal(out$sims$endpoint_horizon, c(18, 18))
   expect_equal(nrow(out$traces), 0)
-  args <- horizon_test_args(interim_look = NULL)
-  args$interim_look <- NULL
+  args <- horizon_test_args(endpoint_schedule = schedule)
   direct <- do.call(
     sim_horizon_trials,
-    c(args, list(endpoint_schedule = schedule))
+    args
   )
   expect_identical(out$sims, direct$sims)
 })

@@ -25,15 +25,13 @@ This vignette describes the statistical calculations and their implementation in
 
 ## Design specification
 
-Let the interim enrollment sizes be $n_1 < \cdots < n_L < N_{\max}$, with success endpoint times $H_1 \le \cdots \le H_L \le H_F$. Here, $H_F$ is the endpoint for the maximum-$N$ final analysis and for every futility prediction. In the designs considered here, all participants have planned outcome collection through $H_F$ from enrollment, including participants recruited before the endpoint changes. No additional collection-horizon symbol is needed: `followup_horizon = final_horizon`, which is also the default. The function permits a longer collection duration, but it is not needed for these designs.
+Let the interim enrollment sizes be $n_1 < \cdots < n_L < N_{\max}$, with success endpoint times $H_1 \le \cdots \le H_L \le H_F$. Here, $H_F$ is the endpoint for the maximum-$N$ final analysis and for every futility prediction. All participants have planned outcome collection through $H_F$ from enrollment, including participants recruited before the endpoint changes. `final_horizon` therefore specifies both the eventual endpoint and collection duration; no separate collection-horizon argument is needed.
 
 | Quantity | R argument | Interpretation |
 |:--|:--|:--|
 | $n_\ell$, $H_\ell$ | `endpoint_schedule` | Data frame with columns `N` and `horizon`; one row per interim |
 | $N_{\max}$ | `N_total` | Maximum enrollment; not an additional interim look |
-| $H_F$ | `final_horizon` | Maximum-$N$ endpoint and futility prediction horizon |
-| $H_F$ in these designs | `followup_horizon` | Planned collection duration for each participant; defaults to `final_horizon` |
-| Supported endpoint times | `endpoint_horizons` | Horizons evaluated and retained by `sim_horizon_paths()` |
+| $H_F$ | `final_horizon` | Maximum-$N$ endpoint, futility prediction horizon, and planned collection duration |
 | Dropout reference time | `dropout_horizon` | Time at which `prop_loss` specifies the dropout probability |
 
 The schedule is applied before evaluating each reached look. It does not use an interim estimate or predictive probability to choose whether to extend the endpoint. A terminal stopping decision prevents later scheduled changes from taking effect. If the trial continues to maximum enrollment, its final analysis uses $H_F$ after endpoint ascertainment; reaching $N_{\max}$ does not itself trigger an interim analysis.
@@ -180,7 +178,7 @@ Final analysis with dropout follows the existing method-specific choices for `im
 
 ## Shared histories, dropout, and timing
 
-Event times and dropout times are generated once per simulated trial through `followup_horizon`. Final cohort data are re-censored at each endpoint; changing the endpoint does not redraw either process. `generation_cutpoints` and the arm-specific generating hazards must describe the entire collection period, and need not match the analysis partition.
+Event times and dropout times are generated once per simulated trial through `final_horizon`. Final cohort data are re-censored at each endpoint; changing the endpoint does not redraw either process. `generation_cutpoints` and the arm-specific generating hazards must describe the entire collection period, and need not match the analysis partition.
 
 If the arm-specific dropout probability is $q_z$ by reference time $H_D$, then
 
@@ -190,7 +188,7 @@ Here, $H_D=$ `dropout_horizon`. This hazard remains fixed across endpoint times.
 
 ### Analysis, collection, and decision dates
 
-Even when collection ends at $H_F$, an early stop can select a shorter endpoint $H_\ell$. `analysis_ready_time` refers to the selected endpoint in the enrolled cohort; `collection_ready_time` refers to follow-up through `followup_horizon`, here $H_F$, in that same cohort. The distinction therefore remains relevant without a separate collection horizon beyond $H_F$.
+Even when collection ends at $H_F$, an early stop can select a shorter endpoint $H_\ell$. `analysis_ready_time` refers to the selected endpoint in the enrolled cohort; `collection_ready_time` refers to follow-up through $H_F$ in that same cohort. The distinction therefore remains relevant without a separate collection horizon beyond $H_F$.
 
 | Selected-endpoint measure | Continued-collection measure | Meaning |
 |:--|:--|:--|
@@ -213,28 +211,26 @@ Readiness is based on observed event or censoring times. An event or dropout can
 
 ## Reusing trial paths for calibration
 
-### What `endpoint_horizons` specifies
+### How the schedule determines saved horizons
 
-`endpoint_horizons` lists the endpoint times to calculate and save, not their assignment to interim looks. With `interim_look = c(100, 200, 300, 400)` and `endpoint_horizons = c(12, 18)`, `sim_horizon_paths()` evaluates current-cohort success at both 12 and 18 months at each of the four looks. It also saves the maximum-cohort futility predictions at $H_F=18$ and final analyses for each cohort and endpoint. `apply_horizon_rules()` subsequently chooses one saved success endpoint per look using `endpoint_schedule`.
+Both simulation functions take `endpoint_schedule` and `final_horizon`. Look sizes come from `endpoint_schedule$N`; the endpoint times to calculate are derived as `sort(unique(c(endpoint_schedule$horizon, final_horizon)))`. The final horizon is included even if every interim uses a shorter endpoint. There is no separate `interim_look` or `endpoint_horizons` argument in these functions.
 
-This is what permits comparison of a switch at $N=300$ with a switch at $N=400$ using the same paths. The horizons alone do not say when to switch, and the look sizes alone do not say which endpoint times to calculate. If only month 18 was saved, a later 12-to-18-month schedule cannot be evaluated from those paths. For candidates using only months 12 and 18, save exactly `c(12, 18)`; no additional endpoint times are needed. When simulating one schedule directly, `sim_horizon_trials()` derives this set from the schedule and `final_horizon` by default.
+For the schedule $(100,12), (200,12), (300,12), (400,18)$, `sim_horizon_paths()` evaluates current-cohort success at both 12 and 18 months at each of the four looks. It also saves maximum-cohort futility predictions at $H_F=18$ and final analyses for each cohort and endpoint. `apply_horizon_rules()` then selects one saved success endpoint per look. This permits comparison of a switch at $N=300$ with a switch at $N=400$ without new simulations. A candidate requiring an endpoint time absent from the original schedule and final horizon needs new paths.
 
-Saving the individual completed-data scores, rather than only a predictive probability at one `prob_ha`, also permits recalibration of that success threshold.
+Saving the individual completed-data scores, rather than only a predictive probability at one `prob_ha`, also permits recalibration of that success threshold. Reuse can change the nondecreasing success-horizon schedule within the retained looks and horizons, and `Fn`, `Sn`, `Qn`, and `prob_ha`. The generating scenario, final horizon, dropout model, analysis method, priors, horizon-specific analysis settings, maximum sample size, look sizes, and Monte Carlo counts remain fixed.
 
-Reuse can change the nondecreasing success-horizon schedule within the retained looks and horizons, and `Fn`, `Sn`, `Qn`, and `prob_ha`. The generating scenario, collection and final horizons, dropout model, analysis method, priors, horizon-specific analysis settings, maximum sample size, look sizes, and Monte Carlo counts remain fixed. Changes to those assumptions require new paths.
-
-Direct simulation with `sim_horizon_trials()` skips unreached interim calculations. With the same seed, settings, and full set of `endpoint_horizons`, it agrees with complete-path simulation followed by rule application. Changing the retained set of horizons changes the allocation of random numbers. Saved settings and calculation failures remain part of the path object when it is written with `saveRDS()`.
+Direct simulation with `sim_horizon_trials()` skips unreached interim calculations. With the same seed, settings, and set of derived horizons, it agrees with complete-path simulation followed by rule application. Changing only the switch point, while retaining the same endpoint times, preserves this agreement. Removing an endpoint time entirely changes the allocation of random numbers, so direct simulation and replay from the larger horizon set need not match trial by trial. Saved settings and calculation failures remain part of the path object when written with `saveRDS()`; previously saved paths can still be evaluated with `apply_horizon_rules()`.
 
 ### What `trial_offset` specifies
 
-`trial_offset` is the number of trial replicates to skip before starting this batch. It has nothing to do with patient enrollment, interim looks, or follow-up time. Its default is zero. For example, a run of 2,000 trials can be split into two batches:
+`trial_offset` is the number of trial replicates to skip before starting this batch. It has nothing to do with patient enrollment, interim looks, or follow-up time. Its default is zero and it can be omitted for an ordinary run. It is available for saved-path simulations and direct horizon simulations; the existing `sim_trials()` function does not need it. For example, a run of 2,000 trials can be split into two batches:
 
 | Batch | `N_trials` | `trial_offset` | Trial identifiers |
 |:--|--:|--:|:--|
 | First | 1,000 | 0 | 1 to 1,000 |
 | Second | 1,000 | 1,000 | 1,001 to 2,000 |
 
-Use the **same explicit `seed` and design settings** in both calls. Each trial identifier selects its own reproducible random-number sequence, so the batches reproduce the trials from a single 2,000-trial call. Repeating the first call with offset zero would repeat the same trials. Increasing the offset continues the sequence; it does not add patients to an earlier trial. Save and evaluate each batch separately, retaining trial identifiers when combining trial-level results. This equivalence relies on an explicit seed, rather than `seed = NULL`.
+Use the **same explicit `seed` and design settings** in both calls. Each trial identifier selects its own reproducible random-number sequence, so the batches reproduce the trials from a single 2,000-trial call. Repeating the first call with offset zero would repeat the same trials. Increasing the offset continues the sequence; it does not add patients to an earlier trial. Save and evaluate each batch separately, retaining trial identifiers when combining trial-level results. This equivalence relies on an explicit seed, rather than `seed = NULL`. Separate explicit seeds are another valid way to simulate batches, but those batches will not reproduce one uninterrupted run with a single seed, and their trial identifiers must be distinguished when combining results.
 
 ## Interpreting the two futility measures
 
@@ -249,7 +245,22 @@ The second measure uses the same simulated trial history, continued despite its 
 
 $$\Pr\{\text{binding futility and final success at }N_{\max},H_F\}.$$
 
-Among futility stops alone, the corresponding fraction would be $40/200=20\%$. That conditional fraction is not what `futility_and_success_at_max` reports. Nor is 4% automatically the power lost by using futility: an otherwise identical design with futility disabled can still stop for success at a later interim, using that interim's cohort and endpoint. To estimate the change in power from futility stopping, compare the complete design with its otherwise identical `Fn = 0` version using paired trial outcomes.
+Among futility stops alone, the corresponding fraction would be $40/200=20\%$. That conditional fraction is not what `futility_and_success_at_max` reports.
+
+**When futility is the only early stopping rule, the 4% is exactly a 4-percentage-point loss of power.** With futility disabled, every trial continues to the same maximum-$N$ final analysis, so precisely those 40 successes are lost. This assumes matched trial histories, analysis settings, and complete calculations.
+
+The distinction arises when the comparator retains early-success stopping. Let $F$ denote stopping for futility in the original design, $Y_0$ indicate success under the otherwise identical design with `Fn = 0`, and $Y_M$ indicate success if forced to maximum $N$ and $H_F$. Then
+
+$$\operatorname{Power}(F_n=0)-\operatorname{Power}(F_n>0)=\Pr(F\cap\{Y_0=1\}),$$
+
+whereas the reported measure is $\Pr(F\cap\{Y_M=1\})$. Only trials stopped for futility can change outcome in this paired comparison, but $Y_0$ and $Y_M$ need not agree:
+
+| Trial originally stopped for futility | With futility disabled | Forced maximum-$N$ result | Contribution |
+|:--|:--|:--|:--|
+| Stops at $N=200$ | Expected-success stop at $N=300$, 12-month final analysis fails | 18-month final analysis succeeds | Counts in the reported measure, but no power was lost |
+| Stops at $N=200$ | Expected-success stop at $N=300$, 12-month final analysis succeeds | 18-month final analysis fails | Power was lost, but it is absent from the reported measure |
+
+Even with a constant endpoint, the later success stop and maximum-$N$ analysis use different cohorts and can disagree. To estimate power lost to futility, compare the complete design with its otherwise identical `Fn = 0` version using paired trial outcomes. The [applied vignette](endpoint-horizons-example.html#power-lost-to-futility) performs this comparison without new simulations.
 
 Here, a **failed calculation** means a computational failure, not an ordinary nonsignificant final result. If a trial stops for futility but its hypothetical maximum-$N$ analysis cannot be calculated, its futility outcome remains known and its second measure is missing. The summary reports how many comparisons are available or missing and uses the available comparisons as the denominator; missing comparisons should be investigated. A trial that does not stop for futility contributes zero to the second measure regardless of its maximum-$N$ result. If a calculation needed to determine the actual adaptive outcome fails, the trial is instead excluded from that candidate's operating characteristics and listed in `failures`.
 
@@ -257,6 +268,6 @@ Here, a **failed calculation** means a computational failure, not an ordinary no
 
 The design can declare success at 12 months or at 18 months. A starting null scenario is therefore one in which the treatment has no benefit at either endpoint. For example, identical control and treatment hazards throughout follow-up give identical event risks at both times. Simulate the entire procedure, including the endpoint switches and all stopping rules, and count any declaration of success. Under this scenario, that fraction is the overall type I error. Calibrating each endpoint separately does not establish control for the procedure that can stop at either one.
 
-The null assumptions must match the hypotheses used by the chosen analysis method. For binary risk comparisons, equal risks at 18 months alone do not imply equal risks at 12 months: an early treatment benefit can disappear later. A success declared at 12 months then concerns the 12-month hypothesis; it does not establish benefit at 18 months. If the design is intended to support endpoint-specific claims with strong familywise error control, assess plausible configurations where only some endpoint null hypotheses are true as well. In those configurations, count success at a truly null endpoint, not every success; the overall `power` column also includes legitimate successes at endpoints with benefit. The distinction between errors at individual endpoints and overall error is discussed in FDA's [Multiple Endpoints in Clinical Trials](https://www.fda.gov/media/162416/download), Sections II.B-C.
+The null assumptions must match the hypotheses used by the chosen analysis method. For binary risk comparisons, equal risks at 18 months alone do not imply equal risks at 12 months: an early treatment benefit can disappear later. A success declared at 12 months then concerns the 12-month hypothesis; it does not establish benefit at 18 months. If the design is intended to support endpoint-specific claims with strong familywise error control, assess plausible configurations where only some endpoint null hypotheses are true as well. In those configurations, count success at a truly null endpoint, not every success; the overall `power` column also includes legitimate successes at endpoints with benefit. The [applied example](endpoint-horizons-example.html#benefit-at-12-months-but-no-benefit-at-18-months) uses 12-month risks of 22% versus 30%, but an identical 18-month risk of 40.5%, and reports successes separately by endpoint. The distinction between errors at individual endpoints and overall error is discussed in FDA's [Multiple Endpoints in Clinical Trials](https://www.fda.gov/media/162416/download), Sections II.B-C.
 
 Use several plausible null generating models and validate selected settings using independent simulations. Passing one simulated null scenario does not prove control for every null configuration. Compare candidates using paired trial-level outcomes from shared paths. `N_trials` controls operating-characteristic precision; `N_impute` and, where used, `N_mcmc` also affect the implemented stopping procedure. [Calibrating stopping rules from complete trial paths](calibrating-stopping-rules.html) gives further guidance on comparisons and Monte Carlo uncertainty.

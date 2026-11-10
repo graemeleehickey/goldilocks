@@ -3,7 +3,6 @@
 #' @description Simulates only reached interim looks under a prespecified schedule, using separate success and futility prediction data cuts. Use [sim_horizon_paths()] when comparing many schedules or stopping thresholds.
 #' @inheritParams sim_horizon_paths
 #' @inheritParams apply_horizon_rules
-#' @param endpoint_horizons Endpoint horizons used to allocate reproducible simulation streams. Defaults to the unique scheduled horizons plus `final_horizon`, in increasing order. To reproduce a larger set of saved paths exactly, supply the full set of horizons used to generate those paths.
 #' @details At a 12-month look with an eventual 18-month final endpoint, success imputation is fitted only to available data through month 12; futility imputation is fitted to available data through month 18. Both respect the look's calendar date. The schedule changes only if the trial reaches the corresponding look. It is not selected using interim outcomes.
 #'
 #' Later interim calculations are skipped after a stop. The selected cohort's final analysis and the maximum-\eqn{N} final analysis are retained, including the counterfactual futility comparison. For the same seed, set of horizons, and other simulation settings, results agree with [sim_horizon_paths()] followed by [apply_horizon_rules()]. Event-time imputation, dropout interpretation, horizon-specific analysis settings, and the endpoint lock after a stop are described in [sim_horizon_paths()].
@@ -27,9 +26,7 @@ sim_horizon_trials <- function(
   lambda_time = NULL,
   endpoint_schedule,
   final_horizon,
-  endpoint_horizons = sort(unique(c(endpoint_schedule$horizon, final_horizon))),
-  followup_horizon = final_horizon,
-  dropout_horizon = followup_horizon,
+  dropout_horizon = final_horizon,
   horizon_settings = NULL,
   prior_surv = c(0.1, 0.1),
   prior_bin = c(1, 1),
@@ -63,17 +60,7 @@ sim_horizon_trials <- function(
     Call[[1L]] <- quote(sim_horizon_trials)
   }
   args <- capture_arguments(sim_horizon_trials, environment())
-  if (
-    !is.data.frame(endpoint_schedule) ||
-      !all(c("N", "horizon") %in% names(endpoint_schedule))
-  ) {
-    stop("'endpoint_schedule' must be a data frame with columns N and horizon")
-  }
-  args["interim_look"] <- list(
-    if (nrow(endpoint_schedule)) endpoint_schedule$N else NULL
-  )
   args[c(
-    "endpoint_schedule",
     "Fn",
     "Sn",
     "Qn",

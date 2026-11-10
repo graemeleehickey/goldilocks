@@ -119,10 +119,8 @@ fixed_design <- list(
   generation_cutpoints = 12,
   cutpoints = 12,
   N_total = 500,
-  interim_look = endpoint_schedule$N,
-  endpoint_horizons = c(12, 18),
+  endpoint_schedule = endpoint_schedule,
   final_horizon = 18,
-  followup_horizon = 18,
   dropout_horizon = 12,
   lambda = 10,
   lambda_time = NULL,
@@ -155,7 +153,7 @@ There are 500 trial replicates per scenario and 100 predictive imputations per l
 
 We first simulate complete trial paths. Both endpoint horizons are evaluated at every planned look, including combinations not used by the current schedule. This permits later comparisons of when to switch endpoints without repeating model fitting or imputation.
 
-`endpoint_horizons = c(12, 18)` means "save calculations for both endpoint times at every look." It does not specify when the trial changes endpoints. `endpoint_schedule` makes that assignment later. For example, these paths support either a switch at $N=300$ or a switch at $N=400$. Omitting `endpoint_horizons` would save only the default `final_horizon = 18`, which would not support the 12-month looks. Collection through 18 months is the default `followup_horizon = final_horizon`; the example states both explicitly.
+`sim_horizon_paths()` derives the look sizes from `endpoint_schedule$N` and saves `sort(unique(c(endpoint_schedule$horizon, final_horizon)))` at every look. Here, that gives months 12 and 18, supporting either a switch at $N=300$ or a switch at $N=400$. Including `final_horizon` also ensures 18-month predictions are available if all interims use 12 months. Outcome collection runs through `final_horizon = 18` for every participant from enrollment.
 
 ```{r simulate-paths}
 null_args <- c(fixed_design, list(
@@ -226,7 +224,121 @@ knitr::kable(operating[c(
 ))
 ```
 
-For example, if 200 of 1,000 trials stopped for futility and 40 of those would have succeeded at maximum $N$, the two reported probabilities would be 20% and 4%. The fraction among futility stops would instead be 40/200 = 20%, which is a different denominator. [Interpreting the two futility measures](endpoint-horizons-technical.html#interpreting-the-two-futility-measures) explains why the 4% is not automatically the power lost by adding futility and distinguishes computational failures from ordinary nonsignificant results. The missing-comparison count refers to unavailable hypothetical final analyses, not to trials that fail to demonstrate benefit.
+For example, if 200 of 1,000 trials stopped for futility and 40 of those would have succeeded at maximum $N$, the two reported probabilities would be 20% and 4%. The fraction among futility stops would instead be 40/200 = 20%, which is a different denominator. If futility were the only early stopping rule, the 4% would also be the power lost, in percentage points. With early-success stopping, that comparison requires the otherwise identical design with futility disabled, as shown below. [Interpreting the two futility measures](endpoint-horizons-technical.html#interpreting-the-two-futility-measures) gives the formal distinction and two example trials. The missing-comparison count refers to unavailable hypothetical final analyses, not to trials that fail to demonstrate benefit.
+
+### Power lost to futility
+
+We now disable only futility, keeping the schedule, success boundaries, and final analysis unchanged. This requires no additional model fitting: both designs use the same saved alternative-scenario trials. The difference in their success probabilities is the power lost to futility.
+
+```{r power-lost-to-futility}
+no_futility_rule <- rule
+no_futility_rule$Fn <- 0
+no_futility_result <- do.call(apply_horizon_rules, c(list(
+  paths = paths$alternative, endpoint_schedule = endpoint_schedule
+), no_futility_rule))
+
+paired <- merge(
+  results$alternative$sims[c(
+    "trial", "trial_success", "stop_futility", "futility_and_success_at_max"
+  )],
+  no_futility_result$sims[c("trial", "trial_success")],
+  by = "trial", suffixes = c("_with", "_without")
+)
+paired <- paired[complete.cases(paired), ]
+power_difference <- with(paired, trial_success_without - trial_success_with)
+stopifnot(all(power_difference == with(
+  paired, stop_futility * trial_success_without
+)))
+
+paired_outcomes <- list(
+  "Success with futility" = paired$trial_success_with,
+  "Success without futility" = paired$trial_success_without,
+  "Power lost to futility" = power_difference,
+  "Futility and forced maximum-N success" = paired$futility_and_success_at_max
+)
+paired_summary <- data.frame(
+  Measure = names(paired_outcomes),
+  Estimate = vapply(paired_outcomes, mean, numeric(1)),
+  MC_SE = vapply(paired_outcomes, function(x) sd(x) / sqrt(length(x)), numeric(1))
+)
+knitr::kable(paired_summary, digits = 3, row.names = FALSE,
+  col.names = c("Measure", "Estimate", "MC SE"))
+```
+
+This comparison uses `r nrow(paired)` matched trials with complete outcomes; `r fixed_design$N_trials - nrow(paired)` requested trials are unavailable for the paired comparison. Its Monte Carlo standard errors use the paired outcomes, including for the power difference. Multiplying the power difference by 100 expresses the loss in percentage points. The last row uses forced continuation to $N=500$ and 18 months; the `Fn = 0` design can instead stop earlier for expected success and then pass or fail that cohort's final analysis. These are different continuation policies, so their success outcomes can differ.
+
+## Benefit at 12 months but no benefit at 18 months
+
+Equal event risks at the final endpoint do not imply equality at every earlier endpoint. Keep the control model above, with 30% risk by month 12 and 40.5% by month 18. Now let treatment reduce the 12-month risk to 22%, but have enough events between months 12 and 18 to reach the same 40.5% final risk. The required conditional risk in the second interval is $1-(1-0.405)/(1-0.22)=23.72\%$, compared with 15% on control.
+
+```{r endpoint-null-assumptions}
+control_risk18 <- 1 - exp(-sum(control_hazard * c(12, 6)))
+early_benefit_hazard <- c(
+  -log1p(-0.22) / 12,
+  (-log1p(-control_risk18) + log1p(-0.22)) / 6
+)
+early_benefit_risks <- data.frame(
+  Arm = c("Control", "Treatment: early benefit only"),
+  Risk_12 = 1 - exp(-12 * c(control_hazard[1], early_benefit_hazard[1])),
+  Conditional_risk_12_18 = 1 - exp(-6 * c(
+    control_hazard[2], early_benefit_hazard[2]
+  )),
+  Risk_18 = 1 - exp(-c(
+    sum(control_hazard * c(12, 6)),
+    sum(early_benefit_hazard * c(12, 6))
+  ))
+)
+stopifnot(isTRUE(all.equal(
+  early_benefit_risks$Risk_18[1], early_benefit_risks$Risk_18[2]
+)))
+knitr::kable(early_benefit_risks, digits = 4, col.names = c(
+  "Arm", "12-month risk", "Conditional risk, 12-18 months", "18-month risk"
+))
+```
+
+This scenario has a true treatment benefit at 12 months and a true equality null at 18 months. We simulate it with the same enrollment, analysis settings, priors, endpoint schedule, and decision thresholds, using an independent seed. Each participant still has one event history spanning both endpoints.
+
+```{r endpoint-null-simulation}
+early_benefit_args <- c(fixed_design, list(
+  hazard_treatment = early_benefit_hazard,
+  seed = 18014
+))
+early_benefit_paths <- do.call(sim_horizon_paths, early_benefit_args)
+early_benefit_result <- do.call(apply_horizon_rules, c(list(
+  paths = early_benefit_paths, endpoint_schedule = endpoint_schedule
+), rule))
+
+endpoint_sims <- early_benefit_result$sims
+endpoint_outcomes <- list(
+  "Success at 12 months: true benefit" = with(
+    endpoint_sims, trial_success & endpoint_horizon == 12
+  ),
+  "Success at 18 months: false positive" = with(
+    endpoint_sims, trial_success & endpoint_horizon == 18
+  ),
+  "Success at either endpoint" = endpoint_sims$trial_success
+)
+endpoint_counts <- vapply(endpoint_outcomes, sum, numeric(1))
+endpoint_intervals <- t(vapply(endpoint_counts, function(count) {
+  binom.test(count, nrow(endpoint_sims))$conf.int
+}, numeric(2)))
+endpoint_summary <- data.frame(
+  Outcome = names(endpoint_outcomes),
+  Count = endpoint_counts,
+  Probability = endpoint_counts / nrow(endpoint_sims),
+  MC_lower = endpoint_intervals[, 1],
+  MC_upper = endpoint_intervals[, 2]
+)
+knitr::kable(endpoint_summary, digits = 3, row.names = FALSE, col.names = c(
+  "Outcome", "Trials", "Probability", "MC lower", "MC upper"
+))
+```
+
+All three probabilities use the same denominator: `r nrow(endpoint_sims)` evaluable trials from `r fixed_design$N_trials` requested trials. There were `r nrow(early_benefit_paths$failures)` failed path calculations and `r nrow(early_benefit_result$failures)` excluded trials. The intervals are exact 95% binomial Monte Carlo intervals. The endpoint-specific rows are **unconditional probabilities across all evaluable trials**, not probabilities conditional on stopping at that endpoint.
+
+Here, the second row is the probability of a false claim under the full adaptive procedure: the 18-month null is true, while the 12-month null is false. Adding both success rows gives overall success, but would incorrectly count genuine 12-month findings as type I errors. Conversely, a 12-month success cannot establish an 18-month benefit. In the original joint-null scenario, both endpoint nulls are true, so every success counts as a false positive.
+
+This example illustrates which events to count; it does not validate error control. Assessment across plausible joint and partial null scenarios, followed by independent validation of the chosen schedule and thresholds, is needed to support endpoint-specific claims. See [Type I error across endpoint times](endpoint-horizons-technical.html#type-i-error-across-endpoint-times) for the distinction.
 
 ## Inspect a trial and its two predictive models
 
@@ -252,12 +364,12 @@ The saved paths also contain the separate posterior diagnostics. The following t
 trial_position <- match(trial_id, vapply(
   paths$alternative$trials, function(x) x$trial, integer(1)
 ))
-look_position <- match(300, fixed_design$interim_look)
+look_position <- match(300, endpoint_schedule$N)
 evidence <- paths$alternative$trials[[trial_position]]$interims[[look_position]]
 posterior_table <- do.call(rbind, lapply(seq_along(evidence), function(j) {
   posterior <- evidence[[j]]$diagnostics$posterior
   data.frame(
-    Horizon = fixed_design$endpoint_horizons[j],
+    Horizon = attr(paths$alternative, "arguments")$horizon_settings$horizon[j],
     posterior[c("arm", "interval_start", "interval_end", "observed_events",
       "observed_exposure", "posterior_mean_hazard")]
   )
@@ -306,8 +418,7 @@ Different `Fn`, `Sn`, `Qn`, and `prob_ha` values can also be passed to `apply_ho
 When evaluating one fixed schedule, `sim_horizon_trials()` skips interim calculations after a terminal stop. The short run below reproduces the first three alternative-scenario trials from the complete-path calculation. It retains the same set of horizons, settings, and seed; only the number of requested trials is reduced.
 
 ```{r direct-simulation}
-direct_args <- alternative_args[setdiff(names(alternative_args), "interim_look")]
-direct_args$endpoint_schedule <- endpoint_schedule
+direct_args <- alternative_args
 direct_args$N_trials <- 3
 direct <- do.call(sim_horizon_trials, c(direct_args, rule))
 
@@ -336,7 +447,7 @@ knitr::kable(timing, digits = 1, col.names = c(
 ))
 ```
 
-These are calendar months from first enrollment. `analysis_ready_time` refers to the endpoint selected when accrual stops; `collection_ready_time` refers to collection through month 18 in the same cohort. They can differ after a 12-month stop even though `followup_horizon = final_horizon = 18`. Observed events can make either date earlier than planned completion. For expected-success stops, `decision_time` is the final analysis date, while `accrual_stop_time` is the earlier decision to stop recruitment. For futility or immediate-success stops, `decision_time` is the interim date. The [technical companion](endpoint-horizons-technical.html#analysis-collection-and-decision-dates) gives a numerical example.
+These are calendar months from first enrollment. `analysis_ready_time` refers to the endpoint selected when accrual stops; `collection_ready_time` refers to collection through month 18 in the same cohort. They can differ after a 12-month stop with collection fixed at `final_horizon = 18`. Observed events can make either date earlier than planned completion. For expected-success stops, `decision_time` is the final analysis date, while `accrual_stop_time` is the earlier decision to stop recruitment. For futility or immediate-success stops, `decision_time` is the interim date. The [technical companion](endpoint-horizons-technical.html#analysis-collection-and-decision-dates) gives a numerical example.
 
 ## Add dropout or save results
 
@@ -361,24 +472,10 @@ saveRDS(list(
   paths = paths,
   endpoint_schedule = endpoint_schedule,
   rule = rule,
-  results = results
+  results = results,
+  no_futility_result = no_futility_result,
+  early_benefit = list(paths = early_benefit_paths, result = early_benefit_result)
 ), "endpoint-horizon-calibration.rds")
 ```
 
-`trial_offset` lets a simulation be split into batches without repeating trial replicates. For example, the following two calls reproduce the 500 alternative-scenario trials above in batches of 250. The second call starts at trial 251, using the same seed and design; it does not continue recruitment within an existing trial.
-
-```{r separate-batches, eval = FALSE}
-batch_args <- alternative_args
-batch_args$N_trials <- 250
-batch_args$trial_offset <- 0
-first_batch <- do.call(sim_horizon_paths, batch_args)
-batch_args$trial_offset <- 250
-second_batch <- do.call(sim_horizon_paths, batch_args)
-
-stopifnot(identical(
-  c(first_batch$trials, second_batch$trials),
-  paths$alternative$trials
-))
-```
-
-Leave `trial_offset = 0`, its default, for an ordinary single call. See [Calibrating stopping rules from complete trial paths](calibrating-stopping-rules.html) and [Calibrating prob_ha for type I error control](calibrating-prob-ha.html) for further calibration guidance.
+For larger runs, [simulation batches](endpoint-horizons-technical.html#what-trial_offset-specifies) can limit memory use. See [Calibrating stopping rules from complete trial paths](calibrating-stopping-rules.html) and [Calibrating prob_ha for type I error control](calibrating-prob-ha.html) for further calibration guidance.

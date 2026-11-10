@@ -21,6 +21,26 @@ validate_endpoint_schedule <- function(endpoint_schedule, args) {
 }
 
 validate_horizon_arguments <- function(args) {
+  if ("endpoint_schedule" %in% names(args)) {
+    schedule <- args$endpoint_schedule
+    if (
+      !is.data.frame(schedule) ||
+        !identical(names(schedule), c("N", "horizon")) ||
+        !is.numeric(schedule$N) ||
+        !is.numeric(schedule$horizon) ||
+        any(!is.finite(as.matrix(schedule))) ||
+        any(schedule$horizon <= 0) ||
+        any(diff(schedule$horizon) < 0)
+    ) {
+      stop(
+        "'endpoint_schedule' must have numeric columns N and horizon, finite values, and positive, nondecreasing horizons"
+      )
+    }
+    args["interim_look"] <- list(if (nrow(schedule)) schedule$N else NULL)
+    args$endpoint_horizons <- sort(unique(c(schedule$horizon, args$final_horizon)))
+    args$followup_horizon <- args$final_horizon
+  }
+  # Older saved paths retain their original grid and collection duration.
   horizons <- args$endpoint_horizons
   if (
     !is.numeric(horizons) ||
@@ -42,7 +62,7 @@ validate_horizon_arguments <- function(args) {
       args$followup_horizon < args$final_horizon
   ) {
     stop(
-      "'final_horizon' must be the largest endpoint horizon, and 'followup_horizon' must be at least that large"
+      "'final_horizon' must be at least every scheduled horizon, and saved collection must cover it"
     )
   }
   args$backend <- match.arg(
