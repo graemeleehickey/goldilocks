@@ -106,7 +106,8 @@ posterior probability for \code{method = "bayes-bin"}. It must be one of \code{"
 The normal approximation can be inaccurate with sparse events or
 non-events and posterior event probabilities near 0 or 1. It can change
 whether \code{prob_ha} is exceeded. Increasing \code{N_mcmc} does not improve this
-approximation; use \code{"quadrature"} or sufficiently precise \code{"mc"} instead.}
+approximation; use \code{"quadrature"} or sufficiently precise \code{"mc"} instead.
+In two-arm designs, quadrature can also return an inaccurate posterior probability without an error when the posterior event risks are tightly concentrated, particularly with many participants but very few events or non-events. Check such probabilities against sufficiently precise Monte Carlo Beta draws (\code{"mc"}). Increasing \code{N_mcmc} does not improve quadrature. This integration issue does not apply to the single-arm Beta CDF calculation.}
 
 \item{block}{A positive integer vector of permitted randomization block
 sizes. Every value must be a multiple of \code{sum(rand_ratio)}. The default is
@@ -505,6 +506,8 @@ event-probability boundaries of 0 or 1. This can change success and
 interim stopping decisions. Use \code{bin_method = "quadrature"} or
 sufficiently precise \code{"mc"} when the approximation is unsuitable;
 increasing \code{N_mcmc} does not correct normal-approximation error.
+
+\strong{Numerical accuracy of two-arm quadrature.} When the posterior event risks lie in a very narrow range, numerical integration can miss much of the posterior probability and return an incorrect result without an error. This can affect final success and interim stopping decisions. The problem has been observed with large samples and very few events or non-events. Check such cases against sufficiently precise Monte Carlo Beta draws; \code{N_mcmc} controls Monte Carlo precision only. For \code{h0 = 0}, identical Beta posteriors in the two arms must give a probability of 0.5 in either direction, which provides a simple accuracy check. The single-arm calculation uses the Beta CDF directly and does not use this integration.
 
 Two equivalent predictive imputation approaches are available through
 \code{binary_imputation}. With \code{"event-time"}, the package samples a future
