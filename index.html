@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -101,13 +101,13 @@
 <span>  hazard_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.06</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
 <span>  generation_cutpoints <span class="op">=</span> <span class="fl">12</span>, cutpoints <span class="op">=</span> <span class="fl">12</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="fl">500</span>, endpoint_schedule <span class="op">=</span> <span class="va">schedule</span>,</span>
-<span>  final_horizon <span class="op">=</span> <span class="fl">18</span>, followup_horizon <span class="op">=</span> <span class="fl">18</span>,</span>
+<span>  final_horizon <span class="op">=</span> <span class="fl">18</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"bayes-bin"</span>, bin_method <span class="op">=</span> <span class="st">"quadrature"</span>,</span>
 <span>  alternative <span class="op">=</span> <span class="st">"less"</span>, lambda <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  Fn <span class="op">=</span> <span class="fl">0.05</span>, Sn <span class="op">=</span> <span class="fl">0.9</span>, Qn <span class="op">=</span> <span class="fl">1</span>, prob_ha <span class="op">=</span> <span class="fl">0.975</span>,</span>
 <span>  N_trials <span class="op">=</span> <span class="fl">1000</span>, seed <span class="op">=</span> <span class="fl">123</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>These are illustrative settings, not a calibrated design. For repeated calibration, use <code><a href="reference/sim_horizon_paths.html">sim_horizon_paths()</a></code> with <code>interim_look = schedule$N</code> and <code>endpoint_horizons = c(12, 18)</code>, then pass the trial paths and candidate schedules to <code><a href="reference/apply_horizon_rules.html">apply_horizon_rules()</a></code>. Stopping for expected success fixes that cohort’s endpoint for its final analysis. <code>dropout_horizon</code> fixes the reference time for <code>prop_loss</code>, and <code>horizon_settings</code> supplies endpoint-specific analysis assumptions when needed. Results identify the endpoint used and distinguish endpoint completion from continued outcome collection. See <a href="https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-example.html">Extending an endpoint from 12 to 18 months</a> for a worked example and <a href="https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-technical.html">Technical details of prespecified endpoint horizons</a> for the calculations and flow charts.</p>
+<p>These are illustrative settings, not a calibrated design. For repeated calibration, use <code><a href="reference/sim_horizon_paths.html">sim_horizon_paths()</a></code> with the same <code>endpoint_schedule = schedule</code> and <code>final_horizon = 18</code>, then pass the trial paths and candidate schedules to <code><a href="reference/apply_horizon_rules.html">apply_horizon_rules()</a></code>. Stopping for expected success fixes that cohort’s endpoint for its final analysis. <code>dropout_horizon</code> fixes the reference time for <code>prop_loss</code>, and <code>horizon_settings</code> supplies endpoint-specific analysis assumptions when needed. Results identify the endpoint used and distinguish endpoint completion from continued outcome collection. See <a href="https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-example.html">Extending an endpoint from 12 to 18 months</a> for a worked example and <a href="https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-technical.html">Technical details of prespecified endpoint horizons</a> for the calculations and flow charts.</p>
 </div>
 <div class="section level2">
 <h2 id="key-benefits">Key benefits<a class="anchor" aria-label="anchor" href="#key-benefits"></a>

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,11 +52,9 @@
 <span>  <span class="va">N_total</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">0.3</span>,</span>
 <span>  lambda_time <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  interim_look <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">endpoint_schedule</span>,</span>
 <span>  <span class="va">final_horizon</span>,</span>
-<span>  endpoint_horizons <span class="op">=</span> <span class="va">final_horizon</span>,</span>
-<span>  followup_horizon <span class="op">=</span> <span class="va">final_horizon</span>,</span>
-<span>  dropout_horizon <span class="op">=</span> <span class="va">followup_horizon</span>,</span>
+<span>  dropout_horizon <span class="op">=</span> <span class="va">final_horizon</span>,</span>
 <span>  horizon_settings <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  prior_surv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
 <span>  prior_bin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -77,8 +75,7 @@
 <span>  backend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"fork"</span>, <span class="st">"psock"</span>, <span class="st">"sequential"</span><span class="op">)</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  prior_surv_final <span class="op">=</span> <span class="va">prior_surv</span>,</span>
-<span>  generation_cutpoints <span class="op">=</span> <span class="va">cutpoints</span>,</span>
-<span>  trial_offset <span class="op">=</span> <span class="fl">0L</span></span>
+<span>  generation_cutpoints <span class="op">=</span> <span class="va">cutpoints</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -100,7 +97,7 @@ two-arm trial. It must contain one rate per interval defined by
 
 
 <dt id="arg-cutpoints">cutpoints<a class="anchor" aria-label="anchor" href="#arg-cutpoints"></a></dt>
-<dd><p>Master piecewise-exponential analysis cutpoints, strictly inside <code>followup_horizon</code>. Each endpoint uses only cutpoints strictly before that endpoint and the corresponding leading intervals of <code>prior_surv</code> and <code>prior_surv_final</code>.</p></dd>
+<dd><p>Master piecewise-exponential analysis cutpoints, strictly inside <code>final_horizon</code>. Each endpoint uses only cutpoints strictly before that endpoint and the corresponding leading intervals of <code>prior_surv</code> and <code>prior_surv_final</code>. If an endpoint H lies inside a master interval, the same hazard parameter and unscaled Gamma prior apply, but its success update uses events and exposure only through H. Available observations beyond H are excluded even within that interval; H is not a new hazard-change assumption in the generating model.</p></dd>
 
 
 <dt id="arg-n-total">N_total<a class="anchor" aria-label="anchor" href="#arg-n-total"></a></dt>
@@ -122,34 +119,20 @@ changes. Time zero is implicit, and <code>length(lambda)</code> must equal
 <code>length(lambda_time) + 1</code>.</p></dd>
 
 
-<dt id="arg-interim-look">interim_look<a class="anchor" aria-label="anchor" href="#arg-interim-look"></a></dt>
-<dd><p><code>NULL</code> (the default) for no interim analyses, or a
-strictly increasing positive integer vector giving the cumulative sample
-size at each interim look. Do not include the maximum sample size. For
-two-arm designs, each interim look must be at least the (largest) block
-size (see <code>block</code>), ensuring both treatment groups are present at every
-interim analysis; a smaller look could enroll subjects from one treatment
-group only, leaving the interim posterior undefined for the missing group.</p></dd>
+<dt id="arg-endpoint-schedule">endpoint_schedule<a class="anchor" aria-label="anchor" href="#arg-endpoint-schedule"></a></dt>
+<dd><p>Data frame with exactly two numeric columns, <code>N</code> and <code>horizon</code>, containing every planned interim enrollment size in increasing order and a positive, nondecreasing endpoint horizon at each look. All interim sizes must be less than <code>N_total</code>. The saved horizons are derived as <code>sort(unique(c(endpoint_schedule$horizon, final_horizon)))</code> and evaluated at every look, allowing subsequent comparison of schedules using the same looks and endpoint times. Use a zero-row data frame with numeric columns when there are no interims.</p></dd>
 
 
 <dt id="arg-final-horizon">final_horizon<a class="anchor" aria-label="anchor" href="#arg-final-horizon"></a></dt>
-<dd><p>Required endpoint time for the maximum-\(N\) final analysis and all futility predictions. It must equal the largest <code>endpoint_horizons</code> value.</p></dd>
-
-
-<dt id="arg-endpoint-horizons">endpoint_horizons<a class="anchor" aria-label="anchor" href="#arg-endpoint-horizons"></a></dt>
-<dd><p>Positive, strictly increasing endpoint times to retain. The default is <code>final_horizon</code>.</p></dd>
-
-
-<dt id="arg-followup-horizon">followup_horizon<a class="anchor" aria-label="anchor" href="#arg-followup-horizon"></a></dt>
-<dd><p>Planned outcome-collection duration for every participant from enrollment, at least <code>final_horizon</code>. Defaults to <code>final_horizon</code>. The generating hazards must describe this entire period.</p></dd>
+<dd><p>Required endpoint time for the maximum-\(N\) final analysis, all futility predictions, and planned outcome collection for every participant from enrollment. It must be at least every scheduled horizon. The generating hazards must describe this entire period.</p></dd>
 
 
 <dt id="arg-dropout-horizon">dropout_horizon<a class="anchor" aria-label="anchor" href="#arg-dropout-horizon"></a></dt>
-<dd><p>Reference time at which <code>prop_loss</code> specifies the independent exponential dropout probability. Defaults to <code>followup_horizon</code>; it remains fixed when the analysis endpoint changes.</p></dd>
+<dd><p>Reference time at which <code>prop_loss</code> specifies the independent exponential dropout probability. Defaults to <code>final_horizon</code>; it remains fixed when the analysis endpoint changes.</p></dd>
 
 
 <dt id="arg-horizon-settings">horizon_settings<a class="anchor" aria-label="anchor" href="#arg-horizon-settings"></a></dt>
-<dd><p>Optional data frame with one row per <code>endpoint_horizons</code> value, identified by column <code>horizon</code>. Optional columns are <code>h0</code>, <code>rmst_tau</code>, and a list column <code>prior_bin</code>. Missing columns use the common <code>h0</code>, the endpoint horizon itself for RMST restriction, and the common <code>prior_bin</code>, respectively. These settings are fixed within a set of trial paths.</p></dd>
+<dd><p>Optional data frame with one row per distinct scheduled horizon plus <code>final_horizon</code>, identified by column <code>horizon</code>. Optional columns are <code>h0</code>, <code>rmst_tau</code>, and a list column <code>prior_bin</code>. Missing columns use the common <code>h0</code>, the endpoint horizon itself for RMST restriction, and the common <code>prior_bin</code>, respectively. These settings are fixed within a set of trial paths.</p></dd>
 
 
 <dt id="arg-prior-surv">prior_surv<a class="anchor" aria-label="anchor" href="#arg-prior-surv"></a></dt>
@@ -314,13 +297,6 @@ piecewise-exponential model used to generate event times.
 resulting interval. Defaults to <code>cutpoints</code>, preserving the historical
 behavior in which generation and analysis used one partition.</p></dd>
 
-
-<dt id="arg-trial-offset">trial_offset<a class="anchor" aria-label="anchor" href="#arg-trial-offset"></a></dt>
-<dd><p>A non-negative integer. Trial identifiers start at
-<code>trial_offset + 1</code>. With an explicit seed, consecutive offsets allow a large
-simulation to be generated, saved, and evaluated in separate batches using the
-same streams as a single call. Keep all other simulation settings fixed.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -329,10 +305,10 @@ same streams as a single call. Keep all other simulation settings fixed.</p></dd
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Success prediction at horizon H fits its predictive hazard model using only follow-up through H that is available at the look's calendar date. It imputes completed outcomes through H among currently enrolled participants. Futility prediction uses a separate model fitted to available follow-up through <code>final_horizon</code>, and predicts success at that horizon at maximum \(N\). Follow-up after H cannot inform the success model, including when a hazard interval crosses H. When H equals <code>final_horizon</code>, the two predictions share a fitted predictive model.</p>
-<p>Event times are generated once through <code>followup_horizon</code> and re-censored for each analysis. Predictive imputation uses event times; independently imputed binary outcomes at different horizons are not supported. Predictions at different data cuts use their own posterior draws and are not paired latent event trajectories across horizons.</p>
+<p>Event times are generated once through <code>final_horizon</code> and re-censored for each analysis. Predictive imputation uses event times; independently imputed binary outcomes at different horizons are not supported. When the success and futility endpoints differ, the two models make separate posterior and imputation draws. The first completed data set from each model is not the same future trial observed for different durations; draw numbers cannot be matched to estimate joint predictive outcomes.</p>
 <p>The final analysis after an expected-success stop uses that look's endpoint, even if it fails. It never resumes the trial at a longer endpoint. Futility targets the maximum-\(N\) final analysis, rather than success at any remaining interim. Interim sample sizes must be less than <code>N_total</code>; maximum \(N\) is followed by final endpoint ascertainment.</p>
-<p><code>prop_loss</code> describes an exponential dropout distribution independently of the analysis endpoint. For example, <code>prop_loss = 0.05, dropout_horizon = 12, followup_horizon = 18</code> retains a 5% dropout probability by month 12 while generating follow-up through month 18. Dropout after month 12 does not make the 12-month endpoint missing.</p>
-<p>All other fixed design settings and analysis restrictions follow <code><a href="sim_trial_paths.html">sim_trial_paths()</a></code>. Explicit seeds preserve the caller's random-number state and reproduce results across supported computation methods and consecutive <code>trial_offset</code> batches. Changing the set of retained horizons changes the allocation of random numbers. Changing only a candidate schedule or thresholds does not. Select designs using one set of trial paths and assess the complete adaptive design using independent simulations.</p>
+<p><code>prop_loss</code> describes an exponential dropout distribution independently of the analysis endpoint. For example, <code>prop_loss = 0.05, dropout_horizon = 12, final_horizon = 18</code> retains a 5% dropout probability by month 12 while generating follow-up through month 18. Dropout after month 12 does not make the 12-month endpoint missing.</p>
+<p>All other fixed design settings and analysis restrictions follow <code><a href="sim_trial_paths.html">sim_trial_paths()</a></code>. Explicit seeds preserve the caller's random-number state and reproduce results across supported computation methods. Use different explicit seeds for separate batches; trial identifiers start at 1 in each call. Changing the set of retained horizons changes the allocation of random numbers. Changing only a candidate schedule or thresholds does not. Select designs using one set of trial paths and assess the complete adaptive design using independent simulations.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -341,15 +317,14 @@ same streams as a single call. Keep all other simulation settings fixed.</p></dd
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">paths</span> <span class="op">&lt;-</span> <span class="fu">sim_horizon_paths</span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">schedule</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">40</span><span class="op">)</span>, horizon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">18</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">paths</span> <span class="op">&lt;-</span> <span class="fu">sim_horizon_paths</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  hazard_treatment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.04</span>, <span class="fl">0.03</span><span class="op">)</span>, hazard_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.07</span>, <span class="fl">0.06</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  generation_cutpoints <span class="op">=</span> <span class="fl">12</span>, cutpoints <span class="op">=</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>  N_total <span class="op">=</span> <span class="fl">60</span>, interim_look <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">40</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  endpoint_horizons <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">18</span><span class="op">)</span>, final_horizon <span class="op">=</span> <span class="fl">18</span>,</span></span>
+<span class="r-in"><span>  N_total <span class="op">=</span> <span class="fl">60</span>, endpoint_schedule <span class="op">=</span> <span class="va">schedule</span>, final_horizon <span class="op">=</span> <span class="fl">18</span>,</span></span>
 <span class="r-in"><span>  lambda <span class="op">=</span> <span class="fl">3</span>, method <span class="op">=</span> <span class="st">"bayes-bin"</span>, bin_method <span class="op">=</span> <span class="st">"quadrature"</span>,</span></span>
 <span class="r-in"><span>  alternative <span class="op">=</span> <span class="st">"less"</span>, N_impute <span class="op">=</span> <span class="fl">5</span>, N_trials <span class="op">=</span> <span class="fl">2</span>, seed <span class="op">=</span> <span class="fl">123</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">schedule</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">40</span><span class="op">)</span>, horizon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">18</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="apply_horizon_rules.html">apply_horizon_rules</a></span><span class="op">(</span><span class="va">paths</span>, <span class="va">schedule</span>, return_trace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="summarise_sims.html">summarise_sims</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 50</span></span>

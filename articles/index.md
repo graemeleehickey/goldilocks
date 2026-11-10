@@ -17,7 +17,7 @@
 - [Applying predictive decisions to an observed interim data
   cut](https://graemeleehickey.github.io/goldilocks/articles/interim-data.md):
 
-### Calibration and Interrogation
+### Calibration and interrogation
 
 - [Calibrating prob_ha for type I error
   control](https://graemeleehickey.github.io/goldilocks/articles/calibrating-prob-ha.md):

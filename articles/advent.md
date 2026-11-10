@@ -334,7 +334,7 @@ scale_pwe_to_event_probability <- function(
 ) {
   interval_length_day <- diff(c(0, cutpoints_day, end_day))
   cumulative_hazard <- sum(hazard_per_day * interval_length_day)
-  scale <- -log1p(-target_event_probability) / cumulative_hazard
+  scale <- -log(1 - target_event_probability) / cumulative_hazard
   hazard_per_day * scale
 }
 

@@ -207,7 +207,7 @@ type I error and higher power. Changing `Fn` or `Sn` can also affect
 both, as well as the sample size. These are illustrative candidate
 rules, not a calibrated design. After selecting a rule, its operating
 characteristics should be checked using independent simulations with
-sufficient precision; [Calibrating prob_ha for type I error
+sufficient precision; [Calibrating `prob_ha` for type I error
 control](https://graemeleehickey.github.io/goldilocks/articles/calibrating-prob-ha.md)
 discusses this in more detail.
 

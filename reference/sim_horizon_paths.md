@@ -16,11 +16,9 @@ sim_horizon_paths(
   N_total,
   lambda = 0.3,
   lambda_time = NULL,
-  interim_look = NULL,
+  endpoint_schedule,
   final_horizon,
-  endpoint_horizons = final_horizon,
-  followup_horizon = final_horizon,
-  dropout_horizon = followup_horizon,
+  dropout_horizon = final_horizon,
   horizon_settings = NULL,
   prior_surv = c(0.1, 0.1),
   prior_bin = c(1, 1),
@@ -41,8 +39,7 @@ sim_horizon_paths(
   backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL,
   prior_surv_final = prior_surv,
-  generation_cutpoints = cutpoints,
-  trial_offset = 0L
+  generation_cutpoints = cutpoints
 )
 ```
 
@@ -65,9 +62,14 @@ sim_horizon_paths(
 - cutpoints:
 
   Master piecewise-exponential analysis cutpoints, strictly inside
-  `followup_horizon`. Each endpoint uses only cutpoints strictly before
+  `final_horizon`. Each endpoint uses only cutpoints strictly before
   that endpoint and the corresponding leading intervals of `prior_surv`
-  and `prior_surv_final`.
+  and `prior_surv_final`. If an endpoint H lies inside a master
+  interval, the same hazard parameter and unscaled Gamma prior apply,
+  but its success update uses events and exposure only through H.
+  Available observations beyond H are excluded even within that
+  interval; H is not a new hazard-change assumption in the generating
+  model.
 
 - N_total:
 
@@ -88,48 +90,38 @@ sim_horizon_paths(
   changes. Time zero is implicit, and `length(lambda)` must equal
   `length(lambda_time) + 1`.
 
-- interim_look:
+- endpoint_schedule:
 
-  `NULL` (the default) for no interim analyses, or a strictly increasing
-  positive integer vector giving the cumulative sample size at each
-  interim look. Do not include the maximum sample size. For two-arm
-  designs, each interim look must be at least the (largest) block size
-  (see `block`), ensuring both treatment groups are present at every
-  interim analysis; a smaller look could enroll subjects from one
-  treatment group only, leaving the interim posterior undefined for the
-  missing group.
+  Data frame with exactly two numeric columns, `N` and `horizon`,
+  containing every planned interim enrollment size in increasing order
+  and a positive, nondecreasing endpoint horizon at each look. All
+  interim sizes must be less than `N_total`. The saved horizons are
+  derived as `sort(unique(c(endpoint_schedule$horizon, final_horizon)))`
+  and evaluated at every look, allowing subsequent comparison of
+  schedules using the same looks and endpoint times. Use a zero-row data
+  frame with numeric columns when there are no interims.
 
 - final_horizon:
 
-  Required endpoint time for the maximum-\\N\\ final analysis and all
-  futility predictions. It must equal the largest `endpoint_horizons`
-  value.
-
-- endpoint_horizons:
-
-  Positive, strictly increasing endpoint times to retain. The default is
-  `final_horizon`.
-
-- followup_horizon:
-
-  Planned outcome-collection duration for every participant from
-  enrollment, at least `final_horizon`. Defaults to `final_horizon`. The
-  generating hazards must describe this entire period.
+  Required endpoint time for the maximum-\\N\\ final analysis, all
+  futility predictions, and planned outcome collection for every
+  participant from enrollment. It must be at least every scheduled
+  horizon. The generating hazards must describe this entire period.
 
 - dropout_horizon:
 
   Reference time at which `prop_loss` specifies the independent
-  exponential dropout probability. Defaults to `followup_horizon`; it
+  exponential dropout probability. Defaults to `final_horizon`; it
   remains fixed when the analysis endpoint changes.
 
 - horizon_settings:
 
-  Optional data frame with one row per `endpoint_horizons` value,
-  identified by column `horizon`. Optional columns are `h0`, `rmst_tau`,
-  and a list column `prior_bin`. Missing columns use the common `h0`,
-  the endpoint horizon itself for RMST restriction, and the common
-  `prior_bin`, respectively. These settings are fixed within a set of
-  trial paths.
+  Optional data frame with one row per distinct scheduled horizon plus
+  `final_horizon`, identified by column `horizon`. Optional columns are
+  `h0`, `rmst_tau`, and a list column `prior_bin`. Missing columns use
+  the common `h0`, the endpoint horizon itself for RMST restriction, and
+  the common `prior_bin`, respectively. These settings are fixed within
+  a set of trial paths.
 
 - prior_surv:
 
@@ -320,13 +312,6 @@ sim_horizon_paths(
   preserving the historical behavior in which generation and analysis
   used one partition.
 
-- trial_offset:
-
-  A non-negative integer. Trial identifiers start at `trial_offset + 1`.
-  With an explicit seed, consecutive offsets allow a large simulation to
-  be generated, saved, and evaluated in separate batches using the same
-  streams as a single call. Keep all other simulation settings fixed.
-
 ## Value
 
 A `goldilocks_horizon_paths` object with `trials`, a calculation-level
@@ -351,11 +336,13 @@ that horizon at maximum \\N\\. Follow-up after H cannot inform the
 success model, including when a hazard interval crosses H. When H equals
 `final_horizon`, the two predictions share a fitted predictive model.
 
-Event times are generated once through `followup_horizon` and
-re-censored for each analysis. Predictive imputation uses event times;
-independently imputed binary outcomes at different horizons are not
-supported. Predictions at different data cuts use their own posterior
-draws and are not paired latent event trajectories across horizons.
+Event times are generated once through `final_horizon` and re-censored
+for each analysis. Predictive imputation uses event times; independently
+imputed binary outcomes at different horizons are not supported. When
+the success and futility endpoints differ, the two models make separate
+posterior and imputation draws. The first completed data set from each
+model is not the same future trial observed for different durations;
+draw numbers cannot be matched to estimate joint predictive outcomes.
 
 The final analysis after an expected-success stop uses that look's
 endpoint, even if it fails. It never resumes the trial at a longer
@@ -365,19 +352,20 @@ success at any remaining interim. Interim sample sizes must be less than
 
 `prop_loss` describes an exponential dropout distribution independently
 of the analysis endpoint. For example,
-`prop_loss = 0.05, dropout_horizon = 12, followup_horizon = 18` retains
-a 5% dropout probability by month 12 while generating follow-up through
+`prop_loss = 0.05, dropout_horizon = 12, final_horizon = 18` retains a
+5% dropout probability by month 12 while generating follow-up through
 month 18. Dropout after month 12 does not make the 12-month endpoint
 missing.
 
 All other fixed design settings and analysis restrictions follow
 [`sim_trial_paths()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_paths.md).
 Explicit seeds preserve the caller's random-number state and reproduce
-results across supported computation methods and consecutive
-`trial_offset` batches. Changing the set of retained horizons changes
-the allocation of random numbers. Changing only a candidate schedule or
-thresholds does not. Select designs using one set of trial paths and
-assess the complete adaptive design using independent simulations.
+results across supported computation methods. Use different explicit
+seeds for separate batches; trial identifiers start at 1 in each call.
+Changing the set of retained horizons changes the allocation of random
+numbers. Changing only a candidate schedule or thresholds does not.
+Select designs using one set of trial paths and assess the complete
+adaptive design using independent simulations.
 
 ## See also
 
@@ -387,15 +375,14 @@ assess the complete adaptive design using independent simulations.
 ## Examples
 
 ``` r
+schedule <- data.frame(N = c(20, 40), horizon = c(12, 18))
 paths <- sim_horizon_paths(
   hazard_treatment = c(0.04, 0.03), hazard_control = c(0.07, 0.06),
   generation_cutpoints = 12, cutpoints = 12,
-  N_total = 60, interim_look = c(20, 40),
-  endpoint_horizons = c(12, 18), final_horizon = 18,
+  N_total = 60, endpoint_schedule = schedule, final_horizon = 18,
   lambda = 3, method = "bayes-bin", bin_method = "quadrature",
   alternative = "less", N_impute = 5, N_trials = 2, seed = 123
 )
-schedule <- data.frame(N = c(20, 40), horizon = c(12, 18))
 result <- apply_horizon_rules(paths, schedule, return_trace = TRUE)
 summarise_sims(result)
 #> # A tibble: 1 × 50

@@ -13,7 +13,7 @@ to calibrate Fn, Sn, Qn, and prob_ha without new simulations."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -84,8 +84,7 @@ to calibrate <code>Fn</code>, <code>Sn</code>, <code>Qn</code>, and <code>prob_h
 <span>  binary_imputation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event-time"</span>, <span class="st">"bernoulli"</span><span class="op">)</span>,</span>
 <span>  prior_surv_final <span class="op">=</span> <span class="va">prior_surv</span>,</span>
 <span>  generation_cutpoints <span class="op">=</span> <span class="va">cutpoints</span>,</span>
-<span>  rmst_tau <span class="op">=</span> <span class="va">end_of_study</span>,</span>
-<span>  trial_offset <span class="op">=</span> <span class="fl">0L</span></span>
+<span>  rmst_tau <span class="op">=</span> <span class="va">end_of_study</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -393,13 +392,6 @@ looks, imputations, and simulations. It may precede analysis cutpoints and
 does not shorten the planned follow-up or imputation horizon. Ignored for
 other methods.</p></dd>
 
-
-<dt id="arg-trial-offset">trial_offset<a class="anchor" aria-label="anchor" href="#arg-trial-offset"></a></dt>
-<dd><p>A non-negative integer. Trial identifiers start at
-<code>trial_offset + 1</code>. With an explicit seed, consecutive offsets allow a large
-simulation to be generated, saved, and evaluated in separate batches using the
-same streams as a single call. Keep all other simulation settings fixed.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -432,7 +424,7 @@ many candidate rules. Score storage alone requires approximately
 <code>16 * N_trials * length(interim_look) * N_impute</code> bytes, or 24 bytes per
 trial/look/imputation for Monte Carlo Bayesian methods, plus object and
 diagnostic overhead. Large estimates are reported before simulation. Paths
-are held in memory; use <code>trial_offset</code> and <code><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS()</a></code> for separate batches.</p>
+are held in memory; use different explicit seeds and <code><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS()</a></code> for separate batches. Trial identifiers start at 1 in each call, so retain a batch identifier when combining results.</p>
 <p>Each trial and stage receives a separate L'Ecuyer-CMRG stream or substream.
 An explicit seed preserves the caller's RNG state and gives identical paths
 across supported backends. With <code>seed = NULL</code>, exactly one integer seed is

@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -106,7 +106,7 @@ follow-up. The first participant enrolls at time zero; subsequent
 enrollment follows a piecewise-constant Poisson process. Event times
 follow arm-specific piecewise-exponential distributions. Dropout times
 are exponential and independent of event times and enrollment within
-each arm, with rate <code>-log1p(-prop_loss) / end_of_study</code>.
+each arm, with rate <code>-log(1 - prop_loss) / end_of_study</code>.
 Observed follow-up ends at the earliest event, dropout, or per-subject
 administrative horizon. <code>prop_loss</code> specifies the dropout CDF
 at that horizon, not the fraction actually censored by dropout; events

@@ -33,7 +33,7 @@ zero; subsequent enrollment follows a piecewise-constant Poisson
 process. Event times follow arm-specific piecewise-exponential
 distributions. Dropout times are exponential and independent of event
 times and enrollment within each arm, with rate
-`-log1p(-prop_loss) / end_of_study`. Observed follow-up ends at the
+`-log(1 - prop_loss) / end_of_study`. Observed follow-up ends at the
 earliest event, dropout, or per-subject administrative horizon.
 `prop_loss` specifies the dropout CDF at that horizon, not the fraction
 actually censored by dropout; events can occur first, and dropout counts

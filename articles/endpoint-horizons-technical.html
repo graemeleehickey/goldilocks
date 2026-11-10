@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">goldilocks</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -91,8 +91,11 @@ design</a> cover the underlying fixed-horizon methods.</p>
 <span class="math inline">H_F</span> is the endpoint for the
 maximum-<span class="math inline">N</span> final analysis and for every
 futility prediction. All participants have planned outcome collection
-through <span class="math inline">H_C \ge H_F</span> from enrollment,
-including participants recruited before the endpoint changes.</p>
+through <span class="math inline">H_F</span> from enrollment, including
+participants recruited before the endpoint changes.
+<code>final_horizon</code> therefore specifies both the eventual
+endpoint and collection duration; no separate collection-horizon
+argument is needed.</p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -121,20 +124,8 @@ including participants recruited before the endpoint changes.</p>
 <tr class="odd">
 <td align="left"><span class="math inline">H_F</span></td>
 <td align="left"><code>final_horizon</code></td>
-<td align="left">Maximum-<span class="math inline">N</span> endpoint and
-futility prediction horizon</td>
-</tr>
-<tr class="even">
-<td align="left"><span class="math inline">H_C</span></td>
-<td align="left"><code>followup_horizon</code></td>
-<td align="left">Planned collection duration for each participant</td>
-</tr>
-<tr class="odd">
-<td align="left">Supported endpoint times</td>
-<td align="left"><code>endpoint_horizons</code></td>
-<td align="left">Horizons evaluated and retained by
-<code><a href="../reference/sim_horizon_paths.html">sim_horizon_paths()</a></code>
-</td>
+<td align="left">Maximum-<span class="math inline">N</span> endpoint,
+futility prediction horizon, and planned collection duration</td>
 </tr>
 <tr class="even">
 <td align="left">Dropout reference time</td>
@@ -151,6 +142,16 @@ scheduled changes from taking effect. If the trial continues to maximum
 enrollment, its final analysis uses <span class="math inline">H_F</span>
 after endpoint ascertainment; reaching <span class="math inline">N_{\max}</span> does not itself trigger an interim
 analysis.</p>
+<blockquote>
+<p><strong>An expected-success stop fixes the cohort and its
+endpoint.</strong> If accrual stops at <span class="math inline">N=300</span> using a 12-month endpoint, the
+subsequent final analysis uses those 300 participants at 12 months. If
+that analysis fails, the trial remains unsuccessful; it does not resume
+enrollment or switch to an 18-month analysis to establish success.
+Planned collection through 18 months does not change this rule. Expected
+success is a reason to stop accrual, not a declaration of final
+success.</p>
+</blockquote>
 </div>
 <div class="section level2">
 <h2 id="two-data-cuts-at-the-same-calendar-date">Two data cuts at the same calendar date<a class="anchor" aria-label="anchor" href="#two-data-cuts-at-the-same-calendar-date"></a>
@@ -165,11 +166,15 @@ X_{i\ell}(H) = \min\{T_i, D_i, H, t_\ell-E_i\},
 \delta_{i\ell}(H) = I\{T_i \le \min(D_i,H,t_\ell-E_i)\}.
 </span></p>
 <p>The success data set uses <span class="math inline">H=H_\ell</span>;
-the futility data set uses <span class="math inline">H=H_F</span>.
-Participants not yet enrolled contribute no observed events or exposure
-to either model. Their outcomes are generated only for the maximum-<span class="math inline">N</span> prediction. The implementation gives a
-participant enrolled exactly at the look a negligible positive exposure
-to accommodate the survival calculations.</p>
+the futility data set uses <span class="math inline">H=H_F</span>. Here,
+a <strong>data cut</strong> means the observations retained after
+restricting both calendar availability and each participant’s follow-up
+duration. Participants not yet enrolled contribute no observed events or
+exposure to either predictive model. Their predictive outcomes are
+generated through <span class="math inline">H_F</span>, only for the
+futility assessment of success at maximum <span class="math inline">N</span>. The implementation gives a participant
+enrolled exactly at the look a negligible positive exposure to
+accommodate the survival calculations.</p>
 <p>For example, an event at month 15 is represented as event-free
 administrative censoring at month 12 in a 12-month success calculation.
 It can enter an 18-month futility calculation only if month 15 has
@@ -213,6 +218,33 @@ leading columns of the interval-specific priors are retained in the same
 order. A cutpoint equal to <span class="math inline">H</span> does not
 create an interval beyond the endpoint. Later intervals and their priors
 are not combined with earlier ones.</p>
+<p><strong>If <span class="math inline">t_1 &lt; H &lt; t_2</span>,
+distinguish the hazard parameter from the observations used to estimate
+it.</strong> The master model still specifies one constant hazard on
+<span class="math inline">(t_1,t_2]</span>. For success prediction at
+<span class="math inline">H</span>, its likelihood uses only events and
+exposure in <span class="math inline">(t_1,H]</span> that are available
+at the interim date. The original Gamma prior for that hazard is
+retained without rescaling. Thus, with prior <span class="math inline">\operatorname{Gamma}(a,b)</span>, the update is
+<span class="math inline">\operatorname{Gamma}\{a+d(t_1,H),b+y(t_1,H)\}</span>.
+The fitted interval is displayed as <span class="math inline">(t_1,H]</span> because the success prediction ends
+there; this does not introduce a new underlying hazard change at <span class="math inline">H</span>.</p>
+<p>For example, with cutpoints at months 6 and 15 and success endpoint
+12, the second hazard is updated using observations from months 6 to 12.
+An observed event at month 14 supplies no event or post-12-month
+exposure to that success update. The separate futility model targeting
+month 18 can use the event and exposure through month 14 in its <span class="math inline">(6,15]</span> interval, provided they are already
+observed on the look date.</p>
+<p>An alternative would estimate the same hazard using all available
+observations in <span class="math inline">(t_1,t_2]</span>, then predict
+only through <span class="math inline">H</span>. This borrows
+information beyond the success endpoint under the constant-hazard
+assumption and may improve precision if that assumption is appropriate.
+It also allows post-<span class="math inline">H</span> observations to
+change success stopping. <strong>The current functions deliberately use
+the first approach: no observations beyond <span class="math inline">H</span> inform success prediction, even within a
+shared hazard interval.</strong> Futility uses its own observations
+through <span class="math inline">H_F</span>.</p>
 <p>An interval with no observed exposure remains governed by its own
 prior under the default policy. This can matter substantially for the
 longer-horizon futility calculation at early looks. The other available
@@ -259,13 +291,19 @@ horizon-specific <code>h0</code>, <code>rmst_tau</code>, or
 beta prior are used at every horizon, while the RMST restriction equals
 the endpoint horizon. This allows, for example, different single-arm
 performance goals at different endpoint times. The analysis method and
-alternative direction remain common across horizons.</p>
-<p>The success and futility probabilities integrate over their
-respective posteriors. Draw number <span class="math inline">m</span>
-from one data cut is not a shared latent event trajectory with draw
-number <span class="math inline">m</span> from another data cut. In
-contrast, the underlying simulated trial histories used to evaluate
-eventual outcomes are shared across horizons.</p>
+alternative direction remain common across horizons. The <a href="endpoint-horizons-example.html#optional-endpoint-specific-margins">applied
+vignette</a> shows how to specify different binary-risk margins at 12
+and 18 months.</p>
+<p>When success and futility use different endpoint times, they fit
+different observed data sets and make separate posterior and imputation
+draws. For example, the first completed data set for 12-month success
+and the first completed data set for 18-month futility are two
+predictive simulations, not the same simulated future followed for
+different durations. Their draw numbers are bookkeeping labels, not
+matched patient histories. The two sets estimate separate marginal
+predictive probabilities; they cannot be paired draw by draw to estimate
+a joint event. The underlying trial history used to assess the eventual
+trial outcomes is generated once and is shared across horizons.</p>
 </div>
 </div>
 <div class="section level2">
@@ -329,10 +367,9 @@ success rule applies. The diagram describes the decisions reconstructed
 by <code><a href="../reference/apply_horizon_rules.html">apply_horizon_rules()</a></code> as well as direct simulation.
 Complete-path simulation evaluates all planned looks regardless of these
 hypothetical decisions.</p>
-<p>An expected-success stop at <span class="math inline">H_\ell</span>
-fixes the endpoint for that cohort. Failure at its subsequent final
-analysis does not reopen the trial at a later endpoint. The futility
-probability concerns the final analysis at <span class="math inline">N_{\max}</span> and <span class="math inline">H_F</span>; it is not the probability of declaring
+<p>The endpoint remains fixed after an expected-success stop, as
+highlighted above. The futility probability concerns the final analysis
+at <span class="math inline">N_{\max}</span> and <span class="math inline">H_F</span>; it is not the probability of declaring
 success at any remaining interim under the entire adaptive policy.</p>
 <p>Final analysis with dropout follows the existing method-specific
 choices for <code>imputed_final</code>. With <code>FALSE</code>,
@@ -348,8 +385,8 @@ methods vignette</a>.</p>
 <h2 id="shared-histories-dropout-and-timing">Shared histories, dropout, and timing<a class="anchor" aria-label="anchor" href="#shared-histories-dropout-and-timing"></a>
 </h2>
 <p>Event times and dropout times are generated once per simulated trial
-through <code>followup_horizon</code>. Final cohort data are re-censored
-at each endpoint; changing the endpoint does not redraw either process.
+through <code>final_horizon</code>. Final cohort data are re-censored at
+each endpoint; changing the endpoint does not redraw either process.
 <code>generation_cutpoints</code> and the arm-specific generating
 hazards must describe the entire collection period, and need not match
 the analysis partition.</p>
@@ -359,10 +396,108 @@ the analysis partition.</p>
 \eta_z=-\log(1-q_z)/H_D.</span></p>
 <p>Here, <span class="math inline">H_D=</span>
 <code>dropout_horizon</code>. This hazard remains fixed across endpoint
-times. The probability of dropout by the collection horizon is <span class="math inline">1-\exp(-\eta_z H_C)</span>; the proportion actually
+times. With collection through <span class="math inline">H_F</span>, the
+probability of dropout by that time is <span class="math inline">1-\exp(-\eta_z H_F)</span>; the proportion actually
 censored by dropout can be smaller because events may occur first.</p>
-<p>Trial results distinguish the endpoint attached to the stopping
-cohort from continued collection through <span class="math inline">H_C</span>:</p>
+<div class="section level3">
+<h3 id="analysis-and-decision-dates">Analysis and decision dates<a class="anchor" aria-label="anchor" href="#analysis-and-decision-dates"></a>
+</h3>
+<p><code>analysis_ready_time</code> is the calendar date by which the
+event and censoring observations used in the selected endpoint’s final
+analysis are available. <code>decision_time</code> is when the trial’s
+success or failure is determined. Both are measured from first
+enrollment and exclude data-cleaning delays.</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Stopping rule</th>
+<th align="left"><code>decision_time</code></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Expected success</td>
+<td align="left">The subsequent final analysis date,
+<code>analysis_ready_time</code>
+</td>
+</tr>
+<tr class="even">
+<td align="left">Immediate success or futility</td>
+<td align="left">The interim look date</td>
+</tr>
+<tr class="odd">
+<td align="left">Maximum enrollment</td>
+<td align="left">The final analysis date,
+<code>analysis_ready_time</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p>For example, suppose recruitment stops for expected success at
+calendar month 30 using a 12-month endpoint. If the last participant
+remains event-free and observed for 12 months, both the final analysis
+and decision occur at month 42. A futility stop at month 30 instead
+determines failure immediately. Continued follow-up does not change that
+decision.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="reusing-trial-paths-for-calibration">Reusing trial paths for calibration<a class="anchor" aria-label="anchor" href="#reusing-trial-paths-for-calibration"></a>
+</h2>
+<div class="section level3">
+<h3 id="how-the-schedule-determines-saved-horizons">How the schedule determines saved horizons<a class="anchor" aria-label="anchor" href="#how-the-schedule-determines-saved-horizons"></a>
+</h3>
+<p>Both simulation functions take <code>endpoint_schedule</code> and
+<code>final_horizon</code>. Look sizes come from
+<code>endpoint_schedule$N</code>; the endpoint times to calculate are
+derived as
+<code>sort(unique(c(endpoint_schedule$horizon, final_horizon)))</code>.
+The final horizon is included even if every interim uses a shorter
+endpoint. There is no separate <code>interim_look</code> or
+<code>endpoint_horizons</code> argument in these functions.</p>
+<p>For the schedule <span class="math inline">(100,12), (200,12),
+(300,12), (400,18)</span>, <code><a href="../reference/sim_horizon_paths.html">sim_horizon_paths()</a></code> evaluates
+current-cohort success at both 12 and 18 months at each of the four
+looks. It also saves maximum-cohort futility predictions at <span class="math inline">H_F=18</span> and final analyses for each cohort and
+endpoint. <code><a href="../reference/apply_horizon_rules.html">apply_horizon_rules()</a></code> then selects one saved
+success endpoint per look. This permits comparison of a switch at <span class="math inline">N=300</span> with a switch at <span class="math inline">N=400</span> without new simulations. A candidate
+requiring an endpoint time absent from the original schedule and final
+horizon needs new paths.</p>
+<p>Saving the individual completed-data scores, rather than only a
+predictive probability at one <code>prob_ha</code>, also permits
+recalibration of that success threshold. Reuse can change the
+nondecreasing success-horizon schedule within the retained looks and
+horizons, and <code>Fn</code>, <code>Sn</code>, <code>Qn</code>, and
+<code>prob_ha</code>. The generating scenario, final horizon, dropout
+model, analysis method, priors, horizon-specific analysis settings,
+maximum sample size, look sizes, and Monte Carlo counts remain
+fixed.</p>
+<p>Direct simulation with <code><a href="../reference/sim_horizon_trials.html">sim_horizon_trials()</a></code> skips
+unreached interim calculations. With the same seed, settings, and set of
+derived horizons, it agrees with complete-path simulation followed by
+rule application. Changing only the switch point, while retaining the
+same endpoint times, preserves this agreement. Removing an endpoint time
+entirely changes the allocation of random numbers, so direct simulation
+and replay from the larger horizon set need not match trial by trial.
+Saved settings and calculation failures remain part of the path object
+when written with <code><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS()</a></code>; previously saved paths can
+still be evaluated with <code><a href="../reference/apply_horizon_rules.html">apply_horizon_rules()</a></code>.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="interpreting-the-two-futility-measures">Interpreting the two futility measures<a class="anchor" aria-label="anchor" href="#interpreting-the-two-futility-measures"></a>
+</h2>
+<p>Both measures are also available for fixed-horizon designs through
+<code><a href="../reference/sim_trial_paths.html">sim_trial_paths()</a></code> and <code><a href="../reference/apply_stopping_rules.html">apply_stopping_rules()</a></code>;
+they are not specific to endpoint extensions. See <a href="calibrating-stopping-rules.html#two-distinct-futility-measures">Calibrating
+stopping rules from complete trial paths</a>.</p>
+<p>Suppose 1,000 evaluable trials are simulated under an alternative,
+200 stop for futility, and 40 of those 200 would have succeeded if
+forced to continue to <span class="math inline">N_{\max}</span> and
+<span class="math inline">H_F</span>. The two reported measures answer
+different questions:</p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -370,89 +505,94 @@ cohort from continued collection through <span class="math inline">H_C</span>:</
 <col width="33%">
 </colgroup>
 <thead><tr class="header">
-<th align="left">Selected-endpoint measure</th>
-<th align="left">Continued-collection measure</th>
-<th align="left">Meaning</th>
+<th align="left">Measure</th>
+<th align="left">Question</th>
+<th align="right">Example</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left"><code>analysis_ready_time</code></td>
-<td align="left"><code>collection_ready_time</code></td>
-<td align="left">Latest observed event or censoring availability, no
-earlier than accrual stop</td>
+<td align="left"><code>stop_futility</code></td>
+<td align="left">What fraction of all trials stop for futility?</td>
+<td align="right"><span class="math inline">200/1000=20\%</span></td>
 </tr>
 <tr class="even">
-<td align="left"><code>planned_completion_time</code></td>
-<td align="left"><code>planned_collection_time</code></td>
-<td align="left">Accrual-stop time plus the corresponding planned
-horizon</td>
-</tr>
-<tr class="odd">
-<td align="left"><code>followup_person_time</code></td>
-<td align="left"><code>collection_person_time</code></td>
-<td align="left">Total observed event-free follow-up through the
-corresponding horizon</td>
+<td align="left"><code>futility_and_success_at_max</code></td>
+<td align="left">What fraction of all trials stop for futility but would
+succeed at maximum <span class="math inline">N</span> and <span class="math inline">H_F</span>?</td>
+<td align="right"><span class="math inline">40/1000=4\%</span></td>
 </tr>
 </tbody>
 </table>
-<p>The collection measures concern the enrolled cohort, including after
-an early stop. They do not imply that further participants are
-recruited. Events or dropout can make observed follow-up end before
-planned completion. <code>decision_time</code> is the look date for
-immediate success or futility, and the analysis-ready date when a final
-analysis determines success. Administrative data-cleaning delays are not
-modeled.</p>
-</div>
-<div class="section level2">
-<h2 id="reusing-trial-paths-for-calibration">Reusing trial paths for calibration<a class="anchor" aria-label="anchor" href="#reusing-trial-paths-for-calibration"></a>
-</h2>
-<p><code><a href="../reference/sim_horizon_paths.html">sim_horizon_paths()</a></code> retains current-cohort predictive
-scores at every planned look and supported horizon, maximum-cohort
-predictive scores at <span class="math inline">H_F</span>, and final
-analyses for every cohort and horizon.
-<code><a href="../reference/apply_horizon_rules.html">apply_horizon_rules()</a></code> selects the evidence for a candidate
-schedule and applies its thresholds. Saving the individual scores,
-rather than only a predictive probability at one <code>prob_ha</code>,
-permits recalibration of the completed-data threshold as well.</p>
-<p>Reuse can change the nondecreasing success-horizon schedule within
-the retained looks and horizons, and <code>Fn</code>, <code>Sn</code>,
-<code>Qn</code>, and <code>prob_ha</code>. The generating scenario,
-collection and final horizons, dropout model, analysis method, priors,
-horizon-specific analysis settings, maximum sample size, look sizes, and
-Monte Carlo counts remain fixed. Changes to those assumptions require
-new paths.</p>
-<p>Direct simulation with <code><a href="../reference/sim_horizon_trials.html">sim_horizon_trials()</a></code> skips
-unreached interim calculations. With the same seed, settings, and full
-set of <code>endpoint_horizons</code>, it agrees with complete-path
-simulation followed by rule application. Explicit seeds preserve the
-caller’s random-number state, and <code>trial_offset</code> supports
-consecutive batches. Changing the retained set of horizons changes the
-allocation of random numbers. Saved settings and calculation failures
-remain part of the path object when it is written with
-<code><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS()</a></code>.</p>
-<p>The ordinary futility measure is <span class="math inline">\Pr(\text{binding futility})</span> under the
-simulated scenario. The counterfactual measure is</p>
+<p>The second measure uses the same simulated trial history, continued
+despite its futility stop. Its mathematical definition is</p>
 <p><span class="math display">\Pr\{\text{binding futility and final
 success at }N_{\max},H_F\}.</span></p>
-<p>The latter is a joint probability over simulated trials, not a
-conditional probability among futility stops and not the net loss of
-power. It is reported as <code>futility_and_success_at_max</code>,
-separately from <code>stop_futility</code>. A failed counterfactual
-final analysis makes the joint outcome unavailable for a futility trial;
-available and missing comparison counts accompany its summary. Failures
-needed to determine the candidate’s actual adaptive outcome exclude that
-trial and are reported separately.</p>
-<p>Type I error must be assessed for the full adaptive design under the
-relevant joint null scenarios across endpoints. Overall success can
-occur at an earlier endpoint, so it does not necessarily constitute
-rejection of the final-horizon null alone. Compare candidates using
-paired trial-level outcomes from shared paths, and validate selected
-settings using independent simulations. <code>N_trials</code> controls
-operating-characteristic precision; <code>N_impute</code> and, where
-used, <code>N_mcmc</code> also affect the implemented stopping
-procedure. <a href="calibrating-stopping-rules.html">Calibrating
-stopping rules from complete trial paths</a> gives further guidance on
-comparisons and Monte Carlo uncertainty.</p>
+<p>Among futility stops alone, the corresponding fraction would be <span class="math inline">40/200=20\%</span>. That conditional fraction is not
+what <code>futility_and_success_at_max</code> reports.</p>
+<p><strong>When futility is the only early stopping rule, the 4% is
+exactly a 4-percentage-point loss of power.</strong> The comparison is
+with no early stopping (<code>Fn = 0</code>, <code>Sn = Qn = 1</code>):
+all 1,000 trials reach the maximum-<span class="math inline">N</span>
+final analysis. Adding binding futility classifies the 40 trials that
+would otherwise succeed as unsuccessful. This assumes matched trial
+histories, analysis settings, and complete calculations. When other
+stopping rules are present, such as stopping for expected success, the
+interpretation is more complex.</p>
+</div>
+<div class="section level2">
+<h2 id="type-i-error-across-endpoint-times">Type I error across endpoint times<a class="anchor" aria-label="anchor" href="#type-i-error-across-endpoint-times"></a>
+</h2>
+<p>The design can declare success at 12 months or at 18 months. A
+starting null scenario is therefore one in which the treatment has no
+benefit at either endpoint. For example, identical control and treatment
+hazards throughout follow-up give identical event risks at both times.
+Simulate the entire procedure, including the endpoint switches and all
+stopping rules, and count any declaration of success. Under this
+scenario, that fraction is the overall type I error. Calibrating each
+endpoint separately does not establish control for the procedure that
+can stop at either one.</p>
+<p>The null assumptions must match the hypotheses used by the chosen
+analysis method. For binary risk comparisons, equal risks at 18 months
+alone do not imply equal risks at 12 months: an early treatment benefit
+can disappear later. A success declared at 12 months then concerns the
+12-month hypothesis; it does not establish benefit at 18 months. If the
+design is intended to support endpoint-specific claims with strong
+familywise error control, assess plausible configurations where only
+some endpoint null hypotheses are true as well. In those configurations,
+count success at a truly null endpoint, not every success; the overall
+<code>power</code> column also includes legitimate successes at
+endpoints with benefit. The <a href="endpoint-horizons-example.html#benefit-at-12-months-but-no-benefit-at-18-months">applied
+example</a> uses 12-month risks of 22% versus 30%, but an identical
+18-month risk of 40.5%, and reports successes separately by endpoint.
+The distinction between errors at individual endpoints and overall error
+is discussed in FDA (2022, Sections II.B-C).</p>
+<p>For a Cox analysis under a correctly specified proportional-hazards
+model, with the same null margin at every look, the treatment hazard
+ratio is common across follow-up horizons. Extending from 12 to 18
+months then changes the available information, rather than the
+underlying hazard ratio. In this setting, the differing endpoint nulls
+illustrated by the binary-risk example are less of a concern. Multiple
+opportunities to stop for success still require assessment of the full
+stopping procedure.</p>
+<p>Without proportional hazards, this simplification does not apply. A
+single Cox hazard ratio summarizes effects over the included follow-up,
+so extending the horizon can change the effect being summarized (Hernán,
+2010). The log-rank test compares event-time distributions over the
+included period, not just the event risks at its endpoint. Equal risks
+at month 18 therefore do not establish its null hypothesis when the
+earlier survival curves differ; early benefit and later harm can also
+offset one another in the test. Switching to log-rank or Cox analysis
+does not, by itself, remove the need to specify the relevant null
+scenario.</p>
+</div>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<p>U.S. Food and Drug Administration. <em>Multiple Endpoints in Clinical
+Trials: Guidance for Industry</em>. October 2022. <a href="https://www.fda.gov/media/162416/download" class="external-link">Guidance
+document</a>.</p>
+<p>Hernán MA. The hazards of hazard ratios. <em>Epidemiology</em>.
+2010;21(1):13-15. <a href="https://doi.org/10.1097/EDE.0b013e3181c1ea43" class="external-link">doi:10.1097/EDE.0b013e3181c1ea43</a>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

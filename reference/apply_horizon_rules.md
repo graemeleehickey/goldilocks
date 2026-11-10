@@ -77,14 +77,17 @@ success under the complete prespecified adaptive design, which may
 declare success at different endpoints.
 
 Calendar columns `analysis_ready_time`, `planned_completion_time`, and
-`followup_person_time` refer to the selected endpoint. Separate
-`collection_ready_time`, `planned_collection_time`, and
-`collection_person_time` refer to continued collection through
-`followup_horizon` among the enrolled cohort, even after a stop. Event
-and dropout times can precede planned completion. Trace columns identify
-both prediction data horizons and futility event and pending-outcome
-counts; the unprefixed counts refer to success prediction. Saved
-posterior diagnostics remain separate by horizon.
+`followup_person_time` refer to the selected endpoint. `decision_time`
+equals the interim date for immediate success or futility and
+`analysis_ready_time` for an expected-success or maximum-N final
+analysis. An expected-success stop therefore ends recruitment at
+`accrual_stop_time` but determines final success or failure later. Event
+and dropout times can precede planned completion. The retained result
+column `followup_horizon` equals `final_horizon` for newly simulated
+paths; older saved paths retain their original collection duration.
+Trace columns identify both prediction data horizons and futility event
+and pending-outcome counts; the unprefixed counts refer to success
+prediction. Saved posterior diagnostics remain separate by horizon.
 
 ## Details
 
@@ -104,10 +107,13 @@ success are available through
 [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md).
 The latter always refers to maximum \\N\\ at `final_horizon`.
 
-Calibrate type I error for the complete adaptive design under the
-relevant joint null scenarios across endpoint horizons. Overall success
-across different endpoints cannot be interpreted as rejection of the
-final-horizon null alone when an earlier endpoint can establish success.
+Under a generating scenario where every endpoint null hypothesis is
+true, the fraction of trials declaring success at any selected endpoint
+estimates the overall type I error. Calibrate the schedule and
+thresholds together. If some endpoint hypotheses are false, overall
+success includes legitimate findings; assessing false positives then
+requires identifying success at a truly null endpoint. A success at an
+earlier endpoint does not by itself reject the final-horizon null.
 
 ## See also
 
