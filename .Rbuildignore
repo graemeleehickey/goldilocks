@@ -18,6 +18,7 @@ data-raw
 ^\.posit$
 ^\.positai$
 ^_pkgdown\.yml$
+^pkgdown$
 ^docs$
 ^benchmarks$
 ^air\.toml$
