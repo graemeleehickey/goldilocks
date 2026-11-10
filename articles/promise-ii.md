@@ -1,4 +1,4 @@
-# PROMISE II: 120-patient design
+# PROMISE II
 
 ``` r
 
