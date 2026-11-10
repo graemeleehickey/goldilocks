@@ -101,6 +101,9 @@ Both respect the interim calendar date.
 
 ### Documentation and verification
 
+- Website articles include a **Print / Save as PDF** button and a shared
+  print layout for equations, tables, figures, and code, with website
+  navigation omitted from the printed article.
 - The PROMISE II vignette reconstructs the planned 120-patient design,
   including the SAP’s dropout distribution and final analysis after
   enrollment stops for futility. Reproducible simulations compare power,

@@ -1,0 +1,198 @@
+.article-print-controls {
+  margin-top: 1rem;
+}
+
+.article-print-author {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: auto;
+    margin: 16mm;
+  }
+
+  html:has(.template-article),
+  body:has(.template-article) {
+    color-scheme: light;
+    color: #111;
+    background: #fff !important;
+    height: auto;
+  }
+
+  body:has(.template-article) {
+    margin: 0;
+    padding: 0 !important;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+
+  body:has(.template-article) > nav,
+  body:has(.template-article) > footer,
+  body:has(.template-article) > .visually-hidden-focusable,
+  .template-article aside,
+  .template-article footer,
+  .template-article .article-print-controls,
+  .template-article .page-header .dont-index,
+  .template-article .anchor,
+  .template-article .btn-copy-ex,
+  .template-article .copy-button,
+  .template-article .logo {
+    display: none !important;
+  }
+
+  .template-article,
+  .template-article > .row,
+  .template-article main {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+    min-height: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .template-article .page-header {
+    margin: 0 0 6mm;
+    padding: 0 0 3mm;
+    border-bottom: 1pt solid #bbb;
+  }
+
+  .template-article .article-print-author {
+    display: block;
+  }
+
+  .template-article h1 { font-size: 22pt; }
+  .template-article h2 { font-size: 16pt; }
+  .template-article h3 { font-size: 12pt; }
+  .template-article h4 { font-size: 10.5pt; }
+
+  .template-article h1,
+  .template-article h2,
+  .template-article h3,
+  .template-article h4,
+  .template-article h5,
+  .template-article h6 {
+    color: #111 !important;
+    break-after: avoid;
+    break-inside: avoid;
+  }
+
+  .template-article p,
+  .template-article li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  .template-article a,
+  .template-article code,
+  .template-article pre,
+  .template-article pre span,
+  .template-article .text-muted,
+  .template-article caption {
+    color: #111 !important;
+  }
+
+  .template-article a[href]::after {
+    content: none !important;
+  }
+
+  .template-article pre,
+  .template-article code,
+  .template-article .sourceCode {
+    background: transparent !important;
+    text-shadow: none !important;
+  }
+
+  /* Long examples can continue across pages, and long lines wrap. */
+  .template-article pre,
+  .template-article pre code {
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    font-size: 8.5pt;
+    line-height: 1.35;
+  }
+
+  .template-article pre,
+  .template-article .sourceCode,
+  .template-article .table-responsive {
+    overflow: visible !important;
+    max-height: none !important;
+    break-inside: auto;
+  }
+
+  .template-article pre {
+    border: 0.5pt solid #ccc;
+    padding: 2.5mm;
+  }
+
+  .template-article table {
+    display: table !important;
+    width: 100% !important;
+    overflow: visible !important;
+    font-size: 9pt;
+    line-height: 1.3;
+    border-collapse: collapse;
+  }
+
+  .template-article th,
+  .template-article td {
+    color: #111 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-color: #bbb !important;
+    padding: 1.5mm;
+    white-space: normal !important;
+    overflow-wrap: break-word;
+  }
+
+  /* Markdown's screen-oriented column widths can squeeze short labels. */
+  .template-article col { width: auto !important; }
+
+  .template-article thead { display: table-header-group; }
+  .template-article tfoot { display: table-footer-group; }
+  .template-article tr { break-inside: avoid; }
+  .template-article caption {
+    caption-side: top;
+    break-after: avoid;
+  }
+
+  .template-article img,
+  .template-article .html-widget {
+    filter: none !important;
+  }
+
+  .template-article img,
+  .template-article .html-widget svg {
+    max-width: 100% !important;
+    max-height: 230mm;
+    height: auto;
+    object-fit: contain;
+    opacity: 1 !important;
+  }
+
+  .template-article .figure,
+  .template-article figure,
+  .template-article p:has(> img),
+  .template-article .html-widget,
+  .template-article .katex-display {
+    break-inside: avoid;
+  }
+
+  .template-article .grViz {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .template-article .grViz svg {
+    width: 100%;
+    height: auto !important;
+  }
+
+  .template-article .katex-display {
+    overflow: visible !important;
+    font-size: 0.95em;
+  }
+}
