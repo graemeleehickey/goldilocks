@@ -81,7 +81,11 @@
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-1-1-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-1-0"></a></h3>
-<ul><li>The internal log-rank calculation now returns a single signed statistic when <code>onlyz = TRUE</code>.</li>
+<ul><li>
+<code>N_mcmc</code> is required to be a positive integer only for analyses that use posterior draws: <code>method = "bayes-surv"</code> and <code>method = "bayes-bin"</code> with <code>bin_method = "mc"</code>. Other analyses ignore it and accept <code>NULL</code>, consistently across direct simulation, observed interim evaluation, and saved trial paths.</li>
+<li>Block-randomization validation requires <code>N_total &gt;= max(block)</code> rather than <code>N_total &gt;= sum(block)</code>. This permits smaller trials with several allowed block sizes while retaining the existing allocation sequence for previously valid settings.</li>
+<li>Removed unused intermediate enrollment counts from <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>; the reported <code>N_enrolled</code> continues to use the final enrolled cohort.</li>
+<li>The internal log-rank calculation now returns a single signed statistic when <code>onlyz = TRUE</code>.</li>
 <li>Log-rank calculations reject mismatched time and event vectors, invalid follow-up times, non-binary or missing event indicators, and invalid <code>onlyz</code> values before sorting or indexing the data. Fractional event indicators are no longer silently converted to integers.</li>
 <li>Log-rank p-values use a direct upper-tail calculation, preserving very small probabilities that previously rounded to zero. Comparisons with zero variance now return an unavailable p-value instead of 1; trial analyses continue to reject these non-estimable comparisons.</li>
 <li>Bayesian binary quadrature probabilities are bounded to [0, 1] to remove floating-point overshoots in extreme posterior tails. This prevents false crossings at <code>prob_ha = 1</code> and spurious invalid-score failures in saved trial paths.</li>

@@ -131,6 +131,18 @@ Both respect the interim calendar date.
 
 ### Bug fixes
 
+- `N_mcmc` is required to be a positive integer only for analyses that
+  use posterior draws: `method = "bayes-surv"` and
+  `method = "bayes-bin"` with `bin_method = "mc"`. Other analyses ignore
+  it and accept `NULL`, consistently across direct simulation, observed
+  interim evaluation, and saved trial paths.
+- Block-randomization validation requires `N_total >= max(block)` rather
+  than `N_total >= sum(block)`. This permits smaller trials with several
+  allowed block sizes while retaining the existing allocation sequence
+  for previously valid settings.
+- Removed unused intermediate enrollment counts from
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md);
+  the reported `N_enrolled` continues to use the final enrolled cohort.
 - The internal log-rank calculation now returns a single signed
   statistic when `onlyz = TRUE`.
 - Log-rank calculations reject mismatched time and event vectors,

@@ -263,9 +263,11 @@ survival_adapt(
 
 - N_mcmc:
 
-  A positive integer giving the number of posterior draws used within
-  each `method = "bayes-surv"` and by `method = "bayes-bin"` when
-  `bin_method = "mc"`. The default is `1000`.
+  A positive integer giving the number of posterior draws used for
+  Bayesian survival analyses and Bayesian binomial analyses with
+  `bin_method = "mc"`. The default is `1000`. Ignored for all other
+  analyses, including `bin_method = "normal"` and `"quadrature"` with
+  `method = "bayes-bin"`; `NULL` is allowed when ignored.
 
 - mc_conf_level:
 

@@ -212,9 +212,7 @@ risk-difference final analysis requires at least two.</p></dd>
 
 
 <dt id="arg-n-mcmc">N_mcmc<a class="anchor" aria-label="anchor" href="#arg-n-mcmc"></a></dt>
-<dd><p>A positive integer giving the number of posterior draws used
-within each <code>method = "bayes-surv"</code> and by <code>method = "bayes-bin"</code> when
-<code>bin_method = "mc"</code>. The default is <code>1000</code>.</p></dd>
+<dd><p>A positive integer giving the number of posterior draws used for Bayesian survival analyses and Bayesian binomial analyses with <code>bin_method = "mc"</code>. The default is <code>1000</code>. Ignored for all other analyses, including <code>bin_method = "normal"</code> and <code>"quadrature"</code> with <code>method = "bayes-bin"</code>; <code>NULL</code> is allowed when ignored.</p></dd>
 
 
 <dt id="arg-mc-conf-level">mc_conf_level<a class="anchor" aria-label="anchor" href="#arg-mc-conf-level"></a></dt>

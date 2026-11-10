@@ -15,7 +15,8 @@ randomization(N_total, block = 2, allocation = c(control = 1, treatment = 1))
 - N_total:
 
   A required positive integer giving the total number of treatment
-  assignments.
+  assignments. It must be at least the largest value in `block`, but
+  need not be as large as their sum.
 
 - block:
 
