@@ -48,7 +48,6 @@ sim_horizon_trials <- function(
   seed = NULL,
   prior_surv_final = prior_surv,
   generation_cutpoints = cutpoints,
-  trial_offset = 0L,
   Fn = 0.05,
   Sn = 0.9,
   Qn = 1,

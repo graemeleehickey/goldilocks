@@ -16,7 +16,7 @@
 #'
 #' @return A list compatible with [summarise_sims()] and [summarise_calendar_time()], containing `sims`, `failures`, and `call`, and optionally `traces`. Simulation rows additionally identify `endpoint_horizon`, `final_horizon`, and `followup_horizon`, and the null `margin` used for the selected endpoint. Treatment-effect estimates from different endpoint horizons should be reported separately. Overall success is success under the complete prespecified adaptive design, which may declare success at different endpoints.
 #'
-#' Calendar columns `analysis_ready_time`, `planned_completion_time`, and `followup_person_time` refer to the selected endpoint. Separate `collection_ready_time`, `planned_collection_time`, and `collection_person_time` refer to continued collection through `final_horizon` among the enrolled cohort, even after a stop. They can differ after a 12-month stop when `final_horizon = 18`. The retained result column `followup_horizon` equals `final_horizon` for newly simulated paths; older saved paths retain their original collection duration. `decision_time` equals the interim date for immediate success or futility and `analysis_ready_time` for an expected-success or maximum-N final analysis. An expected-success stop therefore ends recruitment at `accrual_stop_time` but determines final success or failure later. Event and dropout times can precede planned completion. Trace columns identify both prediction data horizons and futility event and pending-outcome counts; the unprefixed counts refer to success prediction. Saved posterior diagnostics remain separate by horizon.
+#' Calendar columns `analysis_ready_time`, `planned_completion_time`, and `followup_person_time` refer to the selected endpoint. `decision_time` equals the interim date for immediate success or futility and `analysis_ready_time` for an expected-success or maximum-N final analysis. An expected-success stop therefore ends recruitment at `accrual_stop_time` but determines final success or failure later. Event and dropout times can precede planned completion. The retained result column `followup_horizon` equals `final_horizon` for newly simulated paths; older saved paths retain their original collection duration. Trace columns identify both prediction data horizons and futility event and pending-outcome counts; the unprefixed counts refer to success prediction. Saved posterior diagnostics remain separate by horizon.
 #' @seealso [sim_horizon_paths()], [sim_horizon_trials()]
 #' @export
 apply_horizon_rules <- function(
@@ -49,25 +49,6 @@ apply_horizon_rules <- function(
     out$sims$endpoint_horizon,
     args$horizon_settings$horizon
   )]
-  collection <- dplyr::bind_rows(lapply(projected$trials, function(path) {
-    if (is.null(path$finals)) {
-      return(NULL)
-    }
-    data.frame(
-      trial = path$trial,
-      path$finals[c(
-        "planned_N",
-        "collection_ready_time",
-        "planned_collection_time",
-        "collection_person_time"
-      )]
-    )
-  }))
-  out$sims <- dplyr::left_join(
-    out$sims,
-    collection,
-    by = c("trial", "N_enrolled" = "planned_N")
-  )
   attr(out, "endpoint_schedule") <- schedule
   result_args <- args
   result_args$endpoint_schedule <- schedule

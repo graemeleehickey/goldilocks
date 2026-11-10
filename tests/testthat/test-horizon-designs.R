@@ -262,16 +262,6 @@ test_that("constant horizons reproduce fixed-horizon evidence and trial outcomes
       )
       expect_equal(constant$sims$stopping_reason, reason, info = info)
       expect_equal(constant$sims$endpoint_horizon, 18, info = info)
-      expect_identical(
-        constant$sims$analysis_ready_time,
-        constant$sims$collection_ready_time,
-        info = info
-      )
-      expect_identical(
-        constant$sims$planned_completion_time,
-        constant$sims$planned_collection_time,
-        info = info
-      )
     }
   }
 })
@@ -323,9 +313,10 @@ test_that("a stop locks the endpoint and keeps counterfactual futility separate"
   expect_equal(out$traces$success_data_horizon, 12)
   expect_equal(out$traces$futility_data_horizon, 18)
   expect_equal(
-    out$sims$planned_collection_time - out$sims$planned_completion_time,
-    6
+    out$sims$planned_completion_time,
+    out$sims$accrual_stop_time + 12
   )
+  expect_identical(out$sims$decision_time, out$sims$analysis_ready_time)
   expect_false(out$sims$futility_and_success_at_max)
   # Equality does not cross the success boundary; futility then applies.
   out <- apply_horizon_rules(bank, schedule, Sn = 1, Fn = 0.1)
@@ -409,7 +400,7 @@ test_that("direct simulation skips unreached interim fits", {
   expect_identical(calls, c(1L, 1L))
 })
 
-test_that("horizon banks are reproducible, serializable, and batch-stable", {
+test_that("horizon banks are reproducible and serializable", {
   set.seed(23)
   before <- .Random.seed
   bank <- do.call(sim_horizon_paths, horizon_test_args())
@@ -420,9 +411,12 @@ test_that("horizon banks are reproducible, serializable, and batch-stable", {
   first <- do.call(sim_horizon_paths, horizon_test_args(N_trials = 1))
   second <- do.call(
     sim_horizon_paths,
-    horizon_test_args(N_trials = 1, trial_offset = 1)
+    horizon_test_args(N_trials = 1, seed = 915)
   )
-  expect_identical(bank$trials, c(first$trials, second$trials))
+  expect_identical(bank$trials[1], first$trials)
+  expect_identical(first$trials[[1]]$trial, 1L)
+  expect_identical(second$trials[[1]]$trial, 1L)
+  expect_false(identical(first$trials, second$trials))
   file <- tempfile(fileext = ".rds")
   on.exit(unlink(file))
   saveRDS(bank, file)
@@ -479,21 +473,48 @@ test_that("the schedule derives all saved looks and includes the final horizon",
   expect_equal(replay$sims$followup_horizon, 18)
 })
 
-test_that("previously saved horizon paths remain usable", {
+test_that("previously saved horizon paths retain trial numbers and omit collection outputs", {
   bank <- do.call(sim_horizon_paths, horizon_test_args(N_trials = 1))
+  removed <- c(
+    "collection_ready_time", "planned_collection_time", "collection_person_time"
+  )
+  expect_false(any(removed %in% names(bank$trials[[1]]$finals)))
+  bank$trials[[1]]$trial <- 101L
+  expected <- apply_horizon_rules(bank, horizon_test_schedule(), return_trace = TRUE)
+  expect_false(any(removed %in% names(expected$sims)))
+  expect_identical(expected$sims$trial, 101L)
   previous <- bank
+  # Earlier paths stored continued-collection summaries at each stopping cohort.
+  finals <- previous$trials[[1]]$finals
+  final_horizon_rows <- finals[finals$horizon == 18, ]
+  row <- match(finals$planned_N, final_horizon_rows$planned_N)
+  finals$collection_ready_time <- final_horizon_rows$analysis_ready_time[row]
+  finals$planned_collection_time <- final_horizon_rows$planned_completion_time[row]
+  finals$collection_person_time <- final_horizon_rows$followup_person_time[row]
+  previous$trials[[1]]$finals <- finals
+  attr(previous, "arguments")$trial_offset <- 100L
+  actual <- apply_horizon_rules(previous, horizon_test_schedule(), return_trace = TRUE)
+  expect_identical(actual$sims, expected$sims)
+  expect_identical(actual$traces, expected$traces)
+
+  # The original format also stored looks, horizons, and collection duration.
   previous$schema_version <- 1L
-  args <- validate_horizon_arguments(attr(bank, "arguments"))
+  args <- validate_horizon_arguments(attr(previous, "arguments"))
   old_names <- c(
     setdiff(names(formals(sim_horizon_paths)), "endpoint_schedule"),
-    "interim_look", "endpoint_horizons", "followup_horizon"
+    "interim_look", "endpoint_horizons", "followup_horizon", "trial_offset"
   )
   attr(previous, "arguments") <- args[old_names]
   actual <- apply_horizon_rules(previous, horizon_test_schedule(), return_trace = TRUE)
-  expected <- apply_horizon_rules(bank, horizon_test_schedule(), return_trace = TRUE)
   expect_identical(actual$sims, expected$sims)
   expect_identical(actual$traces, expected$traces)
   expect_output(print(previous), "2 interim looks; horizons: 12, 18")
+})
+
+test_that("simulation functions no longer accept trial offsets", {
+  for (simulate in list(sim_trial_paths, sim_horizon_paths, sim_horizon_trials)) {
+    expect_error(simulate(trial_offset = 1L), "unused argument")
+  }
 })
 
 test_that("dropout probability retains its fixed reference horizon", {

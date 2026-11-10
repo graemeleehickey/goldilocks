@@ -20,7 +20,7 @@
 #'
 #' `prop_loss` describes an exponential dropout distribution independently of the analysis endpoint. For example, `prop_loss = 0.05, dropout_horizon = 12, final_horizon = 18` retains a 5% dropout probability by month 12 while generating follow-up through month 18. Dropout after month 12 does not make the 12-month endpoint missing.
 #'
-#' All other fixed design settings and analysis restrictions follow [sim_trial_paths()]. Explicit seeds preserve the caller's random-number state and reproduce results across supported computation methods and consecutive `trial_offset` batches. Changing the set of retained horizons changes the allocation of random numbers. Changing only a candidate schedule or thresholds does not. Select designs using one set of trial paths and assess the complete adaptive design using independent simulations.
+#' All other fixed design settings and analysis restrictions follow [sim_trial_paths()]. Explicit seeds preserve the caller's random-number state and reproduce results across supported computation methods. Use different explicit seeds for separate batches; trial identifiers start at 1 in each call. Changing the set of retained horizons changes the allocation of random numbers. Changing only a candidate schedule or thresholds does not. Select designs using one set of trial paths and assess the complete adaptive design using independent simulations.
 #'
 #' @return A `goldilocks_horizon_paths` object with `trials`, a calculation-level `failures` table including `horizon`, `schema_version`, and `call`. Each trial retains per-look evidence for each horizon and final analyses for each cohort and horizon. Separate posterior diagnostics record the event counts, exposure, and Gamma updates used at each data cut. Attributes retain evaluated arguments, horizon-specific priors, enrollment design, and random-number and computation settings. Save and restore paths with [saveRDS()] and [readRDS()]. Memory grows with trials, looks, horizons, and imputation count.
 #' @seealso [sim_horizon_trials()], [apply_horizon_rules()]
@@ -66,8 +66,7 @@ sim_horizon_paths <- function(
   backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL,
   prior_surv_final = prior_surv,
-  generation_cutpoints = cutpoints,
-  trial_offset = 0L
+  generation_cutpoints = cutpoints
 ) {
   Call <- match.call()
   if (is.function(Call[[1L]])) {
@@ -91,7 +90,7 @@ run_horizon_simulations <- function(args, Call, schedule = NULL, rules = NULL) {
     if (inner_mc) 12 else 8
   if (is.null(schedule) && score_bytes >= 512 * 1024^2) {
     message(sprintf(
-      "Predictive scores require approximately %.1f MiB before diagnostics and object overhead; consider separate batches with 'trial_offset'.",
+      "Predictive scores require approximately %.1f MiB before diagnostics and object overhead; consider separate batches with different explicit seeds.",
       score_bytes / 1024^2
     ))
   }
@@ -103,8 +102,8 @@ run_horizon_simulations <- function(args, Call, schedule = NULL, rules = NULL) {
   }
   restore_rng <- preserve_path_rng()
   on.exit(restore_rng(), add = TRUE)
-  trial_ids <- as.integer(args$trial_offset + seq_len(args$N_trials))
-  streams <- make_rng_streams(stream_seed, max(trial_ids))[trial_ids]
+  trial_ids <- seq_len(args$N_trials)
+  streams <- make_rng_streams(stream_seed, args$N_trials)
   configs <- lapply(args$endpoint_horizons, function(h) {
     horizon_analysis_config(args, h)
   })
@@ -357,10 +356,6 @@ simulate_horizon_path <- function(
       }
       record_failure(stage$error, "final", i, n, horizons[j])
       final <- if (is.null(stage$value)) c(NA_real_, NA_real_) else stage$value
-      collection <- trial_calendar_metrics(
-        data[data$id <= n, , drop = FALSE],
-        args$followup_horizon
-      )
       finals[[length(finals) + 1L]] <- data.frame(
         look = as.integer(i),
         planned_N = as.integer(n),
@@ -370,9 +365,6 @@ simulate_horizon_path <- function(
         post_prob_ha = final[1],
         est_final = final[2],
         trial_calendar_metrics(cohort, horizons[j]),
-        collection_ready_time = collection$analysis_ready_time,
-        planned_collection_time = collection$planned_completion_time,
-        collection_person_time = collection$followup_person_time,
         warning_messages = paste(stage$warnings, collapse = " | ")
       )
     }

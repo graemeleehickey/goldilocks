@@ -165,7 +165,7 @@ test_that("final imputation and nonstandard designs share the same reference", {
   }
 })
 
-test_that("bank RNG streams are reproducible, preserved, and batch-stable", {
+test_that("bank RNG streams are reproducible and preserve the caller's state", {
   set.seed(219)
   state <- .Random.seed
   args <- path_test_args()
@@ -174,9 +174,12 @@ test_that("bank RNG streams are reproducible, preserved, and batch-stable", {
   first <- do.call(sim_trial_paths, path_test_args(N_trials = 1))
   second <- do.call(
     sim_trial_paths,
-    path_test_args(N_trials = 1, trial_offset = 1L)
+    path_test_args(N_trials = 1, seed = 915)
   )
-  expect_identical(full$trials, c(first$trials, second$trials))
+  expect_identical(full$trials[1], first$trials)
+  expect_identical(first$trials[[1]]$trial, 1L)
+  expect_identical(second$trials[[1]]$trial, 1L)
+  expect_false(identical(first$trials, second$trials))
   expect_identical(.Random.seed, state)
   set.seed(219)
   sample.int(.Machine$integer.max - 1L, 1L)
@@ -189,6 +192,20 @@ test_that("bank RNG streams are reproducible, preserved, and batch-stable", {
     path_test_args(seed = attr(unseeded, "rng_metadata")$stream_seed)
   )
   expect_identical(regenerated$trials, unseeded$trials)
+})
+
+test_that("saved fixed-horizon batches retain their original trial numbers", {
+  paths <- do.call(sim_trial_paths, path_test_args())
+  paths$trials <- lapply(paths$trials, function(path) {
+    path$trial <- path$trial + 100L
+    path
+  })
+  expected <- apply_stopping_rules(paths, return_trace = TRUE)
+  attr(paths, "arguments")$trial_offset <- 100L
+  actual <- apply_stopping_rules(paths, return_trace = TRUE)
+  expect_identical(actual$sims$trial, c(101L, 102L))
+  expect_identical(actual$sims, expected$sims)
+  expect_identical(actual$traces, expected$traces)
 })
 
 test_that("bank paths are identical across parallel backends", {
@@ -216,8 +233,8 @@ test_that("invalid bank settings fail before simulation", {
   for (override in list(
     list(seed = -1),
     list(seed = 2^32),
-    list(trial_offset = -1),
     list(N_trials = 0),
+    list(N_trials = as.double(.Machine$integer.max) + 1),
     list(N_impute = 0),
     list(mc_conf_level = 0.5),
     list(interim_look = c(40, 80)),

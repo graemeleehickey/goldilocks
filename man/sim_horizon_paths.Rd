@@ -34,8 +34,7 @@ sim_horizon_paths(
   backend = c("auto", "fork", "psock", "sequential"),
   seed = NULL,
   prior_surv_final = prior_surv,
-  generation_cutpoints = cutpoints,
-  trial_offset = 0L
+  generation_cutpoints = cutpoints
 )
 }
 \arguments{
@@ -193,14 +192,6 @@ piecewise-exponential model used to generate event times.
 \code{hazard_treatment} and \code{hazard_control} must each have one value per
 resulting interval. Defaults to \code{cutpoints}, preserving the historical
 behavior in which generation and analysis used one partition.}
-
-\item{trial_offset}{A non-negative integer. Trial identifiers start at
-\code{trial_offset + 1}. With an explicit seed, consecutive offsets allow a large
-simulation to be generated, saved, and evaluated in separate batches using the
-same streams as a single call. For two batches of 1,000 trials, use offsets
-0 and 1,000 with the same explicit seed and design settings. Repeating offset
-0 would repeat the first batch. This counts trial replicates, not participants
-or follow-up time.}
 }
 \value{
 A \code{goldilocks_horizon_paths} object with \code{trials}, a calculation-level \code{failures} table including \code{horizon}, \code{schema_version}, and \code{call}. Each trial retains per-look evidence for each horizon and final analyses for each cohort and horizon. Separate posterior diagnostics record the event counts, exposure, and Gamma updates used at each data cut. Attributes retain evaluated arguments, horizon-specific priors, enrollment design, and random-number and computation settings. Save and restore paths with \code{\link[=saveRDS]{saveRDS()}} and \code{\link[=readRDS]{readRDS()}}. Memory grows with trials, looks, horizons, and imputation count.
@@ -217,7 +208,7 @@ The final analysis after an expected-success stop uses that look's endpoint, eve
 
 \code{prop_loss} describes an exponential dropout distribution independently of the analysis endpoint. For example, \verb{prop_loss = 0.05, dropout_horizon = 12, final_horizon = 18} retains a 5\% dropout probability by month 12 while generating follow-up through month 18. Dropout after month 12 does not make the 12-month endpoint missing.
 
-All other fixed design settings and analysis restrictions follow \code{\link[=sim_trial_paths]{sim_trial_paths()}}. Explicit seeds preserve the caller's random-number state and reproduce results across supported computation methods and consecutive \code{trial_offset} batches. Changing the set of retained horizons changes the allocation of random numbers. Changing only a candidate schedule or thresholds does not. Select designs using one set of trial paths and assess the complete adaptive design using independent simulations.
+All other fixed design settings and analysis restrictions follow \code{\link[=sim_trial_paths]{sim_trial_paths()}}. Explicit seeds preserve the caller's random-number state and reproduce results across supported computation methods. Use different explicit seeds for separate batches; trial identifiers start at 1 in each call. Changing the set of retained horizons changes the allocation of random numbers. Changing only a candidate schedule or thresholds does not. Select designs using one set of trial paths and assess the complete adaptive design using independent simulations.
 }
 \examples{
 schedule <- data.frame(N = c(20, 40), horizon = c(12, 18))

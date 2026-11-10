@@ -35,7 +35,6 @@ sim_horizon_trials(
   seed = NULL,
   prior_surv_final = prior_surv,
   generation_cutpoints = cutpoints,
-  trial_offset = 0L,
   Fn = 0.05,
   Sn = 0.9,
   Qn = 1,
@@ -198,14 +197,6 @@ piecewise-exponential model used to generate event times.
 \code{hazard_treatment} and \code{hazard_control} must each have one value per
 resulting interval. Defaults to \code{cutpoints}, preserving the historical
 behavior in which generation and analysis used one partition.}
-
-\item{trial_offset}{A non-negative integer. Trial identifiers start at
-\code{trial_offset + 1}. With an explicit seed, consecutive offsets allow a large
-simulation to be generated, saved, and evaluated in separate batches using the
-same streams as a single call. For two batches of 1,000 trials, use offsets
-0 and 1,000 with the same explicit seed and design settings. Repeating offset
-0 would repeat the first batch. This counts trial replicates, not participants
-or follow-up time.}
 
 \item{Fn}{Futility threshold: one probability repeated at every interim or one per scheduled look. \code{NULL} or zero disables futility; the default is \code{0.05}.}
 

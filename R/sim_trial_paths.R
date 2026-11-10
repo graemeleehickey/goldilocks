@@ -6,13 +6,6 @@
 #'   to calibrate `Fn`, `Sn`, `Qn`, and `prob_ha` without new simulations.
 #'
 #' @inheritParams sim_trials
-#' @param trial_offset A non-negative integer. Trial identifiers start at
-#'   `trial_offset + 1`. With an explicit seed, consecutive offsets allow a large
-#'   simulation to be generated, saved, and evaluated in separate batches using the
-#'   same streams as a single call. For two batches of 1,000 trials, use offsets
-#'   0 and 1,000 with the same explicit seed and design settings. Repeating offset
-#'   0 would repeat the first batch. This counts trial replicates, not participants
-#'   or follow-up time.
 #'
 #' @details Each trial path retains the success score (posterior probability or
 #'   frequentist `1 - p`) of every predictive replicate, for the current and
@@ -35,7 +28,7 @@
 #'   `16 * N_trials * length(interim_look) * N_impute` bytes, or 24 bytes per
 #'   trial/look/imputation for Monte Carlo Bayesian methods, plus object and
 #'   diagnostic overhead. Large estimates are reported before simulation. Paths
-#'   are held in memory; use `trial_offset` and [saveRDS()] for separate batches.
+#'   are held in memory; use different explicit seeds and [saveRDS()] for separate batches. Trial identifiers start at 1 in each call, so retain a batch identifier when combining results.
 #'
 #'   Each trial and stage receives a separate L'Ecuyer-CMRG stream or substream.
 #'   An explicit seed preserves the caller's RNG state and gives identical paths
@@ -98,8 +91,7 @@ sim_trial_paths <- function(
   binary_imputation = c("event-time", "bernoulli"),
   prior_surv_final = prior_surv,
   generation_cutpoints = cutpoints,
-  rmst_tau = end_of_study,
-  trial_offset = 0L
+  rmst_tau = end_of_study
 ) {
   Call <- match.call()
   # do.call() can put the entire function in the saved call.
@@ -123,7 +115,7 @@ sim_trial_paths <- function(
     if (inner_mc) 24 else 16
   if (score_bytes >= 512 * 1024^2) {
     message(sprintf(
-      "Predictive scores require approximately %.1f MiB before diagnostics and object overhead; consider separate batches with 'trial_offset'.",
+      "Predictive scores require approximately %.1f MiB before diagnostics and object overhead; consider separate batches with different explicit seeds.",
       score_bytes / 1024^2
     ))
   }
@@ -136,8 +128,8 @@ sim_trial_paths <- function(
   }
   restore_rng <- preserve_path_rng()
   on.exit(restore_rng(), add = TRUE)
-  trial_ids <- as.integer(trial_offset + seq_len(N_trials))
-  streams <- make_rng_streams(stream_seed, max(trial_ids))[trial_ids]
+  trial_ids <- seq_len(N_trials)
+  streams <- make_rng_streams(stream_seed, N_trials)
   simulate <- if (execution$backend == "psock") {
     make_psock_callable("simulate_trial_path")
   } else {
@@ -228,11 +220,8 @@ validate_path_arguments <- function(args) {
   for (name in c("N_total", "N_trials", "N_impute", "N_mcmc", "ncores")) {
     validate_positive_integer_scalar(args[[name]], name)
   }
-  validate_nonnegative_integer_scalar(args$trial_offset, "trial_offset")
-  if (as.double(args$trial_offset) + args$N_trials > .Machine$integer.max) {
-    stop(
-      "'trial_offset + N_trials' exceeds the supported trial identifier range"
-    )
+  if (args$N_trials > .Machine$integer.max) {
+    stop("'N_trials' exceeds the supported trial identifier range")
   }
   if (!is.null(args$seed)) {
     validate_nonnegative_integer_scalar(args$seed, "seed")
