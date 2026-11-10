@@ -224,48 +224,7 @@ knitr::kable(operating[c(
 ))
 ```
 
-For example, if 200 of 1,000 trials stopped for futility and 40 of those would have succeeded at maximum $N$, the two reported probabilities would be 20% and 4%. The fraction among futility stops would instead be 40/200 = 20%, which is a different denominator. If futility were the only early stopping rule, the 4% would also be the power lost, in percentage points. With early-success stopping, that comparison requires the otherwise identical design with futility disabled, as shown below. [Interpreting the two futility measures](endpoint-horizons-technical.html#interpreting-the-two-futility-measures) gives the formal distinction and two example trials. The missing-comparison count refers to unavailable hypothetical final analyses, not to trials that fail to demonstrate benefit.
-
-### Power lost to futility
-
-We now disable only futility, keeping the schedule, success boundaries, and final analysis unchanged. This requires no additional model fitting: both designs use the same saved alternative-scenario trials. The difference in their success probabilities is the power lost to futility.
-
-```{r power-lost-to-futility}
-no_futility_rule <- rule
-no_futility_rule$Fn <- 0
-no_futility_result <- do.call(apply_horizon_rules, c(list(
-  paths = paths$alternative, endpoint_schedule = endpoint_schedule
-), no_futility_rule))
-
-paired <- merge(
-  results$alternative$sims[c(
-    "trial", "trial_success", "stop_futility", "futility_and_success_at_max"
-  )],
-  no_futility_result$sims[c("trial", "trial_success")],
-  by = "trial", suffixes = c("_with", "_without")
-)
-paired <- paired[complete.cases(paired), ]
-power_difference <- with(paired, trial_success_without - trial_success_with)
-stopifnot(all(power_difference == with(
-  paired, stop_futility * trial_success_without
-)))
-
-paired_outcomes <- list(
-  "Success with futility" = paired$trial_success_with,
-  "Success without futility" = paired$trial_success_without,
-  "Power lost to futility" = power_difference,
-  "Futility and forced maximum-N success" = paired$futility_and_success_at_max
-)
-paired_summary <- data.frame(
-  Measure = names(paired_outcomes),
-  Estimate = vapply(paired_outcomes, mean, numeric(1)),
-  MC_SE = vapply(paired_outcomes, function(x) sd(x) / sqrt(length(x)), numeric(1))
-)
-knitr::kable(paired_summary, digits = 3, row.names = FALSE,
-  col.names = c("Measure", "Estimate", "MC SE"))
-```
-
-This comparison uses `r nrow(paired)` matched trials with complete outcomes; `r fixed_design$N_trials - nrow(paired)` requested trials are unavailable for the paired comparison. Its Monte Carlo standard errors use the paired outcomes, including for the power difference. Multiplying the power difference by 100 expresses the loss in percentage points. The last row uses forced continuation to $N=500$ and 18 months; the `Fn = 0` design can instead stop earlier for expected success and then pass or fail that cohort's final analysis. These are different continuation policies, so their success outcomes can differ.
+For example, if 200 of 1,000 trials stopped for futility and 40 of those would have succeeded at maximum $N$, the two reported probabilities would be 20% and 4%. The fraction among futility stops would instead be 40/200 = 20%, which is a different denominator. If futility were the only early stopping rule, the 4% would also be the power lost, in percentage points. When other stopping rules are present, such as stopping for expected success, the interpretation is more complex. See [Interpreting the two futility measures](endpoint-horizons-technical.html#interpreting-the-two-futility-measures). The missing-comparison count refers to unavailable hypothetical final analyses, not to trials that fail to demonstrate benefit.
 
 ## Benefit at 12 months but no benefit at 18 months
 
@@ -413,7 +372,26 @@ knitr::kable(comparison[c(
 
 Different `Fn`, `Sn`, `Qn`, and `prob_ha` values can also be passed to `apply_horizon_rules()` without repeating simulation. A new generating scenario, prior, null margin, final horizon, or imputation count requires new paths. Candidate outcomes are paired by trial, so uncertainty in a difference should use paired outcomes rather than combine the two marginal Monte Carlo intervals as if they were independent. Selecting a schedule from these results calls for independent validation; this comparison does not select an optimal switch point.
 
-## Direct simulation and continued outcome collection
+## Optional endpoint-specific margins
+
+The main example uses `h0 = 0` at both endpoints. To illustrate `horizon_settings`, suppose success instead requires a treatment-minus-control risk difference below -0.03 at 12 months and below -0.05 at 18 months. These represent absolute risk reductions greater than 3 and 5 percentage points, respectively, for the current `method = "bayes-bin"` and `alternative = "less"` settings.
+
+```{r horizon-specific-margins, eval = FALSE}
+margin_args <- alternative_args
+margin_args$horizon_settings <- data.frame(
+  horizon = c(12, 18),
+  h0 = c(-0.03, -0.05)
+)
+margin_args$seed <- 18015
+margin_paths <- do.call(sim_horizon_paths, margin_args)
+margin_result <- do.call(apply_horizon_rules, c(list(
+  paths = margin_paths, endpoint_schedule = endpoint_schedule
+), rule))
+```
+
+This is an optional illustration and does not alter the main example. Changing `h0` changes the success hypothesis, so it requires new paths; changing only `prob_ha` changes the evidence threshold and can reuse existing paths. Because `prior_bin` is omitted from `horizon_settings`, the common Beta(1, 1) priors remain in use at both horizons. The optional `rmst_tau` column applies to `method = "rmst"`, rather than this binary analysis.
+
+## Direct simulation and analysis dates
 
 When evaluating one fixed schedule, `sim_horizon_trials()` skips interim calculations after a terminal stop. The short run below reproduces the first three alternative-scenario trials from the complete-path calculation. It retains the same set of horizons, settings, and seed; only the number of requested trials is reduced.
 
@@ -429,25 +407,23 @@ knitr::kable(direct$sims[c(
 )], col.names = c("Trial", "N enrolled", "Endpoint", "Stopping reason", "Success"))
 ```
 
-The endpoint used at stopping and the planned collection duration are recorded separately. An expected-success stop at month 12 uses the 12-month endpoint for the primary analysis, but outcome collection is still planned through month 18 for the enrolled cohort. The table below summarizes timing in the alternative scenario, conditional on the endpoint attached to the stopping cohort. It does not average treatment-effect estimates across endpoints.
+The final analysis uses the endpoint fixed when accrual stops. The following table summarizes the analysis and decision dates in the alternative scenario, separately by stopping reason and endpoint.
 
-```{r endpoint-and-collection-times}
+```{r analysis-and-decision-times}
 timing <- results$alternative$sims |>
-  dplyr::group_by(endpoint_horizon) |>
+  dplyr::group_by(stopping_reason, endpoint_horizon) |>
   dplyr::summarise(
     Trials = dplyr::n(),
     Mean_analysis_ready = mean(analysis_ready_time),
-    Mean_endpoint_completion = mean(planned_completion_time),
-    Mean_collection_completion = mean(planned_collection_time),
+    Mean_decision = mean(decision_time),
     .groups = "drop"
   )
 knitr::kable(timing, digits = 1, col.names = c(
-  "Endpoint", "Trials", "Analysis ready", "Planned endpoint completion",
-  "Planned collection completion"
+  "Stopping reason", "Endpoint", "Trials", "Analysis ready", "Decision"
 ))
 ```
 
-These are calendar months from first enrollment. `analysis_ready_time` refers to the endpoint selected when accrual stops; `collection_ready_time` refers to collection through month 18 in the same cohort. They can differ after a 12-month stop with collection fixed at `final_horizon = 18`. Observed events can make either date earlier than planned completion. For expected-success stops, `decision_time` is the final analysis date, while `accrual_stop_time` is the earlier decision to stop recruitment. For futility or immediate-success stops, `decision_time` is the interim date. The [technical companion](endpoint-horizons-technical.html#analysis-collection-and-decision-dates) gives a numerical example.
+These are calendar months from first enrollment. For expected-success stops and maximum-enrollment trials, `decision_time` equals `analysis_ready_time`. For futility or immediate-success stops, the decision is made at the interim look; later follow-up does not change it. The [technical companion](endpoint-horizons-technical.html#analysis-and-decision-dates) gives a numerical example.
 
 ## Add dropout or save results
 
@@ -473,9 +449,8 @@ saveRDS(list(
   endpoint_schedule = endpoint_schedule,
   rule = rule,
   results = results,
-  no_futility_result = no_futility_result,
   early_benefit = list(paths = early_benefit_paths, result = early_benefit_result)
 ), "endpoint-horizon-calibration.rds")
 ```
 
-For larger runs, [simulation batches](endpoint-horizons-technical.html#what-trial_offset-specifies) can limit memory use. See [Calibrating stopping rules from complete trial paths](calibrating-stopping-rules.html) and [Calibrating prob_ha for type I error control](calibrating-prob-ha.html) for further calibration guidance.
+See [Calibrating stopping rules from complete trial paths](calibrating-stopping-rules.html) and [Calibrating prob_ha for type I error control](calibrating-prob-ha.html) for further calibration guidance.
