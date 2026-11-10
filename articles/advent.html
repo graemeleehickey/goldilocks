@@ -849,7 +849,7 @@ endpoint, or vice versa.</p>
 <span>  empty_interval <span class="op">=</span> <span class="st">"prior"</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"bayes-bin"</span>,</span>
 <span>  imputed_final <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  ncores <span class="op">=</span> <span class="fl">2</span></span>
+<span>  ncores <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">advent_effectiveness_args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">advent_common</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -924,7 +924,7 @@ endpoint, or vice versa.</p>
 <span><span class="co">#&gt; [1] TRUE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $ncores</span></span>
-<span><span class="co">#&gt; [1] 2</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $cutpoints</span></span>
 <span><span class="co">#&gt; [1]  90 104 150 210</span></span>
@@ -1023,12 +1023,12 @@ specification:</p>
 </table>
 <p>The table displays selected operating characteristics;
 <code>oc_small</code> retains the full summary, including Monte Carlo
-uncertainty. Each scenario uses 500 simulated trials and two cores.
-These results are illustrative rather than definitive estimates of power
-or type I error. A design evaluation should increase
-<code>N_trials</code> and <code>N_impute</code> as needed for Monte
-Carlo precision and examine sensitivity to accrual, loss to follow-up,
-event rates, and the imputation hazard model.</p>
+uncertainty. Each scenario uses 500 simulated trials and one core. These
+results are illustrative rather than definitive estimates of power or
+type I error. A design evaluation should increase <code>N_trials</code>
+and <code>N_impute</code> as needed for Monte Carlo precision and
+examine sensitivity to accrual, loss to follow-up, event rates, and the
+imputation hazard model.</p>
 </div>
 <div class="section level2">
 <h2 id="graphical-assessment-of-the-simulated-design">Graphical assessment of the simulated design<a class="anchor" aria-label="anchor" href="#graphical-assessment-of-the-simulated-design"></a>

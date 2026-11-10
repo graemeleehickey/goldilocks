@@ -624,7 +624,7 @@ advent_common <- list(
   empty_interval = "prior",
   method = "bayes-bin",
   imputed_final = TRUE,
-  ncores = 2
+  ncores = 1
 )
 
 advent_effectiveness_args <- modifyList(advent_common, list(
@@ -699,7 +699,7 @@ advent_effectiveness_args
 #> [1] TRUE
 #> 
 #> $ncores
-#> [1] 2
+#> [1] 1
 #> 
 #> $cutpoints
 #> [1]  90 104 150 210
@@ -765,7 +765,7 @@ knitr::kable(
 
 The table displays selected operating characteristics; `oc_small`
 retains the full summary, including Monte Carlo uncertainty. Each
-scenario uses 500 simulated trials and two cores. These results are
+scenario uses 500 simulated trials and one core. These results are
 illustrative rather than definitive estimates of power or type I error.
 A design evaluation should increase `N_trials` and `N_impute` as needed
 for Monte Carlo precision and examine sensitivity to accrual, loss to

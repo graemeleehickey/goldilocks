@@ -373,7 +373,7 @@ anthem_alt <- do.call(sim_trials, c(
     hazard_treatment = hazard_treatment_target_week,
     hazard_control = hazard_control_week,
     N_trials = 20,
-    ncores = 2,
+    ncores = 1,
     seed = 3425430
   )
 ))
@@ -384,7 +384,7 @@ anthem_null <- do.call(sim_trials, c(
     hazard_treatment = hazard_treatment_null_week,
     hazard_control = hazard_control_week,
     N_trials = 20,
-    ncores = 2,
+    ncores = 1,
     seed = 3425431
   )
 ))

@@ -672,7 +672,7 @@ thermocool_design <- list(
   method = "bayes-bin",
   imputed_final = TRUE,
   N_trials = 50,
-  ncores = 2,
+  ncores = 1,
   return_trace = TRUE
 )
 

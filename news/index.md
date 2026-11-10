@@ -101,6 +101,9 @@ Both respect the interim calendar date.
 
 ### Documentation and verification
 
+- Evaluated vignette simulations use one core to avoid the crashes in
+  forked R processes reported by CRAN on older R for Apple silicon.
+  Simulation sizes, seeds, and statistical settings are unchanged.
 - Website articles include a **Print / Save as PDF** button and a shared
   print layout for equations, tables, figures, and code, with website
   navigation omitted from the printed article.
