@@ -1,0 +1,313 @@
+---
+title: "PROMISE II: 120-patient design"
+author: "Graeme L. Hickey"
+output:
+  rmarkdown::html_vignette:
+    self_contained: false
+    lib_dir: libs
+    css: libs/vignette.css
+vignette: >
+  %\VignetteIndexEntry{PROMISE II: 120-patient design}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+source("shared-vignette-resources.R")
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7,
+                    fig.height = 4.5, out.width = "100%", dev = "png", dpi = 120)
+```
+
+```{r setup, message = FALSE}
+library(goldilocks)
+example_file <- system.file("examples", "promise-ii.R", package = "goldilocks")
+source(example_file)
+design <- promise_ii_design()
+```
+
+PROMISE II evaluated transcatheter arterialization of deep veins in patients with chronic limb-threatening ischemia who had no conventional surgical or endovascular revascularization option. Its single-arm Bayesian Goldilocks design compared 180-day amputation-free survival (AFS) with a performance goal of 54% [1-3]. This vignette reconstructs the **planned maximum sample size of 120 patients**, with interim analyses after 60, 75, 90, and 105 patients entered the analysis population.
+
+The target is the 120-patient design in protocol Revision 2 and the corresponding operating characteristics reproduced in Table 3 of SAP Revision 5 [2]. The earlier Revision 0 protocol proposed historical borrowing; that is not the design reconstructed here. The later reduction of maximum enrollment to 105 patients and the observed trial results are not simulated.
+
+The calculations reproduce the documented endpoint model, predictive rules, and missing-data procedure. They constitute an independent reconstruction, rather than a reproduction of the sponsor's software. The SAP specifies enrollment rates but not the mechanism for generating individual enrollment times; this example makes that assumption explicit and examines its influence.
+
+## Planned design and final analysis
+
+The primary analysis population was modified intention to treat: all patients in whom a LimFlow device was introduced, irrespective of technical or procedural success. Simulations start directly with this population. The event is all-cause death or above-ankle amputation of the index limb by day 180. Let $\phi$ denote 180-day AFS. The hypotheses are
+
+$$
+H_0: \phi \le 0.54, \qquad H_1: \phi > 0.54.
+$$
+
+For a completed dataset containing $s$ patients with AFS among $n$ patients, the uniform prior gives
+
+$$
+\phi \mid s,n \sim \operatorname{Beta}(1+s,\,1+n-s).
+$$
+
+Final success requires $\Pr(\phi > 0.54 \mid \text{data})>0.977$. For incomplete outcomes, the SAP averages this posterior probability over completed datasets obtained by Bayesian multiple imputation. It then compares the average with 0.977. This differs from the interim predictive calculation, which averages indicators that a completed dataset passes the final threshold.
+
+The package codes the adverse event rather than AFS. Consequently, `method = "bayes-bin"`, `alternative = "less"`, and `h0 = 0.46` express the same hypothesis. The symmetric `prior_bin = c(1, 1)` is unchanged by switching between event and event-free probabilities.
+
+```{r design-table, echo = FALSE}
+knitr::kable(data.frame(
+  Quantity = c("Maximum sample size", "Endpoint", "Performance goal",
+               "Binary analysis prior", "Final posterior threshold",
+               "Predictive and final-imputation priors", "Imputation intervals"),
+  Specification = c("120 mITT patients", "Amputation-free survival at 180 days",
+                    "54% AFS; 46% event probability", "Beta(1, 1)",
+                    "Strictly greater than 0.977",
+                    "Independent Gamma(0.001, 0.001), shape-rate",
+                    "[0, 30], (30, 60], (60, 90], (90, 180] days")
+), caption = "Table 1. Reported analysis settings [2].")
+```
+
+## Interim decisions
+
+At each look, $PP_n$ is the predictive probability of final success if enrollment stops with the current cohort. $PP_{120}$ predicts success after completing enrollment to 120. Both calculations use completed binary outcomes at day 180, including imputed outcomes for patients with incomplete follow-up; $PP_{120}$ additionally includes future patients.
+
+```{r boundaries}
+N_total <- design$N_total
+interim_look <- design$interim_look
+Sn <- design$Sn
+Fn <- design$Fn
+Qn <- 1  # No immediate declaration of success.
+
+knitr::kable(data.frame(
+  `Enrolled patients` = interim_look,
+  `Stop for promising trend if PPn >` = Sn,
+  `Stop for futile trend if PP120 <` = Fn,
+  check.names = FALSE
+), digits = 2, caption = "Table 2. Planned interim boundaries [2, protocol Table 6].")
+```
+
+The ordered decisions are:
+
+1. Stop enrollment for a promising trend if $PP_n>S_n$.
+2. Otherwise, stop enrollment for a futile trend if $PP_{120}<F_n$.
+3. Otherwise, enroll the next 15 patients, up to 120.
+
+Equality does not cross either boundary. In every case, enrolled patients have the opportunity to complete 180 days of follow-up before the final analysis. A promising interim result is not an immediate claim of success. The protocol also specifies final analysis after enrollment stops for futility; the reconstruction therefore evaluates the final posterior criterion in those trials too.
+
+This last point differs from `survival_adapt()`, which counts a binding futility decision as final failure. The example helper preserves the PROMISE II procedure without changing the package's general stopping rules. It records both the reason for stopping enrollment and the eventual final result.
+
+The protocol's COVID-19 provision could allow additional enrollment when a parallel analysis censoring COVID-19 deaths did not cross its futility boundary. However, the principal analysis retained the cohort selected by the ordinary AFS rule [2, SAP Section 6.4.1]. This vignette reconstructs that principal analysis; it does not generate causes of death or simulate the additional COVID-19 sensitivity cohort.
+
+## Event times, dropout, and enrollment
+
+The SAP specifies the following daily hazards at the null AFS rate of 54%:
+
+```{r generating-hazards}
+knitr::kable(data.frame(
+  `Interval (days)` = c("0-30", "30-60", "60-90", "90-180"),
+  `Daily hazard` = design$base_hazard,
+  `AFS at interval end` = exp(-cumsum(design$base_hazard * c(30, 30, 30, 90))),
+  check.names = FALSE
+), digits = c(0, 10, 2), caption = "Table 3. Reported event-time generator [2, SAP Section 6.7].")
+```
+
+For a target AFS probability $\phi^*$, multiply all four hazards by
+
+$$
+k = \frac{-\log(\phi^*)}{\sum_{j=1}^4 \lambda_j\Delta_j}.
+$$
+
+Thus $S_k(180)=\exp\{-k\sum_j\lambda_j\Delta_j\}$, approximately $0.54^k$. This corrects an apparent typographical error in the last equality of the SAP's scaling equation. Using the cumulative hazard from the printed rates also avoids propagating their small rounding error.
+
+```{r target-hazards}
+hazard_treatment <- promise_ii_hazard(0.70)
+1 - ppwe(matrix(hazard_treatment, nrow = 1),
+         end_of_study = 180, cutpoints = c(30, 60, 90))
+```
+
+Each patient independently has probability 0.10 of being designated for dropout. For designated patients, dropout time is Uniform(0,180); otherwise it is infinite. Event times and dropout times are independent. An event preceding dropout remains observed. At an interim analysis, follow-up is also censored at the current calendar date. The same event and dropout histories are retained across looks and at final analysis.
+
+This mechanism is not the exponential dropout model used by `sim_comp_data(prop_loss = 0.10)`. The helper therefore generates the SAP's dropout times explicitly and uses `pwe_sim()` for event times.
+
+The expected enrollment schedule is 1, 2, 2, 3, 3, 4, and 4 patients per month during months 1-7, followed by 5 per month. The slower schedule is 1, 1, 2, and 2 per month, followed by 3; the faster schedule is 2, 3, 4, 5, and 6 per month, followed by 7 [2, SAP Section 6.7].
+
+```{r accrual-settings}
+lambda <- design$accrual$expected / 30
+lambda_time <- (1:7) * 30
+```
+
+All numerical times in this example are in days. Thirty days per simulation month is an explicit convention consistent with the 180-day endpoint and monthly hazard boundaries. The primary reconstruction uses the package's piecewise Poisson enrollment process, with the first patient at time zero. A sensitivity analysis uses fixed spacing on the cumulative enrollment-rate scale, with the same monthly rates and time origin. Neither individual enrollment mechanism is specified in the SAP.
+
+## Predictive imputation and a package example
+
+In interval $j$, let $D_j$ and $T_j$ be observed events and patient-days of exposure. The prediction model is
+
+$$
+\lambda_j \mid \text{data} \sim
+\operatorname{Gamma}(0.001+D_j,\;0.001+T_j),
+$$
+
+independently across intervals. An event-free patient censored at $q<180$ has conditional event probability $1-\exp\{-[H(180)-H(q)]\}$. A single draw of the four hazards is shared by all patients within each completed dataset. Conditional on that draw, missing binary outcomes are sampled independently. Future patients have $q=0$; their total event count can therefore be drawn directly from a binomial distribution.
+
+These calculations correspond to `evaluate_interim()` with Bernoulli imputation and exact beta-tail probabilities. The following simulated 75-patient data cut illustrates the package call:
+
+```{r observed-interim-example}
+set.seed(8)
+trial_data <- promise_ii_generate(afs = 0.70)
+interim_data <- promise_ii_cut(trial_data, n = 75)
+
+interim <- evaluate_interim(
+  data = interim_data,
+  data_cut = attr(interim_data, "data_cut"),
+  look = 2,
+  N_total = 120,
+  end_of_study = 180,
+  cutpoints = c(30, 60, 90),
+  prior_surv = c(0.001, 0.001),
+  prior_bin = c(1, 1),
+  single_arm = TRUE,
+  method = "bayes-bin",
+  alternative = "less",
+  h0 = 0.46,
+  prob_ha = 0.977,
+  Sn = 0.95,
+  Fn = 0.10,
+  Qn = 1,
+  bin_method = "quadrature",
+  binary_imputation = "bernoulli",
+  empty_interval = "prior",
+  N_impute = 10000,
+  seed = 28
+)
+interim$probabilities
+```
+
+For the repeated-trial calculations, the helper uses vectorized event counts to avoid repeatedly constructing completed patient datasets. Its interim probabilities are checked against `evaluate_interim()` in the package tests. Final imputation is checked against an analytical calculation with one missing outcome. Further checks cover censoring, events exactly at interval boundaries, stopping-rule equality, final analysis after a futility stop, and reproducibility across worker counts.
+
+## Reconstructing the operating characteristics
+
+The SAP's original-design reference is **Table 3**, not Table 2: Table 2 describes the later 105-patient cap. Table 3 reports power 0.8423 at AFS 68%, power 0.9253 at AFS 70%, and type I error 0.0244 at AFS 54% [2].
+
+```{r saved-results, include = FALSE}
+results <- readRDS("promise-ii-results.rds")
+primary_names <- results$scenarios$name[grepl("^primary_", results$scenarios$name)]
+primary <- do.call(rbind, lapply(results$simulations[primary_names], promise_ii_summary))
+rownames(primary) <- NULL
+reference <- results$reference
+stopifnot(identical(primary$afs, reference$afs))
+comparison <- data.frame(
+  `True AFS` = primary$afs,
+  `SAP power` = reference$power,
+  `Power (95% MC interval)` = sprintf("%.4f (%.4f, %.4f)",
+                                                  primary$power, primary$lower, primary$upper),
+  `SAP mean N` = reference$mean_n,
+  `Reconstructed mean N` = primary$mean_n,
+  check.names = FALSE
+)
+comparison_se <- sqrt(primary$mcse^2 + reference$power * (1 - reference$power) / 10000)
+comparison_z <- (primary$power - reference$power) / comparison_se
+```
+
+The saved reconstruction uses `r format(primary$N_trials[1], big.mark = ",")` trials per scenario and `r format(results$simulations[[1]]$settings$N_impute, big.mark = ",")` predictive draws per analysis, matching the reported simulation sizes. The table gives exact binomial 95% Monte Carlo intervals for the reconstructed rejection probabilities. These quantify simulation uncertainty under the stated assumptions; they do not quantify uncertainty in the clinical assumptions or eliminate differences between enrollment mechanisms.
+
+```{r power-comparison, echo = FALSE}
+knitr::kable(comparison, digits = c(2, 4, 0, 1, 1),
+             caption = "Table 4. Planned 120-patient design: SAP Table 3 and independent reconstruction.")
+```
+
+```{r power-plot, echo = FALSE, fig.cap = "Figure 1. Reconstructed rejection probabilities and mean sample sizes compared with SAP Table 3. Vertical intervals show 95% Monte Carlo intervals for the reconstruction."}
+old <- par(mfrow = c(1, 2), mar = c(4.3, 4.4, 1, 1), mgp = c(2.6, .7, 0))
+plot(primary$afs, primary$power, type = "b", pch = 19, col = "#176B82",
+     ylim = c(0, 1), xlab = "True 180-day AFS", ylab = "Rejection probability")
+arrows(primary$afs, primary$lower, primary$afs, primary$upper,
+       angle = 90, code = 3, length = .035, col = "#176B82")
+points(reference$afs, reference$power, pch = 1, col = "#A3481B")
+legend("topleft", c("Reconstruction", "SAP"), pch = c(19, 1),
+       col = c("#176B82", "#A3481B"), bty = "n", cex = .8)
+plot(primary$afs, primary$mean_n, type = "b", pch = 19, col = "#176B82",
+     ylim = c(60, 120), xlab = "True 180-day AFS", ylab = "Mean sample size")
+arrows(primary$afs, primary$mean_n - 1.96 * primary$mean_n_mcse,
+       primary$afs, primary$mean_n + 1.96 * primary$mean_n_mcse,
+       angle = 90, code = 3, length = .035, col = "#176B82")
+points(reference$afs, reference$mean_n, pch = 1, col = "#A3481B")
+par(old)
+```
+
+Both the reference and reconstructed powers are simulation estimates. Dividing each difference by the square root of the sum of their estimated Monte Carlo variances gives a largest absolute standardized difference of `r sprintf("%.2f", max(abs(comparison_z)))` across the eight primary scenarios. The largest absolute difference in mean sample size is `r sprintf("%.2f", max(abs(primary$mean_n - reference$mean_n)))` patients. These are descriptive comparisons across several scenarios, not a formal equivalence test.
+
+The stopping distributions provide a more detailed check than power alone. Table 5 compares the null and 70% AFS scenarios; the complete reference grid and individual simulated results are retained in the saved results.
+
+```{r stopping-comparison, echo = FALSE}
+stop_rows <- lapply(c(.54, .70), function(afs) {
+  i <- which(reference$afs == afs)
+  trials <- results$simulations[[primary_names[i]]]$trials
+  n <- c(rep(c(60, 75, 90, 105), each = 2), 120)
+  reason <- c(rep(c("futile", "promising"), 4), "maximum")
+  simulated <- mapply(function(size, why) mean(trials$n == size & trials$reason == why), n, reason)
+  data.frame(AFS = afs, N = n, Reason = reason,
+             SAP = as.numeric(reference[i, 4:12]), Reconstruction = simulated)
+})
+knitr::kable(do.call(rbind, stop_rows), digits = c(2, 0, 0, 4, 4),
+             caption = "Table 5. Probabilities of stopping enrollment, by sample size and reason.")
+```
+
+## Sensitivity to enrollment
+
+The SAP reports null rejection probabilities of 0.0260 and 0.0246 for slower and faster accrual under the 120-patient design [2, Table 5]. Its corresponding mean sample sizes are 74.7 and 78.2. The fixed-spacing scenarios below additionally assess the unspecified individual enrollment mechanism. All other design and analysis settings remain unchanged.
+
+```{r sensitivity, echo = FALSE}
+sensitivity_names <- c("slower_null", "faster_null", "fixed_null", "fixed_target")
+sensitivity <- do.call(rbind, lapply(results$simulations[sensitivity_names], promise_ii_summary))
+knitr::kable(data.frame(
+  Scenario = c("Slower Poisson accrual", "Faster Poisson accrual",
+               "Expected rates, fixed spacing", "Expected rates, fixed spacing"),
+  AFS = sensitivity$afs,
+  `SAP power` = c("0.0260", "0.0246", "Not reported", "Not reported"),
+  `Power (95% MC interval)` = sprintf("%.4f (%.4f, %.4f)",
+                                             sensitivity$power, sensitivity$lower, sensitivity$upper),
+  `Mean N` = sensitivity$mean_n,
+  check.names = FALSE
+), digits = c(0, 2, 0, 0, 1), caption = "Table 6. Enrollment sensitivity analyses.")
+```
+
+A simulated type I error estimate slightly above 0.025 is not, on its own, evidence that the underlying rate exceeds 0.025. Equally, agreement within Monte Carlo uncertainty does not establish exact reproduction of the sponsor's calculations. The unreported enrollment mechanism remains a limitation; the source code and random-number settings used by the sponsor would be needed to settle it.
+
+## Supporting fixed-sample calculations
+
+The SAP uses conventional exact-binomial calculations to motivate the adaptive sample-size range. For a one-sided test at 0.025 against 54% AFS, the following calculations reproduce its rounded power statements:
+
+```{r exact-binomial}
+exact_power <- function(n, afs) {
+  successes <- 0:n
+  critical <- min(successes[pbinom(successes - 1, n, 0.54, lower.tail = FALSE) <= 0.025])
+  data.frame(N = n, AFS = afs, Critical_successes = critical,
+             Power = pbinom(critical - 1, n, afs, lower.tail = FALSE))
+}
+knitr::kable(rbind(exact_power(101, 0.68), exact_power(101, 0.70),
+                   exact_power(56, 0.75)), digits = c(0, 2, 0, 4),
+             col.names = c("N", "True AFS", "Critical success count", "Power"),
+             caption = "Table 7. Fixed-sample calculations supporting the planned range.")
+```
+
+These are complete-data frequentist calculations, not the power of the adaptive Bayesian design. The latter depends on enrollment, partial follow-up, dropout, predictive stopping, and final multiple imputation.
+
+## Reproducing the results
+
+The installed helper is an inspectable R script, located by `example_file` above. It contains the complete design settings, reported reference table, data generation, interim and final calculations, and repeated-trial simulation. For a small exploratory run:
+
+```{r small-run, eval = FALSE}
+example_result <- promise_ii_simulate(
+  afs = 0.70, N_trials = 100, N_impute = 10000,
+  seed = 11012033, accrual = "expected", enrollment_model = "poisson", ncores = 1
+)
+promise_ii_summary(example_result)
+```
+
+The complete saved analysis can be regenerated from the repository root:
+
+```sh
+Rscript data-raw/promise-ii-sims.R 10000 10000 6
+```
+
+That script explicitly defines all twelve scenarios, assigns an independent seed to each, and writes `vignettes/promise-ii-results.rds`. The result retains individual trial outcomes, scenario settings, reference values, source-script checksums, and R and package versions. Trial-specific random-number streams make results reproducible across worker counts; no failed trial is silently discarded. Rendering the vignette reads these verified saved results rather than repeating the simulation.
+
+## References
+
+1. Shishehbor MH, Powell RJ, Montero-Baker MF, et al. Transcatheter arterialization of deep veins in chronic limb-threatening ischemia. *N Engl J Med*. 2023;388:1171-1180. [doi:10.1056/NEJMoa2212754](https://doi.org/10.1056/NEJMoa2212754).
+2. PROMISE II investigators. *Study protocol and statistical analysis plan supplement* to Shishehbor et al. (2023). Protocol Revision 2, Tables 6-7; SAP Revision 5, Sections 6.2-6.7, Tables 3 and 5, and Appendix 2. [Published protocol and SAP supplement](https://www.nejm.org/doi/suppl/10.1056/NEJMoa2212754/suppl_file/nejmoa2212754_protocol.pdf).
+3. Broglio KR, Connor JT, Berry SM. Not too big, not too small: a Goldilocks approach to sample size selection. *J Biopharm Stat*. 2014;24:685-705. [doi:10.1080/10543406.2014.888569](https://doi.org/10.1080/10543406.2014.888569).

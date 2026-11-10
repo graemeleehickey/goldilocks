@@ -25,6 +25,7 @@ For changing endpoints, success prediction uses observed follow-up through the c
 
 ## Documentation and verification
 
+* The PROMISE II vignette reconstructs the planned 120-patient design, including the SAP's dropout distribution and final analysis after enrollment stops for futility. Reproducible simulations compare power, sample sizes, and stopping probabilities with the reported calculations, with separate enrollment sensitivity analyses.
 * [Calibrating stopping rules from complete trial paths](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.html) demonstrates null and alternative paths, candidate evaluation, decision traces, saving results, and failure handling. A reproducible benchmark compares repeated simulation with complete-path simulation and rule application.
 * [Technical details of prespecified endpoint horizons](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-technical.html) explains the separate data restrictions, predictive calculations, stopping sequence, and error interpretation, with flow charts and references.
 * [Extending an endpoint from 12 to 18 months](https://graemeleehickey.github.io/goldilocks/articles/endpoint-horizons-example.html) demonstrates the schedule, cumulative event-risk curves, operating characteristics, posterior diagnostics, and endpoint-specific margins. A scenario with early benefit but equal final risks illustrates which successes count as false positives.
