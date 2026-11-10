@@ -139,7 +139,14 @@ survival_adapt(
   non-events and posterior event probabilities near 0 or 1. It can
   change whether `prob_ha` is exceeded. Increasing `N_mcmc` does not
   improve this approximation; use `"quadrature"` or sufficiently precise
-  `"mc"` instead.
+  `"mc"` instead. In two-arm designs, quadrature can also return an
+  inaccurate posterior probability without an error when the posterior
+  event risks are tightly concentrated, particularly with many
+  participants but very few events or non-events. Check such
+  probabilities against sufficiently precise Monte Carlo Beta draws
+  (`"mc"`). Increasing `N_mcmc` does not improve quadrature. This
+  integration issue does not apply to the single-arm Beta CDF
+  calculation.
 
 - block:
 
@@ -617,6 +624,18 @@ and final analyses:
   `bin_method = "quadrature"` or sufficiently precise `"mc"` when the
   approximation is unsuitable; increasing `N_mcmc` does not correct
   normal-approximation error.
+
+  **Numerical accuracy of two-arm quadrature.** When the posterior event
+  risks lie in a very narrow range, numerical integration can miss much
+  of the posterior probability and return an incorrect result without an
+  error. This can affect final success and interim stopping decisions.
+  The problem has been observed with large samples and very few events
+  or non-events. Check such cases against sufficiently precise Monte
+  Carlo Beta draws; `N_mcmc` controls Monte Carlo precision only. For
+  `h0 = 0`, identical Beta posteriors in the two arms must give a
+  probability of 0.5 in either direction, which provides a simple
+  accuracy check. The single-arm calculation uses the Beta CDF directly
+  and does not use this integration.
 
   Two equivalent predictive imputation approaches are available through
   `binary_imputation`. With `"event-time"`, the package samples a future

@@ -922,8 +922,26 @@ controls the number of Monte Carlo beta draws only when
 With sparse events or non-events and posterior event probabilities near
 0 or 1, the normal approximation can misrepresent tail probabilities and
 change success or interim stopping decisions. Increasing `N_mcmc` does
-not correct this error. Use `bin_method = "quadrature"` or sufficiently
-precise Monte Carlo Beta draws when the approximation is unsuitable.
+not correct this error. Use quadrature, subject to the warning below, or
+sufficiently precise Monte Carlo Beta draws when the approximation is
+unsuitable.
+
+> **Numerical accuracy of two-arm quadrature.** When the posterior event
+> risks are tightly concentrated, numerical integration can miss much of
+> the posterior probability and return an incorrect result without an
+> error. This has been observed with large samples and very few events
+> or non-events, and can change success or interim stopping decisions.
+> Check such probabilities against sufficiently precise Monte Carlo Beta
+> draws (`bin_method = "mc"`). Increasing `N_mcmc` does not improve
+> quadrature. The single-arm calculation evaluates the Beta CDF directly
+> and does not use this integration.
+
+When `h0 = 0` and the arms have identical Beta posteriors, the
+probability in either direction must be 0.5. The [Bayesian binary
+vignette](https://graemeleehickey.github.io/goldilocks/articles/bayesian-binary.html#choosing-bin_method)
+gives a concrete example in which the current quadrature calculation
+does not satisfy this check. Passing this check does not establish
+accuracy for other posterior distributions or margins.
 
 The completed-data calculation depends on (x_z,n_z) directly.
 Participant- level data are reduced to these sufficient statistics after

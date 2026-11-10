@@ -143,7 +143,14 @@ sim_trials(
   non-events and posterior event probabilities near 0 or 1. It can
   change whether `prob_ha` is exceeded. Increasing `N_mcmc` does not
   improve this approximation; use `"quadrature"` or sufficiently precise
-  `"mc"` instead.
+  `"mc"` instead. In two-arm designs, quadrature can also return an
+  inaccurate posterior probability without an error when the posterior
+  event risks are tightly concentrated, particularly with many
+  participants but very few events or non-events. Check such
+  probabilities against sufficiently precise Monte Carlo Beta draws
+  (`"mc"`). Increasing `N_mcmc` does not improve quadrature. This
+  integration issue does not apply to the single-arm Beta CDF
+  calculation.
 
 - block:
 

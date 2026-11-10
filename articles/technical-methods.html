@@ -61,6 +61,8 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Technical details of the Goldilocks design</h1>
+                        <h4 data-toc-skip class="author">Graeme L.
+Hickey</h4>
             
       
       <small class="dont-index">Source: <a href="https://github.com/graemeleehickey/goldilocks/blob/main/vignettes/technical-methods.Rmd" class="external-link"><code>vignettes/technical-methods.Rmd</code></a></small>
@@ -1159,8 +1161,25 @@ number of Monte Carlo beta draws only when
 near 0 or 1, the normal approximation can misrepresent tail
 probabilities and change success or interim stopping decisions.
 Increasing <code>N_mcmc</code> does not correct this error. Use
-<code>bin_method = "quadrature"</code> or sufficiently precise Monte
+quadrature, subject to the warning below, or sufficiently precise Monte
 Carlo Beta draws when the approximation is unsuitable.</p>
+<blockquote>
+<p><strong>Numerical accuracy of two-arm quadrature.</strong> When the
+posterior event risks are tightly concentrated, numerical integration
+can miss much of the posterior probability and return an incorrect
+result without an error. This has been observed with large samples and
+very few events or non-events, and can change success or interim
+stopping decisions. Check such probabilities against sufficiently
+precise Monte Carlo Beta draws (<code>bin_method = "mc"</code>).
+Increasing <code>N_mcmc</code> does not improve quadrature. The
+single-arm calculation evaluates the Beta CDF directly and does not use
+this integration.</p>
+</blockquote>
+<p>When <code>h0 = 0</code> and the arms have identical Beta posteriors,
+the probability in either direction must be 0.5. The <a href="bayesian-binary.html#choosing-bin_method">Bayesian binary
+vignette</a> gives a concrete example in which the current quadrature
+calculation does not satisfy this check. Passing this check does not
+establish accuracy for other posterior distributions or margins.</p>
 <p>The completed-data calculation depends on <span class="math inline">(x_z,n_z)</span> directly. Participant- level data
 are reduced to these sufficient statistics after complete endpoint
 ascertainment has been verified. Normal-approximation, quadrature, and

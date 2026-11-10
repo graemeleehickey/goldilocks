@@ -61,6 +61,8 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Bayesian binary outcome designs</h1>
+                        <h4 data-toc-skip class="author">Graeme L.
+Hickey</h4>
             
       
       <small class="dont-index">Source: <a href="https://github.com/graemeleehickey/goldilocks/blob/main/vignettes/bayesian-binary.Rmd" class="external-link"><code>vignettes/bayesian-binary.Rmd</code></a></small>
@@ -328,16 +330,37 @@ for the two-arm posterior difference, and the closed-form beta CDF for
 single-arm designs.</li>
 </ul>
 <p>The Monte Carlo method has simulation error, controlled by
-<code>N_mcmc</code>. Quadrature is deterministic (up to numerical
-integration for a two-arm design) and is a useful high-accuracy default
-when it is computationally feasible. The normal approximation is fastest
-in a representative two-arm benchmark, but should be used with care when
-sample sizes are small or event probabilities are near 0 or 1.</p>
-<p>Approximation error can move the posterior probability across
+<code>N_mcmc</code>, and is the package default. Quadrature is
+deterministic, but its two-arm calculation remains a numerical
+approximation. The normal approximation is fastest in a representative
+two-arm benchmark, but should be used with care when sample sizes are
+small or event probabilities are near 0 or 1.</p>
+<p>Normal-approximation error can move the posterior probability across
 <code>prob_ha</code>, changing success and interim stopping decisions.
-Increasing <code>N_mcmc</code> does not correct normal-approximation
-error. Use <code>bin_method = "quadrature"</code> or sufficiently
-precise Monte Carlo Beta draws when the approximation is unsuitable.</p>
+Increasing <code>N_mcmc</code> does not correct this error. Use
+quadrature, subject to the warning below, or sufficiently precise Monte
+Carlo Beta draws when the approximation is unsuitable.</p>
+<blockquote>
+<p><strong>Numerical accuracy of two-arm quadrature.</strong> With
+<code>bin_method = "quadrature"</code>, tightly concentrated posterior
+event risks can lead to an incorrect posterior probability even when the
+calculation finishes without an error. This has been observed with large
+samples and very few events or non-events. The resulting error can
+change whether <code>prob_ha</code> is exceeded and therefore affect
+final success or interim stopping. Check such probabilities against
+sufficiently precise Monte Carlo Beta draws using
+<code>bin_method = "mc"</code>; increasing <code>N_mcmc</code> improves
+Monte Carlo precision but does not improve quadrature. This integration
+issue does not apply to the single-arm Beta CDF calculation.</p>
+</blockquote>
+<p>For a simple check, if the two arms have identical Beta posteriors
+and <code>h0 = 0</code>, the probability that either arm has the lower
+event risk must be 0.5. For example, zero events among 10,000
+participants in each arm, with uniform Beta(1, 1) priors, give identical
+Beta(1, 10001) posteriors. The current two-arm quadrature calculation
+can return a probability near zero in this example. Agreement with the
+0.5 check is useful, but it does not establish accuracy for other data
+or margins.</p>
 </div>
 <div class="section level2">
 <h2 id="operating-characteristics">Operating characteristics<a class="anchor" aria-label="anchor" href="#operating-characteristics"></a>
