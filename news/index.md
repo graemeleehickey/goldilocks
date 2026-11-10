@@ -101,6 +101,11 @@ Both respect the interim calendar date.
 
 ### Documentation and verification
 
+- The PROMISE II vignette reconstructs the planned 120-patient design,
+  including the SAP’s dropout distribution and final analysis after
+  enrollment stops for futility. Reproducible simulations compare power,
+  sample sizes, and stopping probabilities with the reported
+  calculations, with separate enrollment sensitivity analyses.
 - [Calibrating stopping rules from complete trial
   paths](https://graemeleehickey.github.io/goldilocks/articles/calibrating-stopping-rules.html)
   demonstrates null and alternative paths, candidate evaluation,

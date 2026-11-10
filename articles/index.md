@@ -34,6 +34,8 @@
 - [ANTHEM-HFrEF](https://graemeleehickey.github.io/goldilocks/articles/anthem-hfref.md):
 - [ThermoCool
   AF](https://graemeleehickey.github.io/goldilocks/articles/thermocool-af.md):
+- [PROMISE II: 120-patient
+  design](https://graemeleehickey.github.io/goldilocks/articles/promise-ii.md):
 
 ### Statistical methods and reproducibility
 
