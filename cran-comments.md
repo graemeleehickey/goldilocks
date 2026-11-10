@@ -1,87 +1,26 @@
 ## Submission notes
 
-The win-builder R-oldrelease check reported one incoming-feasibility NOTE.
-The reported issues have been addressed:
+Package: goldilocks 1.1.0. Maintainer: Graeme L. Hickey.
 
-* `DESCRIPTION` now uses `Broglio and colleagues (2014)`, avoiding the words
-  `et al.` flagged by the spelling check and retaining the citation wording
-  used in the previous release.
-* Both links to the Wilber trial report in the ThermoCool AF vignette now use
-  its DOI, `10.1001/jama.2009.2029`, instead of the PubMed URL that returned
-  HTTP 203.
+## Correction for the CRAN vignette failure
 
-The revised source archive passes `R CMD check --as-cran` on macOS with
-R 4.6.1: 0 errors, 0 warnings, and 0 notes.
+CRAN reports an error for goldilocks 1.0.0 on r-oldrel-macos-arm64 (R 4.5.2 Patched). Forked R processes terminate with segmentation faults while rebuilding the ADVENT and ANTHEM-HFrEF vignettes; the subsequent missing worker results cause a secondary error when their trial identifiers are collected. Installation, examples, and tests pass on that platform. The check report is available at https://www.R-project.org/nosvn/R.check/r-oldrel-macos-arm64/goldilocks-00check.html.
 
-This is goldilocks 1.0.0, the first stable major release and an update to
-CRAN version 0.6.0. The main changes are:
+Evaluated simulations in ADVENT, ANTHEM-HFrEF, and ThermoCool AF now use one core, avoiding forked execution when those vignettes are built or checked. The other evaluated vignette simulations already run sequentially. This change is confined to the vignette execution settings: the package's parallel-processing defaults and error handling are unchanged, and larger examples that are displayed but not evaluated retain their parallel settings.
 
-* observed-interim evaluation through `evaluate_interim()`;
-* restricted mean survival time and Farrington-Manning analyses;
-* an optional immediate-success stopping boundary;
-* arm-specific priors, separate generation and analysis partitions, and
-  corrected predictive/final analysis-prior handling;
-* independent exponential dropout and improved simulation robustness;
-* Monte Carlo uncertainty and calendar-time operating-characteristic summaries;
-* additional statistical validation and expanded worked examples; and
-* a Zenodo badge and smaller HTML vignettes with shared local diagram resources.
+Simulation sizes, seeds, priors, stopping boundaries, and all other statistical settings are unchanged. In particular, the evaluated scenarios retain 500 trials each in ADVENT, 20 each in ANTHEM-HFrEF, and 50 each in ThermoCool AF. Using one core may increase elapsed build and check time relative to two-core execution, but does not increase the number of simulated trials or predictive calculations. We retain these simulation sizes to preserve the examples' Monte Carlo precision and use sequential execution for portability and reliable vignette rebuilding.
 
-NEWS.md starts with migration guidance from 0.6.0. It identifies changes to
-dropout, empty-interval handling, Bayesian survival predictions, Monte Carlo
-defaults, method names, and direct `sim_comp_data()` calls. Users should
-recalibrate existing designs after updating. The maintainer and license are
-unchanged.
+## Verification
 
-## Test environments
+Verification used R 4.5.3 on macOS Tahoe 26.7.1 (Apple silicon), with standard compiler settings (`R_MAKEVARS_USER=/dev/null`), HTML Tidy 5.8.0, and V8. R 4.5.2, used by the failing CRAN check, and R-devel are not installed locally.
 
-* Local macOS Tahoe 26.6.2, Apple silicon, R 4.6.1 (current release), using
-  `R CMD build --compact-vignettes=gs+qpdf` and `R CMD check --as-cran`.
-  R's standard compiler settings were used with `R_MAKEVARS_USER=/dev/null`.
-  HTML Tidy 5.8.0 and V8 were available for complete HTML/manual validation.
-* The implementation at commit 651944884215ee7edd9d28cea854856eeffa73b7 passed
-  GitHub Actions on Windows release, macOS release, Ubuntu release,
-  Ubuntu oldrel-1, and Ubuntu devel:
-  https://github.com/graemeleehickey/goldilocks/actions/runs/34261133547
-  These CI results precede the release metadata and vignette packaging changes;
-  the final source archive was built and checked locally with R 4.6.1.
+The source package was built with `R CMD build --compact-vignettes=gs+qpdf`; all 18 vignettes built successfully in 432.83 seconds elapsed. The rebuilt ADVENT, ANTHEM-HFrEF, and ThermoCool AF HTML vignettes were also checked visually.
 
-R-devel is not installed locally; the final archive was checked with the
-current R release, supplemented by the implementation's R-devel CI result.
+The full `R CMD check --as-cran --timings` completed with **0 errors, 0 warnings, and 2 notes** in 527.32 seconds elapsed. All 18 vignettes rebuilt successfully; this step used 398 seconds of CPU time and 405 seconds elapsed. Examples, compiled-code checks, and the PDF and HTML manuals passed. The test suite passed 2,500 expectations with no failures or warnings; eight longer tests were skipped by their existing CRAN conditions.
 
-## R CMD check results
+These timings cover the entire 1.1.0 package, including its additional vignettes, and do not isolate the extra elapsed time attributable to switching the three examples to one core.
 
-0 errors | 0 warnings | 0 notes
+## Check notes
 
-* All 1,506 CRAN test expectations pass; eight longer tests are skipped on CRAN.
-* The full installed-package test suite passes all 1,527 expectations with no
-  failures, warnings, or skips, including statistical calibration and parallel
-  worker checks.
-* All examples and 14 vignettes build and rebuild successfully. PDF and HTML
-  manual checks, including HTML validation and math rendering, pass.
-* The source archive is about 2.5 MB. Installed documentation is about 4.1 MB;
-  the diagram JavaScript is shared rather than embedded repeatedly. All local
-  vignette resource links were checked, and diagram rendering was verified in
-  a browser.
-
-## URL checks
-
-The CRAN incoming URL check passes. A separate `urlchecker` run encountered
-publisher access errors for these registered DOIs:
-
-* 10.1161/CIRCHEARTFAILURE.119.005879 (HTTP 403; bibliographic record verified
-  at https://pubmed.ncbi.nlm.nih.gov/31722536/).
-* 10.1200/JCO.2014.55.2208 (HTTP 403; article verified
-  at https://pmc.ncbi.nlm.nih.gov/articles/PMC4105489/).
-* 10.1201/EBK1439825488 (HTTP 503; Crossref bibliographic record verified).
-
-Zenodo and PubMed also returned intermittent timeouts/nonstandard responses.
-The requested Zenodo DOI and SVG badge both resolved with HTTP 200 during
-initial direct verification; later requests intermittently timed out.
-The DOI identifies the archived 0.6.0
-release and is retained as supplied; it does not claim to archive 1.0.0.
-
-## Reverse dependencies
-
-No reverse dependencies (Depends, Imports, LinkingTo, Suggests, or Enhances)
-were found in the CRAN package database on 2026-09-08. CRAN's published checks
-for version 0.6.0 were also all OK on that date.
+* The existing NEJM protocol link in the PROMISE II vignette returned HTTP 403 (Forbidden): https://www.nejm.org/doi/suppl/10.1056/NEJMoa2212754/suppl_file/nejmoa2212754_protocol.pdf. This link is unchanged by the vignette execution correction.
+* R reported `unable to verify current time` during the check for future file timestamps.
