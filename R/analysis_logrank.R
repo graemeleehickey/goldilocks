@@ -44,18 +44,13 @@ analyse_logrank <- function(time, event, treatment, alternative) {
 #' @description Calculates a log-rank test from the follow-up times and event
 #'   indicators in two independent treatment groups.
 #'
-#' @param groupa A numeric vector of non-negative follow-up times for group A.
-#' @param groupb A numeric vector of non-negative follow-up times for group B.
-#' @param groupacensored A zero-one integer vector indicating events in group A,
-#'   where `1` denotes an event and `0` denotes censoring.
-#' @param groupbcensored A zero-one integer vector indicating events in group B,
-#'   where `1` denotes an event and `0` denotes censoring.
-#' @param onlyz A single logical value indicating whether to return only the
-#'   standardized log-rank statistic. The default is `FALSE`.
+#' @param groupa A numeric vector of finite, non-negative follow-up times for group A.
+#' @param groupb A numeric vector of finite, non-negative follow-up times for group B.
+#' @param groupacensored A numeric vector of event indicators for group A, with the same length as `groupa` and no missing values. Values must be exactly `1` for an event or `0` for censoring.
+#' @param groupbcensored A numeric vector of event indicators for group B, with the same length as `groupb` and no missing values. Values must be exactly `1` for an event or `0` for censoring.
+#' @param onlyz A single non-missing logical value indicating whether to return only the standardized log-rank statistic. The default is `FALSE`.
 #'
-#' @return A numeric vector containing the chi-squared statistic, standardized
-#'   statistic, and two-sided *P*-value. When `onlyz = TRUE`, only the
-#'   standardized statistic is returned.
+#' @return A numeric vector containing the chi-squared statistic, standardized statistic, and two-sided *P*-value. When `onlyz = TRUE`, only the standardized statistic is returned. If the log-rank variance is zero, every returned value is `NaN`; the trial analysis rejects such non-estimable comparisons.
 #'
 #' @examples
 #' T1 <- c(6, 6, 6, 6, 7, 9, 10, 10, 11, 13, 16, 17, 19, 20, 22, 23, 25, 32, 32, 34, 35)

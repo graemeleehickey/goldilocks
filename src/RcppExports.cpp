@@ -11,16 +11,16 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // logrank_instance
-std::vector<double> logrank_instance(std::vector<double>& groupa, std::vector<double>& groupb, std::vector<int>& groupacensored, std::vector<int>& groupbcensored, bool onlyz);
+std::vector<double> logrank_instance(const std::vector<double>& groupa, const std::vector<double>& groupb, const std::vector<double>& groupacensored, const std::vector<double>& groupbcensored, SEXP onlyz);
 RcppExport SEXP _goldilocks_logrank_instance(SEXP groupaSEXP, SEXP groupbSEXP, SEXP groupacensoredSEXP, SEXP groupbcensoredSEXP, SEXP onlyzSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::vector<double>& >::type groupa(groupaSEXP);
-    Rcpp::traits::input_parameter< std::vector<double>& >::type groupb(groupbSEXP);
-    Rcpp::traits::input_parameter< std::vector<int>& >::type groupacensored(groupacensoredSEXP);
-    Rcpp::traits::input_parameter< std::vector<int>& >::type groupbcensored(groupbcensoredSEXP);
-    Rcpp::traits::input_parameter< bool >::type onlyz(onlyzSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type groupa(groupaSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type groupb(groupbSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type groupacensored(groupacensoredSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type groupbcensored(groupbcensoredSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type onlyz(onlyzSEXP);
     rcpp_result_gen = Rcpp::wrap(logrank_instance(groupa, groupb, groupacensored, groupbcensored, onlyz));
     return rcpp_result_gen;
 END_RCPP
