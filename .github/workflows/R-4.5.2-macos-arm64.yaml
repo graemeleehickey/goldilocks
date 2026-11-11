@@ -62,13 +62,13 @@ jobs:
         with:
           args: 'c("--as-cran", "--timings")'
           build_args: '"--compact-vignettes=gs+qpdf"'
-          check-dir: '"${{ runner.temp }}/r-check"'
+          check-dir: '"../r-check"'
           upload-results: 'never'
 
       - name: Report ADVENT and ANTHEM-HFrEF rebuilding
         shell: Rscript {0}
         run: |
-          check_dir <- file.path(Sys.getenv("RUNNER_TEMP"), "r-check", "goldilocks.Rcheck")
+          check_dir <- file.path("..", "r-check", "goldilocks.Rcheck")
           log <- readLines(file.path(check_dir, "build_vignettes.log"))
           for (vignette in c("advent", "anthem-hfref")) {
             finished <- grepl("finished re-building", log, fixed = TRUE) &
@@ -83,8 +83,8 @@ jobs:
         with:
           name: R-4.5.2-macos-arm64-check
           path: |
-            ${{ runner.temp }}/r-check/*.tar.gz
-            ${{ runner.temp }}/r-check/*.Rcheck/*.log
-            ${{ runner.temp }}/r-check/*.Rcheck/*.timings
-            ${{ runner.temp }}/r-check/*.Rcheck/tests/testthat.Rout*
-            ${{ runner.temp }}/r-check/*.Rcheck/vign_test/**/*.html
+            ../r-check/*.tar.gz
+            ../r-check/*.Rcheck/*.log
+            ../r-check/*.Rcheck/*.timings
+            ../r-check/*.Rcheck/tests/testthat.Rout*
+            ../r-check/*.Rcheck/vign_test/goldilocks/inst/doc/*.html
