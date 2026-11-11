@@ -745,6 +745,16 @@ The Bayesian final test is one-sided in the package; `alternative = "two.sided"`
 
 In a single-arm design there is no $p_0(\tau)$. The estimand becomes $p_1(\tau)$, and $h_0$ is an external benchmark event probability. In clinical-trial terminology this benchmark is often called a performance goal (PG) or objective performance criterion (OPC). Consequently, single-arm survival designs in `goldilocks` require `method = "bayes-surv"`; complete binary single-arm designs can use `method = "bayes-bin"`.
 
+**Numerical evaluation.** When both event risks are very close to one, separately evaluating $p_1(\tau)$ and $p_0(\tau)$ can round both to one and incorrectly make their difference zero. The package therefore retains the cumulative hazards when evaluating each posterior draw. At $h_0=0$, $\Delta<h_0$ is equivalent to $H_1(\tau)<H_0(\tau)$, including under nonproportional piecewise hazards. For nonzero margins, the comparison remains on the risk-difference scale, using
+
+$$\begin{aligned}
+\Delta &= e^{-H_0(\tau)}-e^{-H_1(\tau)},\\
+\log|\Delta| &= -\min\{H_1(\tau),H_0(\tau)\}\\
+&\quad +\log\!\left[1-e^{-|H_1(\tau)-H_0(\tau)|}\right].
+\end{aligned}$$
+
+The sign of $\Delta$ is the sign of $H_1(\tau)-H_0(\tau)$. Stable exponential and logarithmic evaluations preserve its magnitude for comparison with $h_0$, even when the reported risk difference is too small to represent numerically. Equal cumulative hazards give a zero difference, and comparisons remain strict. For single-arm analyses, $p_1(\tau)<h_0$ is evaluated as $H_1(\tau)<-\log(1-h_0)$; benchmarks zero and one map to zero and infinity. These calculations are used in both interim predictive analyses and final analyses, with the same posterior draws, priors, and hypotheses. Non-finite cumulative hazards raise an analysis error.
+
 ### 7.3 Bayesian binary final test
 
 For `method = "bayes-bin"`, each analysis dataset is reduced to the binary indicator of whether the endpoint has occurred by $\tau$. Subjects with right-censored follow-up before $\tau$ must be imputed or excluded before this final test is applied, as described below.

@@ -486,7 +486,7 @@ test_that("prepared Bayesian survival analysis matches general analysis", {
   expect_identical(prepared_seed, checked_seed)
 })
 
-test_that("prepared Bayesian survival effects match the general conversion", {
+test_that("Bayesian cumulative hazards preserve posterior draws and arm ordering", {
   cases <- list(
     list(
       name = "two-arm, one draw, one interval",
@@ -532,25 +532,29 @@ test_that("prepared Bayesian survival effects match the general conversion", {
       case$end_of_study
     )
 
-    expected <- haz_to_prop(
-      post = post_lambda,
-      cutpoints = case$cutpoints,
-      end_of_study = case$end_of_study,
-      single_arm = case$single_arm
-    )$effect
-    actual <- bayes_surv_effect_draws(
+    actual <- bayes_surv_cumulative_hazards(
       post_lambda = post_lambda,
       interval_widths = interval_widths,
       single_arm = case$single_arm
     )
-
-    expect_identical(actual, expected, info = case$name)
+    expected_treatment <- vapply(seq_len(case$draws), function(i) {
+      sum(post_lambda[i, , 1] * interval_widths)
+    }, numeric(1))
+    expect_equal(actual$treatment, expected_treatment, info = case$name)
+    if (case$single_arm) {
+      expect_null(actual$control)
+    } else {
+      expected_control <- vapply(seq_len(case$draws), function(i) {
+        sum(post_lambda[i, , 2] * interval_widths)
+      }, numeric(1))
+      expect_equal(actual$control, expected_control, info = case$name)
+    }
   }
 })
 
-test_that("prepared Bayesian survival effects reject incompatible inputs", {
+test_that("Bayesian cumulative hazards reject incompatible inputs", {
   expect_error(
-    bayes_surv_effect_draws(
+    bayes_surv_cumulative_hazards(
       post_lambda = matrix(0.1, nrow = 2, ncol = 2),
       interval_widths = c(6, 6),
       single_arm = FALSE

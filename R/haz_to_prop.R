@@ -25,53 +25,23 @@
 #'
 #' @noRd
 haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
-  if (length(cutpoints) == 0) {
-    # Standard exponential for when there are no interior cutpoints
-    p_treatment <- cumulative_hazard_to_probability(
-      end_of_study * post[,, 1]
-    )
-    if (!single_arm) {
-      p_control <- cumulative_hazard_to_probability(
-        end_of_study * post[,, 2]
-      )
-    } else {
-      p_control <- NA
-    }
+  validate_cutpoints(cutpoints)
+  validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
+  hazards <- bayes_surv_cumulative_hazards(
+    post, endpoint_interval_widths(cutpoints, end_of_study), single_arm
+  )
+  p_treatment <- cumulative_hazard_to_probability(hazards$treatment)
+  p_control <- if (single_arm) {
+    NA_real_
   } else {
-    # Piecewise exponential for one or more interior cutpoints
-    # Preserve the posterior-draw dimension when N_mcmc = 1. Direct array
-    # slicing drops it to a vector, whereas ppwe() requires a hazard matrix.
-    treatment_hazard <- matrix(
-      post[,, 1],
-      nrow = dim(post)[1],
-      ncol = dim(post)[2]
-    )
-    p_treatment <- ppwe(
-      hazard = treatment_hazard,
-      end_of_study = end_of_study,
-      cutpoints = cutpoints
-    )
-    if (!single_arm) {
-      control_hazard <- matrix(
-        post[,, 2],
-        nrow = dim(post)[1],
-        ncol = dim(post)[2]
-      )
-      p_control <- ppwe(
-        hazard = control_hazard,
-        end_of_study = end_of_study,
-        cutpoints = cutpoints
-      )
-    } else {
-      p_control <- NA
-    }
+    cumulative_hazard_to_probability(hazards$control)
   }
-
-  if (!single_arm) {
-    effect <- p_treatment - p_control
+  # Calculate the difference before rounding arm risks for display. Both risks
+  # can be reported as one while their difference remains nonzero.
+  effect <- if (single_arm) {
+    p_treatment
   } else {
-    effect <- p_treatment
+    bayes_surv_risk_difference(hazards$treatment, hazards$control)$effect
   }
-
-  return(data.frame(p_treatment, p_control, effect))
+  data.frame(p_treatment, p_control, effect)
 }

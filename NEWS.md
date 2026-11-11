@@ -37,6 +37,7 @@ For changing endpoints, success prediction uses observed follow-up through the c
 
 ## Bug fixes
 
+* Bayesian survival analyses now use numerically stable comparisons when endpoint event risks approach one. Zero-margin comparisons use cumulative hazards directly; nonzero margins retain the risk-difference scale, and single-arm comparisons use the corresponding cumulative-hazard threshold. The correction applies to interim predictive and final analyses, with regression tests for extreme risks, margins, and strict comparisons. Regenerate saved Bayesian survival paths to use the corrected calculations.
 * Applying stopping rules to saved paths now skips looks with `Fn = 0`, `Sn = 1`, and `Qn = 1`. Failed calculations at these disabled looks no longer exclude trials with valid final analyses. Skipped looks are omitted from the returned decision trace.
 * Frequentist risk-difference analyses (`method = "riskdiff-wald"` or `"riskdiff-fm"`) require `-1 < h0 < 1`, rejecting the degenerate boundary null values. Bayesian probability-scale margins retain their existing inclusive bounds.
 * `N_mcmc` is required to be a positive integer only for analyses that use posterior draws: `method = "bayes-surv"` and `method = "bayes-bin"` with `bin_method = "mc"`. Other analyses ignore it and accept `NULL`, consistently across direct simulation, observed interim evaluation, and saved trial paths.

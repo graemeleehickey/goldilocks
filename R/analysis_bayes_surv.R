@@ -129,13 +129,13 @@ analyse_prepared_bayes_surv <- function(
     empty_interval = empty_interval
   )
 
-  effect_draws <- bayes_surv_effect_draws(
+  cumulative_hazards <- bayes_surv_cumulative_hazards(
     post_lambda = post_lambda,
     interval_widths = interval_widths,
     single_arm = single_arm
   )
-  summarise_bayes_surv_effect_draws(
-    effect_draws = effect_draws,
+  summarise_bayes_surv_hazards(
+    cumulative_hazards = cumulative_hazards,
     alternative = alternative,
     h0 = h0
   )
@@ -160,39 +160,38 @@ analyse_bayes_surv_posterior_draws <- function(
   alternative,
   h0
 ) {
-  # haz_to_prop() evaluates all posterior draws together. For piecewise hazards
-  # it delegates to the matrix-based ppwe() cumulative-hazard calculation,
-  # avoiding a draw-by-draw probability loop.
-  post_event_probability <- haz_to_prop(
-    post = post_lambda,
-    cutpoints = cutpoints,
-    end_of_study = end_of_study,
+  # Use the same cumulative-hazard comparison as prepared predictive analyses.
+  # Converting each arm to an event risk first can round both risks to one
+  # and incorrectly turn a nonzero treatment difference into a tie.
+  cumulative_hazards <- bayes_surv_cumulative_hazards(
+    post_lambda = post_lambda,
+    interval_widths = endpoint_interval_widths(cutpoints, end_of_study),
     single_arm = single_arm
   )
-  effect_draws <- post_event_probability$effect
 
-  summarise_bayes_surv_effect_draws(
-    effect_draws = effect_draws,
+  summarise_bayes_surv_hazards(
+    cumulative_hazards = cumulative_hazards,
     alternative = alternative,
     h0 = h0
   )
 }
 
-#' Calculate Bayesian survival effects from posterior hazard draws
+#' Integrate posterior hazard draws through the endpoint
 #'
-#' @description Converts posterior piecewise-hazard draws to event probabilities
-#'   at the endpoint horizon and, for a two-arm design, calculates the
-#'   treatment-minus-control difference.
+#' @description Retains cumulative hazards before converting them to event
+#'   probabilities, so comparisons remain possible when those probabilities
+#'   would round to one.
 #'
 #' @param interval_widths A numeric vector of positive analysis-interval
 #'   durations through the endpoint horizon.
 #' @inheritParams analyse_bayes_surv_posterior_draws
 #'
-#' @return A numeric vector containing one effect per posterior draw.
+#' @return A list with cumulative-hazard vectors named `treatment` and `control`.
+#'   The control component is `NULL` for single-arm analyses.
 #'
 #' @keywords internal
 #' @noRd
-bayes_surv_effect_draws <- function(
+bayes_surv_cumulative_hazards <- function(
   post_lambda,
   interval_widths,
   single_arm
@@ -201,7 +200,9 @@ bayes_surv_effect_draws <- function(
   valid_structure <- is.array(post_lambda) &&
     length(post_dimensions) == 3L &&
     post_dimensions[2L] == length(interval_widths) &&
-    post_dimensions[3L] == 2L
+    post_dimensions[3L] == 2L &&
+    all(is.finite(interval_widths)) &&
+    all(interval_widths > 0)
   if (!valid_structure) {
     stop(
       paste0(
@@ -219,43 +220,115 @@ bayes_surv_effect_draws <- function(
     nrow = n_draws,
     ncol = n_intervals
   )
-  treatment_probability <- cumulative_hazard_to_probability(
-    drop(treatment_hazard %*% interval_widths)
-  )
-
-  if (single_arm) {
-    return(treatment_probability)
-  }
-
-  control_hazard <- matrix(
-    post_lambda[,, 2L],
-    nrow = n_draws,
-    ncol = n_intervals
-  )
-  control_probability <- cumulative_hazard_to_probability(
+  treatment <- drop(treatment_hazard %*% interval_widths)
+  control <- if (single_arm) {
+    NULL
+  } else {
+    control_hazard <- matrix(
+      post_lambda[,, 2L],
+      nrow = n_draws,
+      ncol = n_intervals
+    )
     drop(control_hazard %*% interval_widths)
-  )
-  treatment_probability - control_probability
+  }
+  # Overflow must be reported as a failed calculation; two infinite hazards
+  # do not provide enough numerical information to compare the treatment arms.
+  if (
+    any(!is.finite(treatment)) || any(treatment < 0) ||
+      any(!is.finite(control)) || any(control < 0)
+  ) {
+    stop(
+      "Bayesian survival analysis requires finite, non-negative cumulative hazards",
+      call. = FALSE
+    )
+  }
+  list(treatment = treatment, control = control)
 }
 
-#' Summarize Bayesian-survival effect draws
+#' Calculate a stable treatment-control event-risk difference
 #'
-#' @param effect_draws A numeric vector of posterior event-probability effects.
+#' @param treatment,control Numeric vectors of finite cumulative hazards.
+#' @return The difference (`effect`), its `sign`, and its `log_absolute` value.
+#' @noRd
+bayes_surv_risk_difference <- function(treatment, control) {
+  difference <- treatment - control
+  gap <- abs(difference)
+  # p_T - p_C = exp(-H_C) - exp(-H_T). Factoring out exp(-min(H_T,H_C))
+  # avoids subtracting rounded event probabilities. Retain the log magnitude
+  # even when the reported difference is too small to represent as a double.
+  # For log(1 - exp(-gap)), expm1 preserves small gaps, while log1p preserves
+  # the distance from one for large gaps. A genuine tie has log magnitude -Inf.
+  log_absolute <- -pmin(treatment, control) + ifelse(
+    gap <= log(2),
+    log(-expm1(-gap)),
+    log1p(-exp(-gap))
+  )
+  list(
+    effect = sign(difference) * exp(log_absolute),
+    sign = sign(difference),
+    log_absolute = log_absolute
+  )
+}
+
+#' Summarize Bayesian-survival posterior draws without rounded-risk comparisons
+#'
+#' @param cumulative_hazards A list returned by `bayes_surv_cumulative_hazards()`.
 #' @inheritParams analyse_bayes_surv_posterior_draws
 #'
 #' @return See `analyse_bayes_surv_sufficient_stats()`.
 #'
 #' @keywords internal
 #' @noRd
-summarise_bayes_surv_effect_draws <- function(
-  effect_draws,
+summarise_bayes_surv_hazards <- function(
+  cumulative_hazards,
   alternative,
   h0
 ) {
-  success_indicator <- if (alternative == "greater") {
-    effect_draws > h0
+  treatment <- cumulative_hazards$treatment
+  control <- cumulative_hazards$control
+  if (is.null(control)) {
+    effect_draws <- cumulative_hazard_to_probability(treatment)
+    # p_T < h0 is equivalent to H_T < -log(1-h0). Thresholds zero and one
+    # map to zero and infinity, preserving strict comparisons at both ends.
+    threshold <- probability_to_cumulative_hazard(h0)
+    success_indicator <- if (alternative == "greater") {
+      treatment > threshold
+    } else {
+      treatment < threshold
+    }
   } else {
-    effect_draws < h0
+    difference <- bayes_surv_risk_difference(treatment, control)
+    effect_draws <- difference$effect
+    if (h0 == 0) {
+      # At a zero risk-difference margin, cumulative-hazard ordering is exactly
+      # equivalent, including under nonproportional piecewise hazards.
+      success_indicator <- if (alternative == "greater") {
+        treatment > control
+      } else {
+        treatment < control
+      }
+    } else if (abs(h0) == 1) {
+      # With finite cumulative hazards the difference is strictly inside (-1,1),
+      # even when its displayed value rounds to an endpoint of that interval.
+      success_indicator <- rep.int(
+        (h0 == 1) == (alternative == "less"), length(treatment)
+      )
+    } else if (h0 > 0) {
+      # Nonzero margins remain risk differences. Compare signs first, then
+      # log magnitudes; converting h0 to a hazard-difference margin is invalid.
+      success_indicator <- if (alternative == "greater") {
+        difference$sign > 0 & difference$log_absolute > log(h0)
+      } else {
+        difference$sign <= 0 | difference$log_absolute < log(h0)
+      }
+    } else {
+      # Among negative differences, a larger magnitude means a smaller effect.
+      success_indicator <- if (alternative == "greater") {
+        difference$sign >= 0 | difference$log_absolute < log(-h0)
+      } else {
+        difference$sign < 0 & difference$log_absolute > log(-h0)
+      }
+    }
   }
   success <- mean(success_indicator)
 
