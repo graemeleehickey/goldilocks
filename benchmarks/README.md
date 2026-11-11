@@ -26,12 +26,7 @@ Both receive the same
 normalized prior and reset to the same seed, isolating validation overhead
 without changing the Gamma posterior calculation.
 
-The Bayesian-survival effect pair compares the general `haz_to_prop()` route
-with the prepared completed-data calculation. The latter reuses fixed analysis-
-interval widths and returns treatment-effect draws directly, avoiding repeated
-cutpoint validation and temporary probability data frames. It deliberately
-retains the completed-data analysis loop; the separate predictive-imputation
-benchmark below measures batching before that loop begins.
+The Bayesian-survival effect pair compares `haz_to_prob()`, which returns arm probabilities and effects, with direct calculation of the effects from cumulative-hazard draws. The latter reuses fixed analysis-interval widths and avoids repeating cutpoint validation or creating a probability data frame.
 
 ### Predictive Imputation
 

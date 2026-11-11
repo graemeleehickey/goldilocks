@@ -5,7 +5,7 @@
 #'   piecewise-constant hazard rate.
 #'
 #' @inheritParams survival_adapt
-#' @inheritParams haz_to_prop
+#' @inheritParams haz_to_prob
 #' @param data A data frame with one row per subject and at least three columns:
 #'   follow-up time (`time`), event indicator (`event`), and treatment
 #'   assignment (`treatment`, coded `1` for treatment and `0` for control).

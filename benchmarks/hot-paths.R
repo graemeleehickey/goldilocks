@@ -20,9 +20,13 @@ load_goldilocks <- function() {
 load_goldilocks()
 
 ppwe_internal <- getFromNamespace("ppwe", "goldilocks")
-haz_to_prop_internal <- getFromNamespace("haz_to_prop", "goldilocks")
-bayes_surv_effect_draws_internal <- getFromNamespace(
-  "bayes_surv_effect_draws",
+haz_to_prob_internal <- getFromNamespace("haz_to_prob", "goldilocks")
+bayes_surv_cum_haz_draws_internal <- getFromNamespace(
+  "bayes_surv_cum_haz_draws",
+  "goldilocks"
+)
+bayes_surv_risk_difference_internal <- getFromNamespace(
+  "bayes_surv_risk_difference",
   "goldilocks"
 )
 endpoint_interval_widths_internal <- getFromNamespace(
@@ -567,8 +571,8 @@ benchmark_results <- bench::mark(
       cutpoints = cutpoints_piecewise
     )
   },
-  haz_to_prop_piecewise = {
-    haz_to_prop_internal(
+  haz_to_prob_piecewise = {
+    haz_to_prob_internal(
       post = posterior_draws,
       cutpoints = cutpoints_piecewise,
       end_of_study = end_of_study,
@@ -576,11 +580,14 @@ benchmark_results <- bench::mark(
     )
   },
   bayes_surv_effect_prepared = {
-    bayes_surv_effect_draws_internal(
+    cumulative_hazard_draws <- bayes_surv_cum_haz_draws_internal(
       post_lambda = posterior_draws,
       interval_widths = analysis_interval_widths,
       single_arm = FALSE
     )
+    bayes_surv_risk_difference_internal(
+      cumulative_hazard_draws$treatment, cumulative_hazard_draws$control
+    )$effect
   },
   posterior_piecewise = {
     set.seed(1001)

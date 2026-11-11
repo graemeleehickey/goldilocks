@@ -6,7 +6,7 @@
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
-#' @inheritParams haz_to_prop
+#' @inheritParams haz_to_prob
 #' @param data A data frame with one row per subject and columns `time`,
 #'   `event`, and `treatment`. It contains the observed or imputed outcomes to
 #'   be analyzed using the prespecified method.

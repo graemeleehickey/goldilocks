@@ -21,7 +21,7 @@ test_that("Bayesian survival comparisons retain ordering when risks round to one
 
   # The last two unequal risks differ by less than a representable double.
   # Their reported difference can be zero, but their ordering remains known.
-  risks <- haz_to_prop(post, NULL, 1, FALSE)
+  risks <- haz_to_prob(post, NULL, 1, FALSE)
   reference <- exp(-40) * (1 - exp(-1))
   expect_equal(risks$effect[1] / reference, 1, tolerance = 1e-12)
   expect_equal(risks$effect[2] / reference, -1, tolerance = 1e-12)

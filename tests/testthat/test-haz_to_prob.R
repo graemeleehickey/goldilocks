@@ -1,10 +1,10 @@
-test_that("haz_to_prop preserves dimensions for one piecewise posterior draw", {
+test_that("haz_to_prob preserves dimensions for one piecewise posterior draw", {
   post <- array(
     c(0.02, 0.03, 0.03, 0.04),
     dim = c(1, 2, 2)
   )
 
-  out <- haz_to_prop(
+  out <- haz_to_prob(
     post = post,
     cutpoints = 12,
     end_of_study = 24,

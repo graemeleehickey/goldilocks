@@ -24,7 +24,7 @@
 #'     design.
 #'
 #' @noRd
-haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
+haz_to_prob <- function(post, cutpoints, end_of_study, single_arm) {
   validate_cutpoints(cutpoints)
   validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
   hazards <- bayes_surv_cum_haz_draws(

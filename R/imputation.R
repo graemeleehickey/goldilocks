@@ -9,7 +9,7 @@
 #'
 #' @inheritParams survival_adapt
 #' @inheritParams sim_comp_data
-#' @inheritParams haz_to_prop
+#' @inheritParams haz_to_prob
 #' @param data_in A data frame with one row per subject and columns for
 #'   treatment assignment (`treatment`, coded `1` for treatment and `0` for
 #'   control; single-arm designs use all 1s), event time (`time`), event
