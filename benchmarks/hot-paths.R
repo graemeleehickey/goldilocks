@@ -88,8 +88,8 @@ cum_haz_to_prob_internal <- getFromNamespace(
   "cum_haz_to_prob",
   "goldilocks"
 )
-probability_to_cumulative_hazard_internal <- getFromNamespace(
-  "probability_to_cumulative_hazard",
+prob_to_cum_haz_internal <- getFromNamespace(
+  "prob_to_cum_haz",
   "goldilocks"
 )
 cox_wald_test_internal <- getFromNamespace("cox_wald_test", "goldilocks")
@@ -545,8 +545,8 @@ benchmark_results <- bench::mark(
   cum_haz_to_prob = {
     cum_haz_to_prob_internal(cumulative_hazard_values)
   },
-  probability_to_cumulative_hazard = {
-    probability_to_cumulative_hazard_internal(probability_values)
+  prob_to_cum_haz = {
+    prob_to_cum_haz_internal(probability_values)
   },
   enrollment_constant = {
     set.seed(1000)

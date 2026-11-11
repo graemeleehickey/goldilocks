@@ -404,7 +404,7 @@ test_that("stable hazard-probability transforms retain boundary precision", {
   expect_true(is.na(probability[7]))
 
   input_probability <- c(0, 1e-20, .Machine$double.eps, 0.5, 1, NA)
-  recovered_hazard <- probability_to_cumulative_hazard(input_probability)
+  recovered_hazard <- prob_to_cum_haz(input_probability)
   expect_identical(recovered_hazard[1], 0)
   expect_equal(recovered_hazard[2], 1e-20, tolerance = 1e-35)
   expect_equal(recovered_hazard[4], log(2), tolerance = 1e-15)

@@ -291,7 +291,7 @@ summarise_bayes_surv_hazards <- function(
     effect_draws <- cum_haz_to_prob(treatment)
     # p_T < h0 is equivalent to H_T < -log(1-h0). Thresholds zero and one
     # map to zero and infinity, preserving strict comparisons at both ends.
-    threshold <- probability_to_cumulative_hazard(h0)
+    threshold <- prob_to_cum_haz(h0)
     success_indicator <- if (alternative == "greater") {
       treatment > threshold
     } else {

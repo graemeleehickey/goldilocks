@@ -58,7 +58,7 @@ prop_to_haz <- function(probs, cutpoints = NULL, endtime) {
   }
 
   lambda <- vector(length = J)
-  cumulative_hazard <- probability_to_cumulative_hazard(probs)
+  cumulative_hazard <- prob_to_cum_haz(probs)
 
   if (J == 1) {
     lambda <- cumulative_hazard / endtime

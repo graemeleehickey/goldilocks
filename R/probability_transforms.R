@@ -24,6 +24,6 @@ cum_haz_to_prob <- function(cumulative_hazard) {
 #' @return A numeric vector of non-negative cumulative hazards.
 #'
 #' @noRd
-probability_to_cumulative_hazard <- function(probability) {
+prob_to_cum_haz <- function(probability) {
   -log1p(-probability)
 }
