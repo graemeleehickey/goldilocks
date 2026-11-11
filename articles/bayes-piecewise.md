@@ -219,6 +219,24 @@ generates `N_impute` sets of `N_mcmc` draws, so seeded results can
 change. Choose `N_mcmc` for the required final probability precision;
 fewer total draws do not automatically mean lower Monte Carlo error.
 
+**Use substantially more posterior draws for the final application.**
+The default `N_mcmc = 1000` and the `2000` draws used below are coarse
+or illustrative settings. For this conjugate survival analysis, use
+`N_mcmc = 50000` as a starting point and prespecify a larger budget,
+such as `500000`, for decisions close to `prob_ha`. At 50,000 draws, the
+Monte Carlo standard error of the estimated posterior probability is
+about 0.00097 near 0.95 and 0.00070 near 0.975; no fixed count
+guarantees a stable decision arbitrarily close to the threshold. Despite
+its name, `N_mcmc` counts independent Gamma posterior draws here, not
+iterations of a Markov chain. Report Monte Carlo uncertainty and assess
+it relative to the decision threshold. The same argument also controls
+posterior draws inside interim predictions, so increasing it increases
+interim computation; there is no separate final-only draw argument.
+Assess operating characteristics with the intended analysis settings.
+The [technical methods
+vignette](https://graemeleehickey.github.io/goldilocks/articles/technical-methods.html#loss-to-follow-up-at-the-final-analysis)
+gives the precision calculation and benchmark evidence.
+
 Interim predictive calculations remain unchanged. They estimate the
 probability that a future completed dataset will pass the final success
 threshold, averaging indicators of \Pr(\Delta\<h_0\mid

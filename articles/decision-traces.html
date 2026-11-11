@@ -61,6 +61,8 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Inspecting adaptive decision paths</h1>
+                        <h4 data-toc-skip class="author">Graeme L.
+Hickey</h4>
             
       
       <small class="dont-index">Source: <a href="https://github.com/graemeleehickey/goldilocks/blob/main/vignettes/decision-traces.Rmd" class="external-link"><code>vignettes/decision-traces.Rmd</code></a></small>
@@ -82,6 +84,16 @@ record for each completed interim look.</p>
 <p>This small Bayesian survival design has two interim looks. The
 treatment arm is assumed to have a lower cumulative failure probability
 by 24 months.</p>
+<p>The <code>N_impute = 20</code> and <code>N_mcmc = 20</code> settings
+below are only for illustrating the decision history. For the final
+application of <code>method = "bayes-surv"</code> with
+<code>empty_interval = "prior"</code>, use substantially more posterior
+draws: 50,000 is a starting point, with a larger prespecified budget,
+such as 500,000, near the success threshold. Assess Monte Carlo
+uncertainty and operating characteristics with the intended settings.
+<code>N_mcmc</code> also controls interim posterior sampling, so
+increasing it increases interim computation. See the <a href="bayes-piecewise.html#final-analysis-with-incomplete-follow-up">final-analysis
+guidance</a>.</p>
 <p>The common <code>prop_loss = 0.05</code> specifies a 5% dropout-time
 CDF at 24 months. Dropout is exponential and independent of event time
 within each arm; an event before dropout remains observed. Actual

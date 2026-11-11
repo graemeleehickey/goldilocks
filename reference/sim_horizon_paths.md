@@ -233,7 +233,19 @@ sim_horizon_paths(
   Bayesian survival analyses and Bayesian binomial analyses with
   `bin_method = "mc"`. The default is `1000`. Ignored for all other
   analyses, including `bin_method = "normal"` and `"quadrature"` with
-  `method = "bayes-bin"`; `NULL` is allowed when ignored.
+  `method = "bayes-bin"`; `NULL` is allowed when ignored. For the final
+  application of `method = "bayes-surv"` with
+  `empty_interval = "prior"`, use substantially more than the default:
+  `50000` draws is a starting point, with a larger prespecified budget
+  (for example, `500000`) near the success threshold. Assess Monte Carlo
+  uncertainty relative to `prob_ha`; no fixed count guarantees a stable
+  decision arbitrarily close to the threshold. These are independent
+  Gamma posterior draws, despite the argument name. This setting also
+  controls posterior draws within interim predictions, so increasing it
+  increases interim computation; there is no separate final-only draw
+  argument. Small counts in examples are illustrative, and operating
+  characteristics should be assessed using the intended analysis
+  settings.
 
 - mc_conf_level:
 

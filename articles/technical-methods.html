@@ -1300,6 +1300,69 @@ draws change. Final Monte Carlo precision must now be assessed using
 does not guarantee smaller Monte Carlo error. Previously saved paths
 retain their original final scores; regenerate them to use the direct
 calculation.</p>
+<p><strong>Posterior draw count for the final application.</strong> Use
+substantially more than the default <code>N_mcmc = 1000</code>: 50,000
+draws is a starting point for this conjugate survival analysis, with a
+larger prespecified budget, such as 500,000, near the success threshold.
+Despite the argument name, the Gamma posterior draws are independent, so
+no Markov-chain effective sample size adjustment is needed. Conditional
+on the observed data, an estimated posterior probability <span class="math inline">\widehat q</span> based on <span class="math inline">B=\texttt{N\_mcmc}</span> draws has estimated Monte
+Carlo standard error</p>
+<p><span class="math display">
+\widehat{\operatorname{MCSE}}(\widehat q)
+=\sqrt{\frac{\widehat q(1-\widehat q)}{B}}.
+</span></p>
+<table class="table">
+<thead><tr class="header">
+<th align="right">Posterior draws</th>
+<th align="right">MCSE near <span class="math inline">q=0.95</span>
+</th>
+<th align="right">MCSE near <span class="math inline">q=0.975</span>
+</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1,000</td>
+<td align="right">0.00689</td>
+<td align="right">0.00494</td>
+</tr>
+<tr class="even">
+<td align="right">50,000</td>
+<td align="right">0.000975</td>
+<td align="right">0.000698</td>
+</tr>
+<tr class="odd">
+<td align="right">500,000</td>
+<td align="right">0.000308</td>
+<td align="right">0.000221</td>
+</tr>
+</tbody>
+</table>
+<p>With 1,000 draws, approximate 95% Monte Carlo half-widths are 0.0135
+and 0.0097 near these thresholds. Even 50,000 draws may be insufficient
+for a definitive decision: if the underlying posterior probability lies
+only 0.001 from the threshold, the probability of the opposite numerical
+decision can be about 15.3% at a 0.95 threshold or 7.7% at a 0.975
+threshold, taking the worse side of each threshold and using the
+package’s strict <code>&gt;</code> comparison. No fixed finite count
+resolves probabilities arbitrarily close to a boundary. Prespecify the
+required numerical precision and a larger budget for close decisions,
+and report Monte Carlo uncertainty alongside the posterior probability.
+The <a href="https://github.com/graemeleehickey/goldilocks/tree/main/benchmarks#bayesian-survival-final-analysis" class="external-link">reproducible
+benchmark</a> compares runtime and precision across six survival
+datasets with dropout; 50,000 direct draws matched or improved on the
+previous imputation procedure’s precision in those examples. These
+numerical comparisons do not establish operating characteristics for a
+proposed design.</p>
+<p><code>N_mcmc</code> also controls posterior sampling within each
+interim predictive completion; there is currently no separate final-only
+draw argument. Increasing it from 1,000 to 50,000 multiplies that part
+of the interim draw workload by 50. Small counts in worked examples keep
+them practical to run and are not recommendations for the final
+application. Assess operating characteristics using the intended
+analysis settings; increasing <code>N_trials</code> improves their
+estimation but does not remove numerical error within each trial’s
+decisions.</p>
 <p>Interim prediction remains a different calculation: it averages <span class="math inline">I\{\Pr(\Delta&lt;h_0\mid
 D,M)&gt;\texttt{prob\_ha}\}</span>, rather than the posterior
 probability itself. The nonlinear success threshold prevents the above

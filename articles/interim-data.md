@@ -180,6 +180,15 @@ patient-months. These values are illustrative; the actual predictive
 prior needs justification from the external evidence and a
 prior-predictive assessment.
 
+The `N_mcmc = 1000` setting below is illustrative, not a recommendation
+for a definitive final survival analysis. For the final application with
+`empty_interval = "prior"`, use 50,000 posterior draws as a starting
+point and a larger prespecified budget, such as 500,000, near the
+success threshold; assess Monte Carlo uncertainty relative to that
+threshold. This argument also controls interim posterior sampling, so
+increasing it increases interim computation. See the [final-analysis
+guidance](https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.html#final-analysis-with-incomplete-follow-up).
+
 ``` r
 
 predictive_prior <- list(

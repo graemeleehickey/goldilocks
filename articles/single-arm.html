@@ -61,6 +61,8 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Single-arm designs with a performance goal</h1>
+                        <h4 data-toc-skip class="author">Graeme L.
+Hickey</h4>
             
       
       <small class="dont-index">Source: <a href="https://github.com/graemeleehickey/goldilocks/blob/main/vignettes/single-arm.Rmd" class="external-link"><code>vignettes/single-arm.Rmd</code></a></small>
@@ -133,6 +135,21 @@ example</a> for a worked specification of the two prior roles.</p>
 <div class="section level2">
 <h2 id="setting-up-the-design">Setting up the design<a class="anchor" aria-label="anchor" href="#setting-up-the-design"></a>
 </h2>
+<p>The examples use <code>N_mcmc = 2000</code> to keep computation
+manageable. For the final application of
+<code>method = "bayes-surv"</code> with
+<code>empty_interval = "prior"</code>, use a substantially larger count:
+50,000 posterior draws is a starting point, with a larger prespecified
+budget, such as 500,000, near <code>prob_ha</code>. These are
+independent Gamma draws. Assess and report Monte Carlo uncertainty
+relative to the success threshold; no finite count guarantees a stable
+decision arbitrarily close to it. <code>N_mcmc</code> also controls
+posterior sampling within interim predictions, so increasing it
+increases interim computation. There is no separate final-only draw
+argument; assess operating characteristics with the intended settings.
+See the <a href="bayes-piecewise.html#final-analysis-with-incomplete-follow-up">Bayesian
+survival final-analysis guidance</a>, including why
+<code>imputed_final</code> is redundant under this model.</p>
 <p>Suppose the existing standard of care has a 30% event probability by
 24 months, and we are testing a new agent that we hope will reduce this
 to 20%. We use an interim look at 50 of 80 enrolled subjects:</p>

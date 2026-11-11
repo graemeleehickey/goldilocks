@@ -61,6 +61,8 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Applying predictive decisions to an observed interim data cut</h1>
+                        <h4 data-toc-skip class="author">Graeme L.
+Hickey</h4>
             
       
       <small class="dont-index">Source: <a href="https://github.com/graemeleehickey/goldilocks/blob/main/vignettes/interim-data.Rmd" class="external-link"><code>vignettes/interim-data.Rmd</code></a></small>
@@ -264,6 +266,15 @@ month for control and treatment. Their rate parameters use
 patient-months. These values are illustrative; the actual predictive
 prior needs justification from the external evidence and a
 prior-predictive assessment.</p>
+<p>The <code>N_mcmc = 1000</code> setting below is illustrative, not a
+recommendation for a definitive final survival analysis. For the final
+application with <code>empty_interval = "prior"</code>, use 50,000
+posterior draws as a starting point and a larger prespecified budget,
+such as 500,000, near the success threshold; assess Monte Carlo
+uncertainty relative to that threshold. This argument also controls
+interim posterior sampling, so increasing it increases interim
+computation. See the <a href="bayes-piecewise.html#final-analysis-with-incomplete-follow-up">final-analysis
+guidance</a>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">predictive_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">10</span>, rate <span class="op">=</span> <span class="fl">200</span><span class="op">)</span>,</span>

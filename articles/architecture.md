@@ -153,6 +153,15 @@ empty-interval policies keep their existing final procedures. The
 vignette](https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.html#final-analysis-with-incomplete-follow-up)
 explains the identity, assumptions, and Monte Carlo implications.
 
+For the final application of this conjugate survival analysis, use
+substantially more than the default 1,000 draws: 50,000 is a starting
+point, with a larger prespecified budget, such as 500,000, near the
+success threshold. Assess Monte Carlo uncertainty relative to that
+threshold. `N_mcmc` is shared with interim posterior sampling, so
+increasing it also increases interim computation; there is no separate
+final-only draw argument. Assess operating characteristics using the
+intended settings.
+
 For methods that accept `imputed_final = TRUE`, complete final outcomes
 use the selected test directly. FM simulations with this flag require
 zero dropout in both arms. Rubin pooling requires at least two

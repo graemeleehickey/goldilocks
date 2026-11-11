@@ -174,7 +174,8 @@ use the predictive posterior as a new prior, which would count the
 observed information twice. For `method = "bayes-bin"`, the completed
 endpoint indicators are analyzed with `prior_bin`; the Gamma model
 supplies the imputation. `prior_surv_final` also governs hazard-based
-imputation at the actual final analysis when requested.
+imputation at the actual final analysis when the selected method and
+empty-interval policy require it.
 
 The optional `horizon_settings` data frame specifies horizon-specific
 `h0`, `rmst_tau`, or `prior_bin`. Without overrides, the common null
@@ -242,6 +243,16 @@ by itself make complete-case binary analysis unbiased. These choices and
 the restrictions on log-rank and Farrington-Manning final imputation are
 described in the [technical methods
 vignette](https://graemeleehickey.github.io/goldilocks/articles/technical-methods.html#loss-to-follow-up-at-the-final-analysis).
+
+For the final application of this conjugate Bayesian survival analysis
+at the selected endpoint, use substantially more than the default 1,000
+draws: 50,000 is a starting point, with a larger prespecified budget,
+such as 500,000, near the success threshold. Assess Monte Carlo
+uncertainty relative to that threshold. `N_mcmc` also controls posterior
+draws within interim predictions at each endpoint, so increasing it
+increases interim computation; there is no separate final-only draw
+argument. Assess operating characteristics with the intended settings,
+including the selected endpoint’s final draw count.
 
 ## Shared histories, dropout, and timing
 

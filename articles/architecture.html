@@ -297,6 +297,14 @@ and cannot use this simplification. Other analysis methods and
 empty-interval policies keep their existing final procedures. The <a href="bayes-piecewise.html#final-analysis-with-incomplete-follow-up">Bayesian
 survival vignette</a> explains the identity, assumptions, and Monte
 Carlo implications.</p>
+<p>For the final application of this conjugate survival analysis, use
+substantially more than the default 1,000 draws: 50,000 is a starting
+point, with a larger prespecified budget, such as 500,000, near the
+success threshold. Assess Monte Carlo uncertainty relative to that
+threshold. <code>N_mcmc</code> is shared with interim posterior
+sampling, so increasing it also increases interim computation; there is
+no separate final-only draw argument. Assess operating characteristics
+using the intended settings.</p>
 <p>For methods that accept <code>imputed_final = TRUE</code>, complete
 final outcomes use the selected test directly. FM simulations with this
 flag require zero dropout in both arms. Rubin pooling requires at least

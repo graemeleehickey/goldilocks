@@ -1058,6 +1058,51 @@ draws does not guarantee smaller Monte Carlo error. Previously saved
 paths retain their original final scores; regenerate them to use the
 direct calculation.
 
+**Posterior draw count for the final application.** Use substantially
+more than the default `N_mcmc = 1000`: 50,000 draws is a starting point
+for this conjugate survival analysis, with a larger prespecified budget,
+such as 500,000, near the success threshold. Despite the argument name,
+the Gamma posterior draws are independent, so no Markov-chain effective
+sample size adjustment is needed. Conditional on the observed data, an
+estimated posterior probability \widehat q based on B=\texttt{N\\mcmc}
+draws has estimated Monte Carlo standard error
+
+\widehat{\operatorname{MCSE}}(\widehat q) =\sqrt{\frac{\widehat
+q(1-\widehat q)}{B}}.
+
+| Posterior draws | MCSE near q=0.95 | MCSE near q=0.975 |
+|----------------:|-----------------:|------------------:|
+|           1,000 |          0.00689 |           0.00494 |
+|          50,000 |         0.000975 |          0.000698 |
+|         500,000 |         0.000308 |          0.000221 |
+
+With 1,000 draws, approximate 95% Monte Carlo half-widths are 0.0135 and
+0.0097 near these thresholds. Even 50,000 draws may be insufficient for
+a definitive decision: if the underlying posterior probability lies only
+0.001 from the threshold, the probability of the opposite numerical
+decision can be about 15.3% at a 0.95 threshold or 7.7% at a 0.975
+threshold, taking the worse side of each threshold and using the
+package’s strict `>` comparison. No fixed finite count resolves
+probabilities arbitrarily close to a boundary. Prespecify the required
+numerical precision and a larger budget for close decisions, and report
+Monte Carlo uncertainty alongside the posterior probability. The
+[reproducible
+benchmark](https://github.com/graemeleehickey/goldilocks/tree/main/benchmarks#bayesian-survival-final-analysis)
+compares runtime and precision across six survival datasets with
+dropout; 50,000 direct draws matched or improved on the previous
+imputation procedure’s precision in those examples. These numerical
+comparisons do not establish operating characteristics for a proposed
+design.
+
+`N_mcmc` also controls posterior sampling within each interim predictive
+completion; there is currently no separate final-only draw argument.
+Increasing it from 1,000 to 50,000 multiplies that part of the interim
+draw workload by 50. Small counts in worked examples keep them practical
+to run and are not recommendations for the final application. Assess
+operating characteristics using the intended analysis settings;
+increasing `N_trials` improves their estimation but does not remove
+numerical error within each trial’s decisions.
+
 Interim prediction remains a different calculation: it averages
 I\\\Pr(\Delta\<h_0\mid D,M)\>\texttt{prob\\ha}\\, rather than the
 posterior probability itself. The nonlinear success threshold prevents

@@ -252,7 +252,8 @@ interim prediction only; the final analysis uses <code>N_mcmc</code> posterior d
 
 
 <dt id="arg-n-mcmc">N_mcmc<a class="anchor" aria-label="anchor" href="#arg-n-mcmc"></a></dt>
-<dd><p>A positive integer giving the number of posterior draws used for Bayesian survival analyses and Bayesian binomial analyses with <code>bin_method = "mc"</code>. The default is <code>1000</code>. Ignored for all other analyses, including <code>bin_method = "normal"</code> and <code>"quadrature"</code> with <code>method = "bayes-bin"</code>; <code>NULL</code> is allowed when ignored.</p></dd>
+<dd><p>A positive integer giving the number of posterior draws used for Bayesian survival analyses and Bayesian binomial analyses with <code>bin_method = "mc"</code>. The default is <code>1000</code>. Ignored for all other analyses, including <code>bin_method = "normal"</code> and <code>"quadrature"</code> with <code>method = "bayes-bin"</code>; <code>NULL</code> is allowed when ignored.
+For the final application of <code>method = "bayes-surv"</code> with <code>empty_interval = "prior"</code>, use substantially more than the default: <code>50000</code> draws is a starting point, with a larger prespecified budget (for example, <code>500000</code>) near the success threshold. Assess Monte Carlo uncertainty relative to <code>prob_ha</code>; no fixed count guarantees a stable decision arbitrarily close to the threshold. These are independent Gamma posterior draws, despite the argument name. This setting also controls posterior draws within interim predictions, so increasing it increases interim computation; there is no separate final-only draw argument. Small counts in examples are illustrative, and operating characteristics should be assessed using the intended analysis settings.</p></dd>
 
 
 <dt id="arg-mc-conf-level">mc_conf_level<a class="anchor" aria-label="anchor" href="#arg-mc-conf-level"></a></dt>
