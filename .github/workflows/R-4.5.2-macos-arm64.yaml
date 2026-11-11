@@ -1,0 +1,90 @@
+name: R 4.5.2 on Apple silicon
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-check:
+    runs-on: macos-15
+    timeout-minutes: 90
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      R_MAKEVARS_USER: /dev/null
+      NOT_CRAN: 'false'
+      _R_CHECK_FORCE_SUGGESTS_: 'true'
+      _R_CHECK_CRAN_INCOMING_: 'true'
+      _R_CHECK_ALWAYS_LOG_VIGNETTE_OUTPUT_: 'true'
+      _R_CHECK_CLEAN_VIGN_TEST_: 'false'
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.2'
+
+      - name: Verify R version and Apple silicon
+        shell: Rscript {0}
+        run: |
+          stopifnot(
+            getRversion() == "4.5.2",
+            Sys.getenv("RUNNER_ARCH") == "ARM64",
+            R.version$arch == "aarch64"
+          )
+          print(sessionInfo())
+          system("sw_vers")
+          system("uname -m")
+
+      - uses: r-lib/actions/setup-tinytex@v2
+
+      - name: Install documentation tools
+        run: |
+          brew install tidy-html5 ghostscript qpdf
+          echo "$(brew --prefix tidy-html5)/bin" >> "$GITHUB_PATH"
+          tlmgr install collection-latexrecommended inconsolata ec texinfo
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::rcmdcheck
+            any::V8
+          needs: check
+
+      - name: Build and check the complete package
+        uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--as-cran", "--timings")'
+          build_args: '"--compact-vignettes=gs+qpdf"'
+          check-dir: '"${{ runner.temp }}/r-check"'
+          upload-results: 'never'
+
+      - name: Report ADVENT and ANTHEM-HFrEF rebuilding
+        shell: Rscript {0}
+        run: |
+          check_dir <- file.path(Sys.getenv("RUNNER_TEMP"), "r-check", "goldilocks.Rcheck")
+          log <- readLines(file.path(check_dir, "build_vignettes.log"))
+          for (vignette in c("advent", "anthem-hfref")) {
+            finished <- grepl("finished re-building", log, fixed = TRUE) &
+              grepl(paste0(vignette, ".Rmd"), log, fixed = TRUE)
+            stopifnot(any(finished))
+            cat(log[finished], sep = "\n")
+          }
+
+      - name: Save package, check logs, and rebuilt vignettes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: R-4.5.2-macos-arm64-check
+          path: |
+            ${{ runner.temp }}/r-check/*.tar.gz
+            ${{ runner.temp }}/r-check/*.Rcheck/*.log
+            ${{ runner.temp }}/r-check/*.Rcheck/*.timings
+            ${{ runner.temp }}/r-check/*.Rcheck/tests/testthat.Rout*
+            ${{ runner.temp }}/r-check/*.Rcheck/vign_test/**/*.html
