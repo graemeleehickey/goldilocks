@@ -1175,11 +1175,42 @@ Increasing <code>N_mcmc</code> does not improve quadrature. The
 single-arm calculation evaluates the Beta CDF directly and does not use
 this integration.</p>
 </blockquote>
-<p>When <code>h0 = 0</code> and the arms have identical Beta posteriors,
-the probability in either direction must be 0.5. The <a href="bayesian-binary.html#choosing-bin_method">Bayesian binary
-vignette</a> gives a concrete example in which the current quadrature
-calculation does not satisfy this check. Passing this check does not
-establish accuracy for other posterior distributions or margins.</p>
+<p>The package checks symmetry and posterior mean-variance bounds after
+each two-arm quadrature calculation. When <code>h0 = 0</code> and the
+arms have identical Beta posteriors, the probability in either direction
+must be 0.5. For the second check, define <span class="math inline">D =
+\pi_1 - \pi_0 - h_0</span>, with posterior mean <span class="math inline">m</span> and variance <span class="math inline">v =
+\operatorname{Var}(\pi_1 \mid \mathcal{D}) + \operatorname{Var}(\pi_0
+\mid \mathcal{D})</span>. Independence of the two Beta posteriors gives
+this variance. Cantelli’s inequality implies</p>
+<p><span class="math display">
+\begin{aligned}
+\Pr(D &lt; 0 \mid \mathcal{D}) &amp;\geq \frac{m^2}{v + m^2}, &amp;&amp;
+m &lt; 0, \\
+\Pr(D &lt; 0 \mid \mathcal{D}) &amp;\leq \frac{v}{v + m^2}, &amp;&amp; m
+&gt; 0.
+\end{aligned}
+</span></p>
+<p>At <span class="math inline">m = 0</span>, the moment bound is
+uninformative. For <code>alternative = "greater"</code>, the check uses
+the complementary probability. Either check flags a departure greater
+than <code>1e-6</code> on the probability scale. Detections are combined
+into one warning per simulation run, including parallel runs, and the
+returned result retains counts in
+<code>attr(result, "quadrature_diagnostics")</code>. The integration,
+probabilities, stopping decisions, and inclusion of trials in summaries
+are unchanged. A direct <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> or
+<code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> call also combines its detections into
+one warning.</p>
+<p>Counts refer to evaluated probabilities rather than trials or imputed
+datasets; repeated count combinations can reuse a calculation. Rule
+application and operating-characteristic summaries preserve the original
+counts without another warning. For saved paths, the counts include all
+evaluated looks and horizons, not just those reached by a candidate. The
+<a href="bayesian-binary.html#choosing-bin_method">Bayesian binary
+vignette</a> gives an example of a detected error. Neither check detects
+every integration error, so passing them does not establish numerical
+accuracy.</p>
 <p>The completed-data calculation depends on <span class="math inline">(x_z,n_z)</span> directly. Participant- level data
 are reduced to these sufficient statistics after complete endpoint
 ascertainment has been verified. Normal-approximation, quadrature, and

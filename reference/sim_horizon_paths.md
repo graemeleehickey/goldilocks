@@ -163,7 +163,13 @@ sim_horizon_paths(
   probabilities against sufficiently precise Monte Carlo Beta draws
   (`"mc"`). Increasing `N_mcmc` does not improve quadrature. This
   integration issue does not apply to the single-arm Beta CDF
-  calculation.
+  calculation. Symmetry and posterior mean-variance checks issue one
+  combined warning per simulation run if they detect an inaccurate
+  two-arm quadrature probability, using an absolute tolerance of `1e-6`.
+  Affected results retain a `quadrature_diagnostics` attribute with
+  counts of flagged calculations. The checks do not change
+  probabilities, stopping decisions, or trial inclusion; absence of a
+  warning does not establish numerical accuracy.
 
 - block:
 

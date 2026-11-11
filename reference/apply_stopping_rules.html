@@ -124,6 +124,7 @@ if enrollment continued to maximum \(N\) without interim stopping) and
 counterfactual success). The latter is <code>FALSE</code> for non-futility trials and
 <code>NA</code> for futility trials whose maximum-\(N\) final analysis failed. These
 quantities use the candidate's <code>prob_ha</code> and the final analysis saved with the paths.</p>
+<p>If present, the <code>quadrature_diagnostics</code> attribute is copied from the paths without another warning. Its counts cover the original simulation calculations, including looks the candidate would not reach; they are not counts of affected trials under this rule.</p>
 <p><code><a href="summarise_sims.html">summarise_sims()</a></code> reports the joint probability as
 <code>futility_and_success_at_max</code>, with its available and unavailable counts.
 Its ordinary <code>stop_futility</code> estimate is the futility probability under

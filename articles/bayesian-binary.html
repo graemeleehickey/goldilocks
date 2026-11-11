@@ -353,14 +353,34 @@ sufficiently precise Monte Carlo Beta draws using
 Monte Carlo precision but does not improve quadrature. This integration
 issue does not apply to the single-arm Beta CDF calculation.</p>
 </blockquote>
-<p>For a simple check, if the two arms have identical Beta posteriors
-and <code>h0 = 0</code>, the probability that either arm has the lower
-event risk must be 0.5. For example, zero events among 10,000
-participants in each arm, with uniform Beta(1, 1) priors, give identical
-Beta(1, 10001) posteriors. The current two-arm quadrature calculation
-can return a probability near zero in this example. Agreement with the
-0.5 check is useful, but it does not establish accuracy for other data
-or margins.</p>
+<p>The package applies two checks after each two-arm quadrature
+calculation: identical Beta posteriors with <code>h0 = 0</code> must
+give probability 0.5 in either direction, and the probability must
+respect bounds implied by the posterior mean and variance of the
+treatment-control difference relative to <code>h0</code> (Cantelli’s
+inequality). Departures greater than an absolute tolerance of
+<code>1e-6</code> are reported in one combined warning per simulation
+run, including parallel runs. The <a href="technical-methods.html#bayesian-binary-final-test">technical
+methods vignette</a> gives the bounds. These checks do not detect every
+integration error; absence of a warning does not establish accuracy.</p>
+<p>For example, zero events among 10,000 participants in each arm, with
+uniform Beta(1, 1) priors, give identical Beta(1, 10001) posteriors. The
+current two-arm quadrature calculation can return a probability near
+zero for the <code>"less"</code> alternative, triggering the symmetry
+warning. <strong>The warning does not correct the probability or change
+a stopping decision.</strong> Flagged calculations are not treated as
+failed trials or excluded from operating-characteristic summaries.</p>
+<p>When a check fails,
+<code>attr(result, "quadrature_diagnostics")</code> retains the total
+number of flagged calculations, counts for each check, and the
+tolerance. Counts refer to evaluated probabilities, not trials or
+imputed datasets, because repeated count combinations can reuse a
+calculation. Applying rules to saved paths or summarizing results
+preserves the original counts without another warning; for saved paths,
+those counts also include looks and horizons a candidate might not
+reach. A direct call to <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> or
+<code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> similarly issues at most one quadrature
+warning.</p>
 </div>
 <div class="section level2">
 <h2 id="operating-characteristics">Operating characteristics<a class="anchor" aria-label="anchor" href="#operating-characteristics"></a>

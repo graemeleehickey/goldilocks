@@ -936,12 +936,42 @@ unsuitable.
 > quadrature. The single-arm calculation evaluates the Beta CDF directly
 > and does not use this integration.
 
-When `h0 = 0` and the arms have identical Beta posteriors, the
-probability in either direction must be 0.5. The [Bayesian binary
+The package checks symmetry and posterior mean-variance bounds after
+each two-arm quadrature calculation. When `h0 = 0` and the arms have
+identical Beta posteriors, the probability in either direction must be
+0.5. For the second check, define D = \pi_1 - \pi_0 - h_0, with
+posterior mean m and variance v = \operatorname{Var}(\pi_1 \mid
+\mathcal{D}) + \operatorname{Var}(\pi_0 \mid \mathcal{D}). Independence
+of the two Beta posteriors gives this variance. Cantelli’s inequality
+implies
+
+\begin{aligned} \Pr(D \< 0 \mid \mathcal{D}) &\geq \frac{m^2}{v + m^2},
+&& m \< 0, \\ \Pr(D \< 0 \mid \mathcal{D}) &\leq \frac{v}{v + m^2}, && m
+\> 0. \end{aligned}
+
+At m = 0, the moment bound is uninformative. For
+`alternative = "greater"`, the check uses the complementary probability.
+Either check flags a departure greater than `1e-6` on the probability
+scale. Detections are combined into one warning per simulation run,
+including parallel runs, and the returned result retains counts in
+`attr(result, "quadrature_diagnostics")`. The integration,
+probabilities, stopping decisions, and inclusion of trials in summaries
+are unchanged. A direct
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+or
+[`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
+call also combines its detections into one warning.
+
+Counts refer to evaluated probabilities rather than trials or imputed
+datasets; repeated count combinations can reuse a calculation. Rule
+application and operating-characteristic summaries preserve the original
+counts without another warning. For saved paths, the counts include all
+evaluated looks and horizons, not just those reached by a candidate. The
+[Bayesian binary
 vignette](https://graemeleehickey.github.io/goldilocks/articles/bayesian-binary.html#choosing-bin_method)
-gives a concrete example in which the current quadrature calculation
-does not satisfy this check. Passing this check does not establish
-accuracy for other posterior distributions or margins.
+gives an example of a detected error. Neither check detects every
+integration error, so passing them does not establish numerical
+accuracy.
 
 The completed-data calculation depends on (x_z,n_z) directly.
 Participant- level data are reduced to these sufficient statistics after

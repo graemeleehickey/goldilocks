@@ -110,7 +110,8 @@ and failed counts, the failure rate, computational method, and seed. For a
 raw simulation data frame, requested and failed counts are unknown and are
 reported as <code>NA</code>. Details of the call, random-number generation, parallel
 computation, timing, failures, and design assumptions are retained in the
-<code>simulation_metadata</code> attribute.</p>
+<code>simulation_metadata</code> attribute.
+When quadrature checks flagged probabilities, their original counts are retained in each scenario's <code>simulation_metadata</code> and, for a single result, in <code>quadrature_diagnostics</code>. These diagnostics do not exclude trials or change the operating-characteristic estimates.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

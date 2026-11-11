@@ -101,6 +101,12 @@ Both respect the interim calendar date.
 
 ### Documentation and verification
 
+- Two-arm Bayesian binary quadrature now checks symmetry and posterior
+  mean-variance bounds, with one combined warning per simulation run,
+  including parallel runs. Diagnostic counts are retained with the
+  results. The integration, probabilities, and stopping decisions are
+  unchanged; the checks identify some numerical errors but do not
+  establish accuracy when no warning is issued.
 - Evaluated vignette simulations use one core to avoid the crashes in
   forked R processes reported by CRAN on older R for Apple silicon.
   Simulation sizes, seeds, and statistical settings are unchanged.

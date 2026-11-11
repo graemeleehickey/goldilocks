@@ -87,6 +87,11 @@ non-futility trials and `NA` for futility trials whose maximum-\\N\\
 final analysis failed. These quantities use the candidate's `prob_ha`
 and the final analysis saved with the paths.
 
+If present, the `quadrature_diagnostics` attribute is copied from the
+paths without another warning. Its counts cover the original simulation
+calculations, including looks the candidate would not reach; they are
+not counts of affected trials under this rule.
+
 [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
 reports the joint probability as `futility_and_success_at_max`, with its
 available and unavailable counts. Its ordinary `stop_futility` estimate

@@ -166,7 +166,8 @@ The normal approximation can be inaccurate with sparse events or
 non-events and posterior event probabilities near 0 or 1. It can change
 whether <code>prob_ha</code> is exceeded. Increasing <code>N_mcmc</code> does not improve this
 approximation; use <code>"quadrature"</code> or sufficiently precise <code>"mc"</code> instead.
-In two-arm designs, quadrature can also return an inaccurate posterior probability without an error when the posterior event risks are tightly concentrated, particularly with many participants but very few events or non-events. Check such probabilities against sufficiently precise Monte Carlo Beta draws (<code>"mc"</code>). Increasing <code>N_mcmc</code> does not improve quadrature. This integration issue does not apply to the single-arm Beta CDF calculation.</p></dd>
+In two-arm designs, quadrature can also return an inaccurate posterior probability without an error when the posterior event risks are tightly concentrated, particularly with many participants but very few events or non-events. Check such probabilities against sufficiently precise Monte Carlo Beta draws (<code>"mc"</code>). Increasing <code>N_mcmc</code> does not improve quadrature. This integration issue does not apply to the single-arm Beta CDF calculation.
+Symmetry and posterior mean-variance checks issue one combined warning per simulation run if they detect an inaccurate two-arm quadrature probability, using an absolute tolerance of <code>1e-6</code>. Affected results retain a <code>quadrature_diagnostics</code> attribute with counts of flagged calculations. The checks do not change probabilities, stopping decisions, or trial inclusion; absence of a warning does not establish numerical accuracy.</p></dd>
 
 
 <dt id="arg-block">block<a class="anchor" aria-label="anchor" href="#arg-block"></a></dt>

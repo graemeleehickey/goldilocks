@@ -146,7 +146,13 @@ survival_adapt(
   probabilities against sufficiently precise Monte Carlo Beta draws
   (`"mc"`). Increasing `N_mcmc` does not improve quadrature. This
   integration issue does not apply to the single-arm Beta CDF
-  calculation.
+  calculation. Symmetry and posterior mean-variance checks issue one
+  combined warning per simulation run if they detect an inaccurate
+  two-arm quadrature probability, using an absolute tolerance of `1e-6`.
+  Affected results retain a `quadrature_diagnostics` attribute with
+  counts of flagged calculations. The checks do not change
+  probabilities, stopping decisions, or trial inclusion; absence of a
+  warning does not establish numerical accuracy.
 
 - block:
 
@@ -631,11 +637,33 @@ and final analyses:
   error. This can affect final success and interim stopping decisions.
   The problem has been observed with large samples and very few events
   or non-events. Check such cases against sufficiently precise Monte
-  Carlo Beta draws; `N_mcmc` controls Monte Carlo precision only. For
-  `h0 = 0`, identical Beta posteriors in the two arms must give a
-  probability of 0.5 in either direction, which provides a simple
-  accuracy check. The single-arm calculation uses the Beta CDF directly
-  and does not use this integration.
+  Carlo Beta draws; `N_mcmc` controls Monte Carlo precision only. The
+  single-arm calculation uses the Beta CDF directly and does not use
+  this integration.
+
+  Two diagnostic checks run after each two-arm quadrature calculation.
+  For `h0 = 0`, identical Beta posteriors must give a probability of 0.5
+  in either direction. The probability must also respect the one-sided
+  bounds implied by the posterior mean and variance of the
+  treatment-control difference relative to `h0` (Cantelli's inequality).
+  Departures greater than `1e-6` produce one combined warning per
+  simulation run, including parallel runs. A direct `survival_adapt()`
+  or
+  [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
+  call similarly issues at most one such warning. The returned
+  probabilities and stopping decisions are unchanged, and flagged
+  calculations are not treated as failed trials. Neither check detects
+  every integration error.
+
+  When a check fails, `attr(result, "quadrature_diagnostics")` records
+  `flagged_calculations`, `symmetry`, `moments`, and
+  `absolute_tolerance`. Counts refer to evaluated probabilities, not
+  participants, trials, or imputed datasets; repeated count combinations
+  can reuse a previously calculated probability. Saved paths retain
+  these diagnostics, and rule application and operating-characteristic
+  summaries preserve them without issuing another warning. For saved
+  paths, the counts cover all evaluated looks and horizons, including
+  those a particular candidate rule would not reach.
 
   Two equivalent predictive imputation approaches are available through
   `binary_imputation`. With `"event-time"`, the package samples a future

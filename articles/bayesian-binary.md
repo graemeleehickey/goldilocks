@@ -286,13 +286,38 @@ approximation is unsuitable.
 > improve quadrature. This integration issue does not apply to the
 > single-arm Beta CDF calculation.
 
-For a simple check, if the two arms have identical Beta posteriors and
-`h0 = 0`, the probability that either arm has the lower event risk must
-be 0.5. For example, zero events among 10,000 participants in each arm,
-with uniform Beta(1, 1) priors, give identical Beta(1, 10001)
-posteriors. The current two-arm quadrature calculation can return a
-probability near zero in this example. Agreement with the 0.5 check is
-useful, but it does not establish accuracy for other data or margins.
+The package applies two checks after each two-arm quadrature
+calculation: identical Beta posteriors with `h0 = 0` must give
+probability 0.5 in either direction, and the probability must respect
+bounds implied by the posterior mean and variance of the
+treatment-control difference relative to `h0` (Cantelli’s inequality).
+Departures greater than an absolute tolerance of `1e-6` are reported in
+one combined warning per simulation run, including parallel runs. The
+[technical methods
+vignette](https://graemeleehickey.github.io/goldilocks/articles/technical-methods.html#bayesian-binary-final-test)
+gives the bounds. These checks do not detect every integration error;
+absence of a warning does not establish accuracy.
+
+For example, zero events among 10,000 participants in each arm, with
+uniform Beta(1, 1) priors, give identical Beta(1, 10001) posteriors. The
+current two-arm quadrature calculation can return a probability near
+zero for the `"less"` alternative, triggering the symmetry warning.
+**The warning does not correct the probability or change a stopping
+decision.** Flagged calculations are not treated as failed trials or
+excluded from operating-characteristic summaries.
+
+When a check fails, `attr(result, "quadrature_diagnostics")` retains the
+total number of flagged calculations, counts for each check, and the
+tolerance. Counts refer to evaluated probabilities, not trials or
+imputed datasets, because repeated count combinations can reuse a
+calculation. Applying rules to saved paths or summarizing results
+preserves the original counts without another warning; for saved paths,
+those counts also include looks and horizons a candidate might not
+reach. A direct call to
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+or
+[`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
+similarly issues at most one quadrature warning.
 
 ## Operating characteristics
 
