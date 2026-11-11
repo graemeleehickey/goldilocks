@@ -219,3 +219,89 @@ The saved `trial-path-results.csv` run used 100 trials per scenario, 20 imputati
 No bank calculations or direct trials failed in this run. Across the 32 candidate/scenario/method comparisons, the largest absolute difference in success probability was 1.43 combined Monte Carlo standard errors. The direct simulations use a different seed; these small runs are a consistency check, not evidence of calibrated type I error control. Exact comparisons against a direct early-stopping reference using matched stage streams are covered by the package tests across all seven analysis methods, including final-imputation configurations.
 
 The bank stores scores and cohort summaries, not participant datasets or posterior draws. Its memory requirement grows with the number of trials, looks, and predictive imputations. Use different explicit seeds and separate RDS files when a whole bank would exceed available memory. Trial identifiers start at 1 in each call, so retain a batch identifier when combining results.
+
+## Bayesian survival final analysis
+
+Author: Graeme L. Hickey.
+
+`survival-final.R` compares the direct observed-data posterior introduced in commit `c251b22` with the final-imputation calculation from commit `7cc2294`. The comparison uses `method = "bayes-surv"`, `empty_interval = "prior"`, and `imputed_final = TRUE`. The old defaults use 500 predictive completions and 1,000 posterior draws per completion. Direct calculations use 1,000, 10,000, 50,000, and 500,000 independent posterior draws, plus a draw count chosen to match the estimated probability precision of the old defaults. Interim calculations and package defaults are unchanged.
+
+Run from the package root with `pkgload` and `bench` installed:
+
+```sh
+Rscript benchmarks/survival-final.R 100 500 20 benchmarks/survival-final
+Rscript benchmarks/survival-final-report.R benchmarks/survival-final
+```
+
+The first three arguments are the numbers of repeated legacy estimates, repeated direct estimates at 1,000 draws, and timing repetitions. The final argument is the output prefix. The historical commit must be available in the local Git history. The report script uses saved results and requires `ggplot2`; it does not repeat the benchmark. `survival-final-results.rds` retains the simulated participant datasets, scenario settings, sufficient statistics, individual estimates and seeds, timing measurements, reference calculations, software versions, and both final-analysis function definitions. The CSV files provide the summary measurements and exact binomial decision-error calculations. The figure `survival-final-precision.png` shows numerical decision error near the two success thresholds.
+
+All six scenarios use a 12-month endpoint and the default independent Gamma(0.1, 0.1) shape-rate hazard priors. Two-arm designs use equal allocation and test whether the treatment-minus-control event probability is below zero. The single-arm analysis tests whether the event probability is below 0.40. Both success thresholds, 0.95 and 0.975, are considered. Dropout is independent exponential censoring within each arm; the specified probability is the dropout-time CDF at month 12, not the realized proportion lost before an event. Event hazards are constant or change at months 3 and 6. These fixed datasets are computational examples, not proposed or calibrated clinical-trial designs.
+
+| Scenario | Total N | Event risk, control / treatment | Dropout probability, control / treatment |
+|:--|--:|--:|--:|
+| Constant hazard, lower dropout | 400 | 30% / 22% | 10% / 10% |
+| Constant hazard, higher dropout | 400 | 30% / 22% | 30% / 30% |
+| Three intervals | 400 | 36.2% / 28.1% | 30% / 30% |
+| Three intervals, unequal dropout | 400 | 36.2% / 28.1% | 10% / 40% |
+| Single arm | 120 | Benchmark 40% / treatment 30% | Treatment 20% |
+| Small sparse trial, three intervals | 80 | 13.4% / 9.2% | 50% / 50% |
+
+The first two datasets are deliberately selected to have posterior probabilities in (0.943, 0.947) and (0.978, 0.982), respectively. The other four use fixed seeds without selection. Every calculation within a scenario uses the same participant data. This separates Monte Carlo variation from repeated-trial sampling variation; it does not estimate power or type I error.
+
+Constant-hazard probability references use a Gamma CDF for the single-arm case and the scaled-Gamma/Beta identity for the two-arm cases. Three-interval references use 20 million independent posterior draws, separate from all benchmark estimates. Posterior mean effects and their direct-sampling variances are available analytically from the Gamma Laplace transforms. Empirical probability and effect standard deviations use 100 legacy repetitions and 500 direct repetitions. For larger direct draw counts, the probability Monte Carlo standard error is calculated as `sqrt(p * (1 - p) / N_mcmc)`, using the reference probability. Approximate 95% intervals for empirical standard deviations are retained in the summary CSV; with 100 repetitions, the relative standard error of an approximately normal estimator's sample standard deviation is about 7%.
+
+Timing measures complete final-analysis calls, including sufficient-statistic preparation and sampling, after loading and warming the functions. It excludes data generation and reference calculations, uses sequential execution, includes garbage collection, and reports the median and quartiles of 20 repetitions. The historical implementation is checked against the retained imputation calculation with `empty_interval = "error"` when all intervals have exposure; results and random-number states must agree exactly.
+
+### Recorded results
+
+The saved run used R 4.5.3 on an Apple ARM64 Mac on 11 November 2026. Times below are median milliseconds per final analysis. They are specific to this machine and workload; the saved quartiles show variation between calls.
+
+| Scenario | Old defaults: 500 imputations x 1,000 draws | Direct: 1,000 draws | Direct: 50,000 draws | Speedup at 50,000 |
+|:--|--:|--:|--:|--:|
+| Constant hazard, 10% dropout | 327.6 | 0.50 | 8.83 | 37.1 |
+| Constant hazard, 30% dropout | 359.2 | 0.54 | 12.41 | 28.9 |
+| Three intervals, 30% dropout | 741.3 | 2.34 | 22.51 | 32.9 |
+| Three intervals, unequal dropout | 507.6 | 0.83 | 19.77 | 25.7 |
+| Single arm, 20% dropout | 190.5 | 0.38 | 3.64 | 52.4 |
+| Small sparse trial, 50% dropout | 599.7 | 0.97 | 26.30 | 22.8 |
+
+Monte Carlo standard errors below are on the probability scale, not percentage points. Old-method values are empirical standard deviations across 100 repetitions; direct-method values use the binomial variance. The last column estimates the direct draw count needed to match the old method's probability precision, using its empirical variance.
+
+| Scenario | Reference probability | Old defaults MCSE | Direct 1,000 MCSE | Direct 50,000 MCSE | Equivalent direct draws |
+|:--|--:|--:|--:|--:|--:|
+| Constant hazard, 10% dropout | 0.946368 | 0.001136 | 0.007124 | 0.001008 | 39,339 |
+| Constant hazard, 30% dropout | 0.979792 | 0.001003 | 0.004450 | 0.000629 | 19,673 |
+| Three intervals, 30% dropout | 0.977111 | 0.001309 | 0.004729 | 0.000669 | 13,062 |
+| Three intervals, unequal dropout | 0.849850 | 0.004920 | 0.011296 | 0.001598 | 5,272 |
+| Single arm, 20% dropout | 0.852932 | 0.003936 | 0.011200 | 0.001584 | 8,096 |
+| Small sparse trial, 50% dropout | 0.132172 | 0.004866 | 0.010710 | 0.001515 | 4,846 |
+
+The direct default was 317-671 times faster, with 2.2-6.3 times the probability MCSE of the old defaults. At 50,000 draws it remained 23-52 times faster, with comparable or better precision in these cases. Matching the estimated old-method precision required about 4,800-39,300 direct draws and was 40-228 times faster. Using 500,000 direct draws, matching the old total number of completed-data posterior draws, was still 1.6-5.6 times faster and more precise in every case.
+
+The legacy calculation's 500,000 draws are not 500,000 independent draws from the observed-data posterior: draws within an imputation share that completed dataset. If $q(M)$ is its exact completed-data posterior probability, $m$ is the number of imputations, and $b$ is the number of draws per imputation, its Monte Carlo variance is
+
+$$
+\operatorname{Var}(\widehat p_{\mathrm{legacy}})
+=\frac{\operatorname{Var}\{q(M)\mid D\}}{m}
++\frac{E[q(M)\{1-q(M)\}\mid D]}{mb}.
+$$
+
+This explains why substantially fewer than 500,000 independent direct draws can match its precision. The equivalent counts above are estimates, not universal replacements for `N_impute` and `N_mcmc`.
+
+All probability and mean-effect averages were within two estimated standard errors of their references, allowing for reference Monte Carlo error. The empirical direct probability standard deviations were 0.965-1.023 times the binomial predictions. The three simulated reference probabilities had MCSEs of 0.000033-0.000080; the other probability references and all effect means were analytical. No analysis failed. These checks support agreement of the inferential targets; they do not evaluate trial operating characteristics.
+
+### Adequacy of the default draw count
+
+`N_mcmc = 1000` is a coarse computational setting and is not reliably sufficient for a final decision close to 0.95 or 0.975. Its approximate 95% Monte Carlo half-width is 0.0135 at probability 0.95 and 0.0097 at probability 0.975. This limitation already applied to `imputed_final = FALSE`; the simplification exposes it when replacing the more precise former imputed-final calculation.
+
+The three near-boundary examples illustrate the practical consequence. The errors below are probabilities that the finite-draw decision disagrees with the decision based on the reference posterior probability. Direct values use the exact binomial distribution, including the package's strict `>` comparison. Legacy values are empirical proportions from 100 repetitions; zero observed errors do not imply zero error probability.
+
+| Reference probability | Success threshold | Old defaults, observed errors | Direct 1,000 error probability | Direct 50,000 error probability |
+|--:|--:|--:|--:|--:|
+| 0.946368 | 0.95 | 0 / 100 | 28.57% | 0.0131% |
+| 0.979792 | 0.975 | 0 / 100 | 16.64% | less than 0.0001% |
+| 0.977111 | 0.975 | 7 / 100 | 35.56% | 0.0965% |
+
+A final-stage budget of 50,000 draws is a reasonable starting point for these workloads. Its MCSE is approximately 0.000975 near 0.95 and 0.000698 near 0.975. If the underlying posterior probability is only 0.001 from the threshold, however, even 50,000 draws can give the opposite numerical decision about 15.3% or 7.7% of the time, taking the worse side of each threshold. At 500,000 draws those values fall to about 0.063% and 0.00038%, respectively. No fixed finite budget resolves probabilities arbitrarily close to a decision boundary. Prespecify numerical precision and a larger budget for close decisions, and report the Monte Carlo uncertainty.
+
+The present `N_mcmc` argument also controls completed-data posterior sampling inside every interim prediction. Increasing it from 1,000 to 50,000 therefore multiplies that part of the interim draw workload by 50. This benchmark supports a separate final-stage draw budget, rather than increasing the shared default without evaluating interim cost and precision. It does not establish that 1,000 draws are sufficient for interim prediction or that operating characteristics are insensitive to numerical error. No defaults have been changed.
