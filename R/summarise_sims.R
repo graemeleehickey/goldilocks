@@ -53,6 +53,7 @@
 #'   reported as `NA`. Details of the call, random-number generation, parallel
 #'   computation, timing, failures, and design assumptions are retained in the
 #'   `simulation_metadata` attribute.
+#'   When quadrature checks flagged probabilities, their original counts are retained in each scenario's `simulation_metadata` and, for a single result, in `quadrature_diagnostics`. These diagnostics do not exclude trials or change the operating-characteristic estimates.
 #'
 #' @importFrom dplyr bind_rows group_by summarise
 #' @importFrom rlang .data
@@ -274,6 +275,7 @@ summarise_sims <- function(data, max_mcse = NULL) {
         "prior_design",
         "rng_metadata",
         "parallel_metadata",
+        "quadrature_diagnostics",
         "timing",
         "failures"
       )) {
@@ -690,7 +692,7 @@ simulation_result_metadata <- function(x, scenario) {
     }
   }
 
-  list(
+  metadata <- list(
     scenario = scenario,
     backend = as.character(backend)[1],
     seed = as.numeric(seed)[1],
@@ -712,6 +714,9 @@ simulation_result_metadata <- function(x, scenario) {
     },
     failures = failures
   )
+  quadrature <- attr(x, "quadrature_diagnostics", exact = TRUE)
+  if (!is.null(quadrature)) metadata$quadrature_diagnostics <- quadrature
+  metadata
 }
 
 #' @title Count recorded simulation failures

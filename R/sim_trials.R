@@ -290,9 +290,14 @@ sim_trials <- function(
   } else {
     survival_adapt
   }
+  capture_warnings <- if (backend == "psock") {
+    get("capture_quadrature_warnings", envir = environment(survival_adapt_fn))
+  } else {
+    capture_quadrature_warnings
+  }
 
   survival_adapt_wrapper <- function(x) {
-    tryCatch(
+    capture_warnings(tryCatch(
       {
         if (!is.null(trial_streams)) {
           assign(".Random.seed", trial_streams[[x]], envir = .GlobalEnv)
@@ -331,6 +336,7 @@ sim_trials <- function(
           rmst_tau = rmst_tau
         )
         attr(result, "arguments") <- NULL
+        attr(result, "quadrature_diagnostics") <- NULL
         if (inherits(result, "goldilocks_trial")) {
           attr(result$summary, "arguments") <- NULL
         }
@@ -347,7 +353,7 @@ sim_trials <- function(
           message = conditionMessage(error)
         )
       }
-    )
+    ))
   }
 
   trial_index <- seq_len(N_trials)
@@ -371,6 +377,7 @@ sim_trials <- function(
     }
   )
 
+  quadrature_diagnostics <- combine_quadrature_warnings(trial_results)
   failed <- vapply(
     trial_results,
     function(x) is.null(x$result),
@@ -397,6 +404,7 @@ sim_trials <- function(
     ))
     error$failures <- failures
     class(error) <- c("goldilocks_all_trials_failed", class(error))
+    error <- finish_quadrature_warnings(error, quadrature_diagnostics)
     stop(error)
   }
 
@@ -460,7 +468,7 @@ sim_trials <- function(
     )
   }
 
-  return(out)
+  finish_quadrature_warnings(out, quadrature_diagnostics)
 }
 
 #' Resolve a trial-simulation execution plan

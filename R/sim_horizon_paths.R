@@ -112,8 +112,13 @@ run_horizon_simulations <- function(args, Call, schedule = NULL, rules = NULL) {
   } else {
     simulate_horizon_path
   }
+  capture_warnings <- if (execution$backend == "psock") {
+    get("capture_quadrature_warnings", envir = environment(simulate))
+  } else {
+    capture_quadrature_warnings
+  }
   worker <- function(i) {
-    simulate(args, configs, streams[[i]], trial_ids[i], schedule, rules)
+    capture_warnings(simulate(args, configs, streams[[i]], trial_ids[i], schedule, rules))
   }
   indices <- seq_len(args$N_trials)
   trials <- switch(
@@ -127,6 +132,7 @@ run_horizon_simulations <- function(args, Call, schedule = NULL, rules = NULL) {
       run_sim_cluster(cluster, indices, worker)
     }
   )
+  quadrature_diagnostics <- combine_quadrature_warnings(trials)
   failures <- dplyr::bind_rows(lapply(trials, `[[`, "failures"))
   trials <- lapply(trials, function(x) {
     x$failures <- NULL
@@ -195,7 +201,7 @@ run_horizon_simulations <- function(args, Call, schedule = NULL, rules = NULL) {
       call. = FALSE
     )
   }
-  out
+  finish_quadrature_warnings(out, quadrature_diagnostics)
 }
 
 simulate_horizon_path <- function(

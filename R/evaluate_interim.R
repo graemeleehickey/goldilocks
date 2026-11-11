@@ -267,7 +267,9 @@ evaluate_interim <- function(
     set.seed(seed)
   }
 
-  evaluation <- evaluate_interim_decision(
+  quadrature_diagnostics <- new_quadrature_diagnostics()
+  on.exit(warn_quadrature_diagnostics(quadrature_diagnostics$counts), add = TRUE)
+  evaluation <- with_quadrature_warnings(evaluate_interim_decision(
     data_interim = prepared$data,
     look = look,
     planned_N = nrow(data),
@@ -294,7 +296,7 @@ evaluate_interim <- function(
     binary_imputation = binary_imputation,
     check_futility = check_futility,
     Qn = Qn
-  )
+  ), quadrature_diagnostics)
 
   probabilities <- data.frame(
     estimand = c(
@@ -391,7 +393,7 @@ evaluate_interim <- function(
     )
   )
   class(out) <- "goldilocks_interim"
-  out
+  finish_quadrature_warnings(out, quadrature_diagnostics, warn = FALSE)
 }
 
 #' Prepare externally observed data for predictive imputation

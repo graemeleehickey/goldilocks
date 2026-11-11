@@ -111,7 +111,8 @@ The normal approximation can be inaccurate with sparse events or
 non-events and posterior event probabilities near 0 or 1. It can change
 whether \code{prob_ha} is exceeded. Increasing \code{N_mcmc} does not improve this
 approximation; use \code{"quadrature"} or sufficiently precise \code{"mc"} instead.
-In two-arm designs, quadrature can also return an inaccurate posterior probability without an error when the posterior event risks are tightly concentrated, particularly with many participants but very few events or non-events. Check such probabilities against sufficiently precise Monte Carlo Beta draws (\code{"mc"}). Increasing \code{N_mcmc} does not improve quadrature. This integration issue does not apply to the single-arm Beta CDF calculation.}
+In two-arm designs, quadrature can also return an inaccurate posterior probability without an error when the posterior event risks are tightly concentrated, particularly with many participants but very few events or non-events. Check such probabilities against sufficiently precise Monte Carlo Beta draws (\code{"mc"}). Increasing \code{N_mcmc} does not improve quadrature. This integration issue does not apply to the single-arm Beta CDF calculation.
+Symmetry and posterior mean-variance checks issue one combined warning per simulation run if they detect an inaccurate two-arm quadrature probability, using an absolute tolerance of \code{1e-6}. Affected results retain a \code{quadrature_diagnostics} attribute with counts of flagged calculations. The checks do not change probabilities, stopping decisions, or trial inclusion; absence of a warning does not establish numerical accuracy.}
 
 \item{block}{A positive integer vector of permitted randomization block
 sizes. Every value must be a multiple of \code{sum(rand_ratio)}. The default is

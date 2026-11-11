@@ -25,6 +25,7 @@ For changing endpoints, success prediction uses observed follow-up through the c
 
 ## Documentation and verification
 
+* Two-arm Bayesian binary quadrature now checks symmetry and posterior mean-variance bounds, with one combined warning per simulation run, including parallel runs. Diagnostic counts are retained with the results. The integration, probabilities, and stopping decisions are unchanged; the checks identify some numerical errors but do not establish accuracy when no warning is issued.
 * Evaluated vignette simulations use one core to avoid the crashes in forked R processes reported by CRAN on older R for Apple silicon. Simulation sizes, seeds, and statistical settings are unchanged.
 * Website articles include a **Print / Save as PDF** button and a shared print layout for equations, tables, figures, and code, with website navigation omitted from the printed article.
 * The PROMISE II vignette reconstructs the planned 120-patient design, including the SAP's dropout distribution and final analysis after enrollment stops for futility. Reproducible simulations compare power, sample sizes, and stopping probabilities with the reported calculations, with separate enrollment sensitivity analyses.

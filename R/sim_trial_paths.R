@@ -134,7 +134,14 @@ sim_trial_paths <- function(
   } else {
     simulate_trial_path
   }
-  worker <- function(i) simulate(config, streams[[i]], trial_ids[i])
+  capture_warnings <- if (execution$backend == "psock") {
+    get("capture_quadrature_warnings", envir = environment(simulate))
+  } else {
+    capture_quadrature_warnings
+  }
+  worker <- function(i) {
+    capture_warnings(simulate(config, streams[[i]], trial_ids[i]))
+  }
   indices <- seq_len(N_trials)
   trials <- switch(
     execution$backend,
@@ -147,6 +154,7 @@ sim_trial_paths <- function(
       run_sim_cluster(cluster, indices, worker)
     }
   )
+  quadrature_diagnostics <- combine_quadrature_warnings(trials)
   failures <- dplyr::bind_rows(lapply(trials, `[[`, "failures"))
   # Store the common failure table once, rather than per trial as well.
   trials <- lapply(trials, function(x) {
@@ -210,7 +218,7 @@ sim_trial_paths <- function(
       call. = FALSE
     )
   }
-  out
+  finish_quadrature_warnings(out, quadrature_diagnostics)
 }
 
 # Validate fixed settings before workers or random-number generation begin.
@@ -337,6 +345,7 @@ capture_path_stage <- function(stream, expr) {
   warnings <- character()
   value <- tryCatch(
     withCallingHandlers(expr, warning = function(w) {
+      if (inherits(w, "goldilocks_quadrature_warning")) return(invisible(NULL))
       warnings <<- unique(c(warnings, conditionMessage(w)))
       invokeRestart("muffleWarning")
     }),

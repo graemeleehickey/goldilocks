@@ -72,6 +72,7 @@
 #'   whether `prob_ha` is exceeded. Increasing `N_mcmc` does not improve this
 #'   approximation; use `"quadrature"` or sufficiently precise `"mc"` instead.
 #'   In two-arm designs, quadrature can also return an inaccurate posterior probability without an error when the posterior event risks are tightly concentrated, particularly with many participants but very few events or non-events. Check such probabilities against sufficiently precise Monte Carlo Beta draws (`"mc"`). Increasing `N_mcmc` does not improve quadrature. This integration issue does not apply to the single-arm Beta CDF calculation.
+#'   Symmetry and posterior mean-variance checks issue one combined warning per simulation run if they detect an inaccurate two-arm quadrature probability, using an absolute tolerance of `1e-6`. Affected results retain a `quadrature_diagnostics` attribute with counts of flagged calculations. The checks do not change probabilities, stopping decisions, or trial inclusion; absence of a warning does not establish numerical accuracy.
 #' @param binary_imputation A single character string selecting the predictive
 #'   imputation approach for `method = "bayes-bin"`, `method = "riskdiff-wald"`,
 #'   or `method = "riskdiff-fm"`. `"event-time"` (the default) draws a
@@ -310,7 +311,11 @@
 #'      sufficiently precise `"mc"` when the approximation is unsuitable;
 #'      increasing `N_mcmc` does not correct normal-approximation error.
 #'
-#'      **Numerical accuracy of two-arm quadrature.** When the posterior event risks lie in a very narrow range, numerical integration can miss much of the posterior probability and return an incorrect result without an error. This can affect final success and interim stopping decisions. The problem has been observed with large samples and very few events or non-events. Check such cases against sufficiently precise Monte Carlo Beta draws; `N_mcmc` controls Monte Carlo precision only. For `h0 = 0`, identical Beta posteriors in the two arms must give a probability of 0.5 in either direction, which provides a simple accuracy check. The single-arm calculation uses the Beta CDF directly and does not use this integration.
+#'      **Numerical accuracy of two-arm quadrature.** When the posterior event risks lie in a very narrow range, numerical integration can miss much of the posterior probability and return an incorrect result without an error. This can affect final success and interim stopping decisions. The problem has been observed with large samples and very few events or non-events. Check such cases against sufficiently precise Monte Carlo Beta draws; `N_mcmc` controls Monte Carlo precision only. The single-arm calculation uses the Beta CDF directly and does not use this integration.
+#'
+#'      Two diagnostic checks run after each two-arm quadrature calculation. For `h0 = 0`, identical Beta posteriors must give a probability of 0.5 in either direction. The probability must also respect the one-sided bounds implied by the posterior mean and variance of the treatment-control difference relative to `h0` (Cantelli's inequality). Departures greater than `1e-6` produce one combined warning per simulation run, including parallel runs. A direct [survival_adapt()] or [evaluate_interim()] call similarly issues at most one such warning. The returned probabilities and stopping decisions are unchanged, and flagged calculations are not treated as failed trials. Neither check detects every integration error.
+#'
+#'      When a check fails, `attr(result, "quadrature_diagnostics")` records `flagged_calculations`, `symmetry`, `moments`, and `absolute_tolerance`. Counts refer to evaluated probabilities, not participants, trials, or imputed datasets; repeated count combinations can reuse a previously calculated probability. Saved paths retain these diagnostics, and rule application and operating-characteristic summaries preserve them without issuing another warning. For saved paths, the counts cover all evaluated looks and horizons, including those a particular candidate rule would not reach.
 #'
 #'      Two equivalent predictive imputation approaches are available through
 #'      `binary_imputation`. With `"event-time"`, the package samples a future
@@ -585,6 +590,8 @@ survival_adapt <- function(
 ) {
   Call <- match.call()
   Arguments <- capture_arguments(survival_adapt, environment())
+  quadrature_diagnostics <- new_quadrature_diagnostics()
+  on.exit(warn_quadrature_diagnostics(quadrature_diagnostics$counts), add = TRUE)
   method <- normalize_analysis_method(method)
   Arguments$method <- method
   ##############################################################################
@@ -784,7 +791,7 @@ survival_adapt <- function(
       )
 
       look_time <- data_total$enrollment[analysis_at_enrollnumber[i]]
-      interim_result <- evaluate_interim_decision(
+      interim_result <- with_quadrature_warnings(evaluate_interim_decision(
         data_interim = data_interim,
         look = i,
         planned_N = analysis_at_enrollnumber[i],
@@ -811,7 +818,7 @@ survival_adapt <- function(
         binary_imputation = binary_imputation,
         check_futility = check_futility,
         Qn = Qn[i]
-      )
+      ), quadrature_diagnostics)
       ppp_success <- interim_result$ppp_success
       ppp_success_at_max <- interim_result$ppp_success_at_max
       decision <- interim_result$decision
@@ -886,7 +893,7 @@ survival_adapt <- function(
   })
 
   run_final_analysis <- function() {
-    analyse_final(
+    with_quadrature_warnings(analyse_final(
       data_in = data_final,
       cutpoints = cutpoints,
       prior_surv_final = prior_surv_final,
@@ -909,7 +916,7 @@ survival_adapt <- function(
       empty_interval = empty_interval,
       end_of_study = end_of_study,
       rmst_tau = rmst_tau
-    )
+    ), quadrature_diagnostics)
   }
   results_final <- if (stop_immediate_success != 0) {
     c(NA_real_, NA_real_)
@@ -1003,8 +1010,8 @@ survival_adapt <- function(
     attr(out, "decision_design") <- decision_design
     attr(out, "prior_design") <- prior_design
     attr(out, "arguments") <- Arguments
-    return(out)
+    return(finish_quadrature_warnings(out, quadrature_diagnostics, warn = FALSE))
   }
 
-  return(results)
+  finish_quadrature_warnings(results, quadrature_diagnostics, warn = FALSE)
 }

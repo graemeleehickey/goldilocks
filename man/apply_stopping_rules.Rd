@@ -64,6 +64,8 @@ counterfactual success). The latter is \code{FALSE} for non-futility trials and
 \code{NA} for futility trials whose maximum-\eqn{N} final analysis failed. These
 quantities use the candidate's \code{prob_ha} and the final analysis saved with the paths.
 
+If present, the \code{quadrature_diagnostics} attribute is copied from the paths without another warning. Its counts cover the original simulation calculations, including looks the candidate would not reach; they are not counts of affected trials under this rule.
+
 \code{summarise_sims()} reports the joint probability as
 \code{futility_and_success_at_max}, with its available and unavailable counts.
 Its ordinary \code{stop_futility} estimate is the futility probability under

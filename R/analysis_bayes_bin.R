@@ -187,6 +187,7 @@ bayes_binomial_from_counts <- function(
   } else if (bin_method == "quadrature") {
     effect <- treatment_stats$mean - control_stats$mean
     success <- beta_binomial_difference_success(treatment_stats, control_stats)
+    check_beta_quadrature(success, treatment_stats, control_stats, h0, alternative)
   }
 
   result <- list(success = success, effect = effect)

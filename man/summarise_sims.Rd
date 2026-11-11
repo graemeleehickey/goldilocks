@@ -58,6 +58,7 @@ raw simulation data frame, requested and failed counts are unknown and are
 reported as \code{NA}. Details of the call, random-number generation, parallel
 computation, timing, failures, and design assumptions are retained in the
 \code{simulation_metadata} attribute.
+When quadrature checks flagged probabilities, their original counts are retained in each scenario's \code{simulation_metadata} and, for a single result, in \code{quadrature_diagnostics}. These diagnostics do not exclude trials or change the operating-characteristic estimates.
 }
 \description{
 Estimates success, stopping, and sample-size operating
