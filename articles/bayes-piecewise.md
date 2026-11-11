@@ -64,7 +64,7 @@ continuous event-time distribution because the cutpoint itself has
 probability zero.
 
 For design specification,
-[`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
+[`prob_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.md)
 maps cumulative event probabilities at selected times to the
 corresponding piecewise hazards.
 
@@ -82,7 +82,7 @@ leaving the late-period hazard unchanged. Concretely, we target:
 - 18% mortality by 6 months in the treatment arm, and
 - 40% mortality by 24 months overall.
 
-We set the cut-point at 6 months and translate these proportions into
+We set the cut-point at 6 months and translate these probabilities into
 piecewise hazards:
 
 ``` r
@@ -90,8 +90,8 @@ piecewise hazards:
 cutpoints <- 6         # one change-point at 6 months gives two intervals
 end_of_study <- 24
 
-hc <- prop_to_haz(probs = c(0.30, 0.50), cutpoints = cutpoints, endtime = end_of_study)
-ht <- prop_to_haz(probs = c(0.18, 0.40), cutpoints = cutpoints, endtime = end_of_study)
+hc <- prob_to_haz(probs = c(0.30, 0.50), cutpoints = cutpoints, endtime = end_of_study)
+ht <- prob_to_haz(probs = c(0.18, 0.40), cutpoints = cutpoints, endtime = end_of_study)
 
 round(rbind(control = hc, treatment = ht), 4)
 #>             [,1]   [,2]
@@ -352,8 +352,8 @@ each treatment group matched to the overall 24-month proportions:
 
 ``` r
 
-hc_flat <- prop_to_haz(0.50, endtime = end_of_study)   # control, single hazard
-ht_flat <- prop_to_haz(0.40, endtime = end_of_study)   # treatment, single hazard
+hc_flat <- prob_to_haz(0.50, endtime = end_of_study)   # control, single hazard
+ht_flat <- prob_to_haz(0.40, endtime = end_of_study)   # treatment, single hazard
 
 out_flat <- survival_adapt(
   hazard_treatment = ht_flat,
@@ -395,8 +395,8 @@ rather than “how robust is my analysis cut-point?”.
   documents all arguments, including the requirement that each
   `interim_look` in a two-arm design be at least the block size.
 - The help pages for
-  [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.html)
+  [`prob_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.html)
   and
   [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.html)
-  describe the conversion between event proportions and piecewise
-  hazards.
+  describe the conversion between cumulative event probabilities and
+  piecewise hazards.

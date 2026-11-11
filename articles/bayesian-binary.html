@@ -151,8 +151,8 @@ p_{\text{control}}</span></p>
 <p>against <code>h0 = 0</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">end_of_study</span> <span class="op">&lt;-</span> <span class="fl">12</span></span>
-<span><span class="va">hc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.35</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
-<span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.25</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
+<span><span class="va">hc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="fl">0.35</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
+<span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="fl">0.25</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">two_arm_args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
@@ -270,7 +270,7 @@ exceeds <code>prob_ha</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fl">0.30</span></span>
 <span><span class="va">target</span> <span class="op">&lt;-</span> <span class="fl">0.20</span></span>
-<span><span class="va">ht_single</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="va">target</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
+<span><span class="va">ht_single</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="va">target</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">out_single_arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht_single</span>,</span>
@@ -449,7 +449,7 @@ characteristics.</p>
 <p>The binary endpoint model is still calibrated through the event-time
 simulator. When the binary endpoint corresponds to event status by
 <code>end_of_study</code>, choose hazards that reproduce clinically
-meaningful endpoint probabilities through <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> and
+meaningful endpoint probabilities through <code><a href="../reference/prob_to_haz.html">prob_to_haz()</a></code> and
 <code><a href="../reference/ppwe.html">ppwe()</a></code>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

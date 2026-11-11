@@ -244,11 +244,11 @@ and cumulative event probability are
 S_z(t) = \exp\\-H_z(t)\\, \qquad p_z(t) = 1 - S_z(t).
 
 For simulation planning,
-[`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
+[`prob_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.md)
 returns the piecewise hazards implied by event probabilities at
 prespecified time points.
 [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
-evaluates p_z(\tau), and `haz_to_prop()` applies this transformation to
+evaluates p_z(\tau), and `haz_to_prob()` applies this transformation to
 posterior hazard draws.
 
 For observed follow-up (T_i, \delta_i, Z_i), the piecewise-exponential
@@ -872,6 +872,29 @@ goal (PG) or objective performance criterion (OPC). Consequently,
 single-arm survival designs in `goldilocks` require
 `method = "bayes-surv"`; complete binary single-arm designs can use
 `method = "bayes-bin"`.
+
+**Numerical evaluation.** When both event risks are very close to one,
+separately evaluating p_1(\tau) and p_0(\tau) can round both to one and
+incorrectly make their difference zero. The package therefore retains
+the cumulative hazards when evaluating each posterior draw. At h_0=0,
+\Delta\<h_0 is equivalent to H_1(\tau)\<H_0(\tau), including under
+nonproportional piecewise hazards. For nonzero margins, the comparison
+remains on the risk-difference scale, using
+
+\begin{aligned} \Delta &= e^{-H_0(\tau)}-e^{-H_1(\tau)},\\
+\log\|\Delta\| &= -\min\\H_1(\tau),H_0(\tau)\\\\ &\quad
++\log\\\left\[1-e^{-\|H_1(\tau)-H_0(\tau)\|}\right\]. \end{aligned}
+
+The sign of \Delta is the sign of H_1(\tau)-H_0(\tau). Stable
+exponential and logarithmic evaluations preserve its magnitude for
+comparison with h_0, even when the reported risk difference is too small
+to represent numerically. Equal cumulative hazards give a zero
+difference, and comparisons remain strict. For single-arm analyses,
+p_1(\tau)\<h_0 is evaluated as H_1(\tau)\<-\log(1-h_0); benchmarks zero
+and one map to zero and infinity. These calculations are used in both
+interim predictive analyses and final analyses, with the same posterior
+draws, priors, and hypotheses. Non-finite cumulative hazards raise an
+analysis error.
 
 ### 7.3 Bayesian binary final test
 

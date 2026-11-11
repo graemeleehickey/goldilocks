@@ -264,7 +264,8 @@ the piecewise exponential model.
   : Impute piecewise exponential time-to-event outcomes
 - [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
   : Calculate endpoint event probabilities from piecewise hazards
-- [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
+- [`prob_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.md)
+  [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.md)
   : Derive piecewise-constant hazard rates from cumulative event
   probabilities
 

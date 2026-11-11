@@ -128,7 +128,7 @@ partitions may instead differ, and they need not contain the same number
 of intervals. The different boundary representations at an isolated
 cutpoint give the same continuous event-time distribution because the
 cutpoint itself has probability zero.</p>
-<p>For design specification, <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> maps cumulative
+<p>For design specification, <code><a href="../reference/prob_to_haz.html">prob_to_haz()</a></code> maps cumulative
 event probabilities at selected times to the corresponding piecewise
 hazards.</p>
 </div>
@@ -147,14 +147,14 @@ leaving the late-period hazard unchanged. Concretely, we target:</p>
 <li>18% mortality by 6 months in the treatment arm, and</li>
 <li>40% mortality by 24 months overall.</li>
 </ul>
-<p>We set the cut-point at 6 months and translate these proportions into
-piecewise hazards:</p>
+<p>We set the cut-point at 6 months and translate these probabilities
+into piecewise hazards:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cutpoints</span> <span class="op">&lt;-</span> <span class="fl">6</span>         <span class="co"># one change-point at 6 months gives two intervals</span></span>
 <span><span class="va">end_of_study</span> <span class="op">&lt;-</span> <span class="fl">24</span></span>
 <span></span>
-<span><span class="va">hc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.30</span>, <span class="fl">0.50</span><span class="op">)</span>, cutpoints <span class="op">=</span> <span class="va">cutpoints</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
-<span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.18</span>, <span class="fl">0.40</span><span class="op">)</span>, cutpoints <span class="op">=</span> <span class="va">cutpoints</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
+<span><span class="va">hc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.30</span>, <span class="fl">0.50</span><span class="op">)</span>, cutpoints <span class="op">=</span> <span class="va">cutpoints</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
+<span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.18</span>, <span class="fl">0.40</span><span class="op">)</span>, cutpoints <span class="op">=</span> <span class="va">cutpoints</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>control <span class="op">=</span> <span class="va">hc</span>, treatment <span class="op">=</span> <span class="va">ht</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             [,1]   [,2]</span></span>
@@ -455,8 +455,8 @@ that is <em>both</em> simulated and analyzed under a single constant
 hazard for each treatment group matched to the overall 24-month
 proportions:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">hc_flat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.50</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span>   <span class="co"># control, single hazard</span></span>
-<span><span class="va">ht_flat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.40</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span>   <span class="co"># treatment, single hazard</span></span>
+<code class="sourceCode R"><span><span class="va">hc_flat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="fl">0.50</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span>   <span class="co"># control, single hazard</span></span>
+<span><span class="va">ht_flat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="fl">0.40</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span>   <span class="co"># treatment, single hazard</span></span>
 <span></span>
 <span><span class="va">out_flat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht_flat</span>,</span>
@@ -497,10 +497,10 @@ log-rank decision rule.</li>
 documents all arguments, including the requirement that each
 <code>interim_look</code> in a two-arm design be at least the block
 size.</li>
-<li>The help pages for <a href="https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.html"><code>prop_to_haz()</code></a>
+<li>The help pages for <a href="https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.html"><code>prob_to_haz()</code></a>
 and <a href="https://graemeleehickey.github.io/goldilocks/reference/ppwe.html"><code>ppwe()</code></a>
-describe the conversion between event proportions and piecewise
-hazards.</li>
+describe the conversion between cumulative event probabilities and
+piecewise hazards.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

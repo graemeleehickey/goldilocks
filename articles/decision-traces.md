@@ -26,8 +26,8 @@ interim looks due to staged enrollment.
 ``` r
 
 end_of_study <- 24
-hazard_control <- prop_to_haz(c(0.20, 0.35), 12, end_of_study)
-hazard_treatment <- prop_to_haz(c(0.12, 0.24), 12, end_of_study)
+hazard_control <- prob_to_haz(c(0.20, 0.35), 12, end_of_study)
+hazard_treatment <- prob_to_haz(c(0.12, 0.24), 12, end_of_study)
 
 trial <- survival_adapt(
   hazard_treatment = hazard_treatment,

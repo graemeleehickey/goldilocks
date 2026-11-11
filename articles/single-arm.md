@@ -81,7 +81,7 @@ benchmark <- 0.30                       # external standard-of-care failure rate
 target    <- 0.20                       # rate we hope the new therapy achieves
 
 # Convert the target failure rate into a constant hazard (so we can simulate)
-ht <- prop_to_haz(probs = target, endtime = end_of_study)
+ht <- prob_to_haz(probs = target, endtime = end_of_study)
 ht
 #> [1] 0.009297648
 ```
@@ -180,7 +180,7 @@ out_power <- sim_trials(
   seed             = 3082)
 
 # Type I error: simulate under the null (true rate = benchmark/PG/OPC = 0.30)
-ht_null <- prop_to_haz(probs = benchmark, endtime = end_of_study)
+ht_null <- prob_to_haz(probs = benchmark, endtime = end_of_study)
 out_t1error <- sim_trials(
   N_trials         = 1000,
   hazard_treatment = ht_null,

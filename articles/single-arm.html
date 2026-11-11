@@ -142,7 +142,7 @@ to 20%. We use an interim look at 50 of 80 enrolled subjects:</p>
 <span><span class="va">target</span>    <span class="op">&lt;-</span> <span class="fl">0.20</span>                       <span class="co"># rate we hope the new therapy achieves</span></span>
 <span></span>
 <span><span class="co"># Convert the target failure rate into a constant hazard (so we can simulate)</span></span>
-<span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="va">target</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
+<span><span class="va">ht</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="va">target</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
 <span><span class="va">ht</span></span>
 <span><span class="co">#&gt; [1] 0.009297648</span></span></code></pre></div>
 <p>We set <code>prop_loss = 0.05</code>: independently of event time,
@@ -238,7 +238,7 @@ require several minutes:</p>
 <span>  seed             <span class="op">=</span> <span class="fl">3082</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Type I error: simulate under the null (true rate = benchmark/PG/OPC = 0.30)</span></span>
-<span><span class="va">ht_null</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="va">benchmark</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
+<span><span class="va">ht_null</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span>probs <span class="op">=</span> <span class="va">benchmark</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
 <span><span class="va">out_t1error</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trials.html">sim_trials</a></span><span class="op">(</span></span>
 <span>  N_trials         <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht_null</span>,</span>

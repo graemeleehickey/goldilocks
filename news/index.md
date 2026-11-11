@@ -70,6 +70,12 @@ Both respect the interim calendar date.
 
 ### Scope and compatibility
 
+- [`prob_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.md)
+  is the preferred name for converting cumulative event probabilities to
+  piecewise hazards.
+  [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.md)
+  remains an alias with the same arguments and calculations. Examples,
+  vignettes, and reference links use the new name.
 - Within a set of trial paths, the generating model, analysis method,
   priors, null margins, allocation, look sizes, maximum sample size, and
   Monte Carlo settings are fixed. Changes require new paths. Interim
@@ -143,6 +149,14 @@ Both respect the interim calendar date.
 
 ### Bug fixes
 
+- Bayesian survival analyses now use numerically stable comparisons when
+  endpoint event risks approach one. Zero-margin comparisons use
+  cumulative hazards directly; nonzero margins retain the
+  risk-difference scale, and single-arm comparisons use the
+  corresponding cumulative-hazard threshold. The correction applies to
+  interim predictive and final analyses, with regression tests for
+  extreme risks, margins, and strict comparisons. Regenerate saved
+  Bayesian survival paths to use the corrected calculations.
 - Applying stopping rules to saved paths now skips looks with `Fn = 0`,
   `Sn = 1`, and `Qn = 1`. Failed calculations at these disabled looks no
   longer exclude trials with valid final analyses. Skipped looks are
@@ -750,7 +764,7 @@ CRAN release: 2026-07-29
   when the test statistic cannot be calculated reliably.
 - Two-arm randomization now requires two positive integer allocation
   weights; invalid schedules such as `c(0, 1)` are rejected.
-- [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
+- [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.md)
   now rejects cumulative event probabilities that are non-finite,
   outside `[0, 1)`, or decreasing over time.
 - [`pwe_impute()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_impute.md)
@@ -894,7 +908,7 @@ CRAN release: 2026-06-10
 - Added a new vignette, “Bayesian decisions with piecewise-exponential
   hazards”, demonstrating `method = "bayes-surv"` with a piecewise
   hazard via `cutpoints` and
-  [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md),
+  [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.md),
   the Gamma-prior / posterior decision rule on the
   cumulative-failure-probability scale, and a worked single-trial
   example.

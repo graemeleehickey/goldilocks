@@ -61,7 +61,9 @@
 </ul></div>
 <div class="section level3">
 <h3 id="scope-and-compatibility-1-1-0">Scope and compatibility<a class="anchor" aria-label="anchor" href="#scope-and-compatibility-1-1-0"></a></h3>
-<ul><li>Within a set of trial paths, the generating model, analysis method, priors, null margins, allocation, look sizes, maximum sample size, and Monte Carlo settings are fixed. Changes require new paths. Interim looks precede maximum <em>N</em>; the maximum-<em>N</em> final analysis follows follow-up. Candidate outcomes from shared paths are paired by trial, so comparisons should use paired uncertainty calculations.</li>
+<ul><li>
+<code><a href="../reference/prob_to_haz.html">prob_to_haz()</a></code> is the preferred name for converting cumulative event probabilities to piecewise hazards. <code><a href="../reference/prob_to_haz.html">prop_to_haz()</a></code> remains an alias with the same arguments and calculations. Examples, vignettes, and reference links use the new name.</li>
+<li>Within a set of trial paths, the generating model, analysis method, priors, null margins, allocation, look sizes, maximum sample size, and Monte Carlo settings are fixed. Changes require new paths. Interim looks precede maximum <em>N</em>; the maximum-<em>N</em> final analysis follows follow-up. Candidate outcomes from shared paths are paired by trial, so comparisons should use paired uncertainty calculations.</li>
 <li>The development <code>trial_offset</code> argument has been removed. Use different explicit seeds for separate batches and retain a batch identifier when combining results, since trial numbering starts at 1 in each call. Seeded results previously obtained with the default offset are unchanged, and previously saved paths remain usable for applying stopping rules.</li>
 <li>The development endpoint-horizon functions no longer require separate <code>interim_look</code>, <code>endpoint_horizons</code>, or <code>followup_horizon</code> arguments. The separate collection summaries <code>collection_ready_time</code>, <code>planned_collection_time</code>, and <code>collection_person_time</code> have also been removed; analysis and decision times remain available.</li>
 <li>
@@ -84,7 +86,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-1-1-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-1-0"></a></h3>
-<ul><li>Applying stopping rules to saved paths now skips looks with <code>Fn = 0</code>, <code>Sn = 1</code>, and <code>Qn = 1</code>. Failed calculations at these disabled looks no longer exclude trials with valid final analyses. Skipped looks are omitted from the returned decision trace.</li>
+<ul><li>Bayesian survival analyses now use numerically stable comparisons when endpoint event risks approach one. Zero-margin comparisons use cumulative hazards directly; nonzero margins retain the risk-difference scale, and single-arm comparisons use the corresponding cumulative-hazard threshold. The correction applies to interim predictive and final analyses, with regression tests for extreme risks, margins, and strict comparisons. Regenerate saved Bayesian survival paths to use the corrected calculations.</li>
+<li>Applying stopping rules to saved paths now skips looks with <code>Fn = 0</code>, <code>Sn = 1</code>, and <code>Qn = 1</code>. Failed calculations at these disabled looks no longer exclude trials with valid final analyses. Skipped looks are omitted from the returned decision trace.</li>
 <li>Frequentist risk-difference analyses (<code>method = "riskdiff-wald"</code> or <code>"riskdiff-fm"</code>) require <code>-1 &lt; h0 &lt; 1</code>, rejecting the degenerate boundary null values. Bayesian probability-scale margins retain their existing inclusive bounds.</li>
 <li>
 <code>N_mcmc</code> is required to be a positive integer only for analyses that use posterior draws: <code>method = "bayes-surv"</code> and <code>method = "bayes-bin"</code> with <code>bin_method = "mc"</code>. Other analyses ignore it and accept <code>NULL</code>, consistently across direct simulation, observed interim evaluation, and saved trial paths.</li>
@@ -224,7 +227,7 @@
 <li>Log-rank and Cox analyses now give a specific non-estimability error when the test statistic cannot be calculated reliably.</li>
 <li>Two-arm randomization now requires two positive integer allocation weights; invalid schedules such as <code>c(0, 1)</code> are rejected.</li>
 <li>
-<code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> now rejects cumulative event probabilities that are non-finite, outside <code>[0, 1)</code>, or decreasing over time.</li>
+<code><a href="../reference/prob_to_haz.html">prop_to_haz()</a></code> now rejects cumulative event probabilities that are non-finite, outside <code>[0, 1)</code>, or decreasing over time.</li>
 <li>
 <code><a href="../reference/pwe_impute.html">pwe_impute()</a></code> now rejects a <code>maxtime</code> earlier than the participant’s observed follow-up time.</li>
 <li>When <code>Fn = 0</code>, futility monitoring remains disabled throughout the trial (<a href="https://github.com/graemeleehickey/goldilocks/issues/33" class="external-link">#33</a>).</li>
@@ -280,7 +283,7 @@
 <li>Clarified <code>prop_loss</code> parameter documentation, explaining that LTFU times are drawn from <code>Uniform(0, t)</code> and that the event has not yet occurred at the dropout time (<a href="https://github.com/graemeleehickey/goldilocks/issues/25" class="external-link">#25</a>).</li>
 <li>Documented the minimum <code>interim_look</code> requirement (at least the block size for two-arm designs) in the <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> <code>interim_look</code> parameter.</li>
 <li>Improved the “Example: Two-armed RCT” vignette: the <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code> operating characteristics are now rendered as captioned tables, a section documents one-sided tests (including that <code>method = "bayes-surv"</code> requires a one-sided alternative and measures the effect on the cumulative-failure-probability scale <code>p_treatment - p_control</code> against <code>h0</code>), and the <code>cutpoint</code> argument name was corrected to <code>cutpoints</code>.</li>
-<li>Added a new vignette, “Bayesian decisions with piecewise-exponential hazards”, demonstrating <code>method = "bayes-surv"</code> with a piecewise hazard via <code>cutpoints</code> and <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code>, the Gamma-prior / posterior decision rule on the cumulative-failure-probability scale, and a worked single-trial example.</li>
+<li>Added a new vignette, “Bayesian decisions with piecewise-exponential hazards”, demonstrating <code>method = "bayes-surv"</code> with a piecewise hazard via <code>cutpoints</code> and <code><a href="../reference/prob_to_haz.html">prop_to_haz()</a></code>, the Gamma-prior / posterior decision rule on the cumulative-failure-probability scale, and a worked single-trial example.</li>
 <li>Added a new vignette, “Single-arm trials”, documenting the <code>hazard_control = NULL</code> mode (Bayesian-only), the role of <code>h0</code> as a benchmark failure rate, the success rule <code>Pr(p_treatment &lt; h0) &gt; prob_ha</code>, and a worked single-trial example with operating-characteristics templates.</li>
 </ul></div>
 <div class="section level3">

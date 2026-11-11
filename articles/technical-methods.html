@@ -294,9 +294,9 @@ is</p>
 survival and cumulative event probability are</p>
 <p><span class="math display">S_z(t) = \exp\{-H_z(t)\}, \qquad
   p_z(t) = 1 - S_z(t).</span></p>
-<p>For simulation planning, <code><a href="../reference/prop_to_haz.html">prop_to_haz()</a></code> returns the
+<p>For simulation planning, <code><a href="../reference/prob_to_haz.html">prob_to_haz()</a></code> returns the
 piecewise hazards implied by event probabilities at prespecified time
-points. <code><a href="../reference/ppwe.html">ppwe()</a></code> evaluates <span class="math inline">p_z(\tau)</span>, and <code>haz_to_prop()</code>
+points. <code><a href="../reference/ppwe.html">ppwe()</a></code> evaluates <span class="math inline">p_z(\tau)</span>, and <code>haz_to_prob()</code>
 applies this transformation to posterior hazard draws.</p>
 <p>For observed follow-up <span class="math inline">(T_i, \delta_i,
 Z_i)</span>, the piecewise-exponential likelihood can be written in
@@ -1113,6 +1113,29 @@ called a performance goal (PG) or objective performance criterion (OPC).
 Consequently, single-arm survival designs in <code>goldilocks</code>
 require <code>method = "bayes-surv"</code>; complete binary single-arm
 designs can use <code>method = "bayes-bin"</code>.</p>
+<p><strong>Numerical evaluation.</strong> When both event risks are very
+close to one, separately evaluating <span class="math inline">p_1(\tau)</span> and <span class="math inline">p_0(\tau)</span> can round both to one and
+incorrectly make their difference zero. The package therefore retains
+the cumulative hazards when evaluating each posterior draw. At <span class="math inline">h_0=0</span>, <span class="math inline">\Delta&lt;h_0</span> is equivalent to <span class="math inline">H_1(\tau)&lt;H_0(\tau)</span>, including under
+nonproportional piecewise hazards. For nonzero margins, the comparison
+remains on the risk-difference scale, using</p>
+<p><span class="math display">\begin{aligned}
+\Delta &amp;= e^{-H_0(\tau)}-e^{-H_1(\tau)},\\
+\log|\Delta| &amp;= -\min\{H_1(\tau),H_0(\tau)\}\\
+&amp;\quad +\log\!\left[1-e^{-|H_1(\tau)-H_0(\tau)|}\right].
+\end{aligned}</span></p>
+<p>The sign of <span class="math inline">\Delta</span> is the sign of
+<span class="math inline">H_1(\tau)-H_0(\tau)</span>. Stable exponential
+and logarithmic evaluations preserve its magnitude for comparison with
+<span class="math inline">h_0</span>, even when the reported risk
+difference is too small to represent numerically. Equal cumulative
+hazards give a zero difference, and comparisons remain strict. For
+single-arm analyses, <span class="math inline">p_1(\tau)&lt;h_0</span>
+is evaluated as <span class="math inline">H_1(\tau)&lt;-\log(1-h_0)</span>; benchmarks zero
+and one map to zero and infinity. These calculations are used in both
+interim predictive analyses and final analyses, with the same posterior
+draws, priors, and hypotheses. Non-finite cumulative hazards raise an
+analysis error.</p>
 </div>
 <div class="section level3">
 <h3 id="bayesian-binary-final-test">7.3 Bayesian binary final test<a class="anchor" aria-label="anchor" href="#bayesian-binary-final-test"></a>

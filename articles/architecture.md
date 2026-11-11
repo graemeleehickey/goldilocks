@@ -172,7 +172,7 @@ adds trial duration, accrual duration, analysis readiness, and follow-up
 burden.
 
 The planning functions
-[`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
+[`prob_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.md)
 and
 [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md)
 connect clinically interpretable event probabilities to

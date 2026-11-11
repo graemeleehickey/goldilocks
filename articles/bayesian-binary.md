@@ -86,8 +86,8 @@ against `h0 = 0`.
 ``` r
 
 end_of_study <- 12
-hc <- prop_to_haz(0.35, endtime = end_of_study)
-ht <- prop_to_haz(0.25, endtime = end_of_study)
+hc <- prob_to_haz(0.35, endtime = end_of_study)
+ht <- prob_to_haz(0.25, endtime = end_of_study)
 
 two_arm_args <- list(
   hazard_treatment = ht,
@@ -206,7 +206,7 @@ posterior probability that the event probability is below 30% exceeds
 
 benchmark <- 0.30
 target <- 0.20
-ht_single <- prop_to_haz(target, endtime = end_of_study)
+ht_single <- prob_to_haz(target, endtime = end_of_study)
 
 out_single_arm <- survival_adapt(
   hazard_treatment = ht_single,
@@ -390,6 +390,6 @@ The binary endpoint model is still calibrated through the event-time
 simulator. When the binary endpoint corresponds to event status by
 `end_of_study`, choose hazards that reproduce clinically meaningful
 endpoint probabilities through
-[`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.md)
+[`prob_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.md)
 and
 [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.md).

@@ -80,7 +80,7 @@ needed to assess type I error precisely.
 ``` r
 
 fixed_design <- list(
-  hazard_control = prop_to_haz(0.30, endtime = 12),
+  hazard_control = prob_to_haz(0.30, endtime = 12),
   N_total = 100,
   interim_look = c(40, 60, 80),
   lambda = 6,
@@ -103,10 +103,10 @@ fixed_design <- list(
 )
 
 null_args <- c(fixed_design, list(
-  hazard_treatment = prop_to_haz(0.30, endtime = 12), seed = 8201
+  hazard_treatment = prob_to_haz(0.30, endtime = 12), seed = 8201
 ))
 alternative_args <- c(fixed_design, list(
-  hazard_treatment = prop_to_haz(0.20, endtime = 12), seed = 8202
+  hazard_treatment = prob_to_haz(0.20, endtime = 12), seed = 8202
 ))
 
 paths <- list(

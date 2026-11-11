@@ -137,7 +137,7 @@ the differences between rules, although a larger simulation would be
 needed to assess type I error precisely.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fixed_design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  hazard_control <span class="op">=</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.30</span>, endtime <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>,</span>
+<span>  hazard_control <span class="op">=</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="fl">0.30</span>, endtime <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>,</span>
 <span>  N_total <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  interim_look <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">60</span>, <span class="fl">80</span><span class="op">)</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="fl">6</span>,</span>
@@ -160,10 +160,10 @@ needed to assess type I error precisely.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">null_args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">fixed_design</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  hazard_treatment <span class="op">=</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.30</span>, endtime <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">8201</span></span>
+<span>  hazard_treatment <span class="op">=</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="fl">0.30</span>, endtime <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">8201</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">alternative_args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">fixed_design</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  hazard_treatment <span class="op">=</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.20</span>, endtime <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">8202</span></span>
+<span>  hazard_treatment <span class="op">=</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="fl">0.20</span>, endtime <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">8202</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">paths</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>

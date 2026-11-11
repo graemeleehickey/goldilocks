@@ -113,7 +113,7 @@ look because <code>Qn = 1</code>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">target_type1</span> <span class="op">&lt;-</span> <span class="fl">0.025</span></span>
 <span><span class="va">prob_ha_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.965</span>, <span class="fl">0.995</span>, by <span class="op">=</span> <span class="fl">0.005</span><span class="op">)</span></span>
-<span><span class="va">null_hazard</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prop_to_haz.html">prop_to_haz</a></span><span class="op">(</span><span class="fl">0.30</span>, endtime <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span><span class="va">null_hazard</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="fl">0.30</span>, endtime <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">calibration_design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">null_hazard</span>,</span>
