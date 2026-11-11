@@ -216,7 +216,7 @@ where $s_J = \infty$ and $\{x\}_+ = \max(x,0)$. The corresponding survival and c
 $$S_z(t) = \exp\{-H_z(t)\}, \qquad
   p_z(t) = 1 - S_z(t).$$
 
-For simulation planning, `prop_to_haz()` returns the piecewise hazards implied by event probabilities at prespecified time points. `ppwe()` evaluates $p_z(\tau)$, and `haz_to_prob()` applies this transformation to posterior hazard draws.
+For simulation planning, `prob_to_haz()` returns the piecewise hazards implied by event probabilities at prespecified time points. `ppwe()` evaluates $p_z(\tau)$, and `haz_to_prob()` applies this transformation to posterior hazard draws.
 
 For observed follow-up $(T_i, \delta_i, Z_i)$, the piecewise-exponential likelihood can be written in terms of interval-specific event counts and exposure times. Define
 

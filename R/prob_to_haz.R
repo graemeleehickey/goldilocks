@@ -29,20 +29,23 @@
 #'   `(s_{j-1}, s_j]`, matching the survival counting-process convention, so an
 #'   event at \eqn{s_j} belongs to the interval ending there.
 #'
+#'   The earlier name `prop_to_haz()` remains available as an alias for
+#'   compatibility with existing code.
+#'
 #' @return A numeric vector of non-negative hazard rates, with one value for
 #'   each interval defined by `cutpoints` and `endtime`.
 #'
 #' @export
 #'
 #' @examples
-#' lambda <- prop_to_haz(0.15, endtime = 36) # 15% probability at 36-months
+#' lambda <- prob_to_haz(0.15, endtime = 36) # 15% probability at 36-months
 #' all.equal(pexp(36, lambda), 0.15)
 #'
 #' # 15% probability at 12-months, and 30% at 24-months
-#' prop_to_haz(c(0.15, 0.30), 12, 24)
-#' PWEALL::pwe(12, prop_to_haz(c(0.15, 0.30), 12, 24), c(0, 12))$dist
-#' PWEALL::pwe(24, prop_to_haz(c(0.15, 0.30), 12, 24), c(0, 12))$dist
-prop_to_haz <- function(probs, cutpoints = NULL, endtime) {
+#' prob_to_haz(c(0.15, 0.30), 12, 24)
+#' PWEALL::pwe(12, prob_to_haz(c(0.15, 0.30), 12, 24), c(0, 12))$dist
+#' PWEALL::pwe(24, prob_to_haz(c(0.15, 0.30), 12, 24), c(0, 12))$dist
+prob_to_haz <- function(probs, cutpoints = NULL, endtime) {
   validate_probability_vector(probs, "probs", upper_open = TRUE)
 
   if (any(diff(probs) < 0)) {
@@ -74,3 +77,7 @@ prop_to_haz <- function(probs, cutpoints = NULL, endtime) {
 
   return(lambda)
 }
+
+#' @rdname prob_to_haz
+#' @export
+prop_to_haz <- prob_to_haz

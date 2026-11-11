@@ -57,7 +57,7 @@ permit an immediate success claim at an interim look because `Qn = 1`.
 ```{r design}
 target_type1 <- 0.025
 prob_ha_grid <- seq(0.965, 0.995, by = 0.005)
-null_hazard <- prop_to_haz(0.30, endtime = 12)
+null_hazard <- prob_to_haz(0.30, endtime = 12)
 
 calibration_design <- list(
   hazard_treatment = null_hazard,

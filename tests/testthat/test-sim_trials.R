@@ -1,6 +1,6 @@
 test_that("sim_trials-logrank", {
-  hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
-  ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
+  hc <- prob_to_haz(c(0.20, 0.30), 12, 36)
+  ht <- prob_to_haz(c(0.05, 0.15), 12, 36)
 
   out <- sim_trials(
     hazard_treatment = ht,
@@ -40,8 +40,8 @@ test_that("sim_trials-logrank", {
 })
 
 test_that("sim_trials-bayes-surv", {
-  hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
-  ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
+  hc <- prob_to_haz(c(0.20, 0.30), 12, 36)
+  ht <- prob_to_haz(c(0.05, 0.15), 12, 36)
 
   out <- sim_trials(
     hazard_treatment = ht,
@@ -113,8 +113,8 @@ test_that("sim_trials-bayes-bin", {
 })
 
 test_that("sim_trials rejects invalid ncores", {
-  hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
-  ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
+  hc <- prob_to_haz(c(0.20, 0.30), 12, 36)
+  ht <- prob_to_haz(c(0.05, 0.15), 12, 36)
 
   expect_error(
     sim_trials(

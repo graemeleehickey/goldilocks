@@ -75,7 +75,7 @@ reference:
       - pwe_sim
       - pwe_impute
       - ppwe
-      - prop_to_haz
+      - prob_to_haz
 
 articles:
   - title: Getting started

@@ -422,7 +422,7 @@ test_that("ppwe handles zero and infinite cumulative-hazard boundaries", {
 
 test_that("exported conversions are stable and round trip near zero", {
   probability <- 1e-20
-  hazard <- prop_to_haz(probability, endtime = 1)
+  hazard <- prob_to_haz(probability, endtime = 1)
   recovered <- ppwe(matrix(hazard, nrow = 1), end_of_study = 1)
 
   expect_equal(hazard, probability, tolerance = 1e-35)
@@ -526,6 +526,6 @@ test_that("exported PWE utilities reject empty and malformed vectors", {
     matrix(0.1, nrow = 1)
   )
   for (probs in invalid_probabilities) {
-    expect_error(prop_to_haz(probs, endtime = 1), "'probs'")
+    expect_error(prob_to_haz(probs, endtime = 1), "'probs'")
   }
 })

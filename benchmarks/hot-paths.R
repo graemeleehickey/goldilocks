@@ -534,12 +534,12 @@ message(
 )
 
 trial_cutpoints <- c(4, 8)
-trial_hazard_control <- prop_to_haz(
+trial_hazard_control <- prob_to_haz(
   c(0.20, 0.30, 0.35),
   trial_cutpoints,
   end_of_study
 )
-trial_hazard_treatment <- prop_to_haz(
+trial_hazard_treatment <- prob_to_haz(
   c(0.10, 0.18, 0.22),
   trial_cutpoints,
   end_of_study

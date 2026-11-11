@@ -244,11 +244,7 @@ of each stopping outcome, sample-size summaries, and Monte Carlo uncertainty.
 `summarise_calendar_time()` adds trial duration, accrual duration, analysis
 readiness, and follow-up burden.
 
-The planning functions `prop_to_haz()` and `ppwe()` connect clinically
-interpretable event probabilities to piecewise-exponential hazards.
-`plot_enrollment()` displays the expected enrollment trajectory and planned
-interim milestones. These quantities are useful checks that the numerical
-design corresponds to the assumptions intended for the protocol.
+The planning functions `prob_to_haz()` and `ppwe()` connect clinically interpretable event probabilities to piecewise-exponential hazards. `plot_enrollment()` displays the expected enrollment trajectory and planned interim milestones. These quantities are useful checks that the numerical design corresponds to the assumptions intended for the protocol.
 
 ## Prespecification and reproducibility
 

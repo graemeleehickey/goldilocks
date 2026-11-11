@@ -18,6 +18,7 @@ For changing endpoints, success prediction uses observed follow-up through the c
 
 ## Scope and compatibility
 
+* `prob_to_haz()` is the preferred name for converting cumulative event probabilities to piecewise hazards. `prop_to_haz()` remains an alias with the same arguments and calculations. Examples, vignettes, and reference links use the new name.
 * Within a set of trial paths, the generating model, analysis method, priors, null margins, allocation, look sizes, maximum sample size, and Monte Carlo settings are fixed. Changes require new paths. Interim looks precede maximum *N*; the maximum-*N* final analysis follows follow-up. Candidate outcomes from shared paths are paired by trial, so comparisons should use paired uncertainty calculations.
 * The development `trial_offset` argument has been removed. Use different explicit seeds for separate batches and retain a batch identifier when combining results, since trial numbering starts at 1 in each call. Seeded results previously obtained with the default offset are unchanged, and previously saved paths remain usable for applying stopping rules.
 * The development endpoint-horizon functions no longer require separate `interim_look`, `endpoint_horizons`, or `followup_horizon` arguments. The separate collection summaries `collection_ready_time`, `planned_collection_time`, and `collection_person_time` have also been removed; analysis and decision times remain available.

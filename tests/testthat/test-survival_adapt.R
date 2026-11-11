@@ -359,8 +359,8 @@ test_that("survival_adapt still rejects imputed log-rank final analyses", {
 test_that("survival_adapt-complex", {
   skip_on_cran()
 
-  hc <- prop_to_haz(c(0.20, 0.25, 0.30), c(3, 6), 24)
-  ht <- prop_to_haz(c(0.075, 0.125, 0.175), c(3, 6), 24)
+  hc <- prob_to_haz(c(0.20, 0.25, 0.30), c(3, 6), 24)
+  ht <- prob_to_haz(c(0.075, 0.125, 0.175), c(3, 6), 24)
 
   set.seed(12345)
   out <- survival_adapt(
@@ -840,8 +840,8 @@ test_that("survival_adapt no longer accepts method = 'chisq'", {
 
 test_that("survival_adapt maps deprecated riskdiff to riskdiff-wald", {
   arguments <- list(
-    hazard_treatment = prop_to_haz(0.2, endtime = 1),
-    hazard_control = prop_to_haz(0.4, endtime = 1),
+    hazard_treatment = prob_to_haz(0.2, endtime = 1),
+    hazard_control = prob_to_haz(0.4, endtime = 1),
     N_total = 40,
     lambda = 100,
     end_of_study = 1,

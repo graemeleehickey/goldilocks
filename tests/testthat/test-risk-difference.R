@@ -242,8 +242,8 @@ test_that("explicit Wald analysis retains its zero-variance error", {
 
 test_that("sparse nonzero-null simulations use riskdiff-fm end to end", {
   out <- sim_trials(
-    hazard_treatment = prop_to_haz(0.10, endtime = 1),
-    hazard_control = prop_to_haz(0.05, endtime = 1),
+    hazard_treatment = prob_to_haz(0.10, endtime = 1),
+    hazard_control = prob_to_haz(0.05, endtime = 1),
     N_total = 40,
     lambda = 100,
     end_of_study = 1,
@@ -272,8 +272,8 @@ test_that("sim_trials warns once for the deprecated riskdiff alias", {
   warnings <- character()
   out <- withCallingHandlers(
     sim_trials(
-      hazard_treatment = prop_to_haz(0.2, endtime = 1),
-      hazard_control = prop_to_haz(0.4, endtime = 1),
+      hazard_treatment = prob_to_haz(0.2, endtime = 1),
+      hazard_control = prob_to_haz(0.4, endtime = 1),
       N_total = 40,
       lambda = 100,
       end_of_study = 1,

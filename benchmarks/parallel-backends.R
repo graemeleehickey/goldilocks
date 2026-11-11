@@ -53,8 +53,8 @@ worker_counts <- sort(unique(c(
 )))
 
 end_of_study <- 24
-hazard_control <- prop_to_haz(c(0.15, 0.25), 12, end_of_study)
-hazard_treatment <- prop_to_haz(c(0.10, 0.18), 12, end_of_study)
+hazard_control <- prob_to_haz(c(0.15, 0.25), 12, end_of_study)
+hazard_treatment <- prob_to_haz(c(0.10, 0.18), 12, end_of_study)
 
 workloads <- list(
   small = list(

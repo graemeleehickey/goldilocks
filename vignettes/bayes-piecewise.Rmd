@@ -49,8 +49,7 @@ they need not contain the same number of intervals. The different boundary
 representations at an isolated cutpoint give the same continuous event-time
 distribution because the cutpoint itself has probability zero.
 
-For design specification, `prop_to_haz()` maps cumulative event probabilities
-at selected times to the corresponding piecewise hazards.
+For design specification, `prob_to_haz()` maps cumulative event probabilities at selected times to the corresponding piecewise hazards.
 
 ## Setting up the design
 
@@ -64,14 +63,14 @@ The treatment is hypothesised to attenuate the early-period hazard, leaving the 
 -   18% mortality by 6 months in the treatment arm, and
 -   40% mortality by 24 months overall.
 
-We set the cut-point at 6 months and translate these proportions into piecewise hazards:
+We set the cut-point at 6 months and translate these probabilities into piecewise hazards:
 
 ```{r hazards}
 cutpoints <- 6         # one change-point at 6 months gives two intervals
 end_of_study <- 24
 
-hc <- prop_to_haz(probs = c(0.30, 0.50), cutpoints = cutpoints, endtime = end_of_study)
-ht <- prop_to_haz(probs = c(0.18, 0.40), cutpoints = cutpoints, endtime = end_of_study)
+hc <- prob_to_haz(probs = c(0.30, 0.50), cutpoints = cutpoints, endtime = end_of_study)
+ht <- prob_to_haz(probs = c(0.18, 0.40), cutpoints = cutpoints, endtime = end_of_study)
 
 round(rbind(control = hc, treatment = ht), 4)
 ```
@@ -247,8 +246,8 @@ the cut-point becomes a design decision worth justifying in the protocol.
 A simpler -- but very different -- comparison is the equivalent design that is *both* simulated and analyzed under a single constant hazard for each treatment group matched to the overall 24-month proportions:
 
 ```{r flat_design, eval=FALSE}
-hc_flat <- prop_to_haz(0.50, endtime = end_of_study)   # control, single hazard
-ht_flat <- prop_to_haz(0.40, endtime = end_of_study)   # treatment, single hazard
+hc_flat <- prob_to_haz(0.50, endtime = end_of_study)   # control, single hazard
+ht_flat <- prob_to_haz(0.40, endtime = end_of_study)   # treatment, single hazard
 
 out_flat <- survival_adapt(
   hazard_treatment = ht_flat,
@@ -279,4 +278,4 @@ Note that this changes both the simulated data-generating process *and* the anal
 
 -   The [Two-arm randomized trials](two-arm.html) vignette covers the same design machinery using a single exponential hazard and a log-rank decision rule.
 -   The help page for [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.html) documents all arguments, including the requirement that each `interim_look` in a two-arm design be at least the block size.
--   The help pages for [`prop_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prop_to_haz.html) and [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.html) describe the conversion between event proportions and piecewise hazards.
+-   The help pages for [`prob_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.html) and [`ppwe()`](https://graemeleehickey.github.io/goldilocks/reference/ppwe.html) describe the conversion between cumulative event probabilities and piecewise hazards.

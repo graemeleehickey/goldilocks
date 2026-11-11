@@ -42,7 +42,7 @@ From this information, we have:
 
 -   Equal randomization: `block = 2` and `rand_ratio = c(control = 1, treatment = 1)` (default parameters)
 -   Primary endpoint is at 12 months: `end_of_study = 12`
--   12-month event rate for control arm: `hazard_control = prop_to_haz(1 - 0.30, endtime = 12)` (note that the input argument is the failure proportion, not the survival proportion)
+-   12-month event probability for control arm: `hazard_control = prob_to_haz(1 - 0.30, endtime = 12)` (the input is the probability of death by 12 months)
 -   No change points in hazard: `cutpoints = NULL` (default parameter)
 -   Maximum sample size: `N_total = 300`
 -   No attrition: `prop_loss = 0`
@@ -172,8 +172,8 @@ library(goldilocks)
 ```
 
 ```{r example_power, eval=FALSE}
-hc <- prop_to_haz(0.7, endtime = 12)
-ht <- prop_to_haz(0.5, endtime = 12)
+hc <- prob_to_haz(0.7, endtime = 12)
+ht <- prob_to_haz(0.5, endtime = 12)
 
 out_power <- sim_trials(
   hazard_treatment = ht,

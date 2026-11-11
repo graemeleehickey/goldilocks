@@ -84,8 +84,8 @@
 #' @export
 #'
 #' @examples
-#' hc <- prop_to_haz(c(0.20, 0.30), 12, 36)
-#' ht <- prop_to_haz(c(0.05, 0.15), 12, 36)
+#' hc <- prob_to_haz(c(0.20, 0.30), 12, 36)
+#' ht <- prob_to_haz(c(0.05, 0.15), 12, 36)
 #'
 #' out <- sim_trials(
 #'   hazard_treatment = ht,
