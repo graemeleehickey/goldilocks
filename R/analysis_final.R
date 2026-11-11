@@ -5,8 +5,8 @@
 #'   subjects lost to follow-up are either handled as observed censored outcomes
 #'   or have their outcomes multiply imputed.
 #'
-#' @inheritParams survival_adapt
-#' @inheritParams sim_comp_data
+#' @inheritParams sim_trial
+#' @inheritParams sim_trial_data
 #' @param data_in A data frame with one row per enrolled subject and columns for
 #'   treatment assignment (`treatment`, coded `1` for treatment and `0` for
 #'   control; single-arm designs use all 1s), event time (`time`), event
@@ -90,7 +90,7 @@ analyse_final <- function(
 
   if (requires_imputation) {
     # Posterior distribution of lambdas: final data
-    post_lambda_final <- posterior(
+    post_lambda_final <- post_haz_draws(
       data = data_in,
       cutpoints = cutpoints,
       prior_surv = prior_surv_final,
@@ -120,7 +120,7 @@ analyse_final <- function(
       if (method == "bayes-surv") {
         # Preserve final imputation for the other empty-interval policies.
         # Each completed dataset updates the original final-stage prior.
-        data_summ <- posterior_sufficient_stats(
+        data_summ <- post_sufficient_stats(
           data = data_success_impute,
           cutpoints = cutpoints,
           single_arm = single_arm
@@ -174,7 +174,7 @@ analyse_final <- function(
         variance_final[j] <- fit_riskdiff$variance
       } else {
         # Apply primary analysis to imputed data
-        success <- analyse_data(
+        success <- analyse_comp_data(
           data = data,
           cutpoints = cutpoints,
           end_of_study = end_of_study,
@@ -226,7 +226,7 @@ analyse_final <- function(
     ) {
       data_in <- data_in[!data_in$loss_to_fu, ]
     }
-    success <- analyse_data(
+    success <- analyse_comp_data(
       data = data_in,
       cutpoints = cutpoints,
       end_of_study = end_of_study,
@@ -261,7 +261,7 @@ analyse_final <- function(
 #'   imputed data set. At least two values are required.
 #' @param variances A numeric vector of corresponding finite, non-negative
 #'   within-imputation variances.
-#' @inheritParams survival_adapt
+#' @inheritParams sim_trial
 #'
 #' @return A list containing the pooled success score, effect estimate, standard
 #'   error, and degrees of freedom.

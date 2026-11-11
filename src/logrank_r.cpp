@@ -29,7 +29,7 @@ std::vector<std::pair<double, int>> cpugetpairvector(const std::vector<double>& 
 }
 
 // [[Rcpp::export]]
-std::vector<double> logrank_instance(const std::vector<double>& groupa, const std::vector<double>& groupb, const std::vector<double>& groupacensored, const std::vector<double>& groupbcensored, SEXP onlyz){
+std::vector<double> logrank_cpp(const std::vector<double>& groupa, const std::vector<double>& groupb, const std::vector<double>& groupacensored, const std::vector<double>& groupbcensored, SEXP onlyz){
 
   if (TYPEOF(onlyz) != LGLSXP || Rf_xlength(onlyz) != 1 || LOGICAL(onlyz)[0] == NA_LOGICAL) {
     Rcpp::stop("'onlyz' must be a single non-missing logical value.");

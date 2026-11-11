@@ -30,14 +30,14 @@ test_that("log-rank onlyz preserves a non-estimable statistic", {
   expect_true(is.nan(z))
 })
 
-test_that("analyse_data works with method = 'logrank'", {
+test_that("analyse_comp_data works with method = 'logrank'", {
   set.seed(6184)
   data <- data.frame(
     time = rexp(100, 0.02),
     event = sample(0:1, 100, replace = TRUE),
     treatment = rep(0:1, each = 50)
   )
-  res <- analyse_data(
+  res <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,
@@ -62,7 +62,7 @@ test_that("log-rank analysis rejects a nonzero h0 instead of ignoring it", {
   )
 
   expect_error(
-    analyse_data(
+    analyse_comp_data(
       data = data,
       cutpoints = NULL,
       end_of_study = 4,
@@ -98,20 +98,20 @@ test_that("binary analyses reject missing and non-binary event indicators", {
     data <- base_data
     data$event <- bad_event
     expect_error(
-      do.call(analyse_data, c(list(data = data), args)),
+      do.call(analyse_comp_data, c(list(data = data), args)),
       "requires binary event outcomes.*'data\\$event'.*only 0 and 1"
     )
   }
 })
 
-test_that("analyse_data works with method = 'cox'", {
+test_that("analyse_comp_data works with method = 'cox'", {
   set.seed(3729)
   data <- data.frame(
     time = rexp(100, 0.02),
     event = sample(0:1, 100, replace = TRUE),
     treatment = rep(0:1, each = 50)
   )
-  res <- analyse_data(
+  res <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,
@@ -128,7 +128,7 @@ test_that("analyse_data works with method = 'cox'", {
   expect_type(res$effect, "double")
 })
 
-test_that("analyse_data errors clearly for non-estimable log-rank tests", {
+test_that("analyse_comp_data errors clearly for non-estimable log-rank tests", {
   data <- data.frame(
     time = rep(10, 20),
     event = rep(0, 20),
@@ -136,7 +136,7 @@ test_that("analyse_data errors clearly for non-estimable log-rank tests", {
   )
 
   expect_error(
-    analyse_data(
+    analyse_comp_data(
       data = data,
       cutpoints = NULL,
       end_of_study = 36,
@@ -151,7 +151,7 @@ test_that("analyse_data errors clearly for non-estimable log-rank tests", {
   )
 })
 
-test_that("analyse_data errors clearly for non-estimable Cox tests", {
+test_that("analyse_comp_data errors clearly for non-estimable Cox tests", {
   data <- data.frame(
     time = rep(10, 20),
     event = rep(0, 20),
@@ -159,7 +159,7 @@ test_that("analyse_data errors clearly for non-estimable Cox tests", {
   )
 
   expect_error(
-    analyse_data(
+    analyse_comp_data(
       data = data,
       cutpoints = NULL,
       end_of_study = 36,
@@ -335,14 +335,14 @@ test_that("Cox analysis defines singular and convergence-failure behavior", {
   }
 })
 
-test_that("analyse_data works with method = 'bayes-surv' (two-arm)", {
+test_that("analyse_comp_data works with method = 'bayes-surv' (two-arm)", {
   set.seed(8415)
   data <- data.frame(
     time = rexp(100, 0.02),
     event = sample(0:1, 100, replace = TRUE),
     treatment = rep(0:1, each = 50)
   )
-  res <- analyse_data(
+  res <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,
@@ -409,14 +409,14 @@ test_that("Bayesian survival sufficient-statistics analysis is equivalent", {
 
   for (case_name in names(cases)) {
     case <- cases[[case_name]]
-    data_summ <- posterior_sufficient_stats(
+    data_summ <- post_sufficient_stats(
       data = case$data,
       cutpoints = case$cutpoints,
       single_arm = case$single_arm
     )
 
     set.seed(8246)
-    from_data <- analyse_data(
+    from_data <- analyse_comp_data(
       data = case$data,
       cutpoints = case$cutpoints,
       end_of_study = 24,
@@ -450,7 +450,7 @@ test_that("prepared Bayesian survival analysis matches general analysis", {
     treatment = c(0, 0, 0, 1, 1, 1)
   )
   cutpoints <- c(5, 12)
-  data_summ <- posterior_sufficient_stats(data, cutpoints, FALSE)
+  data_summ <- post_sufficient_stats(data, cutpoints, FALSE)
   prior <- normalize_gamma_prior(
     list(
       control = c(0.5, 0.25),
@@ -567,7 +567,7 @@ test_that("Bayesian cumulative hazards reject incompatible inputs", {
     event = c(1, 0, 1, 0, 1, 1),
     treatment = c(0, 0, 0, 1, 1, 1)
   )
-  data_summ <- posterior_sufficient_stats(data, c(5, 12), FALSE)
+  data_summ <- post_sufficient_stats(data, c(5, 12), FALSE)
   prior <- normalize_gamma_prior(
     c(0.5, 0.25),
     n_intervals = 3,
@@ -594,14 +594,14 @@ test_that("Bayesian cumulative hazards reject incompatible inputs", {
   expect_identical(.Random.seed, seed_before)
 })
 
-test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less'", {
+test_that("analyse_comp_data works with method = 'bayes-surv' and alternative = 'less'", {
   set.seed(5091)
   data <- data.frame(
     time = rexp(100, 0.02),
     event = sample(0:1, 100, replace = TRUE),
     treatment = rep(0:1, each = 50)
   )
-  res_greater <- analyse_data(
+  res_greater <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,
@@ -612,7 +612,7 @@ test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less
     alternative = "greater",
     h0 = 0
   )
-  res_less <- analyse_data(
+  res_less <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,
@@ -628,14 +628,14 @@ test_that("analyse_data works with method = 'bayes-surv' and alternative = 'less
   expect_equal(res_greater$success + res_less$success, 1, tolerance = 0.05)
 })
 
-test_that("analyse_data works with method = 'riskdiff-wald'", {
+test_that("analyse_comp_data works with method = 'riskdiff-wald'", {
   event <- c(rep(1, 10), rep(0, 40), rep(1, 20), rep(0, 30))
   data <- data.frame(
     time = rep(36, 100),
     event = event,
     treatment = rep(0:1, each = 50)
   )
-  res <- analyse_data(
+  res <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,
@@ -662,7 +662,7 @@ test_that("analyse_data works with method = 'riskdiff-wald'", {
   expect_equal(fit$variance, 0.4 * 0.6 / 50 + 0.2 * 0.8 / 50)
 })
 
-test_that("analyse_data risk-difference alternatives preserve direction", {
+test_that("analyse_comp_data risk-difference alternatives preserve direction", {
   data <- data.frame(
     time = rep(36, 100),
     event = c(rep(1, 10), rep(0, 40), rep(1, 20), rep(0, 30)),
@@ -679,8 +679,8 @@ test_that("analyse_data risk-difference alternatives preserve direction", {
     h0 = 0.1
   )
 
-  less <- do.call(analyse_data, c(args, alternative = "less"))
-  greater <- do.call(analyse_data, c(args, alternative = "greater"))
+  less <- do.call(analyse_comp_data, c(args, alternative = "less"))
+  greater <- do.call(analyse_comp_data, c(args, alternative = "greater"))
 
   expect_equal(less$success + greater$success, 1)
   expect_lt(less$success, 0.5)
@@ -695,7 +695,7 @@ test_that("riskdiff-wald rejects incomplete censored outcomes", {
   )
 
   expect_error(
-    analyse_data(
+    analyse_comp_data(
       data = data,
       cutpoints = NULL,
       end_of_study = 36,
@@ -710,7 +710,7 @@ test_that("riskdiff-wald rejects incomplete censored outcomes", {
   )
 })
 
-test_that("analyse_data works with method = 'bayes-bin' and Monte Carlo", {
+test_that("analyse_comp_data works with method = 'bayes-bin' and Monte Carlo", {
   set.seed(4912)
   data <- data.frame(
     time = rep(36, 100),
@@ -718,7 +718,7 @@ test_that("analyse_data works with method = 'bayes-bin' and Monte Carlo", {
     treatment = rep(0:1, each = 50)
   )
 
-  res <- analyse_data(
+  res <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,
@@ -731,7 +731,7 @@ test_that("analyse_data works with method = 'bayes-bin' and Monte Carlo", {
     prior_bin = c(1, 1),
     bin_method = "mc"
   )
-  reference <- analyse_data(
+  reference <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,
@@ -766,7 +766,7 @@ test_that("analyse_data works with method = 'bayes-bin' and Monte Carlo", {
   expect_true(res$success > 0.9)
 })
 
-test_that("analyse_data method = 'bayes-bin' quadrature tails sum to 1", {
+test_that("analyse_comp_data method = 'bayes-bin' quadrature tails sum to 1", {
   data <- data.frame(
     time = rep(36, 40),
     event = c(rep(1, 8), rep(0, 12), rep(1, 13), rep(0, 7)),
@@ -785,14 +785,14 @@ test_that("analyse_data method = 'bayes-bin' quadrature tails sum to 1", {
     bin_method = "quadrature"
   )
 
-  res_less <- do.call(analyse_data, c(args, alternative = "less"))
-  res_greater <- do.call(analyse_data, c(args, alternative = "greater"))
+  res_less <- do.call(analyse_comp_data, c(args, alternative = "less"))
+  res_greater <- do.call(analyse_comp_data, c(args, alternative = "greater"))
 
   expect_equal(res_less$success + res_greater$success, 1, tolerance = 1e-8)
   expect_type(res_less$effect, "double")
 })
 
-test_that("analyse_data method = 'bayes-bin' engines agree on stable data", {
+test_that("analyse_comp_data method = 'bayes-bin' engines agree on stable data", {
   data <- data.frame(
     time = rep(36, 400),
     event = c(rep(1, 80), rep(0, 120), rep(1, 120), rep(0, 80)),
@@ -812,13 +812,13 @@ test_that("analyse_data method = 'bayes-bin' engines agree on stable data", {
   )
 
   set.seed(3319)
-  res_mc <- do.call(analyse_data, c(args, bin_method = "mc"))
+  res_mc <- do.call(analyse_comp_data, c(args, bin_method = "mc"))
   res_normal <- do.call(
-    analyse_data,
+    analyse_comp_data,
     c(args, bin_method = "normal")
   )
   res_quadrature <- do.call(
-    analyse_data,
+    analyse_comp_data,
     c(args, bin_method = "quadrature")
   )
 
@@ -835,14 +835,14 @@ test_that("analyse_data method = 'bayes-bin' engines agree on stable data", {
   expect_equal(res_normal$success, res_quadrature$success, tolerance = 0.02)
 })
 
-test_that("analyse_data method = 'bayes-bin' works for single-arm data", {
+test_that("analyse_comp_data method = 'bayes-bin' works for single-arm data", {
   data <- data.frame(
     time = rep(36, 50),
     event = c(rep(1, 15), rep(0, 35)),
     treatment = rep(1, 50)
   )
 
-  res <- analyse_data(
+  res <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,
@@ -860,7 +860,7 @@ test_that("analyse_data method = 'bayes-bin' works for single-arm data", {
   expect_type(res$effect, "double")
 })
 
-test_that("analyse_data method = 'bayes-bin' rejects incomplete censored outcomes", {
+test_that("analyse_comp_data method = 'bayes-bin' rejects incomplete censored outcomes", {
   data <- data.frame(
     time = c(36, 5, 36, 36),
     event = c(1, 0, 1, 0),
@@ -868,7 +868,7 @@ test_that("analyse_data method = 'bayes-bin' rejects incomplete censored outcome
   )
 
   expect_error(
-    analyse_data(
+    analyse_comp_data(
       data = data,
       cutpoints = NULL,
       end_of_study = 36,
@@ -885,14 +885,14 @@ test_that("analyse_data method = 'bayes-bin' rejects incomplete censored outcome
   )
 })
 
-test_that("analyse_data works with method = 'bayes-surv' (single-arm)", {
+test_that("analyse_comp_data works with method = 'bayes-surv' (single-arm)", {
   set.seed(9473)
   data <- data.frame(
     time = rexp(50, 0.02),
     event = sample(0:1, 50, replace = TRUE),
     treatment = rep(1, 50)
   )
-  res <- analyse_data(
+  res <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,
@@ -908,14 +908,14 @@ test_that("analyse_data works with method = 'bayes-surv' (single-arm)", {
   expect_length(res$effect, 1)
 })
 
-test_that("analyse_data works with piecewise cutpoints", {
+test_that("analyse_comp_data works with piecewise cutpoints", {
   set.seed(4318)
   data <- data.frame(
     time = rexp(100, 0.02),
     event = sample(0:1, 100, replace = TRUE),
     treatment = rep(0:1, each = 50)
   )
-  res <- analyse_data(
+  res <- analyse_comp_data(
     data = data,
     cutpoints = 12,
     end_of_study = 36,
@@ -930,7 +930,7 @@ test_that("analyse_data works with piecewise cutpoints", {
   expect_true(res$success >= 0 && res$success <= 1)
 })
 
-test_that("analyse_data one-sided cox: less + greater sum to ~1", {
+test_that("analyse_comp_data one-sided cox: less + greater sum to ~1", {
   set.seed(5813)
   data <- data.frame(
     time = rexp(100, 0.02),
@@ -947,9 +947,9 @@ test_that("analyse_data one-sided cox: less + greater sum to ~1", {
     method = "cox",
     h0 = 0
   )
-  res_less <- do.call(analyse_data, c(args, alternative = "less"))
-  res_greater <- do.call(analyse_data, c(args, alternative = "greater"))
-  res_two <- do.call(analyse_data, c(args, alternative = "two.sided"))
+  res_less <- do.call(analyse_comp_data, c(args, alternative = "less"))
+  res_greater <- do.call(analyse_comp_data, c(args, alternative = "greater"))
+  res_two <- do.call(analyse_comp_data, c(args, alternative = "two.sided"))
   # One-sided p-values should sum to 1
   # success = 1 - p, so (1 - success_less) + (1 - success_greater) = 1
   expect_equal(
@@ -961,7 +961,7 @@ test_that("analyse_data one-sided cox: less + greater sum to ~1", {
   expect_true(res_two$success <= max(res_less$success, res_greater$success))
 })
 
-test_that("analyse_data one-sided logrank: less + greater sum to ~1", {
+test_that("analyse_comp_data one-sided logrank: less + greater sum to ~1", {
   set.seed(7249)
   data <- data.frame(
     time = rexp(100, 0.02),
@@ -978,8 +978,8 @@ test_that("analyse_data one-sided logrank: less + greater sum to ~1", {
     method = "logrank",
     h0 = 0
   )
-  res_less <- do.call(analyse_data, c(args, alternative = "less"))
-  res_greater <- do.call(analyse_data, c(args, alternative = "greater"))
+  res_less <- do.call(analyse_comp_data, c(args, alternative = "less"))
+  res_greater <- do.call(analyse_comp_data, c(args, alternative = "greater"))
   expect_equal(
     (1 - res_less$success) + (1 - res_greater$success),
     1,
@@ -987,7 +987,7 @@ test_that("analyse_data one-sided logrank: less + greater sum to ~1", {
   )
 })
 
-test_that("analyse_data one-sided cox detects beneficial treatment", {
+test_that("analyse_comp_data one-sided cox detects beneficial treatment", {
   set.seed(8164)
   # Treatment has much lower hazard (beneficial)
   data <- data.frame(
@@ -995,7 +995,7 @@ test_that("analyse_data one-sided cox detects beneficial treatment", {
     event = rep(1L, 100),
     treatment = rep(0:1, each = 50)
   )
-  res <- analyse_data(
+  res <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,
@@ -1010,7 +1010,7 @@ test_that("analyse_data one-sided cox detects beneficial treatment", {
   expect_true(res$success > 0.95)
 })
 
-test_that("analyse_data one-sided cox uses h0 as the null log hazard ratio", {
+test_that("analyse_comp_data one-sided cox uses h0 as the null log hazard ratio", {
   set.seed(123)
   data <- data.frame(
     time = c(rexp(200, rate = 0.10), rexp(200, rate = 0.12)),
@@ -1028,14 +1028,14 @@ test_that("analyse_data one-sided cox uses h0 as the null log hazard ratio", {
     method = "cox",
     alternative = "less"
   )
-  res_superiority <- do.call(analyse_data, c(args, h0 = 0))
-  res_noninferiority <- do.call(analyse_data, c(args, h0 = log(1.5)))
+  res_superiority <- do.call(analyse_comp_data, c(args, h0 = 0))
+  res_noninferiority <- do.call(analyse_comp_data, c(args, h0 = log(1.5)))
 
   expect_true(res_superiority$success < 0.05)
   expect_true(res_noninferiority$success > 0.95)
 })
 
-test_that("analyse_data validates h0 before Bayesian analysis", {
+test_that("analyse_comp_data validates h0 before Bayesian analysis", {
   data <- data.frame(
     time = rep(36, 4),
     event = c(0, 1, 0, 1),
@@ -1055,11 +1055,11 @@ test_that("analyse_data validates h0 before Bayesian analysis", {
   )
 
   expect_error(
-    do.call(analyse_data, c(args, h0 = NaN)),
+    do.call(analyse_comp_data, c(args, h0 = NaN)),
     "single finite"
   )
   expect_error(
-    do.call(analyse_data, c(args, h0 = -1.1)),
+    do.call(analyse_comp_data, c(args, h0 = -1.1)),
     "\\[-1, 1\\]"
   )
 })

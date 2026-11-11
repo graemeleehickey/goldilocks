@@ -4,7 +4,7 @@
 #'   and exposure times, then samples the posterior distribution of each
 #'   piecewise-constant hazard rate.
 #'
-#' @inheritParams survival_adapt
+#' @inheritParams sim_trial
 #' @inheritParams haz_to_prob
 #' @param data A data frame with one row per subject and at least three columns:
 #'   follow-up time (`time`), event indicator (`event`), and treatment
@@ -26,7 +26,7 @@
 #' @importFrom stats rgamma
 #'
 #' @noRd
-posterior <- function(
+post_haz_draws <- function(
   data,
   cutpoints,
   prior_surv,
@@ -50,10 +50,10 @@ posterior <- function(
   # Keep the patient-level function as a thin compatibility layer. The
   # posterior itself depends only on the statistics below, so separating the
   # two operations lets repeated imputation paths calculate the statistics once
-  # and pass them directly to posterior_from_sufficient_stats().
-  data_summ <- posterior_sufficient_stats(data, cutpoints, single_arm)
+  # and pass them directly to post_haz_draws_from_sufficient_stats().
+  data_summ <- post_sufficient_stats(data, cutpoints, single_arm)
 
-  posterior_from_sufficient_stats(
+  post_haz_draws_from_sufficient_stats(
     data_summ = data_summ,
     prior_surv = prior_surv,
     N_mcmc = N_mcmc,
@@ -72,7 +72,7 @@ posterior <- function(
 #'   not part of the Gamma update because it distinguishes an empty interval
 #'   from an interval having zero events. That distinction is required by
 #'   `empty_interval`.
-#' @inheritParams posterior
+#' @inheritParams post_haz_draws
 #'
 #' @details For arm \eqn{a} and interval \eqn{k}, the posterior is
 #'   \deqn{\lambda_{ak} \mid data \sim Gamma(\alpha + D_{ak},
@@ -89,10 +89,10 @@ posterior <- function(
 #'   `prior_surv` used to generate the completed data. Using the first posterior
 #'   as the second-stage prior would count the observed data twice.
 #'
-#' @return See `posterior()`.
+#' @return See `post_haz_draws()`.
 #'
 #' @noRd
-posterior_from_sufficient_stats <- function(
+post_haz_draws_from_sufficient_stats <- function(
   data_summ,
   prior_surv,
   N_mcmc,
@@ -185,7 +185,7 @@ posterior_from_sufficient_stats <- function(
 
   # The statistics table deliberately contains zero-filled rows for expected
   # arms that are absent. Detect those here so the direct path fails with the
-  # same diagnostic as posterior(data = ...), rather than eventually failing
+  # same diagnostic as post_haz_draws(data = ...), rather than eventually failing
   # inside empty-interval propagation.
   if (sum(data_summ$n[data_summ$treatment == 1]) == 0) {
     stop("No subjects in the treatment arm")
@@ -197,7 +197,7 @@ posterior_from_sufficient_stats <- function(
     stop("No subjects in the control arm")
   }
 
-  data_summ <- resolve_empty_posterior_intervals(
+  data_summ <- resolve_empty_post_intervals(
     data_summ,
     empty_interval = empty_interval
   )
@@ -217,7 +217,7 @@ posterior_from_sufficient_stats <- function(
     drop = FALSE
   ]
 
-  draw_gamma_posterior(
+  draw_gamma_post(
     data_summ = data_summ,
     prior_surv = prior_surv,
     N_mcmc = N_mcmc,
@@ -231,13 +231,13 @@ posterior_from_sufficient_stats <- function(
 #'   validated and ordered by arm and interval, then applies the selected
 #'   empty-interval rule before sampling.
 #'
-#' @inheritParams posterior_from_sufficient_stats
+#' @inheritParams post_haz_draws_from_sufficient_stats
 #'
-#' @return See `posterior()`.
+#' @return See `post_haz_draws()`.
 #'
 #' @keywords internal
 #' @noRd
-posterior_from_prepared_stats <- function(
+post_haz_draws_from_prepared_stats <- function(
   data_summ,
   prior_surv,
   N_mcmc,
@@ -359,11 +359,11 @@ posterior_from_prepared_stats <- function(
     )
   }
 
-  data_summ <- resolve_empty_posterior_intervals(
+  data_summ <- resolve_empty_post_intervals(
     data_summ,
     empty_interval = empty_interval
   )
-  draw_gamma_posterior(
+  draw_gamma_post(
     data_summ = data_summ,
     prior_surv = prior_surv,
     N_mcmc = N_mcmc,
@@ -373,13 +373,13 @@ posterior_from_prepared_stats <- function(
 
 #' Apply the configured empty-interval policy
 #'
-#' @inheritParams posterior_from_sufficient_stats
+#' @inheritParams post_haz_draws_from_sufficient_stats
 #'
 #' @return The sufficient-statistics data frame after any propagation.
 #'
 #' @keywords internal
 #' @noRd
-resolve_empty_posterior_intervals <- function(data_summ, empty_interval) {
+resolve_empty_post_intervals <- function(data_summ, empty_interval) {
   if (!any(data_summ$n == 0)) {
     return(data_summ)
   }
@@ -418,13 +418,13 @@ resolve_empty_posterior_intervals <- function(data_summ, empty_interval) {
 
 #' Sample Gamma posterior hazards from canonical sufficient statistics
 #'
-#' @inheritParams posterior_from_sufficient_stats
+#' @inheritParams post_haz_draws_from_sufficient_stats
 #'
-#' @return See `posterior()`.
+#' @return See `post_haz_draws()`.
 #'
 #' @keywords internal
 #' @noRd
-draw_gamma_posterior <- function(
+draw_gamma_post <- function(
   data_summ,
   prior_surv,
   N_mcmc,
@@ -467,7 +467,7 @@ draw_gamma_posterior <- function(
 #' Summarize resolved Gamma priors by arm and interval
 #'
 #' @param prior_surv A numeric vector, matrix, or named list specifying a Gamma
-#'   prior in one of the forms described for [survival_adapt()].
+#'   prior in one of the forms described for [sim_trial()].
 #' @param cutpoints `NULL`, or a numeric vector of piecewise-exponential
 #'   cutpoints.
 #' @param end_of_study A single finite, positive numeric value giving the
@@ -540,7 +540,7 @@ gamma_prior_diagnostics <- function(
 #'
 #' @keywords internal
 #' @noRd
-gamma_posterior_diagnostics <- function(
+gamma_post_diagnostics <- function(
   data_summ,
   prior_surv,
   cutpoints,
@@ -669,7 +669,7 @@ propagate_empty_intervals <- function(data_summ) {
 #'   of `data`, selecting the subjects to include in the sufficient statistics.
 #'
 #' @noRd
-posterior_sufficient_stats <- function(
+post_sufficient_stats <- function(
   data,
   cutpoints,
   single_arm,

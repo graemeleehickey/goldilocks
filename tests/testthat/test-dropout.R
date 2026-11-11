@@ -10,7 +10,7 @@ test_that("dropout censors only when it precedes the event and horizon", {
       c(1, 9, 4, 20, 5, 10)
     }
   )
-  out <- sim_comp_data(
+  out <- sim_trial_data(
     hazard_treatment = 0.1,
     N_total = 6,
     end_of_study = 10,
@@ -36,7 +36,7 @@ test_that("zero dropout preserves event data and consumes no extra RNG", {
 
   for (p in list(0, c(treatment = 0, control = 0))) {
     set.seed(6101)
-    out <- sim_comp_data(
+    out <- sim_trial_data(
       hazard_treatment = 0.01,
       hazard_control = 0.02,
       N_total = 40,
@@ -57,7 +57,7 @@ test_that("dropout CDF is calibrated to the per-subject follow-up horizon", {
   # With no endpoint events, actual dropout directly reveals the specified
   # dropout-time CDF. Check an earlier time as well as the reference horizon.
   set.seed(6102)
-  out <- sim_comp_data(
+  out <- sim_trial_data(
     hazard_treatment = 0,
     hazard_control = 0,
     N_total = 40000,
@@ -83,7 +83,7 @@ test_that("small trials have random loss counts without forced rounding", {
   set.seed(6103)
   # Previously every one-patient trial was forced to lose its only patient.
   lost <- replicate(2000, {
-    sim_comp_data(
+    sim_trial_data(
       hazard_treatment = 0,
       N_total = 1,
       end_of_study = 12,
@@ -116,7 +116,7 @@ test_that("independent dropout recovers survival and observed outcome probabilit
     args <- scenarios[[scenario]]
     set.seed(6104)
     out <- do.call(
-      sim_comp_data,
+      sim_trial_data,
       c(
         args,
         list(
@@ -189,7 +189,7 @@ test_that("dropout probabilities exclude one and reject malformed inputs", {
   )
   for (p in invalid) {
     expect_error(
-      sim_comp_data(
+      sim_trial_data(
         hazard_treatment = 0.01,
         hazard_control = 0.02,
         N_total = 20,
@@ -201,7 +201,7 @@ test_that("dropout probabilities exclude one and reject malformed inputs", {
   }
   # Validate before expensive trial simulation, including both public wrappers.
   expect_error(
-    survival_adapt(
+    sim_trial(
       hazard_treatment = 0.01,
       N_total = 20,
       end_of_study = 12,
@@ -223,7 +223,7 @@ test_that("dropout probabilities exclude one and reject malformed inputs", {
   )
   set.seed(6105)
   for (p in c(1e-12, 1 - .Machine$double.eps)) {
-    out <- sim_comp_data(
+    out <- sim_trial_data(
       hazard_treatment = 0.01,
       N_total = 20,
       end_of_study = 12,

@@ -354,7 +354,7 @@ test_that("conditional PWE event probabilities match the survival formula", {
   expected <- (survival_at_time - survival_at_endpoint) / survival_at_time
 
   expect_equal(
-    goldilocks:::pwe_conditional_event_probability(
+    goldilocks:::pwe_cond_event_prob(
       time = time,
       hazard = hazard,
       end_of_study = end_of_study,
@@ -366,7 +366,7 @@ test_that("conditional PWE event probabilities match the survival formula", {
 })
 
 test_that("conditional PWE event probabilities remain stable in the tail", {
-  out <- goldilocks:::pwe_conditional_event_probability(
+  out <- goldilocks:::pwe_cond_event_prob(
     time = 40,
     hazard = 1,
     end_of_study = 41

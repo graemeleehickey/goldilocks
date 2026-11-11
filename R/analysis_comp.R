@@ -4,8 +4,8 @@
 #'   observed or imputed completed data set and returns its success measure and
 #'   treatment-effect estimate.
 #'
-#' @inheritParams survival_adapt
-#' @inheritParams sim_comp_data
+#' @inheritParams sim_trial
+#' @inheritParams sim_trial_data
 #' @inheritParams haz_to_prob
 #' @param data A data frame with one row per subject and columns `time`,
 #'   `event`, and `treatment`. It contains the observed or imputed outcomes to
@@ -49,7 +49,7 @@
 #' @useDynLib goldilocks, .registration = TRUE
 #'
 #' @noRd
-analyse_data <- function(
+analyse_comp_data <- function(
   data,
   cutpoints,
   end_of_study,
@@ -88,7 +88,7 @@ analyse_data <- function(
     # then uses the same prepared-data calculation as predictive imputation.
     # Keeping a single implementation prevents the two analysis routes from
     # drifting apart statistically.
-    data_summ <- posterior_sufficient_stats(
+    data_summ <- post_sufficient_stats(
       data = data,
       cutpoints = cutpoints,
       single_arm = single_arm
@@ -112,7 +112,7 @@ analyse_data <- function(
 
   if (method == "bayes-bin") {
     assert_complete_binary_outcomes(data, end_of_study, "Bayesian binomial")
-    bin_res <- bayes_binomial_test(
+    bin_res <- analyse_bayes_bin(
       data = data,
       single_arm = single_arm,
       alternative = alternative,
@@ -201,14 +201,14 @@ analyse_data <- function(
 #' @param outcome A list containing `time`, `event`, and `treatment` vectors.
 #' @param interval_widths A numeric vector giving the piecewise-interval widths
 #'   through `end_of_study` for a Bayesian survival analysis.
-#' @inheritParams analyse_data
+#' @inheritParams analyse_comp_data
 #'
 #' @return A list containing the analysis-specific success score and
 #'   treatment-effect estimate.
 #'
 #' @keywords internal
 #' @noRd
-analyse_completed_survival <- function(
+analyse_comp_survival <- function(
   outcome,
   cutpoints,
   end_of_study,
@@ -300,7 +300,7 @@ analyse_binary_counts <- function(
   bin_method
 ) {
   if (method == "bayes-bin") {
-    return(bayes_binomial_from_counts(
+    return(analyse_bayes_bin_from_counts(
       events_control = counts$events_control,
       n_control = counts$n_control,
       events_treatment = counts$events_treatment,

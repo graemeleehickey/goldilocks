@@ -16,7 +16,7 @@
 #'   subjects still under follow-up.
 #' @param check_futility A single logical value indicating whether to calculate
 #'   success at the maximum sample size.
-#' @inheritParams survival_adapt
+#' @inheritParams sim_trial
 #'
 #' @return A list containing predictive probabilities, the decision, Monte Carlo
 #'   summaries, diagnostics, and a one-row decision trace.
@@ -350,7 +350,7 @@ select_interim_decision <- function(
 #'
 #' @keywords internal
 #' @noRd
-new_interim_posterior_diagnostics <- function(rows) {
+new_interim_post_diagnostics <- function(rows) {
   rows <- Filter(Negate(is.null), rows)
   if (length(rows) > 0L) {
     out <- do.call(rbind, rows)
@@ -454,13 +454,13 @@ evaluate_interim_evidence <- function(
     ))
   }
 
-  data_summ <- posterior_sufficient_stats(
+  data_summ <- post_sufficient_stats(
     data = data,
     cutpoints = cutpoints,
     single_arm = single_arm
   )
   post_lambda <- withCallingHandlers(
-    posterior_from_sufficient_stats(
+    post_haz_draws_from_sufficient_stats(
       data_summ = data_summ,
       prior_surv = prior_surv,
       N_mcmc = N_impute,
@@ -470,7 +470,7 @@ evaluate_interim_evidence <- function(
     warning = capture_warning,
     goldilocks_empty_interval = capture_empty_interval
   )
-  posterior_diagnostics <- gamma_posterior_diagnostics(
+  posterior_diagnostics <- gamma_post_diagnostics(
     data_summ = data_summ,
     prior_surv = prior_surv,
     cutpoints = cutpoints,

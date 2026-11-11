@@ -1,5 +1,46 @@
-test_that("survival_adapt-bayes-surv", {
-  out <- survival_adapt(
+test_that("survival_adapt remains an exported alias with the same seeded results", {
+  expect_identical(
+    getExportedValue("goldilocks", "survival_adapt"),
+    getExportedValue("goldilocks", "sim_trial")
+  )
+  args <- list(
+    hazard_treatment = 0.02,
+    hazard_control = 0.03,
+    N_total = 40,
+    lambda = 5,
+    interim_look = 20,
+    end_of_study = 12,
+    prior_surv = c(0.5, 10),
+    prop_loss = 0.1,
+    alternative = "less",
+    Fn = 0.05,
+    Sn = 0.9,
+    N_impute = 3,
+    N_mcmc = 20,
+    method = "bayes-surv"
+  )
+
+  for (trace in c(FALSE, TRUE)) {
+    args$return_trace <- trace
+    set.seed(9711)
+    expect_no_warning(current <- do.call("sim_trial", args))
+    current_seed <- .Random.seed
+    set.seed(9711)
+    expect_no_warning(legacy <- do.call("survival_adapt", args))
+    expect_identical(.Random.seed, current_seed)
+
+    if (trace) {
+      # Each trace retains the name actually used in the caller's command.
+      expect_identical(current$call[[1L]], as.name("sim_trial"))
+      expect_identical(legacy$call[[1L]], as.name("survival_adapt"))
+      legacy$call <- current$call
+    }
+    expect_identical(legacy, current)
+  }
+})
+
+test_that("sim_trial-bayes-surv", {
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -55,7 +96,7 @@ test_that("prepared Bayesian survival analysis preserves seeded results", {
   )
 
   set.seed(6195)
-  prepared_result <- do.call(survival_adapt, args)
+  prepared_result <- do.call(sim_trial, args)
   prepared_seed <- .Random.seed
 
   general_analysis <- function(..., interval_widths = NULL) {
@@ -66,16 +107,16 @@ test_that("prepared Bayesian survival analysis preserves seeded results", {
     .package = "goldilocks"
   )
   set.seed(6195)
-  general_result <- do.call(survival_adapt, args)
+  general_result <- do.call(sim_trial, args)
   general_seed <- .Random.seed
 
   expect_identical(prepared_result, general_result)
   expect_identical(prepared_seed, general_seed)
 })
 
-test_that("survival_adapt-bayes-bin", {
+test_that("sim_trial-bayes-bin", {
   set.seed(1)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -104,9 +145,9 @@ test_that("survival_adapt-bayes-bin", {
   expect_true(!is.na(out$est_final))
 })
 
-test_that("survival_adapt supports Bernoulli binary imputation", {
+test_that("sim_trial supports Bernoulli binary imputation", {
   set.seed(2102)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     N_total = 100,
@@ -135,15 +176,15 @@ test_that("small variable-block trials report the final enrolled cohort", {
   )
   for (futility in c(0, 1)) {
     set.seed(213)
-    out <- do.call(survival_adapt, c(args, list(Fn = futility)))
+    out <- do.call(sim_trial, c(args, list(Fn = futility)))
     expect_equal(out$N_enrolled, if (futility == 1) 6 else 8)
     expect_equal(out$N_enrolled, out$N_treatment + out$N_control)
     expect_equal(out$stop_futility, futility)
   }
 })
 
-test_that("survival_adapt-logrank", {
-  out <- survival_adapt(
+test_that("sim_trial-logrank", {
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -169,9 +210,9 @@ test_that("survival_adapt-logrank", {
   expect_s3_class(out, "data.frame")
 })
 
-test_that("survival_adapt-cox", {
+test_that("sim_trial-cox", {
   set.seed(2)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -198,9 +239,9 @@ test_that("survival_adapt-cox", {
   expect_true(!is.na(out$est_final))
 })
 
-test_that("survival_adapt-riskdiff-wald", {
+test_that("sim_trial-riskdiff-wald", {
   set.seed(1)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -227,9 +268,9 @@ test_that("survival_adapt-riskdiff-wald", {
   expect_true(!is.na(out$est_final))
 })
 
-test_that("survival_adapt riskdiff-wald excludes LTFU without imputation", {
+test_that("sim_trial riskdiff-wald excludes LTFU without imputation", {
   set.seed(3927)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -257,9 +298,9 @@ test_that("survival_adapt riskdiff-wald excludes LTFU without imputation", {
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
 })
 
-test_that("survival_adapt pools imputed Cox final analyses", {
+test_that("sim_trial pools imputed Cox final analyses", {
   set.seed(8263)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -285,10 +326,10 @@ test_that("survival_adapt pools imputed Cox final analyses", {
   expect_true(is.finite(out$est_final))
 })
 
-test_that("survival_adapt pools imputed Wald analyses and rejects FM imputation", {
+test_that("sim_trial pools imputed Wald analyses and rejects FM imputation", {
   run_analysis <- function(method) {
     set.seed(2084)
-    survival_adapt(
+    sim_trial(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
       cutpoints = NULL,
@@ -314,10 +355,10 @@ test_that("survival_adapt pools imputed Wald analyses and rejects FM imputation"
   expect_true(is.finite(wald$est_final))
 })
 
-test_that("survival_adapt requires multiple imputations for Rubin pooling", {
+test_that("sim_trial requires multiple imputations for Rubin pooling", {
   for (method in c("cox", "riskdiff-wald")) {
     expect_error(
-      survival_adapt(
+      sim_trial(
         hazard_treatment = -log(0.85) / 36,
         hazard_control = -log(0.7) / 36,
         cutpoints = NULL,
@@ -337,9 +378,9 @@ test_that("survival_adapt requires multiple imputations for Rubin pooling", {
   }
 })
 
-test_that("survival_adapt still rejects imputed log-rank final analyses", {
+test_that("sim_trial still rejects imputed log-rank final analyses", {
   expect_error(
-    survival_adapt(
+    sim_trial(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
       cutpoints = NULL,
@@ -356,14 +397,14 @@ test_that("survival_adapt still rejects imputed log-rank final analyses", {
   )
 })
 
-test_that("survival_adapt-complex", {
+test_that("sim_trial-complex", {
   skip_on_cran()
 
   hc <- prob_to_haz(c(0.20, 0.25, 0.30), c(3, 6), 24)
   ht <- prob_to_haz(c(0.075, 0.125, 0.175), c(3, 6), 24)
 
   set.seed(12345)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = ht,
     hazard_control = hc,
     cutpoints = c(3, 6),
@@ -393,7 +434,7 @@ test_that("survival_adapt-complex", {
 test_that("batched Bayesian interim imputation is reproducible", {
   run_once <- function() {
     set.seed(4205)
-    survival_adapt(
+    sim_trial(
       hazard_treatment = c(0.02, 0.01),
       hazard_control = c(0.03, 0.015),
       cutpoints = 6,
@@ -429,10 +470,10 @@ test_that("generation_cutpoints defaults exactly to analysis cutpoints", {
   )
 
   set.seed(1945)
-  from_default <- do.call(survival_adapt, common_args)
+  from_default <- do.call(sim_trial, common_args)
   set.seed(1945)
   from_explicit <- do.call(
-    survival_adapt,
+    sim_trial,
     c(common_args, list(generation_cutpoints = common_args$cutpoints))
   )
 
@@ -452,7 +493,7 @@ test_that("generation and analysis can use different cutpoint partitions", {
   )
 
   set.seed(1946)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = c(0.02, 0.015, 0.01),
     hazard_control = c(0.03, 0.02, 0.012),
     cutpoints = analysis_cutpoints,
@@ -496,7 +537,7 @@ test_that("constant and piecewise generation-analysis models are independent", {
     set.seed(2000 + i)
     expect_no_error(
       do.call(
-        survival_adapt,
+        sim_trial,
         c(
           cases[[i]],
           list(
@@ -530,14 +571,14 @@ test_that("generation and analysis partitions validate independently", {
 
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(common_args, list(hazard_treatment = c(0.02, 0.01)))
     ),
     "length of 'generation_cutpoints'"
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(
         common_args,
         list(prior_surv = matrix(0.1, nrow = 2, ncol = 3))
@@ -547,14 +588,14 @@ test_that("generation and analysis partitions validate independently", {
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(common_args, list(end_of_study = 18))
     ),
     "greater than the last cutpoint"
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(
         common_args,
         list(
@@ -569,7 +610,7 @@ test_that("generation and analysis partitions validate independently", {
 
 test_that("error-interim-looks", {
   expect_error(
-    out <- survival_adapt(
+    out <- sim_trial(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
       cutpoints = NULL,
@@ -599,7 +640,7 @@ test_that("error-interim-look-below-block-size", {
   # group only, leaving the interim posterior undefined for the missing group.
   # This should be caught as an input error before any simulation runs.
   expect_error(
-    out <- survival_adapt(
+    out <- sim_trial(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
       cutpoints = NULL,
@@ -627,7 +668,7 @@ test_that("error-interim-look-below-block-size", {
 
 test_that("error-alternative", {
   expect_error(
-    out <- survival_adapt(
+    out <- sim_trial(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
       cutpoints = NULL,
@@ -654,7 +695,7 @@ test_that("error-alternative", {
 
 test_that("error-cutpoint", {
   expect_error(
-    out <- survival_adapt(
+    out <- sim_trial(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
       cutpoints = 37,
@@ -681,7 +722,7 @@ test_that("error-cutpoint", {
 
 test_that("error-alternative-bayes-surv", {
   expect_error(
-    out <- survival_adapt(
+    out <- sim_trial(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
       cutpoints = NULL,
@@ -706,8 +747,8 @@ test_that("error-alternative-bayes-surv", {
   )
 })
 
-test_that("survival_adapt-logrank-one-sided", {
-  out <- survival_adapt(
+test_that("sim_trial-logrank-one-sided", {
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -734,10 +775,10 @@ test_that("survival_adapt-logrank-one-sided", {
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
 })
 
-test_that("survival_adapt-cox-one-sided-less", {
+test_that("sim_trial-cox-one-sided-less", {
   set.seed(2)
 
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -765,9 +806,9 @@ test_that("survival_adapt-cox-one-sided-less", {
   expect_true(!is.na(out$est_final))
 })
 
-test_that("survival_adapt-cox-one-sided-greater", {
+test_that("sim_trial-cox-one-sided-greater", {
   set.seed(2)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -794,9 +835,9 @@ test_that("survival_adapt-cox-one-sided-greater", {
   expect_true(out$post_prob_ha >= 0 && out$post_prob_ha <= 1)
 })
 
-test_that("survival_adapt riskdiff-wald supports one-sided margins", {
+test_that("sim_trial riskdiff-wald supports one-sided margins", {
   set.seed(908)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -824,9 +865,9 @@ test_that("survival_adapt riskdiff-wald supports one-sided margins", {
   expect_true(out$est_final >= -1 && out$est_final <= 1)
 })
 
-test_that("survival_adapt no longer accepts method = 'chisq'", {
+test_that("sim_trial no longer accepts method = 'chisq'", {
   expect_error(
-    survival_adapt(
+    sim_trial(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
       N_total = 100,
@@ -838,7 +879,7 @@ test_that("survival_adapt no longer accepts method = 'chisq'", {
   )
 })
 
-test_that("survival_adapt maps deprecated riskdiff to riskdiff-wald", {
+test_that("sim_trial maps deprecated riskdiff to riskdiff-wald", {
   arguments <- list(
     hazard_treatment = prob_to_haz(0.2, endtime = 1),
     hazard_control = prob_to_haz(0.4, endtime = 1),
@@ -851,22 +892,22 @@ test_that("survival_adapt maps deprecated riskdiff to riskdiff-wald", {
 
   set.seed(6310)
   expect_warning(
-    deprecated <- do.call(survival_adapt, arguments),
+    deprecated <- do.call(sim_trial, arguments),
     "deprecated; use `method = \"riskdiff-wald\"`"
   )
   arguments$method <- "riskdiff-wald"
   set.seed(6310)
-  explicit <- do.call(survival_adapt, arguments)
+  explicit <- do.call(sim_trial, arguments)
 
   expect_equal(deprecated, explicit)
   expect_identical(attr(deprecated, "arguments")$method, "riskdiff-wald")
 })
 
-test_that("survival_adapt validates risk-difference margins", {
+test_that("sim_trial validates risk-difference margins", {
   for (method in c("riskdiff-wald", "riskdiff-fm")) {
     for (margin in c(-1.1, -1, 1, 1.1)) {
       expect_error(
-        survival_adapt(
+        sim_trial(
           hazard_treatment = -log(0.85) / 36,
           hazard_control = -log(0.7) / 36,
           N_total = 100,
@@ -883,7 +924,7 @@ test_that("survival_adapt validates risk-difference margins", {
 
 test_that("error-logrank-single_arm", {
   expect_error(
-    out <- survival_adapt(
+    out <- sim_trial(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = NULL,
       cutpoints = NULL,
@@ -910,7 +951,7 @@ test_that("error-logrank-single_arm", {
 
 test_that("error-prob-thresholds-length_v1", {
   expect_error(
-    out <- survival_adapt(
+    out <- sim_trial(
       hazard_treatment = -log(0.85) / 36,
       hazard_control = -log(0.7) / 36,
       cutpoints = NULL,
@@ -935,9 +976,9 @@ test_that("error-prob-thresholds-length_v1", {
   )
 })
 
-test_that("survival_adapt works with no interim looks and default thresholds", {
+test_that("sim_trial works with no interim looks and default thresholds", {
   set.seed(4817)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     cutpoints = NULL,
@@ -968,7 +1009,7 @@ test_that("survival_adapt works with no interim looks and default thresholds", {
   expect_equal(out$decision_time, out$analysis_ready_time)
 })
 
-test_that("survival_adapt validates probability, count, and prior arguments", {
+test_that("sim_trial validates probability, count, and prior arguments", {
   common_args <- list(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
@@ -993,34 +1034,34 @@ test_that("survival_adapt validates probability, count, and prior arguments", {
   )
 
   expect_error(
-    do.call(survival_adapt, modifyList(common_args, list(prob_ha = -0.1))),
+    do.call(sim_trial, modifyList(common_args, list(prob_ha = -0.1))),
     "prob_ha"
   )
   expect_error(
-    do.call(survival_adapt, modifyList(common_args, list(Sn = 1.2))),
+    do.call(sim_trial, modifyList(common_args, list(Sn = 1.2))),
     "Sn"
   )
   expect_error(
-    do.call(survival_adapt, modifyList(common_args, list(Qn = 1.2))),
+    do.call(sim_trial, modifyList(common_args, list(Qn = 1.2))),
     "Qn"
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(common_args, list(Sn = 0.9, Qn = 0.8))
     ),
     "Sn.*less than or equal to.*Qn"
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(common_args, list(prior_surv = c(-0.1, 0.1)))
     ),
     "prior_surv"
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(
         common_args,
         list(prior_surv = matrix(1, nrow = 2, ncol = 2))
@@ -1030,42 +1071,42 @@ test_that("survival_adapt validates probability, count, and prior arguments", {
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(common_args, list(prior_surv_final = c(0.1, Inf)))
     ),
     "prior_surv_final"
   )
   expect_error(
-    do.call(survival_adapt, modifyList(common_args, list(N_impute = 1.5))),
+    do.call(sim_trial, modifyList(common_args, list(N_impute = 1.5))),
     "N_impute"
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(common_args, list(method = "bayes-surv", N_mcmc = 1.5))
     ),
     "N_mcmc"
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(common_args, list(mc_conf_level = 0.5))
     ),
     "greater than 0.5 and less than 1"
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(common_args, list(mc_conf_level = 1))
     ),
     "mc_conf_level"
   )
   expect_error(
-    do.call(survival_adapt, modifyList(common_args, list(N_total = 200.5))),
+    do.call(sim_trial, modifyList(common_args, list(N_total = 200.5))),
     "N_total"
   )
   expect_error(
-    do.call(survival_adapt, modifyList(common_args, list(prop_loss = -0.1))),
+    do.call(sim_trial, modifyList(common_args, list(prop_loss = -0.1))),
     "prop_loss"
   )
 })
@@ -1091,19 +1132,19 @@ test_that("prior_surv_final defaults exactly to prior_surv", {
   )
 
   set.seed(8041)
-  from_default <- do.call(survival_adapt, common_args)
+  from_default <- do.call(sim_trial, common_args)
   set.seed(8041)
   from_explicit <- do.call(
-    survival_adapt,
+    sim_trial,
     c(common_args, list(prior_surv_final = common_args$prior_surv))
   )
 
   expect_identical(from_default, from_explicit)
 })
 
-test_that("survival_adapt reports arm-specific prior and posterior diagnostics", {
+test_that("sim_trial reports arm-specific prior and posterior diagnostics", {
   set.seed(8893)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = c(0.02, 0.01),
     hazard_control = c(0.03, 0.015),
     cutpoints = 6,
@@ -1175,12 +1216,12 @@ test_that("the final survival prior is independent of the interim prior", {
 
   set.seed(8042)
   weak_interim <- do.call(
-    survival_adapt,
+    sim_trial,
     c(common_args, list(prior_surv = c(0.1, 0.1)))
   )
   set.seed(8042)
   strong_interim <- do.call(
-    survival_adapt,
+    sim_trial,
     c(common_args, list(prior_surv = c(100, 100)))
   )
 
@@ -1193,7 +1234,7 @@ test_that("the final survival prior is independent of the interim prior", {
   expect_identical(weak_interim, strong_interim)
 })
 
-test_that("survival_adapt validates interim ordering and h0", {
+test_that("sim_trial validates interim ordering and h0", {
   common_args <- list(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
@@ -1219,36 +1260,36 @@ test_that("survival_adapt validates interim ordering and h0", {
 
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(common_args, list(interim_look = c(150, 100)))
     ),
     "strictly increasing"
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(common_args, list(interim_look = 200))
     ),
     "strictly less than 'N_total'"
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(common_args, list(interim_look = c(100, 100)))
     ),
     "strictly increasing"
   )
   expect_error(
-    do.call(survival_adapt, modifyList(common_args, list(h0 = Inf))),
+    do.call(sim_trial, modifyList(common_args, list(h0 = Inf))),
     "single finite"
   )
   expect_error(
-    do.call(survival_adapt, modifyList(common_args, list(h0 = 1.1))),
+    do.call(sim_trial, modifyList(common_args, list(h0 = 1.1))),
     "\\[-1, 1\\]"
   )
   expect_error(
     do.call(
-      survival_adapt,
+      sim_trial,
       modifyList(
         common_args,
         list(hazard_control = NULL, h0 = -0.1)
@@ -1258,9 +1299,9 @@ test_that("survival_adapt validates interim ordering and h0", {
   )
 })
 
-test_that("survival_adapt keeps futility disabled when Fn = 0", {
+test_that("sim_trial keeps futility disabled when Fn = 0", {
   set.seed(1)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.3) / 36,
     hazard_control = -log(0.2) / 36,
     cutpoints = NULL,
@@ -1288,9 +1329,9 @@ test_that("survival_adapt keeps futility disabled when Fn = 0", {
   expect_identical(attr(out, "decision_design")$Qn, c(1, 1))
 })
 
-test_that("survival_adapt can declare immediate success from Pn", {
+test_that("sim_trial can declare immediate success from Pn", {
   set.seed(1)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     N_total = 40,
@@ -1340,7 +1381,7 @@ test_that("terminal interim decisions remain official without a final result", {
 
   set.seed(2)
   immediate <- do.call(
-    survival_adapt,
+    sim_trial,
     c(common_args, list(Fn = 0, Sn = 0, Qn = 0, prob_ha = 0))
   )
   expect_equal(immediate$summary$stop_immediate_success, 1)
@@ -1350,7 +1391,7 @@ test_that("terminal interim decisions remain official without a final result", {
 
   set.seed(3)
   futile <- do.call(
-    survival_adapt,
+    sim_trial,
     c(common_args, list(Fn = 1, Sn = 1, Qn = 1, prob_ha = 0.999))
   )
   expect_equal(futile$summary$stop_futility, 1)
@@ -1359,7 +1400,7 @@ test_that("terminal interim decisions remain official without a final result", {
   expect_true(is.na(futile$summary$est_final))
 
   set.seed(12)
-  high_loss <- survival_adapt(
+  high_loss <- sim_trial(
     hazard_treatment = 0.1,
     hazard_control = 0.1,
     N_total = 20,
@@ -1387,9 +1428,9 @@ test_that("terminal interim decisions remain official without a final result", {
   expect_true(is.na(high_loss$summary$est_final))
 })
 
-test_that("survival_adapt applies Qn separately at each interim look", {
+test_that("sim_trial applies Qn separately at each interim look", {
   set.seed(7622)
-  out <- survival_adapt(
+  out <- sim_trial(
     hazard_treatment = -log(0.85) / 36,
     hazard_control = -log(0.7) / 36,
     N_total = 40,
@@ -1435,10 +1476,10 @@ test_that("Qn = 1 preserves disabled-rule results and RNG use", {
   )
 
   set.seed(1)
-  default <- do.call(survival_adapt, args)
+  default <- do.call(sim_trial, args)
   seed_after_default <- .Random.seed
   set.seed(1)
-  explicit <- do.call(survival_adapt, c(args, list(Qn = 1)))
+  explicit <- do.call(sim_trial, c(args, list(Qn = 1)))
   seed_after_explicit <- .Random.seed
 
   expect_identical(default, explicit)
@@ -1468,15 +1509,15 @@ test_that("error-prob-thresholds-length_v2", {
   )
 
   expect_error(
-    do.call(survival_adapt, c(args, list(Sn = rep(0.99, 3)))),
+    do.call(sim_trial, c(args, list(Sn = rep(0.99, 3)))),
     "'Sn' has too many values"
   )
   expect_error(
-    do.call(survival_adapt, c(args, list(Sn = 0.9, Qn = rep(0.99, 3)))),
+    do.call(sim_trial, c(args, list(Sn = 0.9, Qn = rep(0.99, 3)))),
     "'Qn' has too many values"
   )
   expect_error(
-    do.call(survival_adapt, c(args, list(Fn = rep(0.05, 3), Sn = 0.9))),
+    do.call(sim_trial, c(args, list(Fn = rep(0.05, 3), Sn = 0.9))),
     "'Fn' has too many values"
   )
 })

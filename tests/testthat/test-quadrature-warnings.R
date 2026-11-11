@@ -46,7 +46,7 @@ quadrature_warning_args <- function() {
 test_that("symmetry detects a known quadrature failure without replacing it", {
   set.seed(192)
   rng <- .Random.seed
-  actual <- collect_quadrature_warnings(bayes_binomial_from_counts(
+  actual <- collect_quadrature_warnings(analyse_bayes_bin_from_counts(
     events_control = 0,
     n_control = 10000,
     events_treatment = 0,
@@ -97,7 +97,7 @@ test_that("symmetry detects a known quadrature failure without replacing it", {
 })
 
 test_that("posterior moment bounds detect errors with unequal posteriors", {
-  actual <- collect_quadrature_warnings(bayes_binomial_from_counts(
+  actual <- collect_quadrature_warnings(analyse_bayes_bin_from_counts(
     events_control = 1,
     n_control = 10000,
     events_treatment = 0,
@@ -208,17 +208,17 @@ test_that("checks are silent for regular quadrature and other binary methods", {
     bin_method = "quadrature",
     N_mcmc = NULL
   )
-  expect_no_warning(do.call(bayes_binomial_from_counts, args))
+  expect_no_warning(do.call(analyse_bayes_bin_from_counts, args))
   args$events_control <- args$events_treatment <- 0
   args$n_control <- args$n_treatment <- 10000
   for (method in c("normal", "mc")) {
     args$bin_method <- method
     args$N_mcmc <- 100
-    expect_no_warning(do.call(bayes_binomial_from_counts, args))
+    expect_no_warning(do.call(analyse_bayes_bin_from_counts, args))
   }
   args$single_arm <- TRUE
   args$bin_method <- "quadrature"
-  expect_no_warning(do.call(bayes_binomial_from_counts, args))
+  expect_no_warning(do.call(analyse_bayes_bin_from_counts, args))
   expect_warning(
     capture_quadrature_warnings(warning("unrelated warning")),
     "unrelated warning"
@@ -270,7 +270,7 @@ test_that("individual trial and observed-interim calls collect imputation warnin
   for (traced in c(FALSE, TRUE)) {
     args$return_trace <- traced
     set.seed(441)
-    actual <- collect_quadrature_warnings(do.call(survival_adapt, args))
+    actual <- collect_quadrature_warnings(do.call(sim_trial, args))
     expect_length(actual$warnings, 1)
     expect_gt(
       attr(actual$value, "quadrature_diagnostics")[["flagged_calculations"]],

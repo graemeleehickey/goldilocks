@@ -312,7 +312,7 @@ test_that("failed final analyses and generation are recorded without silent omis
   expect_true(all(out$sims$stop_futility == 1))
   expect_true(all(is.na(out$sims$futility_and_success_at_max)))
   expect_equal(summarise_sims(out)$futility_and_success_at_max_n_missing, 2)
-  local_mocked_bindings(sim_comp_data = function(...) {
+  local_mocked_bindings(sim_trial_data = function(...) {
     stop("generation unavailable")
   })
   expect_warning(

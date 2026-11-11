@@ -36,7 +36,7 @@ reference:
       Core functions for simulating and summarizing Goldilocks adaptive
       trial designs.
     contents:
-      - survival_adapt
+      - sim_trial
       - evaluate_interim
       - sim_trials
       - sim_trial_paths
@@ -63,7 +63,7 @@ reference:
       Simulate complete trial datasets, including enrollment, randomization,
       and time-to-event outcomes.
     contents:
-      - sim_comp_data
+      - sim_trial_data
       - enrollment
       - randomization
 

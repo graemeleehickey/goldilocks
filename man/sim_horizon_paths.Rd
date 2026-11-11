@@ -111,7 +111,7 @@ vector remains accepted in \code{c(control, treatment)} order. Unequal unnamed
 values produce a warning because names may be required in a future major
 release. See \code{\link[=randomization]{randomization()}} for more details.}
 
-\item{prop_loss}{Dropout probability by \code{dropout_horizon}, with the same arm-specific conventions as \code{\link[=sim_comp_data]{sim_comp_data()}}. The corresponding dropout hazard is held fixed across all endpoint horizons.}
+\item{prop_loss}{Dropout probability by \code{dropout_horizon}, with the same arm-specific conventions as \code{\link[=sim_trial_data]{sim_trial_data()}}. The corresponding dropout hazard is held fixed across all endpoint horizons.}
 
 \item{alternative}{A single character string specifying the alternative
 hypothesis. It must be one of \code{"greater"} (the default), \code{"less"}, or

@@ -31,7 +31,7 @@ direct_path_reference <- function(args, rules, trial = 1L) {
   }
   stream <- make_rng_streams(args$seed, trial)[[trial]]
   assign(".Random.seed", stream, envir = .GlobalEnv)
-  data <- call_path_function(sim_comp_data, config)
+  data <- call_path_function(sim_trial_data, config)
   stopped <- config$N_total
   decision <- "continue"
   trace <- list()

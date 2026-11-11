@@ -7,7 +7,7 @@
 \method{print}{goldilocks_trial}(x, ...)
 }
 \arguments{
-\item{x}{A \code{goldilocks_trial} result returned by \code{\link[=survival_adapt]{survival_adapt()}} when
+\item{x}{A \code{goldilocks_trial} result returned by \code{\link[=sim_trial]{sim_trial()}} when
 \code{return_trace = TRUE}.}
 
 \item{...}{Additional arguments passed to \code{\link[base:print.dataframe]{base::print.data.frame()}} when
@@ -19,5 +19,5 @@ The input object, invisibly.
 \description{
 Prints the final trial summary and reports how many interim
 looks were completed for a \code{goldilocks_trial} object returned by
-\code{\link[=survival_adapt]{survival_adapt()}}.
+\code{\link[=sim_trial]{sim_trial()}}.
 }

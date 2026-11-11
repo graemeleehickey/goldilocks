@@ -794,7 +794,7 @@ $$
 \end{aligned}
 $$
 
-At $m = 0$, the moment bound is uninformative. For `alternative = "greater"`, the check uses the complementary probability. Either check flags a departure greater than `1e-6` on the probability scale. Detections are combined into one warning per simulation run, including parallel runs, and the returned result retains counts in `attr(result, "quadrature_diagnostics")`. The integration, probabilities, stopping decisions, and inclusion of trials in summaries are unchanged. A direct `survival_adapt()` or `evaluate_interim()` call also combines its detections into one warning.
+At $m = 0$, the moment bound is uninformative. For `alternative = "greater"`, the check uses the complementary probability. Either check flags a departure greater than `1e-6` on the probability scale. Detections are combined into one warning per simulation run, including parallel runs, and the returned result retains counts in `attr(result, "quadrature_diagnostics")`. The integration, probabilities, stopping decisions, and inclusion of trials in summaries are unchanged. A direct `sim_trial()` or `evaluate_interim()` call also combines its detections into one warning.
 
 Counts refer to evaluated probabilities rather than trials or imputed datasets; repeated count combinations can reuse a calculation. Rule application and operating-characteristic summaries preserve the original counts without another warning. For saved paths, the counts include all evaluated looks and horizons, not just those reached by a candidate. The [Bayesian binary vignette](bayesian-binary.html#choosing-bin_method) gives an example of a detected error. Neither check detects every integration error, so passing them does not establish numerical accuracy.
 

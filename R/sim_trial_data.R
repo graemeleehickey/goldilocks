@@ -4,6 +4,8 @@
 #'   times, and loss to follow-up for a single-arm or randomized two-arm trial.
 #'   Event times follow a piecewise-exponential distribution within each arm.
 #'
+#'   `sim_trial_data()` is the preferred name; `sim_comp_data()` remains a compatibility alias with identical arguments and calculations.
+#'
 #' @param hazard_treatment A required numeric vector of finite, non-negative
 #'   event rates for the treatment arm. Supply one rate per interval defined by
 #'   `generation_cutpoints`; a single value specifies a constant event rate.
@@ -59,7 +61,7 @@
 #' @details Enrollment is simulated directly in continuous time by
 #'   [enrollment()]. The first patient is placed at time zero and all subsequent
 #'   enrollment times are measured from first patient in. No uniform jitter is
-#'   added in `sim_comp_data()`.
+#'   added in `sim_trial_data()`.
 #'
 #'   `lambda_time` and `generation_cutpoints` both contain internal change
 #'   times, but they describe different clocks. `lambda_time` describes changes
@@ -115,7 +117,7 @@
 #'
 #' @importFrom stats rexp sd
 #' @export
-sim_comp_data <- function(
+sim_trial_data <- function(
   hazard_treatment,
   hazard_control = NULL,
   generation_cutpoints = NULL,
@@ -247,3 +249,7 @@ sim_comp_data <- function(
 
   return(data_total)
 }
+
+#' @rdname sim_trial_data
+#' @export
+sim_comp_data <- sim_trial_data

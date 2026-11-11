@@ -376,7 +376,7 @@ test_that("external and simulated interim paths use the same calculation", {
   N_total <- 20
   look_N <- 10
   end_of_study <- 12
-  total <- sim_comp_data(
+  total <- sim_trial_data(
     hazard_treatment = -log(0.8) / end_of_study,
     hazard_control = -log(0.65) / end_of_study,
     N_total = N_total,

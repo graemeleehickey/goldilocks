@@ -31,25 +31,25 @@ run_traced_trial <- function(...) {
     args[[name]] <- overrides[[name]]
   }
   args$return_trace <- TRUE
-  do.call(survival_adapt, args)
+  do.call(sim_trial, args)
 }
 
-test_that("survival_adapt keeps its default data-frame return value", {
+test_that("sim_trial keeps its default data-frame return value", {
   set.seed(5701)
-  out <- do.call(survival_adapt, trace_args())
+  out <- do.call(sim_trial, trace_args())
 
   expect_s3_class(out, "data.frame")
   expect_false(inherits(out, "goldilocks_trial"))
 })
 
-test_that("survival_adapt retains complete evaluated arguments", {
+test_that("sim_trial retains complete evaluated arguments", {
   supplied <- trace_args()
 
   set.seed(5701)
-  compact <- do.call(survival_adapt, supplied)
+  compact <- do.call(sim_trial, supplied)
   compact_arguments <- attr(compact, "arguments", exact = TRUE)
 
-  expect_named(compact_arguments, names(formals(survival_adapt)))
+  expect_named(compact_arguments, names(formals(sim_trial)))
   expect_identical(
     compact_arguments$hazard_treatment,
     supplied$hazard_treatment
@@ -72,16 +72,16 @@ test_that("survival_adapt retains complete evaluated arguments", {
   )
 
   set.seed(5701)
-  replayed <- do.call(survival_adapt, compact_arguments)
+  replayed <- do.call(sim_trial, compact_arguments)
   expect_identical(replayed, compact)
 
   traced <- run_traced_trial()
   traced_arguments <- attr(traced, "arguments", exact = TRUE)
-  expect_named(traced_arguments, names(formals(survival_adapt)))
+  expect_named(traced_arguments, names(formals(sim_trial)))
   expect_identical(traced_arguments$return_trace, TRUE)
 })
 
-test_that("survival_adapt returns an auditable interim trace on request", {
+test_that("sim_trial returns an auditable interim trace on request", {
   out <- run_traced_trial()
   expected_columns <- c(
     "look",
@@ -263,7 +263,7 @@ test_that("trace captures warnings emitted during interim analysis", {
 
   set.seed(5701)
   out <- suppressWarnings(
-    do.call(survival_adapt, c(args, list(return_trace = TRUE)))
+    do.call(sim_trial, c(args, list(return_trace = TRUE)))
   )
 
   expect_true(any(out$trace$warning_count > 0))
@@ -288,7 +288,7 @@ test_that("trace records prior-only empty-interval handling without warnings", {
 
   set.seed(5701)
   expect_no_warning(
-    out <- do.call(survival_adapt, c(args, list(return_trace = TRUE)))
+    out <- do.call(sim_trial, c(args, list(return_trace = TRUE)))
   )
   expect_true(any(out$trace$empty_interval_fallback_count > 0))
   expect_match(

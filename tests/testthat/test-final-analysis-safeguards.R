@@ -98,10 +98,10 @@ test_that("conjugate survival finals ignore the imputation flag and count", {
 })
 
 test_that("direct survival finals use the requested large posterior draw counts", {
-  original_sampler <- draw_gamma_posterior
+  original_sampler <- draw_gamma_post
   sampled_dimensions <- list()
   local_mocked_bindings(
-    draw_gamma_posterior = function(...) {
+    draw_gamma_post = function(...) {
       draws <- original_sampler(...)
       sampled_dimensions[[length(sampled_dimensions) + 1L]] <<- dim(draws)
       draws
@@ -259,10 +259,10 @@ test_that("survival final flags preserve trial predictions and final results", {
     return_trace = TRUE
   )
   set.seed(9277)
-  direct <- do.call(survival_adapt, c(args, list(imputed_final = FALSE)))
+  direct <- do.call(sim_trial, c(args, list(imputed_final = FALSE)))
   direct_rng <- .Random.seed
   set.seed(9277)
-  flagged <- do.call(survival_adapt, c(args, list(imputed_final = TRUE)))
+  flagged <- do.call(sim_trial, c(args, list(imputed_final = TRUE)))
   expect_gt(nrow(direct$trace), 0L)
   expect_true(is.finite(direct$summary$post_prob_ha))
   expect_identical(flagged$trace, direct$trace)
@@ -326,7 +326,7 @@ test_that("genuinely missing final outcomes cannot silently switch FM to Wald", 
 
 test_that("FM imputation with dropout is rejected before simulation setup", {
   local_mocked_bindings(
-    sim_comp_data = function(...) stop("data generation was reached"),
+    sim_trial_data = function(...) stop("data generation was reached"),
     resolve_sim_execution = function(...) stop("worker setup was reached")
   )
   args <- list(
@@ -344,7 +344,7 @@ test_that("FM imputation with dropout is rejected before simulation setup", {
     c(control = 0.1, treatment = 0)
   )) {
     args$prop_loss <- dropout
-    expect_error(do.call(survival_adapt, args), "riskdiff-fm.*pooling rule")
+    expect_error(do.call(sim_trial, args), "riskdiff-fm.*pooling rule")
     expect_error(do.call(sim_trials, args), "riskdiff-fm.*pooling rule")
   }
 })

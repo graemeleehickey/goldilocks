@@ -174,13 +174,13 @@ pwe_impute <- function(time, hazard, cutpoints = NULL, maxtime = NULL) {
 #'   conditional on remaining event-free through an observed follow-up time.
 #'
 #' @inheritParams pwe_sim
-#' @inheritParams survival_adapt
+#' @inheritParams sim_trial
 #' @param time A numeric vector of finite, non-negative event-free follow-up
 #'   times.
 #'
 #' @return A numeric vector of conditional event probabilities.
 #' @noRd
-pwe_conditional_event_probability <- function(
+pwe_cond_event_prob <- function(
   time,
   hazard,
   end_of_study,
@@ -238,7 +238,7 @@ pwe_conditional_event_probability <- function(
 #'   the cumulative event probability is evaluated. It must be greater than
 #'   every cutpoint.
 #' @inheritParams pwe_sim
-#' @inheritParams survival_adapt
+#' @inheritParams sim_trial
 #'
 #' @details The cumulative probability depends on interval durations, so the
 #'   value assigned to an isolated cutpoint has no effect. PWEALL represents its

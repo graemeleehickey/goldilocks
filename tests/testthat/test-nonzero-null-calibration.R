@@ -90,7 +90,7 @@ test_that("Cox Wald confidence intervals have nominal coverage", {
   true_log_hazard_ratio <- log(0.7)
   critical_value <- stats::qnorm(0.975)
   covered <- replicate(n_trials, {
-    data <- sim_comp_data(
+    data <- sim_trial_data(
       hazard_treatment = 0.03 * 0.7,
       hazard_control = 0.03,
       N_total = 200,
@@ -119,7 +119,7 @@ test_that("risk-difference Wald confidence intervals have nominal coverage", {
   end_of_study <- 36
   critical_value <- stats::qnorm(0.975)
   covered <- replicate(n_trials, {
-    data <- sim_comp_data(
+    data <- sim_trial_data(
       hazard_treatment = -log1p(-treatment_risk) / end_of_study,
       hazard_control = -log1p(-control_risk) / end_of_study,
       N_total = 200,

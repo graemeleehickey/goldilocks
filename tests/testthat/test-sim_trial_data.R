@@ -1,6 +1,29 @@
-test_that("sim_comp_data returns data frame with correct columns (two-arm)", {
+test_that("sim_comp_data remains an exported alias with identical seeded data", {
+  expect_identical(
+    getExportedValue("goldilocks", "sim_comp_data"),
+    getExportedValue("goldilocks", "sim_trial_data")
+  )
+  args <- list(
+    hazard_treatment = c(0.02, 0.03),
+    hazard_control = c(0.03, 0.04),
+    generation_cutpoints = 6,
+    N_total = 40,
+    lambda = 5,
+    end_of_study = 12,
+    prop_loss = c(control = 0.1, treatment = 0.2)
+  )
+  set.seed(9712)
+  expect_no_warning(current <- do.call(sim_trial_data, args))
+  current_seed <- .Random.seed
+  set.seed(9712)
+  expect_no_warning(legacy <- do.call(sim_comp_data, args))
+  expect_identical(legacy, current)
+  expect_identical(.Random.seed, current_seed)
+})
+
+test_that("sim_trial_data returns data frame with correct columns (two-arm)", {
   set.seed(5927)
-  out <- sim_comp_data(
+  out <- sim_trial_data(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
     generation_cutpoints = NULL,
@@ -20,12 +43,12 @@ test_that("sim_comp_data returns data frame with correct columns (two-arm)", {
   expect_true(any(out$enrollment[-1] != floor(out$enrollment[-1])))
 })
 
-test_that("sim_comp_data names its event-generation partition explicitly", {
+test_that("sim_trial_data names its event-generation partition explicitly", {
   expect_identical(
-    names(formals(sim_comp_data))[3],
+    names(formals(sim_trial_data))[3],
     "generation_cutpoints"
   )
-  expect_false("cutpoints" %in% names(formals(sim_comp_data)))
+  expect_false("cutpoints" %in% names(formals(sim_trial_data)))
 
   common_args <- list(
     hazard_treatment = c(0.01, 0.02),
@@ -37,11 +60,11 @@ test_that("sim_comp_data names its event-generation partition explicitly", {
 
   set.seed(1142)
   named <- do.call(
-    sim_comp_data,
+    sim_trial_data,
     c(common_args, list(generation_cutpoints = 12))
   )
   set.seed(1142)
-  positional <- sim_comp_data(
+  positional <- sim_trial_data(
     c(0.01, 0.02),
     c(0.02, 0.03),
     12,
@@ -53,9 +76,9 @@ test_that("sim_comp_data names its event-generation partition explicitly", {
   expect_identical(positional, named)
 })
 
-test_that("sim_comp_data accepts internal enrollment-rate knots", {
+test_that("sim_trial_data accepts internal enrollment-rate knots", {
   set.seed(5419)
-  out <- sim_comp_data(
+  out <- sim_trial_data(
     hazard_treatment = 0.01,
     N_total = 40,
     lambda = c(2, 5),
@@ -67,9 +90,9 @@ test_that("sim_comp_data accepts internal enrollment-rate knots", {
   expect_true(all(diff(out$enrollment) > 0))
 })
 
-test_that("sim_comp_data returns correct columns for single-arm", {
+test_that("sim_trial_data returns correct columns for single-arm", {
   set.seed(8341)
-  out <- sim_comp_data(
+  out <- sim_trial_data(
     hazard_treatment = 0.01,
     hazard_control = NULL,
     generation_cutpoints = NULL,
@@ -84,9 +107,9 @@ test_that("sim_comp_data returns correct columns for single-arm", {
   expect_type(out$loss_to_fu, "logical")
 })
 
-test_that("sim_comp_data applies loss to follow-up", {
+test_that("sim_trial_data applies loss to follow-up", {
   set.seed(2764)
-  out <- sim_comp_data(
+  out <- sim_trial_data(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
     generation_cutpoints = NULL,
@@ -119,12 +142,12 @@ test_that("scalar and equal arm-specific loss proportions are identical", {
 
   set.seed(2061)
   scalar <- do.call(
-    sim_comp_data,
+    sim_trial_data,
     c(common_args, list(prop_loss = 0.20))
   )
   set.seed(2061)
   arm_specific <- do.call(
-    sim_comp_data,
+    sim_trial_data,
     c(
       common_args,
       list(prop_loss = c(treatment = 0.20, control = 0.20))
@@ -134,7 +157,7 @@ test_that("scalar and equal arm-specific loss proportions are identical", {
   expect_identical(arm_specific, scalar)
 })
 
-test_that("sim_comp_data normalizes named randomization ratios", {
+test_that("sim_trial_data normalizes named randomization ratios", {
   common_args <- list(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
@@ -149,7 +172,7 @@ test_that("sim_comp_data normalizes named randomization ratios", {
 
   set.seed(5248)
   canonical <- do.call(
-    sim_comp_data,
+    sim_trial_data,
     c(
       common_args,
       list(rand_ratio = c(control = 1, treatment = 2))
@@ -157,7 +180,7 @@ test_that("sim_comp_data normalizes named randomization ratios", {
   )
   set.seed(5248)
   reversed <- do.call(
-    sim_comp_data,
+    sim_trial_data,
     c(
       common_args,
       list(rand_ratio = c(treatment = 2, control = 1))
@@ -167,9 +190,9 @@ test_that("sim_comp_data normalizes named randomization ratios", {
   expect_identical(reversed, canonical)
 })
 
-test_that("sim_comp_data warns for unequal unnamed randomization ratios", {
+test_that("sim_trial_data warns for unequal unnamed randomization ratios", {
   expect_warning(
-    sim_comp_data(
+    sim_trial_data(
       hazard_treatment = 0.01,
       hazard_control = 0.02,
       generation_cutpoints = NULL,
@@ -185,7 +208,7 @@ test_that("sim_comp_data warns for unequal unnamed randomization ratios", {
   )
 })
 
-test_that("sim_comp_data applies differential loss within randomized arms", {
+test_that("sim_trial_data applies differential loss within randomized arms", {
   common_args <- list(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
@@ -200,7 +223,7 @@ test_that("sim_comp_data applies differential loss within randomized arms", {
 
   set.seed(6901)
   canonical <- do.call(
-    sim_comp_data,
+    sim_trial_data,
     c(
       common_args,
       list(prop_loss = c(control = 0.10, treatment = 0.25))
@@ -208,7 +231,7 @@ test_that("sim_comp_data applies differential loss within randomized arms", {
   )
   set.seed(6901)
   reversed <- do.call(
-    sim_comp_data,
+    sim_trial_data,
     c(
       common_args,
       list(prop_loss = c(treatment = 0.25, control = 0.10))
@@ -219,7 +242,7 @@ test_that("sim_comp_data applies differential loss within randomized arms", {
   expect_true(all(canonical$event[canonical$loss_to_fu] == 0L))
 })
 
-test_that("sim_comp_data validates arm-specific loss proportions", {
+test_that("sim_trial_data validates arm-specific loss proportions", {
   common_args <- list(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
@@ -232,14 +255,14 @@ test_that("sim_comp_data validates arm-specific loss proportions", {
 
   expect_error(
     do.call(
-      sim_comp_data,
+      sim_trial_data,
       c(common_args, list(prop_loss = c(0.10, 0.20)))
     ),
     "named 'control' and 'treatment'"
   )
   expect_error(
     do.call(
-      sim_comp_data,
+      sim_trial_data,
       c(
         common_args,
         list(prop_loss = c(control = 0.10, experimental = 0.20))
@@ -249,7 +272,7 @@ test_that("sim_comp_data validates arm-specific loss proportions", {
   )
   expect_error(
     do.call(
-      sim_comp_data,
+      sim_trial_data,
       c(
         common_args,
         list(prop_loss = c(control = 0.10, treatment = 1.20))
@@ -259,7 +282,7 @@ test_that("sim_comp_data validates arm-specific loss proportions", {
   )
   expect_error(
     do.call(
-      sim_comp_data,
+      sim_trial_data,
       modifyList(
         common_args,
         list(
@@ -272,9 +295,9 @@ test_that("sim_comp_data validates arm-specific loss proportions", {
   )
 })
 
-test_that("sim_comp_data has no loss to follow-up by default", {
+test_that("sim_trial_data has no loss to follow-up by default", {
   set.seed(4192)
-  out <- sim_comp_data(
+  out <- sim_trial_data(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
     generation_cutpoints = NULL,
@@ -286,9 +309,9 @@ test_that("sim_comp_data has no loss to follow-up by default", {
   expect_true(all(!out$loss_to_fu))
 })
 
-test_that("sim_comp_data works with piecewise hazard", {
+test_that("sim_trial_data works with piecewise hazard", {
   set.seed(6083)
-  out <- sim_comp_data(
+  out <- sim_trial_data(
     hazard_treatment = c(0.005, 0.01),
     hazard_control = c(0.01, 0.02),
     generation_cutpoints = 12,
@@ -301,9 +324,9 @@ test_that("sim_comp_data works with piecewise hazard", {
   expect_true(all(out$time > 0))
 })
 
-test_that("sim_comp_data validates counts and loss-to-follow-up probability", {
+test_that("sim_trial_data validates counts and loss-to-follow-up probability", {
   expect_error(
-    sim_comp_data(
+    sim_trial_data(
       hazard_treatment = 0.01,
       hazard_control = 0.02,
       generation_cutpoints = NULL,
@@ -316,7 +339,7 @@ test_that("sim_comp_data validates counts and loss-to-follow-up probability", {
   )
 
   expect_error(
-    sim_comp_data(
+    sim_trial_data(
       hazard_treatment = 0.01,
       hazard_control = 0.02,
       generation_cutpoints = NULL,
@@ -330,7 +353,7 @@ test_that("sim_comp_data validates counts and loss-to-follow-up probability", {
   )
 })
 
-test_that("sim_comp_data validates treatment-arm hazards", {
+test_that("sim_trial_data validates treatment-arm hazards", {
   common_args <- list(
     hazard_treatment = 0.01,
     hazard_control = 0.02,
@@ -343,21 +366,21 @@ test_that("sim_comp_data validates treatment-arm hazards", {
 
   expect_error(
     do.call(
-      sim_comp_data,
+      sim_trial_data,
       modifyList(common_args, list(hazard_treatment = Inf))
     ),
     "hazard_treatment"
   )
   expect_error(
     do.call(
-      sim_comp_data,
+      sim_trial_data,
       modifyList(common_args, list(hazard_control = NA_real_))
     ),
     "hazard_control"
   )
 })
 
-test_that("sim_comp_data validates the complete piecewise model", {
+test_that("sim_trial_data validates the complete piecewise model", {
   common_args <- list(
     hazard_treatment = c(0.01, 0.02),
     hazard_control = c(0.02, 0.03),
@@ -370,14 +393,14 @@ test_that("sim_comp_data validates the complete piecewise model", {
 
   expect_error(
     do.call(
-      sim_comp_data,
+      sim_trial_data,
       modifyList(common_args, list(generation_cutpoints = 100))
     ),
     "generation_cutpoints"
   )
   expect_error(
     do.call(
-      sim_comp_data,
+      sim_trial_data,
       modifyList(common_args, list(generation_cutpoints = c(12, 12)))
     ),
     "'generation_cutpoints' must be strictly increasing"
@@ -385,7 +408,7 @@ test_that("sim_comp_data validates the complete piecewise model", {
 
   expect_error(
     do.call(
-      sim_comp_data,
+      sim_trial_data,
       modifyList(common_args, list(hazard_treatment = 0.01))
     ),
     "length of 'generation_cutpoints'"

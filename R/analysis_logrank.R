@@ -69,7 +69,7 @@ logrank_test <- function(
   groupbcensored,
   onlyz = FALSE
 ) {
-  logrank_instance(groupa, groupb, groupacensored, groupbcensored, onlyz)
+  logrank_cpp(groupa, groupb, groupacensored, groupbcensored, onlyz)
 }
 
 #' @title Assert that a log-rank result is estimable

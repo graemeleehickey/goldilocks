@@ -89,7 +89,7 @@ The ordered decisions are:
 
 Equality does not cross either boundary. In every case, enrolled patients have the opportunity to complete 180 days of follow-up before the final analysis. A promising interim result is not an immediate claim of success. The protocol also specifies final analysis after enrollment stops for futility; the reconstruction therefore evaluates the final posterior criterion in those trials too.
 
-This last point differs from `survival_adapt()`, which counts a binding futility decision as final failure. The example helper preserves the PROMISE II procedure without changing the package's general stopping rules. It records both the reason for stopping enrollment and the eventual final result.
+This last point differs from `sim_trial()`, which counts a binding futility decision as final failure. The example helper preserves the PROMISE II procedure without changing the package's general stopping rules. It records both the reason for stopping enrollment and the eventual final result.
 
 The protocol's COVID-19 provision could allow additional enrollment when a parallel analysis censoring COVID-19 deaths did not cross its futility boundary. However, the principal analysis retained the cohort selected by the ordinary AFS rule [2, SAP Section 6.4.1]. This vignette reconstructs that principal analysis; it does not generate causes of death or simulate the additional COVID-19 sensitivity cohort.
 
@@ -122,7 +122,7 @@ hazard_treatment <- promise_ii_hazard(0.70)
 
 Each patient independently has probability 0.10 of being designated for dropout. For designated patients, dropout time is Uniform(0,180); otherwise it is infinite. Event times and dropout times are independent. An event preceding dropout remains observed. At an interim analysis, follow-up is also censored at the current calendar date. The same event and dropout histories are retained across looks and at final analysis.
 
-This mechanism is not the exponential dropout model used by `sim_comp_data(prop_loss = 0.10)`. The helper therefore generates the SAP's dropout times explicitly and uses `pwe_sim()` for event times.
+This mechanism is not the exponential dropout model used by `sim_trial_data(prop_loss = 0.10)`. The helper therefore generates the SAP's dropout times explicitly and uses `pwe_sim()` for event times.
 
 The expected enrollment schedule is 1, 2, 2, 3, 3, 4, and 4 patients per month during months 1-7, followed by 5 per month. The slower schedule is 1, 1, 2, and 2 per month, followed by 3; the faster schedule is 2, 3, 4, 5, and 6 per month, followed by 7 [2, SAP Section 6.7].
 

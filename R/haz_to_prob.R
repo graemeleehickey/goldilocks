@@ -4,10 +4,10 @@
 #'   time from draws of piecewise-exponential hazard rates, together with the
 #'   treatment effect on the event-probability scale.
 #'
-#' @inheritParams survival_adapt
-#' @inheritParams sim_comp_data
+#' @inheritParams sim_trial
+#' @inheritParams sim_trial_data
 #' @param post A three-dimensional numeric array of posterior hazard-rate draws
-#'   from `posterior()`. The dimensions are posterior draws, piecewise
+#'   from `post_haz_draws()`. The dimensions are posterior draws, piecewise
 #'   intervals, and arms, with treatment in the first arm slice and control in
 #'   the second.
 #' @param single_arm A single logical value indicating whether the trial has one

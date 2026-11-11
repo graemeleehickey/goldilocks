@@ -103,7 +103,7 @@ test_that("prepared sufficient statistics match the general route", {
   )
   rows <- c(TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, TRUE, FALSE)
 
-  checked <- goldilocks:::posterior_sufficient_stats(
+  checked <- goldilocks:::post_sufficient_stats(
     data = data,
     cutpoints = c(4, 8),
     single_arm = FALSE,
@@ -145,7 +145,7 @@ test_that("prepared survival analyses match completed data-frame analyses", {
   interval_widths <- goldilocks:::endpoint_interval_widths(c(4, 8), 12)
 
   for (method in c("logrank", "cox")) {
-    expected <- goldilocks:::analyse_data(
+    expected <- goldilocks:::analyse_comp_data(
       data = data,
       cutpoints = c(4, 8),
       end_of_study = 12,
@@ -156,7 +156,7 @@ test_that("prepared survival analyses match completed data-frame analyses", {
       alternative = "less",
       h0 = 0
     )
-    prepared <- goldilocks:::analyse_completed_survival(
+    prepared <- goldilocks:::analyse_comp_survival(
       outcome = outcome,
       cutpoints = c(4, 8),
       end_of_study = 12,
@@ -174,7 +174,7 @@ test_that("prepared survival analyses match completed data-frame analyses", {
   }
 
   set.seed(3902)
-  expected_bayes <- goldilocks:::analyse_data(
+  expected_bayes <- goldilocks:::analyse_comp_data(
     data = data,
     cutpoints = c(4, 8),
     end_of_study = 12,
@@ -189,7 +189,7 @@ test_that("prepared survival analyses match completed data-frame analyses", {
   expected_seed <- .Random.seed
 
   set.seed(3902)
-  prepared_bayes <- goldilocks:::analyse_completed_survival(
+  prepared_bayes <- goldilocks:::analyse_comp_survival(
     outcome = outcome,
     cutpoints = c(4, 8),
     end_of_study = 12,

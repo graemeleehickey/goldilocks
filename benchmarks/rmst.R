@@ -6,7 +6,7 @@ if (is.na(iterations)) {
   iterations <- 10L
 }
 set.seed(1420)
-completed <- sim_comp_data(
+completed <- sim_trial_data(
   hazard_control = 0.1,
   hazard_treatment = 0.06,
   N_total = 200,
@@ -32,7 +32,7 @@ print(bench::mark(
 )[, c("expression", "median", "mem_alloc")])
 trial <- function(method) {
   set.seed(1421)
-  survival_adapt(
+  sim_trial(
     hazard_control = 0.1,
     hazard_treatment = 0.06,
     N_total = 200,

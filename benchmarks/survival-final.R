@@ -103,7 +103,7 @@ scenarios <- list(
 
 make_data <- function(scenario, seed) {
   set.seed(seed)
-  data <- sim_comp_data(
+  data <- sim_trial_data(
     hazard_treatment = scenario$treatment,
     hazard_control = scenario$control,
     generation_cutpoints = scenario$cutpoints,
@@ -144,7 +144,7 @@ make_args <- function(scenario, data) {
 }
 
 posterior_parameters <- function(args) {
-  stats <- goldilocks:::posterior_sufficient_stats(
+  stats <- goldilocks:::post_sufficient_stats(
     args$data_in,
     args$cutpoints,
     args$single_arm

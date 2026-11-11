@@ -5,7 +5,7 @@ test_that("posterior returns correct dimensions (two-arm, single interval)", {
     event = sample(0:1, 80, replace = TRUE),
     treatment = rep(0:1, each = 40)
   )
-  res <- posterior(
+  res <- post_haz_draws(
     data,
     cutpoints = NULL,
     prior_surv = c(0.1, 0.1),
@@ -25,7 +25,7 @@ test_that("posterior returns correct dimensions (two-arm, piecewise)", {
     event = sample(0:1, 100, replace = TRUE),
     treatment = rep(0:1, each = 50)
   )
-  res <- posterior(
+  res <- post_haz_draws(
     data,
     cutpoints = c(12, 24),
     prior_surv = c(0.1, 0.1),
@@ -50,7 +50,7 @@ test_that("events at cutpoints use open-left closed-right intervals", {
     treatment = 1
   )
 
-  stats <- posterior_sufficient_stats(
+  stats <- post_sufficient_stats(
     data,
     cutpoints = c(5, 12),
     single_arm = TRUE
@@ -68,7 +68,7 @@ test_that("vector survival priors broadcast exactly across intervals", {
   prior_matrix <- matrix(rep(c(0.5, 0.25), 3), nrow = 2)
 
   set.seed(3817)
-  from_vector <- posterior(
+  from_vector <- post_haz_draws(
     data = data,
     cutpoints = c(5, 12),
     prior_surv = c(0.5, 0.25),
@@ -76,7 +76,7 @@ test_that("vector survival priors broadcast exactly across intervals", {
     single_arm = FALSE
   )
   set.seed(3817)
-  from_matrix <- posterior(
+  from_matrix <- post_haz_draws(
     data = data,
     cutpoints = c(5, 12),
     prior_surv = prior_matrix,
@@ -93,7 +93,7 @@ test_that("posterior applies the assigned prior to each interval", {
     event = c(1, 0, 1, 0, 1, 1),
     treatment = c(0, 0, 0, 1, 1, 1)
   )
-  data_summ <- posterior_sufficient_stats(
+  data_summ <- post_sufficient_stats(
     data,
     cutpoints = c(5, 12),
     single_arm = FALSE
@@ -104,7 +104,7 @@ test_that("posterior applies the assigned prior to each interval", {
   )
 
   set.seed(9017)
-  actual <- posterior_from_sufficient_stats(
+  actual <- post_haz_draws_from_sufficient_stats(
     data_summ = data_summ,
     prior_surv = prior_surv,
     N_mcmc = 20,
@@ -136,7 +136,7 @@ test_that("single-interval survival prior matrices are supported", {
   )
 
   set.seed(749)
-  from_vector <- posterior(
+  from_vector <- post_haz_draws(
     data,
     cutpoints = NULL,
     prior_surv = c(2, 0.5),
@@ -144,7 +144,7 @@ test_that("single-interval survival prior matrices are supported", {
     single_arm = FALSE
   )
   set.seed(749)
-  from_matrix <- posterior(
+  from_matrix <- post_haz_draws(
     data,
     cutpoints = NULL,
     prior_surv = matrix(c(2, 0.5), nrow = 2),
@@ -163,7 +163,7 @@ test_that("posterior rejects malformed interval-specific priors", {
   )
 
   expect_error(
-    posterior(
+    post_haz_draws(
       data,
       cutpoints = c(5, 12),
       prior_surv = matrix(1, nrow = 2, ncol = 2),
@@ -173,7 +173,7 @@ test_that("posterior rejects malformed interval-specific priors", {
     "2 x 3"
   )
   expect_error(
-    posterior(
+    post_haz_draws(
       data,
       cutpoints = c(5, 12),
       prior_surv = rbind(c(1, 1, 1), c(1, 0, 1)),
@@ -191,7 +191,7 @@ test_that("posterior returns correct dimensions (single-arm)", {
     event = sample(0:1, 50, replace = TRUE),
     treatment = rep(1, 50)
   )
-  res <- posterior(
+  res <- post_haz_draws(
     data,
     cutpoints = NULL,
     prior_surv = c(0.1, 0.1),
@@ -249,7 +249,7 @@ test_that("statistics-based posterior exactly matches patient-level posterior", 
 
   for (case_name in names(cases)) {
     case <- cases[[case_name]]
-    data_summ <- posterior_sufficient_stats(
+    data_summ <- post_sufficient_stats(
       data = case$data,
       cutpoints = case$cutpoints,
       single_arm = case$single_arm
@@ -259,7 +259,7 @@ test_that("statistics-based posterior exactly matches patient-level posterior", 
     # Resetting to the same seed therefore requires exact, not approximate,
     # equality if both posterior entry points preserve draw ordering.
     set.seed(3817)
-    from_data <- posterior(
+    from_data <- post_haz_draws(
       data = case$data,
       cutpoints = case$cutpoints,
       prior_surv = c(0.5, 0.25),
@@ -267,7 +267,7 @@ test_that("statistics-based posterior exactly matches patient-level posterior", 
       single_arm = case$single_arm
     )
     set.seed(3817)
-    from_stats <- posterior_from_sufficient_stats(
+    from_stats <- post_haz_draws_from_sufficient_stats(
       data_summ = data_summ,
       prior_surv = c(0.5, 0.25),
       N_mcmc = 50,
@@ -286,13 +286,13 @@ test_that("posterior sufficient statistics can select analysis rows directly", {
     subject_enrolled = c(TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, FALSE)
   )
 
-  from_rows <- posterior_sufficient_stats(
+  from_rows <- post_sufficient_stats(
     data = data,
     cutpoints = c(5, 12),
     single_arm = FALSE,
     rows = data$subject_enrolled
   )
-  from_subset <- posterior_sufficient_stats(
+  from_subset <- post_sufficient_stats(
     data = data[data$subject_enrolled, , drop = FALSE],
     cutpoints = c(5, 12),
     single_arm = FALSE
@@ -312,7 +312,7 @@ test_that("posterior warns on zero-exposure interval", {
     treatment = rep(0:1, each = 30)
   )
   expect_warning(
-    posterior(
+    post_haz_draws(
       data,
       cutpoints = 10,
       prior_surv = c(0.1, 0.1),
@@ -335,7 +335,7 @@ test_that("posterior propagates zero-exposure intervals within treatment group",
   )
   set.seed(771)
   res <- suppressWarnings(
-    posterior(
+    post_haz_draws(
       data,
       cutpoints = c(10, 20),
       prior_surv = c(0.1, 0.1),
@@ -361,7 +361,7 @@ test_that("posterior leaves zero-exposure intervals prior-driven by default", {
   )
 
   set.seed(1429)
-  res <- posterior(
+  res <- post_haz_draws(
     data,
     cutpoints = c(10, 20),
     prior_surv = rbind(
@@ -391,7 +391,7 @@ test_that("prior-only handling covers empty first, middle, and final intervals",
   )
 
   set.seed(621)
-  post <- posterior_from_sufficient_stats(
+  post <- post_haz_draws_from_sufficient_stats(
     data_summ = data_summ,
     prior_surv = prior_surv,
     N_mcmc = 10000,
@@ -422,7 +422,7 @@ test_that("single-arm prior-only handling covers every empty interval position",
     data_summ[empty_interval, c("n", "tot_time", "tot_events")] <- 0
 
     set.seed(630 + empty_interval)
-    post <- posterior_from_sufficient_stats(
+    post <- post_haz_draws_from_sufficient_stats(
       data_summ = data_summ,
       prior_surv = prior_surv,
       N_mcmc = 8000,
@@ -451,14 +451,14 @@ test_that("prior-only empty-interval results are invariant to row ordering", {
   shuffled <- data_summ[c(6, 2, 4, 1, 5, 3), ]
 
   set.seed(622)
-  ordered_post <- posterior_from_sufficient_stats(
+  ordered_post <- post_haz_draws_from_sufficient_stats(
     data_summ,
     prior_surv = c(0.5, 0.25),
     N_mcmc = 100,
     single_arm = FALSE
   )
   set.seed(622)
-  shuffled_post <- posterior_from_sufficient_stats(
+  shuffled_post <- post_haz_draws_from_sufficient_stats(
     shuffled,
     prior_surv = c(0.5, 0.25),
     N_mcmc = 100,
@@ -504,7 +504,7 @@ test_that("prepared posterior exactly matches the general route", {
 
   for (case_name in names(cases)) {
     case <- cases[[case_name]]
-    data_summ <- posterior_sufficient_stats(
+    data_summ <- post_sufficient_stats(
       data = case$data,
       cutpoints = c(5, 12),
       single_arm = case$single_arm
@@ -517,7 +517,7 @@ test_that("prepared posterior exactly matches the general route", {
     )
 
     set.seed(8421)
-    checked <- posterior_from_sufficient_stats(
+    checked <- post_haz_draws_from_sufficient_stats(
       data_summ = data_summ,
       prior_surv = prior,
       N_mcmc = 100,
@@ -526,7 +526,7 @@ test_that("prepared posterior exactly matches the general route", {
     checked_seed <- .Random.seed
 
     set.seed(8421)
-    prepared <- posterior_from_prepared_stats(
+    prepared <- post_haz_draws_from_prepared_stats(
       data_summ = data_summ,
       prior_surv = prior,
       N_mcmc = 100,
@@ -556,7 +556,7 @@ test_that("prepared posterior preserves empty-interval policies", {
 
   for (policy in c("prior", "propagate")) {
     set.seed(8422)
-    checked <- suppressWarnings(posterior_from_sufficient_stats(
+    checked <- suppressWarnings(post_haz_draws_from_sufficient_stats(
       data_summ = data_summ,
       prior_surv = prior,
       N_mcmc = 100,
@@ -564,7 +564,7 @@ test_that("prepared posterior preserves empty-interval policies", {
       empty_interval = policy
     ))
     set.seed(8422)
-    prepared <- suppressWarnings(posterior_from_prepared_stats(
+    prepared <- suppressWarnings(post_haz_draws_from_prepared_stats(
       data_summ = data_summ,
       prior_surv = prior,
       N_mcmc = 100,
@@ -577,7 +577,7 @@ test_that("prepared posterior preserves empty-interval policies", {
 })
 
 test_that("prepared posterior rejects violated assumptions", {
-  data_summ <- posterior_sufficient_stats(
+  data_summ <- post_sufficient_stats(
     data = data.frame(
       time = c(3, 8, 15, 4, 10, 18),
       event = c(1, 0, 1, 0, 1, 1),
@@ -602,28 +602,28 @@ test_that("prepared posterior rejects violated assumptions", {
   shuffled_args <- args
   shuffled_args$data_summ <- data_summ[c(2, 1, 3:6), ]
   expect_error(
-    do.call(posterior_from_prepared_stats, shuffled_args),
+    do.call(post_haz_draws_from_prepared_stats, shuffled_args),
     "non-canonical sufficient statistics"
   )
 
   prior_args <- args
   prior_args$prior_surv <- c(0.5, 0.25)
   expect_error(
-    do.call(posterior_from_prepared_stats, prior_args),
+    do.call(post_haz_draws_from_prepared_stats, prior_args),
     "non-canonical survival prior"
   )
 
   statistic_args <- args
   statistic_args$data_summ$tot_time[1] <- -1
   expect_error(
-    do.call(posterior_from_prepared_stats, statistic_args),
+    do.call(post_haz_draws_from_prepared_stats, statistic_args),
     "invalid sufficient statistics"
   )
 
   policy_args <- args
   policy_args$empty_interval <- "unknown"
   expect_error(
-    do.call(posterior_from_prepared_stats, policy_args),
+    do.call(post_haz_draws_from_prepared_stats, policy_args),
     "invalid empty-interval policy"
   )
 })
@@ -636,7 +636,7 @@ test_that("posterior can error on zero-exposure intervals", {
   )
 
   expect_error(
-    posterior(
+    post_haz_draws(
       data,
       cutpoints = c(10, 20),
       prior_surv = c(0.1, 0.1),
@@ -657,7 +657,7 @@ test_that("posterior errors when the treatment group has no subjects (factor)", 
     treatment = factor(c(0, 0, 0, 0), levels = c(0, 1))
   )
   expect_error(
-    posterior(
+    post_haz_draws(
       data,
       cutpoints = 10,
       prior_surv = c(0.1, 0.1),
@@ -669,9 +669,9 @@ test_that("posterior errors when the treatment group has no subjects (factor)", 
 })
 
 test_that("posterior errors on single-arm interim data with numeric treatment", {
-  # This mirrors what survival_adapt() actually passes: `treatment` is a numeric
+  # This mirrors what sim_trial() actually passes: `treatment` is a numeric
   # column, and at a small interim look an entire treatment group can be absent.
-  # Previously the absent group produced no summary row and posterior() silently
+  # Previously the absent group produced no summary row and post_haz_draws() silently
   # returned an all-NA slice via rgamma(N_mcmc, ..., NA). It must now error.
 
   # Treatment group absent (all control), two-arm analysis.
@@ -681,7 +681,7 @@ test_that("posterior errors on single-arm interim data with numeric treatment", 
     treatment = c(0, 0)
   )
   expect_error(
-    posterior(
+    post_haz_draws(
       data_no_trt,
       cutpoints = NULL,
       prior_surv = c(0.1, 0.1),
@@ -698,7 +698,7 @@ test_that("posterior errors on single-arm interim data with numeric treatment", 
     treatment = c(1, 1)
   )
   expect_error(
-    posterior(
+    post_haz_draws(
       data_no_ctrl,
       cutpoints = NULL,
       prior_surv = c(0.1, 0.1),
@@ -709,7 +709,7 @@ test_that("posterior errors on single-arm interim data with numeric treatment", 
   )
 
   # The same all-treatment data is valid for a single-arm analysis.
-  res <- posterior(
+  res <- post_haz_draws(
     data_no_ctrl,
     cutpoints = NULL,
     prior_surv = c(0.1, 0.1),
@@ -727,7 +727,7 @@ test_that("posterior returns positive draws", {
     event = sample(0:1, 100, replace = TRUE),
     treatment = rep(0:1, each = 50)
   )
-  res <- posterior(
+  res <- post_haz_draws(
     data,
     cutpoints = 12,
     prior_surv = c(0.1, 0.1),
@@ -756,7 +756,7 @@ test_that("posterior draws have the conjugate Gamma moments", {
     tot_time = exposure,
     tot_events = events
   )
-  posterior_draws <- posterior_from_sufficient_stats(
+  posterior_draws <- post_haz_draws_from_sufficient_stats(
     data_summ = data_summ,
     prior_surv = c(prior_shape, prior_rate),
     N_mcmc = n_draws,
@@ -788,7 +788,7 @@ test_that("posterior applies independent arm-specific priors", {
     treatment = c(0, 0, 0, 1, 1, 1)
   )
   cutpoints <- c(5, 12)
-  data_summ <- posterior_sufficient_stats(
+  data_summ <- post_sufficient_stats(
     data,
     cutpoints = cutpoints,
     single_arm = FALSE
@@ -805,7 +805,7 @@ test_that("posterior applies independent arm-specific priors", {
   )
 
   set.seed(8891)
-  actual <- posterior_from_sufficient_stats(
+  actual <- post_haz_draws_from_sufficient_stats(
     data_summ = data_summ,
     prior_surv = prior_surv,
     N_mcmc = 20,
@@ -842,7 +842,7 @@ test_that("equal arm-specific priors preserve legacy seeded draws", {
   )
 
   set.seed(8892)
-  legacy <- posterior(
+  legacy <- post_haz_draws(
     data,
     cutpoints = c(5, 12),
     prior_surv = shared,
@@ -850,7 +850,7 @@ test_that("equal arm-specific priors preserve legacy seeded draws", {
     single_arm = FALSE
   )
   set.seed(8892)
-  arm_specific <- posterior(
+  arm_specific <- post_haz_draws(
     data,
     cutpoints = c(5, 12),
     prior_surv = list(treatment = shared, control = shared),
@@ -870,7 +870,7 @@ test_that("changing one arm's prior does not alter the other arm's draws", {
   shared_treatment <- c(2, 4)
 
   set.seed(8894)
-  weak_control <- posterior(
+  weak_control <- post_haz_draws(
     data,
     cutpoints = c(5, 12),
     prior_surv = list(
@@ -881,7 +881,7 @@ test_that("changing one arm's prior does not alter the other arm's draws", {
     single_arm = FALSE
   )
   set.seed(8894)
-  strong_control <- posterior(
+  strong_control <- post_haz_draws(
     data,
     cutpoints = c(5, 12),
     prior_surv = list(
@@ -963,7 +963,7 @@ test_that("Gamma diagnostics expose resolved conjugate updates", {
     treatment = c(0, 0, 0, 1, 1, 1)
   )
   cutpoints <- c(5, 12)
-  data_summ <- posterior_sufficient_stats(
+  data_summ <- post_sufficient_stats(
     data,
     cutpoints = cutpoints,
     single_arm = FALSE
@@ -973,7 +973,7 @@ test_that("Gamma diagnostics expose resolved conjugate updates", {
     treatment = c(5, 10)
   )
 
-  diagnostics <- goldilocks:::gamma_posterior_diagnostics(
+  diagnostics <- goldilocks:::gamma_post_diagnostics(
     data_summ = data_summ,
     prior_surv = prior_surv,
     cutpoints = cutpoints,
@@ -1006,14 +1006,14 @@ test_that("posterior diagnostics distinguish observed and propagated data", {
     event = c(1, 1, 1, 0),
     treatment = c(0, 0, 1, 1)
   )
-  data_summ <- posterior_sufficient_stats(
+  data_summ <- post_sufficient_stats(
     data,
     cutpoints = c(10, 20),
     single_arm = FALSE
   )
 
   diagnostics <- expect_no_warning(
-    goldilocks:::gamma_posterior_diagnostics(
+    goldilocks:::gamma_post_diagnostics(
       data_summ = data_summ,
       prior_surv = c(0.1, 0.1),
       cutpoints = c(10, 20),

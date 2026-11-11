@@ -152,7 +152,7 @@ test_that("sim_trials defaults to serial execution", {
     "cutpoints"
   )
   expect_identical(
-    as.character(formals(survival_adapt)$generation_cutpoints),
+    as.character(formals(sim_trial)$generation_cutpoints),
     "cutpoints"
   )
   expect_equal(
@@ -280,7 +280,7 @@ test_that("sim_trials optionally retains traces without changing summaries", {
 test_that("sim_trials isolates failed trials and warns once", {
   run_fake_trials <- function(backend, fail_trial = 2L) {
     trial <- 0L
-    fake_survival_adapt <- function(..., return_trace = FALSE) {
+    fake_sim_trial <- function(..., return_trace = FALSE) {
       trial <<- trial + 1L
       value <- stats::runif(1)
       if (identical(trial, fail_trial)) {
@@ -310,7 +310,7 @@ test_that("sim_trials isolates failed trials and warns once", {
       result <- list(
         summary = summary,
         trace = data.frame(look = 1L, N_enrolled = 10L),
-        call = quote(fake_survival_adapt())
+        call = quote(fake_sim_trial())
       )
       attr(result, "decision_design") <- attr(
         summary,
@@ -322,8 +322,8 @@ test_that("sim_trials isolates failed trials and warns once", {
 
     fake_cluster <- structure(vector("list", 2L), class = "cluster")
     local_mocked_bindings(
-      survival_adapt = fake_survival_adapt,
-      make_psock_callable = function(...) fake_survival_adapt,
+      sim_trial = fake_sim_trial,
+      make_psock_callable = function(...) fake_sim_trial,
       make_sim_cluster = function(...) fake_cluster,
       initialize_sim_cluster = function(...) invisible(NULL),
       run_sim_cluster = function(cluster, trial_index, fun) {
@@ -394,14 +394,14 @@ test_that("sim_trials isolates failed trials and warns once", {
 })
 
 test_that("sim_trials stops with structured details when every trial fails", {
-  fake_survival_adapt <- function(...) {
+  fake_sim_trial <- function(...) {
     rlang::abort(
       "simulated terminal failure",
       class = "simulated_trial_error"
     )
   }
   local_mocked_bindings(
-    survival_adapt = fake_survival_adapt,
+    sim_trial = fake_sim_trial,
     .package = "goldilocks"
   )
 
@@ -446,13 +446,13 @@ test_that("sim_trials validates return_trace", {
   )
 })
 
-test_that("sim_trials uses survival_adapt decision-rule defaults", {
+test_that("sim_trials uses sim_trial decision-rule defaults", {
   expect_identical(
     formals(sim_trials)$alternative,
-    formals(survival_adapt)$alternative
+    formals(sim_trial)$alternative
   )
-  expect_identical(formals(sim_trials)$Fn, formals(survival_adapt)$Fn)
-  expect_identical(formals(sim_trials)$Qn, formals(survival_adapt)$Qn)
+  expect_identical(formals(sim_trials)$Fn, formals(sim_trial)$Fn)
+  expect_identical(formals(sim_trials)$Qn, formals(sim_trial)$Qn)
 })
 
 test_that("sim_trials forwards the immediate-success boundary", {
@@ -652,7 +652,7 @@ test_that("PSOCK workers load the package namespace and compiled routines", {
       namespace_loaded = "goldilocks" %in% loadedNamespaces(),
       dll_loaded = "goldilocks" %in% names(getLoadedDLLs()),
       native_symbol_loaded = exists(
-        "_goldilocks_logrank_instance",
+        "_goldilocks_logrank_cpp",
         envir = namespace,
         inherits = FALSE
       )

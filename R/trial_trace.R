@@ -59,7 +59,7 @@ new_trial_trace <- function(rows) {
 #' @title Extract an interim decision trace
 #'
 #' @description Accepts a `goldilocks_trial` object returned by
-#'   [survival_adapt()] with `return_trace` enabled, a `goldilocks_interim`
+#'   [sim_trial()] with `return_trace` enabled, a `goldilocks_interim`
 #'   object returned by [evaluate_interim()], or the trace data frame itself.
 #'
 #' @param x A `goldilocks_trial` result, a `goldilocks_interim` result, or an
@@ -86,9 +86,9 @@ get_trial_trace <- function(x) {
 #'
 #' @description Prints the final trial summary and reports how many interim
 #'   looks were completed for a `goldilocks_trial` object returned by
-#'   [survival_adapt()].
+#'   [sim_trial()].
 #'
-#' @param x A `goldilocks_trial` result returned by [survival_adapt()] when
+#' @param x A `goldilocks_trial` result returned by [sim_trial()] when
 #'   `return_trace = TRUE`.
 #' @param ... Additional arguments passed to [base::print.data.frame()] when
 #'   printing the final trial summary.
@@ -110,7 +110,7 @@ print.goldilocks_trial <- function(x, ...) {
 #'   analysis information, or pass its `trace` element to summarize the path
 #'   only.
 #'
-#' @param x A required `goldilocks_trial` result from [survival_adapt()], a
+#' @param x A required `goldilocks_trial` result from [sim_trial()], a
 #'   `goldilocks_interim` result from [evaluate_interim()], or an interim trace
 #'   data frame.
 #'
@@ -170,7 +170,7 @@ summarise_trial_trace <- function(x) {
 #'   Thresholds and early stopping decisions are marked on the probability
 #'   panels.
 #'
-#' @param x A required `goldilocks_trial` result from [survival_adapt()], a
+#' @param x A required `goldilocks_trial` result from [sim_trial()], a
 #'   `goldilocks_interim` result from [evaluate_interim()], or an interim trace
 #'   data frame.
 #'

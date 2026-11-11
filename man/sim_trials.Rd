@@ -339,11 +339,11 @@ simulated trial; \code{failures}, a data frame with columns \code{trial},
 list also contains \code{traces}, a data frame with one row per completed
 interim look and a \code{trial} identifier. Per-trial calendar-time metrics are
 always retained in \code{sims}; traces additionally retain calendar time and
-active follow-up at each look. See \code{\link[=survival_adapt]{survival_adapt()}} for details of the
+active follow-up at each look. See \code{\link[=sim_trial]{sim_trial()}} for details of the
 summary and trace columns, and \code{\link[=summarise_calendar_time]{summarise_calendar_time()}} for wide
 operating-characteristic tables. The returned object also retains the
 evaluated \code{decision_design} and resolved \code{prior_design} attributes from
-\code{\link[=survival_adapt]{survival_adapt()}}. An \code{rng_metadata} attribute records the random-number
+\code{\link[=sim_trial]{sim_trial()}}. An \code{rng_metadata} attribute records the random-number
 generator, computational method, and seed policy. A \code{parallel_metadata}
 attribute records the requested and actual computational method and number
 of cores. An \code{arguments} attribute contains a named list of all evaluated
@@ -358,12 +358,12 @@ attribute can be saved with \code{\link[=saveRDS]{saveRDS()}} and supplied to a 
 \code{do.call(sim_trials, attr(result, "arguments"))}.
 }
 \description{
-Repeats \code{\link[=survival_adapt]{survival_adapt()}} under fixed design and
+Repeats \code{\link[=sim_trial]{sim_trial()}} under fixed design and
 data-generating assumptions, returning trial-level results from which
 operating characteristics can be estimated.
 }
 \details{
-This function is a wrapper for \code{\link[=survival_adapt]{survival_adapt()}} that repeatedly
+This function is a wrapper for \code{\link[=sim_trial]{sim_trial()}} that repeatedly
 simulates independent trials under the same design parameters and assumed
 treatment effect.
 
@@ -375,7 +375,7 @@ simulation studies. On Unix-like systems parallel trials use forked R
 processes; on Windows they use PSOCK processes. Set \code{backend} explicitly
 when a particular computational method is required.
 
-Errors raised by an individual \code{\link[=survival_adapt]{survival_adapt()}} call are isolated so
+Errors raised by an individual \code{\link[=sim_trial]{sim_trial()}} call are isolated so
 other trials can finish. Failed trials are excluded from \code{sims}, recorded
 in \code{failures} with their trial number, error class, and message, and
 reported together in one warning. If every requested trial fails,

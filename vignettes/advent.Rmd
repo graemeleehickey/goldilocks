@@ -161,7 +161,7 @@ The mapping is direct:
 -   `Sn` contains the published predicted-success thresholds for sample sizes 350, 450, 550, and 650.
 -   `Fn` contains the published futility thresholds for the same looks.
 
-ADVENT required the predictive probability rule to be favorable for both co-primary endpoints before enrollment stopped for predicted success, and unfavorable for either endpoint before stopping for futility. The current `survival_adapt()` interface models one endpoint per run. In this vignette we therefore run the effectiveness and safety endpoints separately, then explain how those separate endpoint-specific runs relate to the reported co-primary design.
+ADVENT required the predictive probability rule to be favorable for both co-primary endpoints before enrollment stopped for predicted success, and unfavorable for either endpoint before stopping for futility. The current `sim_trial()` interface models one endpoint per run. In this vignette we therefore run the effectiveness and safety endpoints separately, then explain how those separate endpoint-specific runs relate to the reported co-primary design.
 
 The SAP allowed up to 900 enrolled subjects to obtain 750 mITT subjects: up to 750 mITT subjects, 105 nonrandomized roll-in subjects, and 45 randomized subjects who did not enter the mITT population. The package examples below start directly with the analysis population and do not simulate roll-ins or post-randomization exclusions.
 
@@ -203,7 +203,7 @@ The ADVENT primary analyses used Bayesian beta-binomial endpoint models with non
 prior_bin <- c(0.5, 0.5)
 ```
 
-The survival-prior arguments still appear below because `survival_adapt()` uses a time-to-event model to impute not-yet-observed outcomes. `prior_surv` controls the piecewise-exponential Gamma prior during interim prediction, while `prior_surv_final` controls it during final multiple imputation. A length-two vector is broadcast across intervals; a two-row matrix supplies interval-specific shapes in its first row and rates in its second.
+The survival-prior arguments still appear below because `sim_trial()` uses a time-to-event model to impute not-yet-observed outcomes. `prior_surv` controls the piecewise-exponential Gamma prior during interim prediction, while `prior_surv_final` controls it during final multiple imputation. A length-two vector is broadcast across intervals; a two-row matrix supplies interval-specific shapes in its first row and rates in its second.
 
 The effectiveness model partitions follow-up at days 90, 104, 150, and 210. At interim looks its first four hazards use $\operatorname{Gamma}(0.5, 0.001)$ priors, while the 210--360-day hazard uses the informative $\operatorname{Gamma}(5, 10000)$ prior because little late follow-up was expected. The final multiple-imputation analysis returns to $\operatorname{Gamma}(0.5, 0.001)$ in every interval:
 
@@ -434,7 +434,7 @@ knitr::kable(enrollment_schedule, digits = 4)
 
 Thus, for example, trial-calendar day 210 is the beginning of month 8 and the 33-subject/month rate. It is unrelated to the effectiveness endpoint's subject-relative cut-point at follow-up day 210. The 360-day follow-up horizon is also per subject, not the total duration of the trial. Accrual speed remains worth sensitivity checking: faster accrual reduces the amount of observed endpoint information available at interim looks.
 
-The following `survival_adapt()` analysis simulates and evaluates the
+The following `sim_trial()` analysis simulates and evaluates the
 effectiveness endpoint for **one trial replicate**. It does not estimate
 operating characteristics over repeated trials.
 
@@ -442,7 +442,7 @@ operating characteristics over repeated trials.
 set.seed(4601)
 
 # One simulated effectiveness-endpoint trial
-advent_effectiveness <- survival_adapt(
+advent_effectiveness <- sim_trial(
   hazard_treatment = eff_hazard_per_day,
   hazard_control = eff_hazard_per_day,
   cutpoints = eff_event_cutpoints_day,
@@ -489,14 +489,14 @@ $$
 \mid \text{data}) > 0.966.
 $$
 
-This `survival_adapt()` analysis likewise represents **one trial replicate**
+This `sim_trial()` analysis likewise represents **one trial replicate**
 for the safety endpoint.
 
 ```{r safety-fit}
 set.seed(4602)
 
 # One simulated safety-endpoint trial
-advent_safety <- survival_adapt(
+advent_safety <- sim_trial(
   hazard_treatment = safety_hazard_per_day,
   hazard_control = safety_hazard_per_day,
   cutpoints = safety_event_cutpoints_day,
@@ -526,7 +526,7 @@ advent_safety <- survival_adapt(
 advent_safety
 ```
 
-In the published ADVENT design, a predicted-success stopping recommendation required high predictive probability for both endpoints. A futility recommendation could be triggered by low predictive probability for either endpoint. The two separate simulations above do not impose that joint rule. Instead, they show how each endpoint-specific Bayesian rule maps to `survival_adapt()`.
+In the published ADVENT design, a predicted-success stopping recommendation required high predictive probability for both endpoints. A futility recommendation could be triggered by low predictive probability for either endpoint. The two separate simulations above do not impose that joint rule. Instead, they show how each endpoint-specific Bayesian rule maps to `sim_trial()`.
 
 ## A reusable design specification
 

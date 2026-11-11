@@ -103,11 +103,11 @@ sim_trial_paths <- function(
   args <- validate_path_arguments(args)
   config <- args
   config$single_arm <- is.null(args$hazard_control)
-  if (!uses_posterior_draws(args$method, args$bin_method)) {
+  if (!uses_post_draws(args$method, args$bin_method)) {
     config$N_mcmc <- 1L
   }
   execution <- resolve_sim_execution(args$backend, args$ncores, args$N_trials)
-  inner_mc <- uses_posterior_draws(args$method, args$bin_method)
+  inner_mc <- uses_post_draws(args$method, args$bin_method)
   score_bytes <- as.double(N_trials) *
     length(interim_look) *
     N_impute *
@@ -227,7 +227,7 @@ validate_path_arguments <- function(args) {
   for (name in c("N_total", "N_trials", "N_impute", "ncores")) {
     validate_positive_integer_scalar(args[[name]], name)
   }
-  if (uses_posterior_draws(args$method, args$bin_method)) {
+  if (uses_post_draws(args$method, args$bin_method)) {
     validate_positive_integer_scalar(args$N_mcmc, "N_mcmc")
   }
   if (args$N_trials > .Machine$integer.max) {
@@ -394,7 +394,7 @@ simulate_trial_path <- function(config, stream, trial) {
   }
   generated <- capture_path_stage(
     stream,
-    call_path_function(sim_comp_data, config)
+    call_path_function(sim_trial_data, config)
   )
   record_failure(generated$error, "generation", NA_integer_, config$N_total)
   if (is.null(generated$value)) {

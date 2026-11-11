@@ -3,13 +3,13 @@
 #' @description Updates Beta priors for one or two treatment arms and calculates
 #'   the posterior probability of the specified binary-outcome hypothesis.
 #'
-#' @inheritParams analyse_data
+#' @inheritParams analyse_comp_data
 #'
 #' @return A list with the posterior probability of success (`success`) and
 #'   posterior mean treatment effect (`effect`).
 #'
 #' @noRd
-bayes_binomial_test <- function(
+analyse_bayes_bin <- function(
   data,
   single_arm,
   alternative,
@@ -39,7 +39,7 @@ bayes_binomial_test <- function(
     stop("Bayesian binomial analysis requires at least one subject per arm")
   }
 
-  bayes_binomial_from_counts(
+  analyse_bayes_bin_from_counts(
     events_control = sum(control_event),
     n_control = length(control_event),
     events_treatment = sum(treatment_event),
@@ -68,7 +68,7 @@ bayes_binomial_test <- function(
 #'   treatment-arm events.
 #' @param n_treatment A positive integer giving the number of treatment-arm
 #'   subjects.
-#' @inheritParams analyse_data
+#' @inheritParams analyse_comp_data
 #'
 #' @return A list containing the posterior probability of the alternative
 #'   (`success`) and posterior mean event probability or treatment-control
@@ -77,7 +77,7 @@ bayes_binomial_test <- function(
 #'
 #' @keywords internal
 #' @noRd
-bayes_binomial_from_counts <- function(
+analyse_bayes_bin_from_counts <- function(
   events_control,
   n_control,
   events_treatment,

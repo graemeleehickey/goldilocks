@@ -16,13 +16,13 @@ test_that("frequentist risk-difference analyses require interior null margins", 
     args$method <- method
     for (margin in c(-1.01, -1, 1, 1.01)) {
       expect_error(
-        do.call(analyse_data, c(args, list(h0 = margin))),
+        do.call(analyse_comp_data, c(args, list(h0 = margin))),
         "'h0' must lie in (-1, 1)",
         fixed = TRUE
       )
     }
     for (margin in c(-0.999, 0, 0.999)) {
-      result <- do.call(analyse_data, c(args, list(h0 = margin)))
+      result <- do.call(analyse_comp_data, c(args, list(h0 = margin)))
       expect_true(is.finite(result$success))
       expect_equal(result$effect, 0.15)
     }
@@ -209,7 +209,7 @@ test_that("riskdiff-fm is available through the completed-data analysis", {
     treatment = rep(0:1, each = 20)
   )
 
-  result <- analyse_data(
+  result <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 36,

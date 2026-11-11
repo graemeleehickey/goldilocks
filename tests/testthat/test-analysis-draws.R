@@ -16,7 +16,7 @@ draw_count_cases <- function(method, bin_method) {
   path_results <- function(x) list(trials = x$trials, failures = x$failures)
 
   list(
-    survival_adapt = list(fun = "survival_adapt", args = c(fixed, rules), result = trial_results),
+    sim_trial = list(fun = "sim_trial", args = c(fixed, rules), result = trial_results),
     sim_trials = list(fun = "sim_trials", args = c(fixed, repeated, rules), result = simulation_results),
     sim_trial_paths = list(fun = "sim_trial_paths", args = c(fixed, repeated), result = path_results),
     sim_horizon_trials = list(fun = "sim_horizon_trials", args = c(horizon, repeated, rules), result = simulation_results),
@@ -92,10 +92,10 @@ test_that("deterministic binomial calculations do not require N_mcmc", {
         data = data, single_arm = single_arm, alternative = "less",
         h0 = if (single_arm) 0.5 else 0, prior_bin = c(1, 1), bin_method = bin_method
       )
-      without_draws <- do.call(bayes_binomial_test, args)
+      without_draws <- do.call(analyse_bayes_bin, args)
       expect_identical(
         without_draws,
-        do.call(bayes_binomial_test, c(args, list(N_mcmc = 100)))
+        do.call(analyse_bayes_bin, c(args, list(N_mcmc = 100)))
       )
     }
   }

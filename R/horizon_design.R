@@ -145,7 +145,7 @@ horizon_analysis_config <- function(args, horizon) {
   config$h0 <- args$horizon_settings$h0[row]
   config$rmst_tau <- args$horizon_settings$rmst_tau[row]
   config$prior_bin <- args$horizon_settings$prior_bin[[row]]
-  if (!uses_posterior_draws(config$method, config$bin_method)) {
+  if (!uses_post_draws(config$method, config$bin_method)) {
     config$N_mcmc <- 1L
   }
   config

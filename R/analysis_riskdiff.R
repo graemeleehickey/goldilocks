@@ -3,7 +3,7 @@
 #' @description Calculates the treatment-minus-control difference in event
 #'   proportions and its unpooled binomial variance.
 #'
-#' @inheritParams analyse_data
+#' @inheritParams analyse_comp_data
 #'
 #' @return A list containing the risk-difference estimate and variance.
 #'
@@ -70,7 +70,7 @@ risk_difference_from_counts <- function(
 #' @description Performs a Wald test of the treatment-minus-control event-risk
 #'   difference against the supplied null value.
 #'
-#' @inheritParams analyse_data
+#' @inheritParams analyse_comp_data
 #'
 #' @return A list containing the success score, risk-difference estimate,
 #'   variance, and standard error.
@@ -137,7 +137,7 @@ risk_difference_wald_from_estimate <- function(fit, alternative, h0) {
 
   std_error <- sqrt(fit$variance)
   statistic <- (fit$estimate - h0) / std_error
-  success <- normal_test_success(statistic, alternative)
+  success <- normal_test_score(statistic, alternative)
 
   list(
     success = success,
@@ -232,7 +232,7 @@ risk_difference_fm_from_counts <- function(
   }
 
   list(
-    success = normal_test_success(statistic, alternative),
+    success = normal_test_score(statistic, alternative),
     estimate = observed$estimate,
     variance = variance,
     std_error = sqrt(variance),

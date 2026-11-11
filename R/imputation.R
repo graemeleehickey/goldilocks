@@ -7,8 +7,8 @@
 #'   Interim analyses generate all predictive imputations together using
 #'   `impute_predictive_draws()`.
 #'
-#' @inheritParams survival_adapt
-#' @inheritParams sim_comp_data
+#' @inheritParams sim_trial
+#' @inheritParams sim_trial_data
 #' @inheritParams haz_to_prob
 #' @param data_in A data frame with one row per subject and columns for
 #'   treatment assignment (`treatment`, coded `1` for treatment and `0` for
@@ -29,7 +29,7 @@
 #'   event indicator directly (`"bernoulli"`).
 #'
 #' @details This is an active internal function, not an archived function. It is
-#'   used by the final-analysis calculations in [survival_adapt()] and
+#'   used by the final-analysis calculations in [sim_trial()] and
 #'   [sim_trials()].
 #'
 #' @return A data frame with the same rows and columns as `data_in`, with the
@@ -79,7 +79,7 @@ impute_data <- function(
       } else {
         rep.int(0, sum(idx))
       }
-      event_probability <- pwe_conditional_event_probability(
+      event_probability <- pwe_cond_event_prob(
         time = conditioning_time,
         hazard = hazard[1, , hazard_slice],
         end_of_study = end_of_study,

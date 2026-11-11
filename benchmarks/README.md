@@ -55,7 +55,7 @@ frame for every current and maximum-sample analysis. The count path instead
 uses arm-level event and subject totals and evaluates each distinct
 deterministic count summary once. The script verifies identical classifications
 before timing the pair and prints the number and percentage of reused summaries.
-The separate `survival_adapt_bayes_bin` row reports the complete trial runtime,
+The separate `sim_trial_bayes_bin` row reports the complete trial runtime,
 including generation, posterior prediction, interim decisions, and final
 analysis.
 

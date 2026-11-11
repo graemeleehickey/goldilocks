@@ -81,7 +81,7 @@ test_that("inner posterior classification uses its point estimate", {
     successes = 10,
     draws = 10
   )
-  classification <- classify_completed_analysis(
+  classification <- classify_comp_analysis(
     analysis,
     prob_ha = 0.95,
     mc_conf_level = 0.95
@@ -97,7 +97,7 @@ test_that("Bayesian completed-data analyses retain their Monte Carlo counts", {
     event = c(rep(0, 10), rep(1, 10)),
     treatment = rep(0:1, each = 10)
   )
-  result <- analyse_data(
+  result <- analyse_comp_data(
     data = data,
     cutpoints = NULL,
     end_of_study = 12,
@@ -118,8 +118,8 @@ test_that("Bayesian completed-data analyses retain their Monte Carlo counts", {
 })
 
 test_that("Monte Carlo defaults no longer imply ten-draw decisions", {
-  expect_identical(formals(survival_adapt)$N_impute, 500)
-  expect_identical(formals(survival_adapt)$N_mcmc, 1000)
+  expect_identical(formals(sim_trial)$N_impute, 500)
+  expect_identical(formals(sim_trial)$N_mcmc, 1000)
   expect_identical(formals(sim_trials)$N_impute, 500)
   expect_identical(formals(sim_trials)$N_mcmc, 1000)
 })

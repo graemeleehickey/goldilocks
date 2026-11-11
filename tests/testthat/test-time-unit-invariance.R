@@ -23,9 +23,9 @@ test_that("complete-data simulation is invariant to the time unit", {
   day_arguments$end_of_study <- day_arguments$end_of_study * scale
 
   set.seed(806)
-  months <- do.call(sim_comp_data, month_arguments)
+  months <- do.call(sim_trial_data, month_arguments)
   set.seed(806)
-  days <- do.call(sim_comp_data, day_arguments)
+  days <- do.call(sim_trial_data, day_arguments)
 
   expect_equal(days$time, months$time * scale, tolerance = 1e-12)
   expect_equal(

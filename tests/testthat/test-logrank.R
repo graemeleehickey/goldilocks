@@ -10,7 +10,7 @@ test_that("native log-rank checks lengths before accessing event indicators", {
       bad[[group]] <- events
       for (onlyz in c(FALSE, TRUE)) {
         bad$onlyz <- onlyz
-        expect_error(do.call(logrank_instance, bad), "same length in each group")
+        expect_error(do.call(logrank_cpp, bad), "same length in each group")
       }
     }
   }
@@ -26,7 +26,7 @@ test_that("native log-rank rejects invalid times before sorting", {
     for (time in c(-1, NA_real_, NaN, Inf, -Inf)) {
       bad <- args
       bad[[group]][1] <- time
-      expect_error(do.call(logrank_instance, bad), "times must be finite and non-negative")
+      expect_error(do.call(logrank_cpp, bad), "times must be finite and non-negative")
     }
   }
 })
@@ -41,7 +41,7 @@ test_that("native log-rank checks event values before integer conversion", {
     for (event in c(-1, 2, 0.5, 1.5, NA_real_, NaN, Inf, -Inf)) {
       bad <- args
       bad[[group]][1] <- event
-      expect_error(do.call(logrank_instance, bad), "event indicators must be 0 or 1")
+      expect_error(do.call(logrank_cpp, bad), "event indicators must be 0 or 1")
     }
   }
 })
@@ -49,7 +49,7 @@ test_that("native log-rank checks event values before integer conversion", {
 test_that("native log-rank requires one non-missing logical onlyz value", {
   for (onlyz in list(logical(), c(TRUE, FALSE), NA, 0, 1, NA_real_, "FALSE", NULL)) {
     expect_error(
-      logrank_instance(c(1, 2), c(3, 4), c(1, 1), c(1, 1), onlyz),
+      logrank_cpp(c(1, 2), c(3, 4), c(1, 1), c(1, 1), onlyz),
       "'onlyz' must be a single non-missing logical value"
     )
   }

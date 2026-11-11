@@ -16,7 +16,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(goldilocks)
 ```
 
-`survival_adapt()` simulates a complete adaptive trial. `evaluate_interim()`
+`sim_trial()` simulates a complete adaptive trial. `evaluate_interim()`
 instead applies the same predictive decision calculation to one observed
 interim data cut. It does not generate event, censoring, or enrollment times,
 and it does not retain a participant-level copy of the input in its result.
@@ -192,7 +192,7 @@ tests. The package does not automatically replace an informative predictive
 prior with a weak analysis prior.** The two priors need not be distinct; the
 default intentionally uses one prior for both roles.
 
-Use these same two arguments in `survival_adapt()` or `sim_trials()` when
+Use these same two arguments in `sim_trial()` or `sim_trials()` when
 calibrating the design. The small Monte Carlo sizes here demonstrate the API;
 precision and operating characteristics must be assessed for the deployed
 design. At the actual final analysis, `prior_surv_final` is also used for any

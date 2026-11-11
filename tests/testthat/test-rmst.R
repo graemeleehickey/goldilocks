@@ -157,26 +157,26 @@ test_that("RMST validates outcome data, horizons, margins, and configuration", {
   )
   for (tau in list(0, -1, NA_real_, Inf, NULL, c(2, 4), "6")) {
     expect_error(
-      do.call(survival_adapt, c(args, list(rmst_tau = tau))),
+      do.call(sim_trial, c(args, list(rmst_tau = tau))),
       "rmst_tau"
     )
   }
   expect_error(
-    do.call(survival_adapt, c(args, list(rmst_tau = 9))),
+    do.call(sim_trial, c(args, list(rmst_tau = 9))),
     "must not exceed"
   )
   expect_error(
-    do.call(survival_adapt, c(args, list(rmst_tau = 4, h0 = -5))),
+    do.call(sim_trial, c(args, list(rmst_tau = 4, h0 = -5))),
     "h0.*rmst_tau"
   )
-  expect_error(do.call(survival_adapt, c(args, list(h0 = Inf))), "h0")
+  expect_error(do.call(sim_trial, c(args, list(h0 = Inf))), "h0")
   args$hazard_control <- NULL
-  expect_error(do.call(survival_adapt, args), "two-armed")
+  expect_error(do.call(sim_trial, args), "two-armed")
   args$hazard_control <- 0.1
   args$imputed_final <- TRUE
   args$N_impute <- 1
   args$prop_loss <- 0.1
-  expect_error(do.call(survival_adapt, args), "at least two imputations")
+  expect_error(do.call(sim_trial, args), "at least two imputations")
   expect_error(
     do.call(sim_trials, c(args, list(N_trials = 1))),
     "at least two imputations"
@@ -199,10 +199,10 @@ test_that("both completed-data routes use the same RMST horizon and margin", {
   )
   # The horizon is allowed to precede an analysis cutpoint.
   expected <- analyse_rmst(d$time, d$event, d$treatment, 6, "greater", -0.5)
-  expect_identical(do.call(analyse_data, c(list(data = d), args)), expected)
+  expect_identical(do.call(analyse_comp_data, c(list(data = d), args)), expected)
   expect_identical(
     do.call(
-      analyse_completed_survival,
+      analyse_comp_survival,
       c(list(outcome = as.list(d), interval_widths = NULL), args)
     ),
     expected
@@ -225,7 +225,7 @@ test_that("RMST final imputation pools effects and Greenwood variances", {
   set.seed(1401)
   actual <- do.call(analyse_final, args)
   set.seed(1401)
-  hazards <- posterior(
+  hazards <- post_haz_draws(
     d,
     cutpoints = NULL,
     prior_surv = c(0.1, 0.1),
@@ -277,10 +277,10 @@ test_that("RMST simulations reproduce the completed-data result and saved design
     prop_loss = 0.1
   )
   set.seed(1402)
-  d <- do.call(sim_comp_data, args)
+  d <- do.call(sim_trial_data, args)
   set.seed(1402)
   actual <- do.call(
-    survival_adapt,
+    sim_trial,
     c(args, list(method = "rmst", rmst_tau = 8))
   )
   expected <- analyse_rmst(d$time, d$event, d$treatment, 8, "greater", 0)
@@ -289,10 +289,10 @@ test_that("RMST simulations reproduce the completed-data result and saved design
   expect_equal(attr(actual, "arguments")$rmst_tau, 8)
   expect_equal(attr(actual, "enrollment_design")$end_of_study, 12)
   set.seed(1403)
-  default <- do.call(survival_adapt, c(args, list(method = "rmst")))
+  default <- do.call(sim_trial, c(args, list(method = "rmst")))
   set.seed(1403)
   explicit <- do.call(
-    survival_adapt,
+    sim_trial,
     c(args, list(method = "rmst", rmst_tau = 12))
   )
   expect_identical(default, explicit)

@@ -21,7 +21,7 @@ output <- if (length(arguments) > 2) arguments[3] else {
 stopifnot(is.finite(iterations), iterations > 0,
           is.finite(trial_iterations), trial_iterations > 0)
 
-original <- getFromNamespace("bayes_binomial_from_counts", "goldilocks")
+original <- getFromNamespace("analyse_bayes_bin_from_counts", "goldilocks")
 
 quantile_probability <- function(treatment, control, h0, alternative,
                                  split = FALSE) {
@@ -215,7 +215,7 @@ stopifnot(all(split_errors < 1e-8))
 
 with_calculator <- function(calculator, code) {
   namespace <- asNamespace("goldilocks")
-  name <- "bayes_binomial_from_counts"
+  name <- "analyse_bayes_bin_from_counts"
   saved <- get(name, envir = namespace)
   on.exit({
     unlockBinding(name, namespace)

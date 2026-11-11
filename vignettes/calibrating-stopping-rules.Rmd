@@ -35,7 +35,7 @@ where $M$ is `N_impute`. Saving the individual scores allows the predictive prob
 
 The paths also include a final analysis and calendar-time measures for each possible stopping cohort. If accrual stops at 60 participants for expected success, the final result comes from those 60 participants after follow-up. The final result for the maximum cohort is used for trials that continue to maximum $N$ and for the counterfactual comparison described below.
 
-Interim predictions use only the data available at that calendar date. The eventual outcomes used in the cohort final analyses are not available to these predictions. Dropout and final imputation follow the same rules as `survival_adapt()`.
+Interim predictions use only the data available at that calendar date. The eventual outcomes used in the cohort final analyses are not available to these predictions. Dropout and final imputation follow the same rules as `sim_trial()`.
 
 ## Simulate null and alternative trial paths
 

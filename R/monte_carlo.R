@@ -110,7 +110,7 @@ set_analysis_mc_counts <- function(result, successes, draws) {
 #'   posterior Monte Carlo draws, exact bounds are retained as diagnostics but
 #'   do not alter the completed-dataset classification.
 #'
-#' @param analysis A list returned by `analyse_data()`.
+#' @param analysis A list returned by `analyse_comp_data()`.
 #' @param prob_ha A single numeric probability in `[0, 1]` defining success.
 #' @param mc_conf_level A single numeric probability strictly between `0.5` and
 #'   `1`, giving the confidence level for diagnostic bounds.
@@ -119,7 +119,7 @@ set_analysis_mc_counts <- function(result, successes, draws) {
 #'   diagnostic Monte Carlo bounds.
 #'
 #' @noRd
-classify_completed_analysis <- function(
+classify_comp_analysis <- function(
   analysis,
   prob_ha,
   mc_conf_level

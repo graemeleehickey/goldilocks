@@ -1039,7 +1039,7 @@ validate_analysis_configuration <- function(
 #'
 #' @param has_missing_outcomes A logical value indicating whether outcomes
 #'   require imputation, or whether dropout is possible in a simulated design.
-#' @inheritParams survival_adapt
+#' @inheritParams sim_trial
 #'
 #' @keywords internal
 #' @noRd
@@ -1111,7 +1111,7 @@ validate_interim_looks <- function(interim_look, N_total, min_look = NULL) {
 }
 
 # Whether completed-data analyses use posterior draws rather than deterministic calculations.
-uses_posterior_draws <- function(method, bin_method) {
+uses_post_draws <- function(method, bin_method) {
   isTRUE(method == "bayes-surv") ||
     (isTRUE(method == "bayes-bin") && isTRUE(bin_method == "mc"))
 }

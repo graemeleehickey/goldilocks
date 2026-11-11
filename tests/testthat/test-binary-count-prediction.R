@@ -96,7 +96,7 @@ data_frame_binary_reference <- function(
       include_future = TRUE
     )
     maximum <- maximum[, c("time", "event", "treatment"), drop = FALSE]
-    success_now <- goldilocks:::analyse_data(
+    success_now <- goldilocks:::analyse_comp_data(
       data = current,
       end_of_study = 12,
       cutpoints = NULL,
@@ -110,7 +110,7 @@ data_frame_binary_reference <- function(
       bin_method = bin_method,
       empty_interval = "prior"
     )
-    success_max <- goldilocks:::analyse_data(
+    success_max <- goldilocks:::analyse_comp_data(
       data = maximum,
       end_of_study = 12,
       cutpoints = NULL,
@@ -124,12 +124,12 @@ data_frame_binary_reference <- function(
       bin_method = bin_method,
       empty_interval = "prior"
     )
-    classification_now <- goldilocks:::classify_completed_analysis(
+    classification_now <- goldilocks:::classify_comp_analysis(
       success_now,
       prob_ha = prob_ha,
       mc_conf_level = 0.95
     )
-    classification_max <- goldilocks:::classify_completed_analysis(
+    classification_max <- goldilocks:::classify_comp_analysis(
       success_max,
       prob_ha = prob_ha,
       mc_conf_level = 0.95
@@ -217,7 +217,7 @@ test_that("count analyses match general analyses at sparse and boundary counts",
 
     for (bin_method in c("normal", "quadrature", "mc")) {
       set.seed(9100 + row)
-      checked <- goldilocks:::bayes_binomial_test(
+      checked <- goldilocks:::analyse_bayes_bin(
         data = data,
         single_arm = FALSE,
         alternative = "greater",
@@ -228,7 +228,7 @@ test_that("count analyses match general analyses at sparse and boundary counts",
       )
       checked_seed <- .Random.seed
       set.seed(9100 + row)
-      counted <- goldilocks:::bayes_binomial_from_counts(
+      counted <- goldilocks:::analyse_bayes_bin_from_counts(
         events_control = cases$events_control[row],
         n_control = cases$n[row],
         events_treatment = cases$events_treatment[row],
@@ -433,7 +433,7 @@ test_that("binary interim diagnostics report bounded summary reuse", {
 })
 
 test_that("extreme quadrature probabilities cannot cross a threshold of one", {
-  result <- bayes_binomial_from_counts(
+  result <- analyse_bayes_bin_from_counts(
     events_control = 50,
     n_control = 50,
     events_treatment = 0,
@@ -448,5 +448,5 @@ test_that("extreme quadrature probabilities cannot cross a threshold of one", {
   expect_gte(result$success, 0)
   expect_lte(result$success, 1)
   expect_equal(result$success, 1, tolerance = 1e-12)
-  expect_false(classify_completed_analysis(result, 1, .95)$crossed)
+  expect_false(classify_comp_analysis(result, 1, .95)$crossed)
 })

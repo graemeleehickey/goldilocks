@@ -47,7 +47,7 @@ test_that("plot_enrollment extracts and overrides a retained design", {
 
 test_that("trial results retain evaluated enrollment designs", {
   set.seed(8821)
-  result <- survival_adapt(
+  result <- sim_trial(
     hazard_treatment = -log(0.8) / 12,
     hazard_control = NULL,
     N_total = 20,

@@ -250,7 +250,7 @@ imputation prior (\code{prior_surv}), completed-data analysis prior
 }
 \description{
 Applies the same posterior predictive decision calculation used
-by \code{\link[=survival_adapt]{survival_adapt()}} to subject-level data observed at one interim look.
+by \code{\link[=sim_trial]{sim_trial()}} to subject-level data observed at one interim look.
 The function does not simulate a trial or modify \code{data}. Participants who
 could still be enrolled before the maximum sample size are represented
 according to \code{N_total}, the observed arm counts, and \code{rand_ratio}.

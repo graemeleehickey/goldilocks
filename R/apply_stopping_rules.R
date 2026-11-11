@@ -4,7 +4,7 @@
 #'   without predictive imputation, model fitting, or random-number generation.
 #'
 #' @param paths A complete `goldilocks_paths` object from [sim_trial_paths()].
-#' @inheritParams survival_adapt
+#' @inheritParams sim_trial
 #' @inheritParams sim_trials
 #'
 #' @details At each look, predictive success is the fraction of saved scores

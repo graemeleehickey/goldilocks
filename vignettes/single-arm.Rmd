@@ -20,7 +20,7 @@ set.seed(3081)
 library(goldilocks)
 ```
 
-The [two-arm randomized trial](two-arm.html) example uses a concurrent control group. The Bayesian binary outcome vignette includes a [single-arm example](bayesian-binary.html#single-arm-design). Single-arm trials -- in which every subject receives the experimental therapy and the comparator is an external benchmark, often called a performance goal (PG) or objective performance criterion (OPC) -- are common in early-phase oncology, rare-disease, and proof-of-concept studies. This vignette shows how to set up a Goldilocks single-arm design with `survival_adapt()`.
+The [two-arm randomized trial](two-arm.html) example uses a concurrent control group. The Bayesian binary outcome vignette includes a [single-arm example](bayesian-binary.html#single-arm-design). Single-arm trials -- in which every subject receives the experimental therapy and the comparator is an external benchmark, often called a performance goal (PG) or objective performance criterion (OPC) -- are common in early-phase oncology, rare-disease, and proof-of-concept studies. This vignette shows how to set up a Goldilocks single-arm design with `sim_trial()`.
 
 Two practical constraints on single-arm designs in this package:
 
@@ -78,10 +78,10 @@ at 24 months. The observed proportion censored by dropout can be lower because
 events can occur first; it is not a fixed count of four losses among 80
 participants. Survival analyses retain the follow-up observed before dropout.
 
-Now we run `survival_adapt()`:
+Now we run `sim_trial()`:
 
 ```{r run}
-out <- survival_adapt(
+out <- sim_trial(
   hazard_treatment = ht,
   hazard_control   = NULL,              # single-arm
   cutpoints        = NULL,
@@ -206,10 +206,10 @@ its log-rank threshold is specific to that example.
 
 ## A practical caveat on benchmarks
 
-The validity of a single-arm Goldilocks trial rests entirely on the benchmark `h0` (the PG or OPC) being a fair representation of the population the trial is enrolling. Drift in standard of care, differences in patient mix, and unmeasured confounding all bias the comparison in a way that randomization would otherwise neutralize. A Bayesian framework can incorporate uncertainty about the benchmark itself -- e.g. by replacing a fixed `h0` with a prior distribution informed by historical data -- but this is outside the scope of the simple `h0` scalar that `survival_adapt()` exposes, and would require a custom analysis. When in doubt, simulating the design under several plausible values of the true rate (including ones near the benchmark) is a useful way to characterize its sensitivity.
+The validity of a single-arm Goldilocks trial rests entirely on the benchmark `h0` (the PG or OPC) being a fair representation of the population the trial is enrolling. Drift in standard of care, differences in patient mix, and unmeasured confounding all bias the comparison in a way that randomization would otherwise neutralize. A Bayesian framework can incorporate uncertainty about the benchmark itself -- e.g. by replacing a fixed `h0` with a prior distribution informed by historical data -- but this is outside the scope of the simple `h0` scalar that `sim_trial()` exposes, and would require a custom analysis. When in doubt, simulating the design under several plausible values of the true rate (including ones near the benchmark) is a useful way to characterize its sensitivity.
 
 ## See also
 
 -   The [Two-arm randomized trials](two-arm.html) vignette covers the corresponding two-arm randomized design with a log-rank decision rule.
 -   The [Bayesian piecewise-exponential designs](bayes-piecewise.html) vignette covers the same decision rule used here, but in a two-arm setting and with non-constant hazards. The same piecewise-exponential specification applies to single-arm trials when `hazard_control = NULL` and `hazard_treatment` contains one hazard per interval.
--   The help page for [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.html) documents all arguments.
+-   The help page for [`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.html) documents all arguments.

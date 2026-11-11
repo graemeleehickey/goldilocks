@@ -56,7 +56,7 @@ test_that("censored RMST Wald confidence intervals cover the true difference", {
   true_difference <- -expm1(-0.06 * tau) / 0.06 - -expm1(-0.1 * tau) / 0.1
   set.seed(1454)
   covered <- replicate(500, {
-    d <- sim_comp_data(
+    d <- sim_trial_data(
       hazard_control = 0.1,
       hazard_treatment = 0.06,
       N_total = 300,

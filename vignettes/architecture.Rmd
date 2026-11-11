@@ -32,7 +32,7 @@ The package supports three related analyses:
 
 1.  `sim_trials()` simulates repeated trials to estimate operating
     characteristics;
-2.  `survival_adapt()` simulates and evaluates one adaptive trial; and
+2.  `sim_trial()` simulates and evaluates one adaptive trial; and
 3.  `evaluate_interim()` applies the prespecified interim rule to an observed
     trial data cut.
 
@@ -81,7 +81,7 @@ digraph statistical_workflow {
 
 ### Data-generating assumptions
 
-For simulation, `sim_comp_data()` generates enrollment times, randomized treatment assignments, event times, and loss to follow-up. The first participant enrolls at time zero; subsequent enrollment follows a piecewise-constant Poisson process. Event times follow arm-specific piecewise-exponential distributions. Dropout times are exponential and independent of event times and enrollment within each arm, with rate `-log(1 - prop_loss) / end_of_study`. Observed follow-up ends at the earliest event, dropout, or per-subject administrative horizon. `prop_loss` specifies the dropout CDF at that horizon, not the fraction actually censored by dropout; events can occur first, and dropout counts vary across trials. The technical methods vignette describes the [censoring model](technical-methods.html#independent-dropout-and-administrative-censoring) and its [implications for binary analyses](technical-methods.html#loss-to-follow-up-at-the-final-analysis).
+For simulation, `sim_trial_data()` generates enrollment times, randomized treatment assignments, event times, and loss to follow-up. The first participant enrolls at time zero; subsequent enrollment follows a piecewise-constant Poisson process. Event times follow arm-specific piecewise-exponential distributions. Dropout times are exponential and independent of event times and enrollment within each arm, with rate `-log(1 - prop_loss) / end_of_study`. Observed follow-up ends at the earliest event, dropout, or per-subject administrative horizon. `prop_loss` specifies the dropout CDF at that horizon, not the fraction actually censored by dropout; events can occur first, and dropout counts vary across trials. The technical methods vignette describes the [censoring model](technical-methods.html#independent-dropout-and-administrative-censoring) and its [implications for binary analyses](technical-methods.html#loss-to-follow-up-at-the-final-analysis).
 
 The event-time distribution used to simulate trials need not equal the model
 used for interim prediction. `generation_cutpoints` defines the data-generating
@@ -219,7 +219,7 @@ digraph summaries {
         fontsize = 9, fillcolor = '#f5f5f5', color = '#777777']
   edge [fontname = Helvetica, fontsize = 8, color = '#666666']
 
-  one [label = 'One simulated trial\nsurvival_adapt()',
+  one [label = 'One simulated trial\nsim_trial()',
        fillcolor = '#dae8fc', color = '#6c8ebf']
   many [label = 'Repeated simulated trials\nsim_trials()',
         fillcolor = '#dae8fc', color = '#6c8ebf']
@@ -293,13 +293,10 @@ supporting calculations.
 | `bayes-surv` | `R/analysis_bayes_surv.R` |
 | `bayes-bin` | `R/analysis_bayes_bin.R` |
 | `riskdiff-wald`, `riskdiff-fm` | `R/analysis_riskdiff.R` |
-| Shared tests, pooling, and binary endpoint validation | `R/analysis_common.R` |
-| Completed-data dispatch | `R/analysis_completed.R` |
+| Shared normal-test scores and binary endpoint checks | `R/analysis_common.R` |
+| Completed-data analysis and binary counts | `R/analysis_comp.R` |
 | Predictively completed trial analysis | `R/analysis_predictive.R` |
 | Interim decision rules | `R/analysis_interim.R` |
-| Final analysis and imputation orchestration | `R/analysis_final.R` |
+| Final analysis, imputation, and Rubin pooling | `R/analysis_final.R` |
 
-Public entry points retain their function names: `survival_adapt.R`,
-`sim_trials.R`, and `evaluate_interim.R`. Hazard posterior calculations and
-imputation are shared across analysis methods, so their files retain names
-such as `survival_posterior.R` and `predictive_imputation.R`.
+The main functions are defined in files with matching names: `sim_trial.R`, `sim_trial_data.R`, `sim_trials.R`, and `evaluate_interim.R`. Hazard posterior calculations and imputation are shared across analysis methods in `survival_post.R` and `predictive_imputation.R`. The earlier names `survival_adapt()` and `sim_comp_data()` remain compatibility aliases for `sim_trial()` and `sim_trial_data()`.

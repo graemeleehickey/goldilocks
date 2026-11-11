@@ -32,7 +32,7 @@ analyse_cox <- function(time, event, treatment, alternative, h0) {
 #' @description Fits a Cox proportional hazards model for the treatment effect
 #'   and converts fitting warnings into clear non-estimability errors.
 #'
-#' @inheritParams analyse_data
+#' @inheritParams analyse_comp_data
 #'
 #' @return A list with the estimated log hazard ratio (`estimate`) and its
 #'   standard error (`std_error`).

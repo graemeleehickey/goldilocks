@@ -7,7 +7,7 @@
 #'
 #' @keywords internal
 #' @noRd
-normal_test_success <- function(statistic, alternative) {
+normal_test_score <- function(statistic, alternative) {
   switch(
     alternative,
     "less" = 1 - pnorm(statistic),

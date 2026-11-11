@@ -6,7 +6,9 @@
 #'   stop accrual for expected success, stop for futility, or continue toward
 #'   the maximum sample size.
 #'
-#' @inheritParams sim_comp_data
+#'   `sim_trial()` is the preferred name; `survival_adapt()` remains a compatibility alias with identical arguments and calculations.
+#'
+#' @inheritParams sim_trial_data
 #' @param cutpoints `NULL` (the default), or a numeric vector of finite,
 #'   positive, strictly increasing interior follow-up times defining the
 #'   piecewise-exponential model used for interim posterior estimation,
@@ -322,7 +324,7 @@
 #'
 #'      **Numerical accuracy of two-arm quadrature.** When the posterior event risks lie in a very narrow range, numerical integration can miss much of the posterior probability and return an incorrect result without an error. This can affect final success and interim stopping decisions. The problem has been observed with large samples and very few events or non-events. Check such cases against sufficiently precise Monte Carlo Beta draws; `N_mcmc` controls Monte Carlo precision only. The single-arm calculation uses the Beta CDF directly and does not use this integration.
 #'
-#'      Two diagnostic checks run after each two-arm quadrature calculation. For `h0 = 0`, identical Beta posteriors must give a probability of 0.5 in either direction. The probability must also respect the one-sided bounds implied by the posterior mean and variance of the treatment-control difference relative to `h0` (Cantelli's inequality). Departures greater than `1e-6` produce one combined warning per simulation run, including parallel runs. A direct [survival_adapt()] or [evaluate_interim()] call similarly issues at most one such warning. The returned probabilities and stopping decisions are unchanged, and flagged calculations are not treated as failed trials. Neither check detects every integration error.
+#'      Two diagnostic checks run after each two-arm quadrature calculation. For `h0 = 0`, identical Beta posteriors must give a probability of 0.5 in either direction. The probability must also respect the one-sided bounds implied by the posterior mean and variance of the treatment-control difference relative to `h0` (Cantelli's inequality). Departures greater than `1e-6` produce one combined warning per simulation run, including parallel runs. A direct [sim_trial()] or [evaluate_interim()] call similarly issues at most one such warning. The returned probabilities and stopping decisions are unchanged, and flagged calculations are not treated as failed trials. Neither check detects every integration error.
 #'
 #'      When a check fails, `attr(result, "quadrature_diagnostics")` records `flagged_calculations`, `symmetry`, `moments`, and `absolute_tolerance`. Counts refer to evaluated probabilities, not participants, trials, or imputed datasets; repeated count combinations can reuse a previously calculated probability. Saved paths retain these diagnostics, and rule application and operating-characteristic summaries preserve them without issuing another warning. For saved paths, the counts cover all evaluated looks and horizons, including those a particular candidate rule would not reach.
 #'
@@ -525,7 +527,7 @@
 #'   Both return forms have an `arguments` attribute containing a named list of
 #'   the evaluated argument values, including defaults. It can be saved with
 #'   [saveRDS()] and supplied to a later call with
-#'   `do.call(survival_adapt, attr(result, "arguments"))`. Its `prop_loss`
+#'   `do.call(sim_trial, attr(result, "arguments"))`. Its `prop_loss`
 #'   element contains a named value for every simulated arm. Its `rand_ratio`
 #'   element is stored in `control`, `treatment` order for two-arm designs. Its
 #'   `cutpoints` and `generation_cutpoints` elements retain the analysis and
@@ -558,7 +560,7 @@
 #' # RCT with exponential hazard (no piecewise breaks)
 #' # Note: the number of imputations is small to enable this example to run
 #' #       quickly on CRAN tests. In practice, much larger values are needed.
-#' survival_adapt(
+#' sim_trial(
 #'  hazard_treatment = -log(0.85) / 36,
 #'  hazard_control = -log(0.7) / 36,
 #'  cutpoints = NULL,
@@ -579,7 +581,7 @@
 #'  N_impute = 10,
 #'  N_mcmc = 10,
 #'  method = "bayes-surv")
-survival_adapt <- function(
+sim_trial <- function(
   hazard_treatment,
   hazard_control = NULL,
   cutpoints = NULL,
@@ -613,7 +615,7 @@ survival_adapt <- function(
   rmst_tau = end_of_study
 ) {
   Call <- match.call()
-  Arguments <- capture_arguments(survival_adapt, environment())
+  Arguments <- capture_arguments(sim_trial, environment())
   quadrature_diagnostics <- new_quadrature_diagnostics()
   on.exit(warn_quadrature_diagnostics(quadrature_diagnostics$counts), add = TRUE)
   method <- normalize_analysis_method(method)
@@ -649,7 +651,7 @@ survival_adapt <- function(
   Arguments$prop_loss <- prop_loss
   validate_single_probability(prob_ha, "prob_ha")
   validate_positive_integer_scalar(N_impute, "N_impute")
-  if (uses_posterior_draws(method, bin_method)) {
+  if (uses_post_draws(method, bin_method)) {
     validate_positive_integer_scalar(N_mcmc, "N_mcmc")
   }
   validate_single_probability(
@@ -753,7 +755,7 @@ survival_adapt <- function(
   )
 
   # Keep a numeric placeholder in shared calculations when no posterior draws are used.
-  if (!uses_posterior_draws(method, bin_method)) {
+  if (!uses_post_draws(method, bin_method)) {
     N_mcmc <- 1L
   }
 
@@ -761,7 +763,7 @@ survival_adapt <- function(
   ### Simulate complete data for trial
   ##############################################################################
 
-  data_total <- sim_comp_data(
+  data_total <- sim_trial_data(
     hazard_treatment = hazard_treatment,
     hazard_control = hazard_control,
     generation_cutpoints = generation_cutpoints,
@@ -1024,7 +1026,7 @@ survival_adapt <- function(
       summary = results,
       trace = new_trial_trace(trace_rows),
       prior_diagnostics = prior_design,
-      posterior_diagnostics = new_interim_posterior_diagnostics(
+      posterior_diagnostics = new_interim_post_diagnostics(
         posterior_diagnostic_rows
       ),
       call = Call
@@ -1039,3 +1041,7 @@ survival_adapt <- function(
 
   finish_quadrature_warnings(results, quadrature_diagnostics, warn = FALSE)
 }
+
+#' @rdname sim_trial
+#' @export
+survival_adapt <- sim_trial

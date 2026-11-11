@@ -4,7 +4,7 @@
 #'   trial design, together with optional random enrollment trajectories and
 #'   projected interim and maximum-sample-size milestones.
 #'
-#' @param x `NULL` (the default), or a result returned by [survival_adapt()] or
+#' @param x `NULL` (the default), or a result returned by [sim_trial()] or
 #'   [sim_trials()]. Results created by current versions of `goldilocks` retain
 #'   the evaluated enrollment design needed by this function.
 #' @param lambda `NULL` (the default), or a numeric vector of finite, positive

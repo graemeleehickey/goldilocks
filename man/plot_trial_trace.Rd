@@ -7,7 +7,7 @@
 plot_trial_trace(x)
 }
 \arguments{
-\item{x}{A required \code{goldilocks_trial} result from \code{\link[=survival_adapt]{survival_adapt()}}, a
+\item{x}{A required \code{goldilocks_trial} result from \code{\link[=sim_trial]{sim_trial()}}, a
 \code{goldilocks_interim} result from \code{\link[=evaluate_interim]{evaluate_interim()}}, or an interim trace
 data frame.}
 }

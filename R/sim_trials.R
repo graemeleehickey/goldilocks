@@ -1,12 +1,12 @@
 #' @title Estimate operating characteristics by trial simulation
 #'
-#' @description Repeats [survival_adapt()] under fixed design and
+#' @description Repeats [sim_trial()] under fixed design and
 #'   data-generating assumptions, returning trial-level results from which
 #'   operating characteristics can be estimated.
 #'
-#' @inheritParams survival_adapt
-#' @inheritSection survival_adapt Predictive and analysis priors
-#' @inheritParams sim_comp_data
+#' @inheritParams sim_trial
+#' @inheritSection sim_trial Predictive and analysis priors
+#' @inheritParams sim_trial_data
 #' @param N_trials A positive integer giving the number of independent trials to
 #'   simulate. The default is `10`.
 #' @param ncores A positive integer giving the maximum number of processor cores
@@ -30,7 +30,7 @@
 #'   contains a `traces` data frame with a `trial` column linking each trace row
 #'   to the corresponding original simulated trial.
 #'
-#' @details This function is a wrapper for [survival_adapt()] that repeatedly
+#' @details This function is a wrapper for [sim_trial()] that repeatedly
 #'   simulates independent trials under the same design parameters and assumed
 #'   treatment effect.
 #'
@@ -42,7 +42,7 @@
 #'   processes; on Windows they use PSOCK processes. Set `backend` explicitly
 #'   when a particular computational method is required.
 #'
-#'   Errors raised by an individual [survival_adapt()] call are isolated so
+#'   Errors raised by an individual [sim_trial()] call are isolated so
 #'   other trials can finish. Failed trials are excluded from `sims`, recorded
 #'   in `failures` with their trial number, error class, and message, and
 #'   reported together in one warning. If every requested trial fails,
@@ -62,11 +62,11 @@
 #'   list also contains `traces`, a data frame with one row per completed
 #'   interim look and a `trial` identifier. Per-trial calendar-time metrics are
 #'   always retained in `sims`; traces additionally retain calendar time and
-#'   active follow-up at each look. See [survival_adapt()] for details of the
+#'   active follow-up at each look. See [sim_trial()] for details of the
 #'   summary and trace columns, and [summarise_calendar_time()] for wide
 #'   operating-characteristic tables. The returned object also retains the
 #'   evaluated `decision_design` and resolved `prior_design` attributes from
-#'   [survival_adapt()]. An `rng_metadata` attribute records the random-number
+#'   [sim_trial()]. An `rng_metadata` attribute records the random-number
 #'   generator, computational method, and seed policy. A `parallel_metadata`
 #'   attribute records the requested and actual computational method and number
 #'   of cores. An `arguments` attribute contains a named list of all evaluated
@@ -181,7 +181,7 @@ sim_trials <- function(
   Arguments$prop_loss <- prop_loss
   validate_logical_scalar(return_trace, "return_trace")
   validate_positive_integer_scalar(N_impute, "N_impute")
-  if (uses_posterior_draws(method, bin_method)) {
+  if (uses_post_draws(method, bin_method)) {
     validate_positive_integer_scalar(N_mcmc, "N_mcmc")
   }
   validate_single_probability(
@@ -285,24 +285,24 @@ sim_trials <- function(
     stream_seed = stream_seed
   )
 
-  survival_adapt_fn <- if (backend == "psock") {
-    make_psock_callable("survival_adapt")
+  sim_trial_fn <- if (backend == "psock") {
+    make_psock_callable("sim_trial")
   } else {
-    survival_adapt
+    sim_trial
   }
   capture_warnings <- if (backend == "psock") {
-    get("capture_quadrature_warnings", envir = environment(survival_adapt_fn))
+    get("capture_quadrature_warnings", envir = environment(sim_trial_fn))
   } else {
     capture_quadrature_warnings
   }
 
-  survival_adapt_wrapper <- function(x) {
+  sim_trial_wrapper <- function(x) {
     capture_warnings(tryCatch(
       {
         if (!is.null(trial_streams)) {
           assign(".Random.seed", trial_streams[[x]], envir = .GlobalEnv)
         }
-        result <- survival_adapt_fn(
+        result <- sim_trial_fn(
           hazard_treatment = hazard_treatment,
           hazard_control = hazard_control,
           cutpoints = cutpoints,
@@ -359,10 +359,10 @@ sim_trials <- function(
   trial_index <- seq_len(N_trials)
   trial_results <- switch(
     backend,
-    sequential = lapply(trial_index, survival_adapt_wrapper),
+    sequential = lapply(trial_index, sim_trial_wrapper),
     fork = pbmclapply(
       trial_index,
-      survival_adapt_wrapper,
+      sim_trial_wrapper,
       mc.cores = workers
     ),
     psock = {
@@ -372,7 +372,7 @@ sim_trials <- function(
       run_sim_cluster(
         active_cluster,
         trial_index,
-        survival_adapt_wrapper
+        sim_trial_wrapper
       )
     }
   )
@@ -662,7 +662,7 @@ make_psock_callable <- function(name) {
 #'
 #' @description Creates one `"L'Ecuyer-CMRG"` random-number stream per simulated
 #'   trial, while preserving the caller's existing RNG kind and global
-#'   `.Random.seed`. These streams are assigned inside each `survival_adapt()`
+#'   `.Random.seed`. These streams are assigned inside each `sim_trial()`
 #'   call so seeded simulations are reproducible across serial and parallel
 #'   execution.
 #'

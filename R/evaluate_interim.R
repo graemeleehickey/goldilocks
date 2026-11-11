@@ -1,7 +1,7 @@
 #' Evaluate an externally observed interim data cut
 #'
 #' @description Applies the same posterior predictive decision calculation used
-#'   by [survival_adapt()] to subject-level data observed at one interim look.
+#'   by [sim_trial()] to subject-level data observed at one interim look.
 #'   The function does not simulate a trial or modify `data`. Participants who
 #'   could still be enrolled before the maximum sample size are represented
 #'   according to `N_total`, the observed arm counts, and `rand_ratio`.
@@ -54,8 +54,8 @@
 #'   arm-specific forms as `prior_surv` and defaults to `prior_surv`. It should
 #'   match the prior for the actual final analysis. Other methods do not use it
 #'   in this interim calculation.
-#' @inheritParams survival_adapt
-#' @inheritSection survival_adapt Predictive and analysis priors
+#' @inheritParams sim_trial
+#' @inheritSection sim_trial Predictive and analysis priors
 #'
 #' @details The arm-specific maximum enrollment is
 #'   `N_total * rand_ratio / sum(rand_ratio)`. Potential future accrual in each
@@ -177,7 +177,7 @@ evaluate_interim <- function(
   validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
   validate_single_probability(prob_ha, "prob_ha")
   validate_positive_integer_scalar(N_impute, "N_impute")
-  if (uses_posterior_draws(method, bin_method)) {
+  if (uses_post_draws(method, bin_method)) {
     validate_positive_integer_scalar(N_mcmc, "N_mcmc")
   }
   validate_single_probability(
@@ -227,7 +227,7 @@ evaluate_interim <- function(
     name = "prior_surv_final"
   )
   requested_N_mcmc <- N_mcmc
-  if (!uses_posterior_draws(method, bin_method)) {
+  if (!uses_post_draws(method, bin_method)) {
     N_mcmc <- 1L
   }
 
@@ -356,7 +356,7 @@ evaluate_interim <- function(
     Qn = Qn,
     prob_ha = prob_ha,
     N_impute = as.integer(N_impute),
-    N_mcmc = if (uses_posterior_draws(method, bin_method)) {
+    N_mcmc = if (uses_post_draws(method, bin_method)) {
       as.integer(requested_N_mcmc)
     } else {
       requested_N_mcmc

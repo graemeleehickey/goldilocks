@@ -24,7 +24,7 @@ plot_enrollment(
 )
 }
 \arguments{
-\item{x}{\code{NULL} (the default), or a result returned by \code{\link[=survival_adapt]{survival_adapt()}} or
+\item{x}{\code{NULL} (the default), or a result returned by \code{\link[=sim_trial]{sim_trial()}} or
 \code{\link[=sim_trials]{sim_trials()}}. Results created by current versions of \code{goldilocks} retain
 the evaluated enrollment design needed by this function.}
 

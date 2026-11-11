@@ -7,8 +7,8 @@
 #'
 #' @param data_summ A data frame of completed-data exposure times and event
 #'   counts by arm and piecewise interval, created by
-#'   `posterior_sufficient_stats()`.
-#' @inheritParams analyse_data
+#'   `post_sufficient_stats()`.
+#' @inheritParams analyse_comp_data
 #'
 #' @details This is the second posterior in the package's two-stage Bayesian
 #'   procedure:
@@ -49,9 +49,9 @@ analyse_bayes_surv_sufficient_stats <- function(
   }
 
   # Draw completed-data hazards directly from D_ak (events) and Y_ak
-  # (exposure). posterior_from_sufficient_stats() combines these with the
+  # (exposure). post_haz_draws_from_sufficient_stats() combines these with the
   # original Gamma prior and preserves the configured empty-interval policy.
-  post_lambda <- posterior_from_sufficient_stats(
+  post_lambda <- post_haz_draws_from_sufficient_stats(
     data_summ = data_summ,
     prior_surv = prior_surv,
     N_mcmc = N_mcmc,
@@ -59,7 +59,7 @@ analyse_bayes_surv_sufficient_stats <- function(
     empty_interval = empty_interval
   )
 
-  analyse_bayes_surv_posterior_draws(
+  analyse_bayes_surv_post_draws(
     post_lambda = post_lambda,
     cutpoints = cutpoints,
     end_of_study = end_of_study,
@@ -121,7 +121,7 @@ analyse_prepared_bayes_surv <- function(
     )
   }
 
-  post_lambda <- posterior_from_prepared_stats(
+  post_lambda <- post_haz_draws_from_prepared_stats(
     data_summ = data_summ,
     prior_surv = prior_surv,
     N_mcmc = N_mcmc,
@@ -134,7 +134,7 @@ analyse_prepared_bayes_surv <- function(
     interval_widths = interval_widths,
     single_arm = single_arm
   )
-  summarise_bayes_surv_hazards(
+  summarise_bayes_surv_draws(
     cumulative_hazards = cumulative_hazards,
     alternative = alternative,
     h0 = h0
@@ -152,7 +152,7 @@ analyse_prepared_bayes_surv <- function(
 #'
 #' @keywords internal
 #' @noRd
-analyse_bayes_surv_posterior_draws <- function(
+analyse_bayes_surv_post_draws <- function(
   post_lambda,
   cutpoints,
   end_of_study,
@@ -169,7 +169,7 @@ analyse_bayes_surv_posterior_draws <- function(
     single_arm = single_arm
   )
 
-  summarise_bayes_surv_hazards(
+  summarise_bayes_surv_draws(
     cumulative_hazards = cumulative_hazards,
     alternative = alternative,
     h0 = h0
@@ -184,7 +184,7 @@ analyse_bayes_surv_posterior_draws <- function(
 #'
 #' @param interval_widths A numeric vector of positive analysis-interval
 #'   durations through the endpoint horizon.
-#' @inheritParams analyse_bayes_surv_posterior_draws
+#' @inheritParams analyse_bayes_surv_post_draws
 #'
 #' @return A list with cumulative-hazard vectors named `treatment` and `control`,
 #'   with one entry per posterior draw. The control component is `NULL` for
@@ -274,13 +274,13 @@ bayes_surv_risk_difference <- function(treatment, control) {
 #' Summarize Bayesian-survival posterior draws without rounded-risk comparisons
 #'
 #' @param cumulative_hazards A list returned by `bayes_surv_cum_haz_draws()`.
-#' @inheritParams analyse_bayes_surv_posterior_draws
+#' @inheritParams analyse_bayes_surv_post_draws
 #'
 #' @return See `analyse_bayes_surv_sufficient_stats()`.
 #'
 #' @keywords internal
 #' @noRd
-summarise_bayes_surv_hazards <- function(
+summarise_bayes_surv_draws <- function(
   cumulative_hazards,
   alternative,
   h0

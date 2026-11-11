@@ -32,7 +32,7 @@ piecewise-constant rate.
 \strong{Major behavior change from goldilocks 0.5.0 and earlier.}
 Versions through 0.5.0 generated Poisson counts in unit-time bins.
 \code{enrollment()} returned rebased integer bin times, after which
-\code{sim_comp_data()} added independent uniform jitter and sorted the result.
+\code{sim_trial_data()} added independent uniform jitter and sorted the result.
 From version 0.6.0, enrollment times are drawn directly from the exact
 continuous-time piecewise-constant Poisson process. Consequently:
 \itemize{

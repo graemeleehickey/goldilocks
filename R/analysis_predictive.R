@@ -4,8 +4,8 @@
 #'   and evaluates the prespecified success criterion at the current and, when
 #'   requested, maximum sample size.
 #'
-#' @inheritParams survival_adapt
-#' @inheritParams sim_comp_data
+#' @inheritParams sim_trial
+#' @inheritParams sim_trial_data
 #' @param prepared_outcomes A list of fixed outcomes and imputation positions
 #'   returned by `prepare_predictive_outcomes()`.
 #' @param imputations A list of interim predictive imputations returned by
@@ -55,7 +55,7 @@ analyse_predictive_survival <- function(
   )
   success_now <- capture_predictive_analysis(
     isolate_errors,
-    analyse_completed_survival(
+    analyse_comp_survival(
       outcome = outcome_now,
       rmst_tau = rmst_tau,
       cutpoints = cutpoints,
@@ -86,7 +86,7 @@ analyse_predictive_survival <- function(
     )
     success_max <- capture_predictive_analysis(
       isolate_errors,
-      analyse_completed_survival(
+      analyse_comp_survival(
         outcome = outcome_max,
         rmst_tau = rmst_tau,
         cutpoints = cutpoints,
@@ -106,14 +106,14 @@ analyse_predictive_survival <- function(
   }
 
   classification_now <- if (!is.null(prob_ha)) {
-    classify_completed_analysis(
+    classify_comp_analysis(
       success_now,
       prob_ha = prob_ha,
       mc_conf_level = mc_conf_level
     )
   }
   classification_max <- if (check_futility && !is.null(prob_ha)) {
-    classify_completed_analysis(
+    classify_comp_analysis(
       success_max,
       prob_ha = prob_ha,
       mc_conf_level = mc_conf_level
@@ -265,7 +265,7 @@ analyse_predictive_binary_counts <- function(
     ))
   }
   classifications <- lapply(analyses, function(analysis) {
-    classify_completed_analysis(
+    classify_comp_analysis(
       analysis,
       prob_ha = prob_ha,
       mc_conf_level = mc_conf_level

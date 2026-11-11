@@ -5,7 +5,7 @@
 #' @param endpoint_schedule Data frame with exactly two numeric columns, `N` and `horizon`, containing every planned interim enrollment size in increasing order and a positive, nondecreasing endpoint horizon at each look. All interim sizes must be less than `N_total`. The saved horizons are derived as `sort(unique(c(endpoint_schedule$horizon, final_horizon)))` and evaluated at every look, allowing subsequent comparison of schedules using the same looks and endpoint times. Use a zero-row data frame with numeric columns when there are no interims.
 #' @param final_horizon Required endpoint time for the maximum-\eqn{N} final analysis, all futility predictions, and planned outcome collection for every participant from enrollment. It must be at least every scheduled horizon. The generating hazards must describe this entire period.
 #' @param dropout_horizon Reference time at which `prop_loss` specifies the independent exponential dropout probability. Defaults to `final_horizon`; it remains fixed when the analysis endpoint changes.
-#' @param prop_loss Dropout probability by `dropout_horizon`, with the same arm-specific conventions as [sim_comp_data()]. The corresponding dropout hazard is held fixed across all endpoint horizons.
+#' @param prop_loss Dropout probability by `dropout_horizon`, with the same arm-specific conventions as [sim_trial_data()]. The corresponding dropout hazard is held fixed across all endpoint horizons.
 #' @param horizon_settings Optional data frame with one row per distinct scheduled horizon plus `final_horizon`, identified by column `horizon`. Optional columns are `h0`, `rmst_tau`, and a list column `prior_bin`. Missing columns use the common `h0`, the endpoint horizon itself for RMST restriction, and the common `prior_bin`, respectively. These settings are fixed within a set of trial paths.
 #' @param cutpoints Master piecewise-exponential analysis cutpoints, strictly inside `final_horizon`. Each endpoint uses only cutpoints strictly before that endpoint and the corresponding leading intervals of `prior_surv` and `prior_surv_final`. If an endpoint H lies inside a master interval, the same hazard parameter and unscaled Gamma prior apply, but its success update uses events and exposure only through H. Available observations beyond H are excluded even within that interval; H is not a new hazard-change assumption in the generating model.
 #' @param prior_surv_final Gamma prior for final-stage imputation and Bayesian survival analysis of completed predictive and final data. Accepts the same master-grid forms as `prior_surv` and defaults to it. At each endpoint, only the corresponding leading intervals are used. Supply both priors explicitly to separate predictive and analysis assumptions.
@@ -243,7 +243,7 @@ simulate_horizon_path <- function(
   }
   generated <- capture_path_stage(
     stream,
-    call_path_function(sim_comp_data, generation)
+    call_path_function(sim_trial_data, generation)
   )
   record_failure(
     generated$error,

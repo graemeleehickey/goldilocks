@@ -1,6 +1,6 @@
 #' Validate a prespecified RMST horizon and null difference
 #'
-#' @inheritParams survival_adapt
+#' @inheritParams sim_trial
 #' @noRd
 validate_rmst_args <- function(rmst_tau, end_of_study, h0) {
   validate_endpoint_time(rmst_tau, NULL, "rmst_tau")
@@ -24,7 +24,7 @@ validate_rmst_args <- function(rmst_tau, end_of_study, h0) {
 #'   within-imputation variances are retained for subsequent pooling; a test
 #'   requires positive total variance.
 #' @inheritParams analyse_logrank
-#' @inheritParams survival_adapt
+#' @inheritParams sim_trial
 #' @param engine Internal calculation selector. `"auto"` uses the equivalent
 #'   empirical calculation when every truncated outcome is known; `"survfit"`
 #'   always uses Kaplan-Meier integration for reference checks.
@@ -146,7 +146,7 @@ assert_rmst_variance <- function(variance) {
 #' Apply an RMST difference Wald test to completed outcomes
 #'
 #' @inheritParams rmst_estimate
-#' @inheritParams survival_adapt
+#' @inheritParams sim_trial
 #' @return The completed-data `success` and `effect` contract.
 #' @noRd
 analyse_rmst <- function(time, event, treatment, rmst_tau, alternative, h0) {
@@ -154,7 +154,7 @@ analyse_rmst <- function(time, event, treatment, rmst_tau, alternative, h0) {
   fit <- rmst_estimate(time, event, treatment, rmst_tau)
   assert_rmst_variance(fit$variance)
   list(
-    success = normal_test_success(
+    success = normal_test_score(
       (fit$estimate - h0) / fit$std_error,
       alternative
     ),

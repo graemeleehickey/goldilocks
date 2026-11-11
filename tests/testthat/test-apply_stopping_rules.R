@@ -175,7 +175,7 @@ test_that("replay is pure and does not copy or mutate its input bank", {
   set.seed(515)
   state <- .Random.seed
   local_mocked_bindings(
-    sim_comp_data = function(...) stop("must not simulate"),
+    sim_trial_data = function(...) stop("must not simulate"),
     analyse_final = function(...) stop("must not fit"),
     evaluate_interim_evidence = function(...) stop("must not predict")
   )
@@ -296,7 +296,7 @@ test_that("posterior count diagnostics reclassify at each candidate threshold", 
           counts$successes[j],
           counts$draws
         )
-        classify_completed_analysis(analysis, threshold, .95)$uncertain
+        classify_comp_analysis(analysis, threshold, .95)$uncertain
       },
       logical(1)
     )

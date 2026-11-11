@@ -33,17 +33,17 @@ endpoint_interval_widths_internal <- getFromNamespace(
   "endpoint_interval_widths",
   "goldilocks"
 )
-posterior_internal <- getFromNamespace("posterior", "goldilocks")
-posterior_sufficient_stats_internal <- getFromNamespace(
-  "posterior_sufficient_stats",
+post_haz_draws_internal <- getFromNamespace("post_haz_draws", "goldilocks")
+post_sufficient_stats_internal <- getFromNamespace(
+  "post_sufficient_stats",
   "goldilocks"
 )
-posterior_from_sufficient_stats_internal <- getFromNamespace(
-  "posterior_from_sufficient_stats",
+post_haz_draws_from_sufficient_stats_internal <- getFromNamespace(
+  "post_haz_draws_from_sufficient_stats",
   "goldilocks"
 )
-posterior_from_prepared_stats_internal <- getFromNamespace(
-  "posterior_from_prepared_stats",
+post_haz_draws_from_prepared_stats_internal <- getFromNamespace(
+  "post_haz_draws_from_prepared_stats",
   "goldilocks"
 )
 normalize_gamma_prior_internal <- getFromNamespace(
@@ -59,7 +59,7 @@ complete_predictive_data_internal <- getFromNamespace(
   "complete_predictive_data",
   "goldilocks"
 )
-analyse_data_internal <- getFromNamespace("analyse_data", "goldilocks")
+analyse_comp_data_internal <- getFromNamespace("analyse_comp_data", "goldilocks")
 analyse_prepared_bayes_surv_internal <- getFromNamespace(
   "analyse_prepared_bayes_surv",
   "goldilocks"
@@ -154,7 +154,7 @@ posterior_data <- data.frame(
   event = stats::rbinom(600, size = 1, prob = 0.65),
   treatment = rep(0:1, each = 300)
 )
-posterior_stats <- posterior_sufficient_stats_internal(
+posterior_stats <- post_sufficient_stats_internal(
   data = posterior_data,
   cutpoints = cutpoints_piecewise,
   single_arm = FALSE
@@ -305,13 +305,13 @@ data_frame_survival_analyses <- function(method, N_mcmc) {
     )
 
     if (method == "bayes-surv") {
-      current_stats <- posterior_sufficient_stats_internal(
+      current_stats <- post_sufficient_stats_internal(
         data = current,
         cutpoints = cutpoints_piecewise,
         single_arm = FALSE,
         rows = current$subject_enrolled
       )
-      maximum_stats <- posterior_sufficient_stats_internal(
+      maximum_stats <- post_sufficient_stats_internal(
         data = maximum,
         cutpoints = cutpoints_piecewise,
         single_arm = FALSE
@@ -350,7 +350,7 @@ data_frame_survival_analyses <- function(method, N_mcmc) {
         c("time", "event", "treatment"),
         drop = FALSE
       ]
-      current_result <- analyse_data_internal(
+      current_result <- analyse_comp_data_internal(
         data = current_data,
         cutpoints = cutpoints_piecewise,
         end_of_study = end_of_study,
@@ -361,7 +361,7 @@ data_frame_survival_analyses <- function(method, N_mcmc) {
         alternative = "less",
         h0 = 0
       )
-      maximum_result <- analyse_data_internal(
+      maximum_result <- analyse_comp_data_internal(
         data = maximum_data,
         cutpoints = cutpoints_piecewise,
         end_of_study = end_of_study,
@@ -451,7 +451,7 @@ data_frame_binary_analyses <- function() {
       include_future = TRUE
     )
     maximum <- maximum[, c("time", "event", "treatment"), drop = FALSE]
-    current_result <- analyse_data_internal(
+    current_result <- analyse_comp_data_internal(
       data = current,
       end_of_study = end_of_study,
       cutpoints = cutpoints_piecewise,
@@ -465,7 +465,7 @@ data_frame_binary_analyses <- function() {
       bin_method = "quadrature",
       empty_interval = "prior"
     )
-    maximum_result <- analyse_data_internal(
+    maximum_result <- analyse_comp_data_internal(
       data = maximum,
       end_of_study = end_of_study,
       cutpoints = cutpoints_piecewise,
@@ -591,7 +591,7 @@ benchmark_results <- bench::mark(
   },
   posterior_piecewise = {
     set.seed(1001)
-    posterior_internal(
+    post_haz_draws_internal(
       data = posterior_data,
       cutpoints = cutpoints_piecewise,
       prior_surv = c(0.1, 0.1),
@@ -601,16 +601,16 @@ benchmark_results <- bench::mark(
   },
   posterior_from_stats_checked = {
     set.seed(1001)
-    posterior_from_sufficient_stats_internal(
+    post_haz_draws_from_sufficient_stats_internal(
       data_summ = posterior_stats,
       prior_surv = posterior_prior,
       N_mcmc = 1000,
       single_arm = FALSE
     )
   },
-  posterior_from_prepared_stats = {
+  post_haz_draws_from_prepared_stats = {
     set.seed(1001)
-    posterior_from_prepared_stats_internal(
+    post_haz_draws_from_prepared_stats_internal(
       data_summ = posterior_stats,
       prior_surv = posterior_prior,
       N_mcmc = 1000,
@@ -693,9 +693,9 @@ benchmark_results <- bench::mark(
   risk_difference_fm_counts = {
     risk_difference_analyses(risk_difference_fm_from_counts_internal)
   },
-  survival_adapt_logrank = {
+  sim_trial_logrank = {
     set.seed(1005)
-    survival_adapt(
+    sim_trial(
       hazard_treatment = trial_hazard_treatment,
       hazard_control = trial_hazard_control,
       cutpoints = trial_cutpoints,
@@ -719,9 +719,9 @@ benchmark_results <- bench::mark(
       imputed_final = FALSE
     )
   },
-  survival_adapt_cox = {
+  sim_trial_cox = {
     set.seed(1009)
-    survival_adapt(
+    sim_trial(
       hazard_treatment = trial_hazard_treatment,
       hazard_control = trial_hazard_control,
       cutpoints = trial_cutpoints,
@@ -745,9 +745,9 @@ benchmark_results <- bench::mark(
       imputed_final = FALSE
     )
   },
-  survival_adapt_bayes = {
+  sim_trial_bayes = {
     set.seed(1006)
-    survival_adapt(
+    sim_trial(
       hazard_treatment = trial_hazard_treatment,
       hazard_control = trial_hazard_control,
       cutpoints = trial_cutpoints,
@@ -771,9 +771,9 @@ benchmark_results <- bench::mark(
       imputed_final = TRUE
     )
   },
-  survival_adapt_bayes_bin = {
+  sim_trial_bayes_bin = {
     set.seed(1008)
-    survival_adapt(
+    sim_trial(
       hazard_treatment = trial_hazard_treatment,
       hazard_control = trial_hazard_control,
       cutpoints = trial_cutpoints,
