@@ -1,5 +1,6 @@
 ---
 title: "Inspecting adaptive decision paths"
+author: "Graeme L. Hickey"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Inspecting adaptive decision paths}
@@ -24,6 +25,8 @@ together with one record for each completed interim look.
 ## Reviewing one trial's interim history
 
 This small Bayesian survival design has two interim looks. The treatment arm is assumed to have a lower cumulative failure probability by 24 months.
+
+The `N_impute = 20` and `N_mcmc = 20` settings below are only for illustrating the decision history. For the final application of `method = "bayes-surv"` with `empty_interval = "prior"`, use substantially more posterior draws: 50,000 is a starting point, with a larger prespecified budget, such as 500,000, near the success threshold. Assess Monte Carlo uncertainty and operating characteristics with the intended settings. `N_mcmc` also controls interim posterior sampling, so increasing it increases interim computation. See the [final-analysis guidance](bayes-piecewise.html#final-analysis-with-incomplete-follow-up).
 
 The common `prop_loss = 0.05` specifies a 5% dropout-time CDF at 24 months.
 Dropout is exponential and independent of event time within each arm; an event

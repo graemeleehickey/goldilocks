@@ -90,6 +90,8 @@ binary success tests instead use `prior_bin`. See the [worked example of
 separate
 priors](https://graemeleehickey.github.io/goldilocks/articles/interim-data.html#using-separate-predictive-and-analysis-priors).
 
+For the final application of `method = "bayes-surv"` with `empty_interval = "prior"`, use substantially more than the default `N_mcmc = 1000`: 50,000 posterior draws is a starting point, with a larger prespecified budget, such as 500,000, near the success threshold. Both `imputed_final` flags use the same observed-data posterior, so `N_impute` does not improve final precision. Assess Monte Carlo uncertainty relative to `prob_ha`. `N_mcmc` also controls interim posterior sampling, so increasing it increases interim computation; assess operating characteristics with the intended settings. See the [final-analysis guidance](https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.html#final-analysis-with-incomplete-follow-up) and [runtime and precision benchmark](benchmarks/README.md#bayesian-survival-final-analysis).
+
 ## Reuse simulations for threshold calibration
 
 `sim_trial_paths()` evaluates every planned interim look and retains final analyses for each possible stopping cohort. `apply_stopping_rules()` then applies different `Fn`, `Sn`, `Qn`, and `prob_ha` values to the saved trial paths without repeating predictive imputation or model fitting. Data-generating assumptions, analysis settings, and the look schedule remain fixed within a set of trial paths.

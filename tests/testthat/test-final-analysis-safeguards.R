@@ -9,6 +9,7 @@ final_safeguard_data <- function() {
 }
 
 final_safeguard_args <- function(data = final_safeguard_data()) {
+  # Small counts keep routine checks fast; final applications need many more draws.
   list(
     data_in = data,
     cutpoints = c(0.4, 0.7),
@@ -93,6 +94,43 @@ test_that("conjugate survival finals ignore the imputation flag and count", {
         }
       }
     }
+  }
+})
+
+test_that("direct survival finals use the requested large posterior draw counts", {
+  original_sampler <- draw_gamma_posterior
+  sampled_dimensions <- list()
+  local_mocked_bindings(
+    draw_gamma_posterior = function(...) {
+      draws <- original_sampler(...)
+      sampled_dimensions[[length(sampled_dimensions) + 1L]] <<- dim(draws)
+      draws
+    },
+    impute_data = function(...) stop("Final imputation should not be reached")
+  )
+  data <- final_safeguard_data()
+  data$time[c(4, 15)] <- c(0.25, 0.55)
+  data$loss_to_fu[c(4, 15)] <- TRUE
+  data$subject_impute_success <- data$loss_to_fu
+  args <- final_safeguard_args(data)
+  args$method <- "bayes-surv"
+
+  # Cover the recommended starting count and a larger count for close decisions.
+  for (n_draws in c(50000L, 500000L)) {
+    args$N_mcmc <- n_draws
+    args$imputed_final <- FALSE
+    sampled_dimensions <- list()
+    set.seed(9280)
+    direct <- do.call(analyse_final, args)
+    direct_rng <- .Random.seed
+    expect_identical(sampled_dimensions, list(c(n_draws, 3L, 2L)))
+
+    args$imputed_final <- TRUE
+    sampled_dimensions <- list()
+    set.seed(9280)
+    expect_identical(do.call(analyse_final, args), direct)
+    expect_identical(.Random.seed, direct_rng)
+    expect_identical(sampled_dimensions, list(c(n_draws, 3L, 2L)))
   }
 })
 

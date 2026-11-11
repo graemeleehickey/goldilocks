@@ -132,7 +132,8 @@ risk-difference final analysis requires at least two.
 For \code{method = "bayes-surv"} with \code{empty_interval = "prior"}, this controls
 interim prediction only; the final analysis uses \code{N_mcmc} posterior draws.}
 
-\item{N_mcmc}{A positive integer giving the number of posterior draws used for Bayesian survival analyses and Bayesian binomial analyses with \code{bin_method = "mc"}. The default is \code{1000}. Ignored for all other analyses, including \code{bin_method = "normal"} and \code{"quadrature"} with \code{method = "bayes-bin"}; \code{NULL} is allowed when ignored.}
+\item{N_mcmc}{A positive integer giving the number of posterior draws used for Bayesian survival analyses and Bayesian binomial analyses with \code{bin_method = "mc"}. The default is \code{1000}. Ignored for all other analyses, including \code{bin_method = "normal"} and \code{"quadrature"} with \code{method = "bayes-bin"}; \code{NULL} is allowed when ignored.
+For the final application of \code{method = "bayes-surv"} with \code{empty_interval = "prior"}, use substantially more than the default: \code{50000} draws is a starting point, with a larger prespecified budget (for example, \code{500000}) near the success threshold. Assess Monte Carlo uncertainty relative to \code{prob_ha}; no fixed count guarantees a stable decision arbitrarily close to the threshold. These are independent Gamma posterior draws, despite the argument name. This setting also controls posterior draws within interim predictions, so increasing it increases interim computation; there is no separate final-only draw argument. Small counts in examples are illustrative, and operating characteristics should be assessed using the intended analysis settings.}
 
 \item{mc_conf_level}{A single numeric probability strictly between \code{0.5} and
 \code{1}, giving the confidence level for one-sided exact binomial bounds

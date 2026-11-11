@@ -1,5 +1,6 @@
 ---
 title: "Applying predictive decisions to an observed interim data cut"
+author: "Graeme L. Hickey"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Applying predictive decisions to an observed interim data cut}
@@ -142,6 +143,8 @@ predictive Gamma priors below have mean hazards of 0.05 and 0.03 per month for
 control and treatment. Their rate parameters use patient-months. These values
 are illustrative; the actual predictive prior needs justification from the
 external evidence and a prior-predictive assessment.
+
+The `N_mcmc = 1000` setting below is illustrative, not a recommendation for a definitive final survival analysis. For the final application with `empty_interval = "prior"`, use 50,000 posterior draws as a starting point and a larger prespecified budget, such as 500,000, near the success threshold; assess Monte Carlo uncertainty relative to that threshold. This argument also controls interim posterior sampling, so increasing it increases interim computation. See the [final-analysis guidance](bayes-piecewise.html#final-analysis-with-incomplete-follow-up).
 
 ```{r separate-prior-look}
 predictive_prior <- list(

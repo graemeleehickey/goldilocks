@@ -27,6 +27,7 @@ For changing endpoints, success prediction uses observed follow-up through the c
 
 ## Documentation and verification
 
+* Bayesian survival guidance recommends substantially more posterior draws for the final application under `empty_interval = "prior"`: 50,000 as a starting point, with a larger prespecified budget, such as 500,000, near the success threshold. Help pages and vignettes explain Monte Carlo precision at thresholds 0.95 and 0.975, the shared interim computation cost, and the illustrative role of small example counts. Tests verify that both `imputed_final` settings use the requested larger draw counts. The default remains 1,000, and analysis methods and interim calculations are unchanged.
 * Two-arm Bayesian binary quadrature now checks symmetry and posterior mean-variance bounds, with one combined warning per simulation run, including parallel runs. Diagnostic counts are retained with the results. The integration, probabilities, and stopping decisions are unchanged; the checks identify some numerical errors but do not establish accuracy when no warning is issued.
 * Evaluated vignette simulations use one core to avoid the crashes in forked R processes reported by CRAN on older R for Apple silicon. Simulation sizes, seeds, and statistical settings are unchanged.
 * Website articles include a **Print / Save as PDF** button and a shared print layout for equations, tables, figures, and code, with website navigation omitted from the printed article.

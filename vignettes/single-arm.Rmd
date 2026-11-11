@@ -1,5 +1,6 @@
 ---
 title: "Single-arm designs with a performance goal"
+author: "Graeme L. Hickey"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Single-arm designs with a performance goal}
@@ -56,6 +57,8 @@ goal; it is separate from either prior. See the
 for a worked specification of the two prior roles.
 
 ## Setting up the design
+
+The examples use `N_mcmc = 2000` to keep computation manageable. For the final application of `method = "bayes-surv"` with `empty_interval = "prior"`, use a substantially larger count: 50,000 posterior draws is a starting point, with a larger prespecified budget, such as 500,000, near `prob_ha`. These are independent Gamma draws. Assess and report Monte Carlo uncertainty relative to the success threshold; no finite count guarantees a stable decision arbitrarily close to it. `N_mcmc` also controls posterior sampling within interim predictions, so increasing it increases interim computation. There is no separate final-only draw argument; assess operating characteristics with the intended settings. See the [Bayesian survival final-analysis guidance](bayes-piecewise.html#final-analysis-with-incomplete-follow-up), including why `imputed_final` is redundant under this model.
 
 Suppose the existing standard of care has a 30% event probability by 24 months, and we are testing a new agent that we hope will reduce this to 20%. We use an interim look at 50 of 80 enrolled subjects:
 
