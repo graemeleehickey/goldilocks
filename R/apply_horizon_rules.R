@@ -12,6 +12,8 @@
 #'
 #' Only calculations needed by a candidate determine whether its trial is evaluable. A failed maximum-\eqn{N} counterfactual makes that comparison unavailable without discarding a known adaptive outcome. Both the ordinary futility probability and joint futility with counterfactual success are available through [summarise_sims()]. The latter always refers to maximum \eqn{N} at `final_horizon`.
 #'
+#' Looks with `Fn = 0`, `Sn = 1`, and `Qn = 1` are skipped and omitted from the returned trace, as in [apply_stopping_rules()].
+#'
 #' Under a generating scenario where every endpoint null hypothesis is true, the fraction of trials declaring success at any selected endpoint estimates the overall type I error. Calibrate the schedule and thresholds together. If some endpoint hypotheses are false, overall success includes legitimate findings; assessing false positives then requires identifying success at a truly null endpoint. A success at an earlier endpoint does not by itself reject the final-horizon null.
 #'
 #' @return A list compatible with [summarise_sims()] and [summarise_calendar_time()], containing `sims`, `failures`, and `call`, and optionally `traces`. Simulation rows additionally identify `endpoint_horizon`, `final_horizon`, and `followup_horizon`, and the null `margin` used for the selected endpoint. Treatment-effect estimates from different endpoint horizons should be reported separately. Overall success is success under the complete prespecified adaptive design, which may declare success at different endpoints.

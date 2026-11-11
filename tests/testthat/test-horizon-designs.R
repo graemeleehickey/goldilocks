@@ -347,6 +347,21 @@ test_that("a continued trial changes endpoint before evaluating the scheduled lo
   )
 })
 
+test_that("disabled horizon looks do not require saved interim results", {
+  bank <- do.call(sim_horizon_paths, horizon_test_args(N_trials = 1))
+  bank$trials[[1]]$interims[] <- list(NULL)
+  expect_silent(out <- apply_horizon_rules(
+    bank, horizon_test_schedule(), Fn = 0, Sn = 1, Qn = 1,
+    return_trace = TRUE
+  ))
+  expect_equal(nrow(out$failures), 0)
+  expect_equal(out$sims$N_enrolled, 80)
+  expect_equal(out$sims$endpoint_horizon, 18)
+  expect_equal(out$sims$stopping_reason, "maximum_sample_size")
+  expect_true(is.na(out$sims$ppp_success))
+  expect_equal(nrow(out$traces), 0)
+})
+
 test_that("unused failures do not invalidate known horizon outcomes", {
   bank <- do.call(sim_horizon_paths, horizon_test_args(N_trials = 1))
   bank$trials[[1]]$interims[[1]][[1]]$scores$current[] <- 0.99

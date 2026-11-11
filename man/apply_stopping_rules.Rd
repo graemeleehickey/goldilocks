@@ -89,6 +89,8 @@ success (\code{Qn}), expected success (\code{Sn}), and binding futility (\code{F
 The first stopping decision is terminal. Expected success requires a final
 analysis of the stopping cohort; immediate success and futility do not.
 
+A look with \code{Fn = 0}, \code{Sn = 1}, and \code{Qn = 1} is skipped: its saved predictive scores are not required, and it has no row in the returned trace. If every look is skipped, \code{ppp_success} is \code{NA}, and success is determined by the maximum-sample final analysis.
+
 Only failures needed by the candidate invalidate a trial. Failures at
 unreached looks, unused maximum-cohort predictions, or optional final
 analyses remain in the saved paths but do not remove an evaluable trial. A missing

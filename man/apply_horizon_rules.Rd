@@ -45,6 +45,8 @@ Success uses the scheduled endpoint and its own prediction data cut. Futility al
 
 Only calculations needed by a candidate determine whether its trial is evaluable. A failed maximum-\eqn{N} counterfactual makes that comparison unavailable without discarding a known adaptive outcome. Both the ordinary futility probability and joint futility with counterfactual success are available through \code{\link[=summarise_sims]{summarise_sims()}}. The latter always refers to maximum \eqn{N} at \code{final_horizon}.
 
+Looks with \code{Fn = 0}, \code{Sn = 1}, and \code{Qn = 1} are skipped and omitted from the returned trace, as in \code{\link[=apply_stopping_rules]{apply_stopping_rules()}}.
+
 Under a generating scenario where every endpoint null hypothesis is true, the fraction of trials declaring success at any selected endpoint estimates the overall type I error. Calibrate the schedule and thresholds together. If some endpoint hypotheses are false, overall success includes legitimate findings; assessing false positives then requires identifying success at a truly null endpoint. A success at an earlier endpoint does not by itself reject the final-horizon null.
 }
 \seealso{

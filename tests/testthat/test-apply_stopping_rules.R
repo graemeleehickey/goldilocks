@@ -101,7 +101,8 @@ test_that("look-specific thresholds stop at the first eligible look", {
   )
   expect_equal(out$sims$N_enrolled, 60)
   expect_true(out$sims$trial_success)
-  expect_equal(out$traces$decision, c("continue", "stop_expected_success"))
+  expect_equal(out$traces$look, 2L)
+  expect_equal(out$traces$decision, "stop_expected_success")
   expect_error(apply_stopping_rules(paths, Sn = c(.1, .2, .3)), "too many")
   expect_error(
     apply_stopping_rules(paths, Sn = .9, Qn = .8),
@@ -112,6 +113,59 @@ test_that("look-specific thresholds stop at the first eligible look", {
     apply_stopping_rules(paths, Fn = NULL)$sims,
     apply_stopping_rules(paths, Fn = 0)$sims
   )
+})
+
+test_that("fully disabled looks do not require interim calculations", {
+  paths <- rule_fixture()
+  paths$trials[[1]]$interims[[1]]$scores$current <- structure(
+    numeric(),
+    failure = list(message = "current prediction unavailable")
+  )
+  paths$trials[[1]]$interims[2] <- list(NULL)
+  final <- tail(paths$trials[[1]]$finals, 1)
+
+  for (return_trace in c(FALSE, TRUE)) {
+    expect_silent(out <- apply_stopping_rules(
+      paths, Fn = 0, Sn = 1, Qn = 1, return_trace = return_trace
+    ))
+    expect_equal(nrow(out$failures), 0)
+    expect_equal(out$sims$N_enrolled, final$planned_N)
+    expect_equal(out$sims$post_prob_ha, final$post_prob_ha)
+    expect_true(out$sims$trial_success)
+    expect_equal(out$sims$stopping_reason, "maximum_sample_size")
+    expect_true(is.na(out$sims$ppp_success))
+    if (return_trace) expect_equal(nrow(out$traces), 0)
+  }
+
+  for (rules in list(
+    list(Fn = .05, Sn = 1, Qn = 1),
+    list(Fn = 0, Sn = .9, Qn = 1),
+    list(Fn = 0, Sn = .9, Qn = .9)
+  )) {
+    expect_error(
+      do.call(apply_stopping_rules, c(list(paths = paths), rules)),
+      "current prediction unavailable"
+    )
+  }
+
+  paths$trials[[1]]$finals$post_prob_ha[3] <- NA_real_
+  expect_error(
+    apply_stopping_rules(paths, Fn = 0, Sn = 1, Qn = 1),
+    "Required final analysis failed"
+  )
+})
+
+test_that("a failed disabled look does not prevent a later stopping decision", {
+  paths <- rule_fixture()
+  paths$trials[[1]]$interims[1] <- list(NULL)
+  expect_silent(out <- apply_stopping_rules(
+    paths, Fn = 0, Sn = c(1, .4), Qn = 1, return_trace = TRUE
+  ))
+  expect_equal(nrow(out$failures), 0)
+  expect_equal(out$sims$N_enrolled, 60)
+  expect_true(out$sims$trial_success)
+  expect_equal(out$traces$look, 2L)
+  expect_equal(out$traces$decision, "stop_expected_success")
 })
 
 test_that("replay is pure and does not copy or mutate its input bank", {
@@ -159,7 +213,7 @@ test_that("later hypothetical failures cannot erase earlier decisions", {
   expect_false(early$sims$futility_and_success_at_max)
   expect_true(is.na(early$sims$success_at_max))
   expect_error(
-    apply_stopping_rules(paths, Sn = 1, Fn = 0),
+    apply_stopping_rules(paths, Sn = .9, Fn = 0),
     "Interim calculation failed at look 2"
   )
   futile <- apply_stopping_rules(paths, Sn = 1, Fn = 1, prob_ha = .95)
@@ -176,7 +230,7 @@ test_that("candidate failures retain original trial IDs and correct denominators
   attr(paths, "parallel_metadata")$tasks <- 2L
   paths$trials[[1]]$interims[1] <- list(NULL)
   expect_warning(
-    out <- apply_stopping_rules(paths, Fn = 0, Sn = 1),
+    out <- apply_stopping_rules(paths, Fn = 0, Sn = .9),
     "1 of 2 trials"
   )
   expect_identical(out$sims$trial, 2L)
