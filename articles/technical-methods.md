@@ -366,7 +366,7 @@ the actual final analysis**:
 |----|----|
 | Generate outstanding outcomes at interim, for enrolled and future participants | `prior_surv` |
 | Test each hypothetical completed trial at the current or maximum sample size | `prior_surv_final` |
-| Impute missing outcomes at final analysis, if `imputed_final = TRUE` | `prior_surv_final` |
+| Impute missing outcomes at final analysis, if `imputed_final = TRUE` and `empty_interval != "prior"` | `prior_surv_final` |
 | Analyze the actual final data | `prior_surv_final` |
 
 An informative predictive prior can bring in external evidence while a
@@ -1007,16 +1007,72 @@ repeated independently for every predictive replicate.
 
 Interim predictions impute outcomes that are not yet known. At the final
 analysis, `imputed_final` controls whether subjects lost to follow-up
-are also imputed.
+are also imputed, except for Bayesian survival analysis with
+`empty_interval = "prior"`.
 
-If no final outcomes require imputation, the selected complete-data test
-is used directly with either flag. Otherwise, with
-`imputed_final = TRUE`, Bayesian methods (`method = "bayes-surv"` or
-`method = "bayes-bin"`) analyze each imputed completed dataset and
-average the resulting posterior summaries. Cox regression, RMST, and
-`riskdiff-wald` instead pool completed-data scalar estimates and
-variances using Rubin’s rules as described above; `N_impute` must be at
-least two. Genuine final imputation is unsupported for `riskdiff-fm`.
+**Direct Bayesian survival analysis.** For `method = "bayes-surv"` with
+`empty_interval = "prior"`, both values of `imputed_final` use the
+observed-data posterior under `prior_surv_final`. All observed events
+and exposure through censoring are retained. Let D denote the observed
+final data, M the missing outcomes, and \boldsymbol{\lambda} the
+collection of interval hazards. Under the same survival model and prior
+for imputation and completed-data analysis,
+
+p(\boldsymbol{\lambda}\mid D) =\int p(\boldsymbol{\lambda}\mid
+D,M)\\p(M\mid D)\\dM.
+
+Thus, for a posterior summary expressed as an expectation,
+
+E\_{M\mid D}\\\left\[E\\g(\boldsymbol{\lambda})\mid D,M\\\right\]
+=E\\g(\boldsymbol{\lambda})\mid D\\.
+
+Taking g(\boldsymbol{\lambda})=I(\Delta\<h_0) gives the posterior
+probability for the one-sided alternative; taking
+g(\boldsymbol{\lambda})=\Delta gives the posterior mean effect. The
+corresponding identities hold for `alternative = "greater"` and for the
+single-arm event probability. Averaging completed-data posterior
+summaries therefore targets the observed-data summaries directly.
+`imputed_final` is redundant in this setting, and the package skips
+final imputation. The identity does not imply that averaging
+completed-data posterior quantiles gives observed-data posterior
+quantiles.
+
+The observed-data Gamma updates retain the original prior in intervals
+with no exposure, as specified by `empty_interval = "prior"`. Censoring
+must be ignorable under the survival model. The `"propagate"` heuristic
+does not generally preserve this model, so it retains the
+impute-then-analyze procedure; `"error"` also retains its existing
+procedure and rejects empty intervals. This simplification does not
+apply to `bayes-bin`, whose Gamma survival imputation model and Beta
+binary analysis model are separate.
+
+Final posterior probabilities and mean effects use `N_mcmc` independent
+draws, with no dependence on `N_impute` for a fixed final dataset. Both
+`imputed_final` flags therefore give identical results from the same
+starting random-number state. Earlier versions used `N_impute` completed
+datasets and `N_mcmc` posterior draws per dataset when final imputation
+was requested. The inferential target is unchanged, but the number and
+sequence of random draws change. Final Monte Carlo precision must now be
+assessed using `N_mcmc`; replacing the nested calculation with fewer
+draws does not guarantee smaller Monte Carlo error. Previously saved
+paths retain their original final scores; regenerate them to use the
+direct calculation.
+
+Interim prediction remains a different calculation: it averages
+I\\\Pr(\Delta\<h_0\mid D,M)\>\texttt{prob\\ha}\\, rather than the
+posterior probability itself. The nonlinear success threshold prevents
+the above simplification, even if the predictive and analysis priors
+agree. `N_impute` continues to control the number of interim predictive
+completions.
+
+**Other final analyses.** If no final outcomes require imputation, the
+selected complete-data test is used directly with either flag. When
+imputation is required and `imputed_final = TRUE`, `bayes-bin` and
+`bayes-surv` with the other empty-interval policies analyze each
+completed dataset and average the posterior summaries. Cox regression,
+RMST, and `riskdiff-wald` instead pool completed-data scalar estimates
+and variances using Rubin’s rules as described above; `N_impute` must be
+at least two. Genuine final imputation is unsupported for `riskdiff-fm`.
 Imputed final analyses remain unavailable for `method = "logrank"`
 because no pooling rule is implemented for that test.
 

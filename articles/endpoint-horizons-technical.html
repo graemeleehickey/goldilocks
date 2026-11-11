@@ -372,14 +372,21 @@ hypothetical decisions.</p>
 highlighted above. The futility probability concerns the final analysis
 at <span class="math inline">N_{\max}</span> and <span class="math inline">H_F</span>; it is not the probability of declaring
 success at any remaining interim under the entire adaptive policy.</p>
-<p>Final analysis with dropout follows the existing method-specific
-choices for <code>imputed_final</code>. With <code>FALSE</code>,
-survival analyses retain right-censoring, while binary analyses exclude
-participants without complete endpoint status. With <code>TRUE</code>,
-supported methods impute missing endpoint outcomes. Independent dropout
-does not by itself make complete-case binary analysis unbiased. These
-choices and the restrictions on log-rank and Farrington-Manning final
-imputation are described in the <a href="technical-methods.html#loss-to-follow-up-at-the-final-analysis">technical
+<p>Final analysis with dropout follows the method-specific choices for
+<code>imputed_final</code>. For <code>method = "bayes-surv"</code> with
+<code>empty_interval = "prior"</code>, both flags use the observed-data
+posterior at the selected endpoint, retaining observed events and
+censored exposure. Averaging completed-data posterior probabilities and
+mean effects under the same model and prior targets these summaries
+directly, so final imputation is redundant; <code>N_mcmc</code> controls
+final precision, while <code>N_impute</code> still controls interim
+prediction. For other settings, <code>FALSE</code> retains
+right-censoring in survival analyses and excludes incomplete endpoint
+statuses in binary analyses; with <code>TRUE</code>, supported methods
+impute missing endpoint outcomes. Independent dropout does not by itself
+make complete-case binary analysis unbiased. These choices and the
+restrictions on log-rank and Farrington-Manning final imputation are
+described in the <a href="technical-methods.html#loss-to-follow-up-at-the-final-analysis">technical
 methods vignette</a>.</p>
 </div>
 <div class="section level2">

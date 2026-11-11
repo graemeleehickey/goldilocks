@@ -273,7 +273,9 @@ survival_adapt(
   A positive integer giving the number of predictive imputations used at
   each interim look and, when requested, for final multiple imputation.
   The default is `500`. An imputed Cox, RMST, or risk-difference final
-  analysis requires at least two.
+  analysis requires at least two. For `method = "bayes-surv"` with
+  `empty_interval = "prior"`, this controls interim prediction only; the
+  final analysis uses `N_mcmc` posterior draws.
 
 - N_mcmc:
 
@@ -335,6 +337,13 @@ survival_adapt(
   pooling rule is implemented. Simulations combining FM and
   `imputed_final = TRUE` therefore require `prop_loss = 0` in both arms.
   Imputed final analyses remain unavailable for `method = "logrank"`.
+  For `method = "bayes-surv"` with `empty_interval = "prior"`, this flag
+  is redundant: both values use the observed-data posterior, retaining
+  all observed events and censored exposure. Averaging completed-data
+  posteriors under the same survival model and `prior_surv_final`
+  targets this posterior directly, so final imputation is skipped.
+  `N_mcmc` controls final posterior precision; `N_impute` still controls
+  interim prediction.
 
 - return_trace:
 
@@ -416,10 +425,12 @@ containing the evaluated design and final trial results, including:
   diagnostic analysis after binding futility cannot be computed.
 
 - `post_prob_ha`: Posterior probability from the final analysis. If a
-  Bayesian method uses `imputed_final = TRUE`, this is calculated for
-  each imputed final-analysis dataset and averaged over `N_impute`
-  imputations. For an imputed Cox analysis it is \\1 - P\\ from the
-  Rubin-pooled Wald test. The same interpretation applies to imputed
+  Bayesian method requires final imputation, this is calculated for each
+  completed dataset and averaged over `N_impute` imputations. For
+  `method = "bayes-surv"` with `empty_interval = "prior"`, it is
+  calculated directly from the observed-data posterior with either
+  `imputed_final` flag. For an imputed Cox analysis it is \\1 - P\\ from
+  the Rubin-pooled Wald test. The same interpretation applies to imputed
   RMST and risk-difference analyses. For non-imputed frequentist
   analyses it is \\1 - P\\ from the corresponding test. It is `NA` after
   an immediate-success decision, for which no later analysis is
@@ -722,12 +733,26 @@ and final analyses:
   regression and RMST the final estimates and variances are pooled with
   Rubin's rules. It cannot be used with `method = "logrank"`.
 
-When imputation is involved, either at interim analyses or through
-`imputed_final = TRUE`, the package uses a two-stage impute-then-analyze
-procedure. First, the piecewise-exponential model is fitted to the
-*observed* time-to-event data and used to complete pending outcomes.
-Second, each completed dataset is analyzed using the model selected by
-`method`.
+  For `method = "bayes-surv"` with `empty_interval = "prior"`, either
+  value of `imputed_final` uses the observed-data posterior under
+  `prior_surv_final`, including censored follow-up. Under this common
+  model and prior, averaging completed-data posterior probabilities and
+  means over the predictive distribution of missing outcomes gives the
+  same observed-data summaries. The direct calculation avoids final
+  imputation and repeated posterior sampling. It uses `N_mcmc`
+  independent draws; `N_impute` has no effect on the analysis of a fixed
+  final dataset. Final Monte Carlo precision therefore depends on
+  `N_mcmc`, and results can differ from earlier versions for the same
+  seed. The other empty-interval policies retain final imputation when
+  requested. Interim prediction still averages indicators of
+  completed-trial success, a different quantity.
+
+When imputation is involved, either at interim analyses or in final
+analyses requiring imputation, the package uses a two-stage
+impute-then-analyze procedure. First, the piecewise-exponential model is
+fitted to the *observed* time-to-event data and used to complete pending
+outcomes. Second, each completed dataset is analyzed using the model
+selected by `method`.
 
 For `method = "bayes-bin"`, these are deliberately separate models. The
 imputation model has piecewise hazards with Gamma prior `prior_surv` (or
@@ -769,7 +794,7 @@ arguments specify different roles, not simply different calendar stages:
 | Calculation | Gamma prior used |
 | At interim, generate outstanding outcomes for enrolled and future participants | `prior_surv` |
 | At interim, test each hypothetical completed trial at the current or maximum sample size | `prior_surv_final` |
-| At final analysis, impute missing outcomes if `imputed_final = TRUE` | `prior_surv_final` |
+| At final analysis, impute missing outcomes if `imputed_final = TRUE` and `empty_interval != "prior"` | `prior_surv_final` |
 | Analyze the actual final trial data | `prior_surv_final` |
 
 Within one interim predictive replicate, first update `prior_surv` with

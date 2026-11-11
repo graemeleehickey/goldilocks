@@ -223,7 +223,9 @@ sim_horizon_paths(
   A positive integer giving the number of predictive imputations used at
   each interim look and, when requested, for final multiple imputation.
   The default is `500`. An imputed Cox, RMST, or risk-difference final
-  analysis requires at least two.
+  analysis requires at least two. For `method = "bayes-surv"` with
+  `empty_interval = "prior"`, this controls interim prediction only; the
+  final analysis uses `N_mcmc` posterior draws.
 
 - N_mcmc:
 
@@ -265,8 +267,13 @@ sim_horizon_paths(
 - imputed_final:
 
   Logical; whether to impute outcomes lost before the selected endpoint
-  in final analyses. Defaults to `FALSE`. Final-imputation methods and
-  restrictions are the same as in
+  in final analyses. Defaults to `FALSE`. For `method = "bayes-surv"`
+  with `empty_interval = "prior"`, both values use the observed-data
+  posterior at the selected endpoint, retaining censored follow-up;
+  averaging completed-data posteriors under the same model and prior
+  targets this posterior directly. Final precision is controlled by
+  `N_mcmc`, while `N_impute` controls interim prediction. Other
+  final-imputation methods and restrictions are the same as in
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md):
   log-rank imputation is unavailable, and Farrington-Manning imputation
   requires no missing outcomes. Cox, RMST, and risk-difference Wald

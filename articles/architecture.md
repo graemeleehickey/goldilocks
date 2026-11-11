@@ -132,13 +132,26 @@ and when required the final trial data, meets the success criterion.
 
 | `method` | Estimand and analysis | With imputation at the final analysis | Without final imputation |
 |:---|:---|:---|:---|
-| `bayes-surv` | Posterior treatment-minus-control event probability, or the treatment event probability in a single-arm design | Average posterior summaries across completed imputations | Analyze observed right-censored follow-up |
+| `bayes-surv` | Posterior treatment-minus-control event probability, or the treatment event probability in a single-arm design | With `empty_interval = "prior"`, analyze observed right-censored follow-up directly; otherwise average posterior summaries across completed imputations | Analyze observed right-censored follow-up |
 | `bayes-bin` | Beta-binomial posterior for fixed-horizon event status | Average posterior summaries across completed imputations | Exclude participants without complete endpoint ascertainment |
 | `rmst` | Treatment-minus-control RMST through fixed `rmst_tau`, using a Wald test | Pool differences and Greenwood variances using Rubin’s rules | Retain censoring; require support through the fixed horizon |
 | `cox` | Log hazard ratio from a Cox model | Pool estimates and variances using Rubin’s rules | Analyze observed right-censored follow-up |
 | `riskdiff-wald` | Treatment-minus-control event-risk difference using a Wald test | Pool estimates and variances using Rubin’s rules | Exclude participants without complete endpoint ascertainment |
 | `riskdiff-fm` | Treatment-minus-control event-risk difference using a Farrington-Manning score test | Not available when outcomes are missing: no validated FM pooling rule is implemented | Exclude participants without complete endpoint ascertainment |
 | `logrank` | Difference between survival distributions using a log-rank test | Not available because an imputation-pooling rule has not been specified | Analyze observed right-censored follow-up |
+
+For Bayesian survival analysis with `empty_interval = "prior"`,
+`imputed_final` is redundant: averaging completed-data posterior
+probabilities and mean effects over missing outcomes under the same
+model and prior gives the observed-data summaries directly. Both flags
+therefore retain observed events and censored exposure and use `N_mcmc`
+posterior draws, skipping final imputation. `N_impute` still controls
+interim prediction, which averages indicators of completed-trial success
+and cannot use this simplification. Other analysis methods and
+empty-interval policies keep their existing final procedures. The
+[Bayesian survival
+vignette](https://graemeleehickey.github.io/goldilocks/articles/bayes-piecewise.html#final-analysis-with-incomplete-follow-up)
+explains the identity, assumptions, and Monte Carlo implications.
 
 For methods that accept `imputed_final = TRUE`, complete final outcomes
 use the selected test directly. FM simulations with this flag require

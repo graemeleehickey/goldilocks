@@ -210,7 +210,9 @@ direction for the other methods (lower hazard or event probability).</p></dd>
 <dd><p>A positive integer giving the number of predictive
 imputations used at each interim look and, when requested, for final
 multiple imputation. The default is <code>500</code>. An imputed Cox, RMST, or
-risk-difference final analysis requires at least two.</p></dd>
+risk-difference final analysis requires at least two.
+For <code>method = "bayes-surv"</code> with <code>empty_interval = "prior"</code>, this controls
+interim prediction only; the final analysis uses <code>N_mcmc</code> posterior draws.</p></dd>
 
 
 <dt id="arg-n-mcmc">N_mcmc<a class="anchor" aria-label="anchor" href="#arg-n-mcmc"></a></dt>
@@ -246,7 +248,7 @@ warning. The default is <code>"logrank"</code>. See Details.</p></dd>
 
 
 <dt id="arg-imputed-final">imputed_final<a class="anchor" aria-label="anchor" href="#arg-imputed-final"></a></dt>
-<dd><p>Logical; whether to impute outcomes lost before the selected endpoint in final analyses. Defaults to <code>FALSE</code>. Final-imputation methods and restrictions are the same as in <code><a href="sim_trials.html">sim_trials()</a></code>: log-rank imputation is unavailable, and Farrington-Manning imputation requires no missing outcomes. Cox, RMST, and risk-difference Wald imputation require at least two imputations and positive pooled variance.</p></dd>
+<dd><p>Logical; whether to impute outcomes lost before the selected endpoint in final analyses. Defaults to <code>FALSE</code>. For <code>method = "bayes-surv"</code> with <code>empty_interval = "prior"</code>, both values use the observed-data posterior at the selected endpoint, retaining censored follow-up; averaging completed-data posteriors under the same model and prior targets this posterior directly. Final precision is controlled by <code>N_mcmc</code>, while <code>N_impute</code> controls interim prediction. Other final-imputation methods and restrictions are the same as in <code><a href="sim_trials.html">sim_trials()</a></code>: log-rank imputation is unavailable, and Farrington-Manning imputation requires no missing outcomes. Cox, RMST, and risk-difference Wald imputation require at least two imputations and positive pooled variance.</p></dd>
 
 
 <dt id="arg-empty-interval">empty_interval<a class="anchor" aria-label="anchor" href="#arg-empty-interval"></a></dt>

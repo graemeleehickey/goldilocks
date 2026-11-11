@@ -264,7 +264,9 @@ standard log-rank statistic does not implement a nonzero effect margin.</p></li>
 <dd><p>A positive integer giving the number of predictive
 imputations used at each interim look and, when requested, for final
 multiple imputation. The default is <code>500</code>. An imputed Cox, RMST, or
-risk-difference final analysis requires at least two.</p></dd>
+risk-difference final analysis requires at least two.
+For <code>method = "bayes-surv"</code> with <code>empty_interval = "prior"</code>, this controls
+interim prediction only; the final analysis uses <code>N_mcmc</code> posterior draws.</p></dd>
 
 
 <dt id="arg-n-mcmc">N_mcmc<a class="anchor" aria-label="anchor" href="#arg-n-mcmc"></a></dt>
@@ -312,7 +314,13 @@ and positive total variance. Genuine final imputation is unsupported for
 <code>method = "riskdiff-fm"</code> because no validated FM pooling rule is
 implemented. Simulations combining FM and <code>imputed_final = TRUE</code> therefore
 require <code>prop_loss = 0</code> in both arms. Imputed final analyses remain
-unavailable for <code>method = "logrank"</code>.</p></dd>
+unavailable for <code>method = "logrank"</code>.
+For <code>method = "bayes-surv"</code> with <code>empty_interval = "prior"</code>, this flag is
+redundant: both values use the observed-data posterior, retaining all
+observed events and censored exposure. Averaging completed-data posteriors
+under the same survival model and <code>prior_surv_final</code> targets this posterior
+directly, so final imputation is skipped. <code>N_mcmc</code> controls final posterior
+precision; <code>N_impute</code> still controls interim prediction.</p></dd>
 
 
 <dt id="arg-empty-interval">empty_interval<a class="anchor" aria-label="anchor" href="#arg-empty-interval"></a></dt>

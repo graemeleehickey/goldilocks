@@ -97,13 +97,23 @@ Both respect the interim calendar date.
   [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md),
   and
   [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
-  interfaces and random-number scheduling are unchanged. Complete paths
-  use separate trial and stage streams, so their results need not match
-  ordinary simulations with the same seed. Horizon designs use
-  event-time imputation and retain existing analysis-method and
-  final-imputation restrictions. Endpoint schedules are prespecified;
-  choosing extensions from observed interim results is outside their
-  scope.
+  interfaces are unchanged. Complete paths use separate trial and stage
+  streams, so their results need not match ordinary simulations with the
+  same seed. Horizon designs use event-time imputation and retain
+  existing analysis-method restrictions. Endpoint schedules are
+  prespecified; choosing extensions from observed interim results is
+  outside their scope.
+- For `method = "bayes-surv"` with `empty_interval = "prior"`, both
+  `imputed_final` flags now use the observed-data posterior under
+  `prior_surv_final`, retaining events and censored exposure. Averaging
+  completed-data posterior probabilities and mean effects under this
+  same model and prior targets those summaries directly, making final
+  imputation redundant. Final precision is controlled by `N_mcmc`;
+  `N_impute` continues to control interim prediction. The posterior
+  target is unchanged, but seeded results can change because the nested
+  final calculation is removed. Regenerate saved Bayesian survival paths
+  to use this calculation. Interim predictive calculations, other
+  analysis methods, and the other empty-interval policies are unchanged.
 
 ### Documentation and verification
 

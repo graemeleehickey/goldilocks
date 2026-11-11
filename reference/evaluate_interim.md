@@ -221,7 +221,9 @@ evaluate_interim(
   A positive integer giving the number of predictive imputations used at
   each interim look and, when requested, for final multiple imputation.
   The default is `500`. An imputed Cox, RMST, or risk-difference final
-  analysis requires at least two.
+  analysis requires at least two. For `method = "bayes-surv"` with
+  `empty_interval = "prior"`, this controls interim prediction only; the
+  final analysis uses `N_mcmc` posterior draws.
 
 - N_mcmc:
 
@@ -392,7 +394,7 @@ arguments specify different roles, not simply different calendar stages:
 | Calculation | Gamma prior used |
 | At interim, generate outstanding outcomes for enrolled and future participants | `prior_surv` |
 | At interim, test each hypothetical completed trial at the current or maximum sample size | `prior_surv_final` |
-| At final analysis, impute missing outcomes if `imputed_final = TRUE` | `prior_surv_final` |
+| At final analysis, impute missing outcomes if `imputed_final = TRUE` and `empty_interval != "prior"` | `prior_surv_final` |
 | Analyze the actual final trial data | `prior_surv_final` |
 
 Within one interim predictive replicate, first update `prior_surv` with

@@ -294,7 +294,9 @@ compared with <code>1 - P</code>. The default is <code>0.95</code>.</p></dd>
 <dd><p>A positive integer giving the number of predictive
 imputations used at each interim look and, when requested, for final
 multiple imputation. The default is <code>500</code>. An imputed Cox, RMST, or
-risk-difference final analysis requires at least two.</p></dd>
+risk-difference final analysis requires at least two.
+For <code>method = "bayes-surv"</code> with <code>empty_interval = "prior"</code>, this controls
+interim prediction only; the final analysis uses <code>N_mcmc</code> posterior draws.</p></dd>
 
 
 <dt id="arg-n-mcmc">N_mcmc<a class="anchor" aria-label="anchor" href="#arg-n-mcmc"></a></dt>
@@ -342,7 +344,13 @@ and positive total variance. Genuine final imputation is unsupported for
 <code>method = "riskdiff-fm"</code> because no validated FM pooling rule is
 implemented. Simulations combining FM and <code>imputed_final = TRUE</code> therefore
 require <code>prop_loss = 0</code> in both arms. Imputed final analyses remain
-unavailable for <code>method = "logrank"</code>.</p></dd>
+unavailable for <code>method = "logrank"</code>.
+For <code>method = "bayes-surv"</code> with <code>empty_interval = "prior"</code>, this flag is
+redundant: both values use the observed-data posterior, retaining all
+observed events and censored exposure. Averaging completed-data posteriors
+under the same survival model and <code>prior_surv_final</code> targets this posterior
+directly, so final imputation is skipped. <code>N_mcmc</code> controls final posterior
+precision; <code>N_impute</code> still controls interim prediction.</p></dd>
 
 
 <dt id="arg-empty-interval">empty_interval<a class="anchor" aria-label="anchor" href="#arg-empty-interval"></a></dt>
@@ -499,7 +507,7 @@ pre-existing R random-number state is restored afterward. With
 
 <p>For <code>method = "bayes-surv"</code>, <code>prior_surv_final</code> is used <strong>during interim
 calculations as well as at the actual final analysis</strong>. The two arguments
-specify different roles, not simply different calendar stages:</p><table class="table table"><tr><td>Calculation</td><td>Gamma prior used</td></tr><tr><td>At interim, generate outstanding outcomes for enrolled and future participants</td><td><code>prior_surv</code></td></tr><tr><td>At interim, test each hypothetical completed trial at the current or maximum sample size</td><td><code>prior_surv_final</code></td></tr><tr><td>At final analysis, impute missing outcomes if <code>imputed_final = TRUE</code></td><td><code>prior_surv_final</code></td></tr><tr><td>Analyze the actual final trial data</td><td><code>prior_surv_final</code></td></tr></table><p>Within one interim predictive replicate, first update <code>prior_surv</code> with the
+specify different roles, not simply different calendar stages:</p><table class="table table"><tr><td>Calculation</td><td>Gamma prior used</td></tr><tr><td>At interim, generate outstanding outcomes for enrolled and future participants</td><td><code>prior_surv</code></td></tr><tr><td>At interim, test each hypothetical completed trial at the current or maximum sample size</td><td><code>prior_surv_final</code></td></tr><tr><td>At final analysis, impute missing outcomes if <code>imputed_final = TRUE</code> and <code>empty_interval != "prior"</code></td><td><code>prior_surv_final</code></td></tr><tr><td>Analyze the actual final trial data</td><td><code>prior_surv_final</code></td></tr></table><p>Within one interim predictive replicate, first update <code>prior_surv</code> with the
 observed events and exposure, draw hazards, and generate outstanding
 outcomes. Then start a fresh analysis posterior using <code>prior_surv_final</code>
 and the completed dataset's events and exposure. Compare its posterior

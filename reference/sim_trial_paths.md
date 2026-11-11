@@ -244,7 +244,9 @@ sim_trial_paths(
   A positive integer giving the number of predictive imputations used at
   each interim look and, when requested, for final multiple imputation.
   The default is `500`. An imputed Cox, RMST, or risk-difference final
-  analysis requires at least two.
+  analysis requires at least two. For `method = "bayes-surv"` with
+  `empty_interval = "prior"`, this controls interim prediction only; the
+  final analysis uses `N_mcmc` posterior draws.
 
 - N_mcmc:
 
@@ -298,6 +300,13 @@ sim_trial_paths(
   pooling rule is implemented. Simulations combining FM and
   `imputed_final = TRUE` therefore require `prop_loss = 0` in both arms.
   Imputed final analyses remain unavailable for `method = "logrank"`.
+  For `method = "bayes-surv"` with `empty_interval = "prior"`, this flag
+  is redundant: both values use the observed-data posterior, retaining
+  all observed events and censored exposure. Averaging completed-data
+  posteriors under the same survival model and `prior_surv_final`
+  targets this posterior directly, so final imputation is skipped.
+  `N_mcmc` controls final posterior precision; `N_impute` still controls
+  interim prediction.
 
 - empty_interval:
 

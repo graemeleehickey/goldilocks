@@ -62,6 +62,8 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Statistical workflow and reproducibility</h1>
+                        <h4 data-toc-skip class="author">Graeme L.
+Hickey</h4>
             
       
       <small class="dont-index">Source: <a href="https://github.com/graemeleehickey/goldilocks/blob/main/vignettes/architecture.Rmd" class="external-link"><code>vignettes/architecture.Rmd</code></a></small>
@@ -227,8 +229,9 @@ criterion.</p>
 <td align="left"><code>bayes-surv</code></td>
 <td align="left">Posterior treatment-minus-control event probability, or
 the treatment event probability in a single-arm design</td>
-<td align="left">Average posterior summaries across completed
-imputations</td>
+<td align="left">With <code>empty_interval = "prior"</code>, analyze
+observed right-censored follow-up directly; otherwise average posterior
+summaries across completed imputations</td>
 <td align="left">Analyze observed right-censored follow-up</td>
 </tr>
 <tr class="even">
@@ -282,6 +285,18 @@ not been specified</td>
 </tr>
 </tbody>
 </table>
+<p>For Bayesian survival analysis with
+<code>empty_interval = "prior"</code>, <code>imputed_final</code> is
+redundant: averaging completed-data posterior probabilities and mean
+effects over missing outcomes under the same model and prior gives the
+observed-data summaries directly. Both flags therefore retain observed
+events and censored exposure and use <code>N_mcmc</code> posterior
+draws, skipping final imputation. <code>N_impute</code> still controls
+interim prediction, which averages indicators of completed-trial success
+and cannot use this simplification. Other analysis methods and
+empty-interval policies keep their existing final procedures. The <a href="bayes-piecewise.html#final-analysis-with-incomplete-follow-up">Bayesian
+survival vignette</a> explains the identity, assumptions, and Monte
+Carlo implications.</p>
 <p>For methods that accept <code>imputed_final = TRUE</code>, complete
 final outcomes use the selected test directly. FM simulations with this
 flag require zero dropout in both arms. Rubin pooling requires at least
