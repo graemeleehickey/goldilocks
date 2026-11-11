@@ -25,7 +25,10 @@
 #'   imply unbiased complete-case binary inference: an early event can be
 #'   observed before dropout while a later endpoint outcome is missing.
 #'   If no final outcomes require imputation, the selected complete-data test
-#'   is used directly with either flag. Genuine final imputation is unsupported
+#'   is used directly with either flag. Bayesian survival analysis with
+#'   `empty_interval = "prior"` also uses the observed-data posterior with
+#'   either flag: averaging completed-data posteriors under the same model and
+#'   prior targets this posterior directly. Genuine final imputation is unsupported
 #'   for `method = "riskdiff-fm"` because no validated FM pooling rule is
 #'   implemented.
 #'
@@ -73,8 +76,12 @@ analyse_final <- function(
     has_missing_outcomes,
     N_impute
   )
-  # Complete final data use the selected test directly, regardless of the flag.
-  requires_imputation <- imputed_final && has_missing_outcomes
+  # Under the conjugate survival model, averaging completed-data posteriors
+  # over missing outcomes recovers the observed-data posterior. Use it directly
+  # with either flag, retaining all observed events and censored exposure.
+  direct_survival_posterior <- method == "bayes-surv" && empty_interval == "prior"
+  requires_imputation <- imputed_final && has_missing_outcomes &&
+    !direct_survival_posterior
   interval_widths <- if (requires_imputation && method == "bayes-surv") {
     endpoint_interval_widths(cutpoints, end_of_study)
   } else {
@@ -111,11 +118,8 @@ analyse_final <- function(
       )
 
       if (method == "bayes-surv") {
-        # The draw used by impute_data() came from the observed final-data
-        # posterior. Preserve the documented two-stage procedure by forming a
-        # new posterior from the completed imputation's sufficient statistics
-        # and the final-stage prior. Passing statistics directly avoids rebuilding
-        # a reduced patient-level analysis data frame for every imputation.
+        # Preserve final imputation for the other empty-interval policies.
+        # Each completed dataset updates the original final-stage prior.
         data_summ <- posterior_sufficient_stats(
           data = data_success_impute,
           cutpoints = cutpoints,

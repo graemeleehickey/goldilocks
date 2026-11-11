@@ -23,6 +23,25 @@ horizon_test_schedule <- function() {
   data.frame(N = c(40, 60), horizon = c(12, 18))
 }
 
+test_that("conjugate survival horizon paths ignore the final imputation flag", {
+  args <- horizon_test_args(
+    method = "bayes-surv",
+    cutpoints = c(6, 15),
+    generation_cutpoints = NULL,
+    prior_surv = c(0.1, 0.1),
+    prior_surv_final = c(1, 5),
+    prop_loss = 0.35,
+    N_trials = 1
+  )
+  args$imputed_final <- FALSE
+  direct <- do.call(sim_horizon_paths, args)
+  args$imputed_final <- TRUE
+  flagged <- do.call(sim_horizon_paths, args)
+  expect_identical(flagged$trials, direct$trials)
+  expect_identical(flagged$failures, direct$failures)
+  expect_equal(nrow(direct$failures), 0L)
+})
+
 test_that("endpoint recensoring preserves event and dropout ordering", {
   data <- data.frame(
     time = c(15, 15, 8, 12, 18),

@@ -158,7 +158,9 @@ compared with \code{1 - P}. The default is \code{0.95}.}
 \item{N_impute}{A positive integer giving the number of predictive
 imputations used at each interim look and, when requested, for final
 multiple imputation. The default is \code{500}. An imputed Cox, RMST, or
-risk-difference final analysis requires at least two.}
+risk-difference final analysis requires at least two.
+For \code{method = "bayes-surv"} with \code{empty_interval = "prior"}, this controls
+interim prediction only; the final analysis uses \code{N_mcmc} posterior draws.}
 
 \item{N_mcmc}{A positive integer giving the number of posterior draws used for Bayesian survival analyses and Bayesian binomial analyses with \code{bin_method = "mc"}. The default is \code{1000}. Ignored for all other analyses, including \code{bin_method = "normal"} and \code{"quadrature"} with \code{method = "bayes-bin"}; \code{NULL} is allowed when ignored.}
 
@@ -298,7 +300,7 @@ specify different roles, not simply different calendar stages:\tabular{ll}{
    Calculation \tab Gamma prior used \cr
    At interim, generate outstanding outcomes for enrolled and future participants \tab \code{prior_surv} \cr
    At interim, test each hypothetical completed trial at the current or maximum sample size \tab \code{prior_surv_final} \cr
-   At final analysis, impute missing outcomes if \code{imputed_final = TRUE} \tab \code{prior_surv_final} \cr
+   At final analysis, impute missing outcomes if \code{imputed_final = TRUE} and \code{empty_interval != "prior"} \tab \code{prior_surv_final} \cr
    Analyze the actual final trial data \tab \code{prior_surv_final} \cr
 }
 

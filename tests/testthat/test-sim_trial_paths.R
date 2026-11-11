@@ -165,6 +165,23 @@ test_that("final imputation and nonstandard designs share the same reference", {
   }
 })
 
+test_that("conjugate survival paths give the same evidence with either final flag", {
+  args <- path_test_args(
+    method = "bayes-surv",
+    prior_surv = c(0.1, 0.1),
+    prior_surv_final = c(1, 5),
+    prop_loss = 0.35,
+    N_trials = 1
+  )
+  args$imputed_final <- FALSE
+  direct <- do.call(sim_trial_paths, args)
+  args$imputed_final <- TRUE
+  flagged <- do.call(sim_trial_paths, args)
+  expect_identical(flagged$trials, direct$trials)
+  expect_identical(flagged$failures, direct$failures)
+  expect_equal(nrow(direct$failures), 0L)
+})
+
 test_that("bank RNG streams are reproducible and preserve the caller's state", {
   set.seed(219)
   state <- .Random.seed

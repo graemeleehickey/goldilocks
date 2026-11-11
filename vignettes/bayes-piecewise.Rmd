@@ -1,5 +1,6 @@
 ---
 title: "Bayesian piecewise-exponential designs"
+author: "Graeme L. Hickey"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Bayesian piecewise-exponential designs}
@@ -133,6 +134,23 @@ In this example, leaving `prior_surv_final` at its default makes it equal to
 for an executable example with an informative predictive prior and a separate
 diffuse analysis prior. Both current-sample and maximum-sample predictions
 use that analysis prior to test their completed datasets.
+
+## Final analysis with incomplete follow-up
+
+For `method = "bayes-surv"` with the default `empty_interval = "prior"`, `imputed_final = TRUE` and `FALSE` use the same observed-data posterior. A participant lost to follow-up contributes their observed event-free exposure through censoring. The final analysis updates `prior_surv_final` with the observed event counts and exposure in each arm and interval, including this censored follow-up.
+
+This makes `imputed_final` redundant for this combination of settings. Let $D$ denote the observed data and $M$ the missing outcomes. If missing outcomes are drawn from their posterior predictive distribution under the same survival model and prior used to analyze completed datasets, the law of total probability gives
+
+$$
+E_{M\mid D}\!\left[\Pr(\Delta<h_0\mid D,M)\right]
+=\Pr(\Delta<h_0\mid D).
+$$
+
+The same identity holds for the posterior mean effect, and for the single-arm event probability. Explicit final imputation therefore approximates summaries already available from the observed-data posterior. With `empty_interval = "prior"`, an interval without exposure retains its Gamma prior, preserving this model. The inference assumes that censoring is ignorable under the survival model. The other empty-interval policies retain final imputation when requested; in particular, copying adjacent-interval statistics with `"propagate"` does not preserve the standard conjugate model.
+
+The direct final analysis uses `N_mcmc` independent posterior draws. `N_impute` has no effect on the analysis of a fixed final dataset, although it still controls interim prediction and can therefore affect the selected cohort. Results are identical for the two `imputed_final` flags when the data, other settings, and starting random-number state agree. Compared with earlier versions, final imputation no longer generates `N_impute` sets of `N_mcmc` draws, so seeded results can change. Choose `N_mcmc` for the required final probability precision; fewer total draws do not automatically mean lower Monte Carlo error.
+
+Interim predictive calculations remain unchanged. They estimate the probability that a future completed dataset will pass the final success threshold, averaging indicators of $\Pr(\Delta<h_0\mid D,M)>\texttt{prob\_ha}$. That thresholded quantity cannot be replaced by the observed-data posterior probability. See [Loss to follow-up at the final analysis](technical-methods.html#loss-to-follow-up-at-the-final-analysis) for the general identity and its scope.
 
 ## What a simulated trial dataset looks like
 

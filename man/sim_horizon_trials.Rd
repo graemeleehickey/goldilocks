@@ -133,7 +133,9 @@ direction for the other methods (lower hazard or event probability).}
 \item{N_impute}{A positive integer giving the number of predictive
 imputations used at each interim look and, when requested, for final
 multiple imputation. The default is \code{500}. An imputed Cox, RMST, or
-risk-difference final analysis requires at least two.}
+risk-difference final analysis requires at least two.
+For \code{method = "bayes-surv"} with \code{empty_interval = "prior"}, this controls
+interim prediction only; the final analysis uses \code{N_mcmc} posterior draws.}
 
 \item{N_mcmc}{A positive integer giving the number of posterior draws used for Bayesian survival analyses and Bayesian binomial analyses with \code{bin_method = "mc"}. The default is \code{1000}. Ignored for all other analyses, including \code{bin_method = "normal"} and \code{"quadrature"} with \code{method = "bayes-bin"}; \code{NULL} is allowed when ignored.}
 
@@ -159,7 +161,7 @@ Wald test (\code{method = "riskdiff-wald"}), or a Farrington-Manning score test
 \code{method = "riskdiff"} is accepted as an alias for \code{"riskdiff-wald"} with a
 warning. The default is \code{"logrank"}. See Details.}
 
-\item{imputed_final}{Logical; whether to impute outcomes lost before the selected endpoint in final analyses. Defaults to \code{FALSE}. Final-imputation methods and restrictions are the same as in \code{\link[=sim_trials]{sim_trials()}}: log-rank imputation is unavailable, and Farrington-Manning imputation requires no missing outcomes. Cox, RMST, and risk-difference Wald imputation require at least two imputations and positive pooled variance.}
+\item{imputed_final}{Logical; whether to impute outcomes lost before the selected endpoint in final analyses. Defaults to \code{FALSE}. For \code{method = "bayes-surv"} with \code{empty_interval = "prior"}, both values use the observed-data posterior at the selected endpoint, retaining censored follow-up; averaging completed-data posteriors under the same model and prior targets this posterior directly. Final precision is controlled by \code{N_mcmc}, while \code{N_impute} controls interim prediction. Other final-imputation methods and restrictions are the same as in \code{\link[=sim_trials]{sim_trials()}}: log-rank imputation is unavailable, and Farrington-Manning imputation requires no missing outcomes. Cox, RMST, and risk-difference Wald imputation require at least two imputations and positive pooled variance.}
 
 \item{empty_interval}{A single character string specifying how to handle
 empty piecewise-exponential intervals when updating Gamma hazard models for

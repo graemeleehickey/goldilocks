@@ -202,7 +202,9 @@ compared with \code{1 - P}. The default is \code{0.95}.}
 \item{N_impute}{A positive integer giving the number of predictive
 imputations used at each interim look and, when requested, for final
 multiple imputation. The default is \code{500}. An imputed Cox, RMST, or
-risk-difference final analysis requires at least two.}
+risk-difference final analysis requires at least two.
+For \code{method = "bayes-surv"} with \code{empty_interval = "prior"}, this controls
+interim prediction only; the final analysis uses \code{N_mcmc} posterior draws.}
 
 \item{N_mcmc}{A positive integer giving the number of posterior draws used for Bayesian survival analyses and Bayesian binomial analyses with \code{bin_method = "mc"}. The default is \code{1000}. Ignored for all other analyses, including \code{bin_method = "normal"} and \code{"quadrature"} with \code{method = "bayes-bin"}; \code{NULL} is allowed when ignored.}
 
@@ -247,7 +249,13 @@ and positive total variance. Genuine final imputation is unsupported for
 \code{method = "riskdiff-fm"} because no validated FM pooling rule is
 implemented. Simulations combining FM and \code{imputed_final = TRUE} therefore
 require \code{prop_loss = 0} in both arms. Imputed final analyses remain
-unavailable for \code{method = "logrank"}.}
+unavailable for \code{method = "logrank"}.
+For \code{method = "bayes-surv"} with \code{empty_interval = "prior"}, this flag is
+redundant: both values use the observed-data posterior, retaining all
+observed events and censored exposure. Averaging completed-data posteriors
+under the same survival model and \code{prior_surv_final} targets this posterior
+directly, so final imputation is skipped. \code{N_mcmc} controls final posterior
+precision; \code{N_impute} still controls interim prediction.}
 
 \item{return_trace}{A single logical value indicating whether the interim
 decision path should be returned in addition to the usual final summary.
@@ -313,8 +321,10 @@ complete. It is \code{NA} after an immediate-success decision, for which no
 later analysis is required, or when the optional diagnostic analysis
 after binding futility cannot be computed.
 \item \code{post_prob_ha}: Posterior probability from the final analysis. If a
-Bayesian method uses \code{imputed_final = TRUE}, this is calculated for each
-imputed final-analysis dataset and averaged over \code{N_impute} imputations.
+Bayesian method requires final imputation, this is calculated for each
+completed dataset and averaged over \code{N_impute} imputations. For
+\code{method = "bayes-surv"} with \code{empty_interval = "prior"}, it is calculated
+directly from the observed-data posterior with either \code{imputed_final} flag.
 For an imputed Cox analysis it is \eqn{1 - P} from the Rubin-pooled Wald
 test. The same interpretation applies to imputed RMST and risk-difference
 analyses. For non-imputed frequentist analyses it is \eqn{1 - P} from the
@@ -567,10 +577,23 @@ designs with dropout should assess model-based final imputation and its
 assumptions. For Cox regression and RMST the final estimates and variances
 are pooled with Rubin's rules. It cannot be used with
 \code{method = "logrank"}.
+
+For \code{method = "bayes-surv"} with \code{empty_interval = "prior"}, either value
+of \code{imputed_final} uses the observed-data posterior under
+\code{prior_surv_final}, including censored follow-up. Under this common model
+and prior, averaging completed-data posterior probabilities and means
+over the predictive distribution of missing outcomes gives the same
+observed-data summaries. The direct calculation avoids final imputation
+and repeated posterior sampling. It uses \code{N_mcmc} independent draws;
+\code{N_impute} has no effect on the analysis of a fixed final dataset. Final
+Monte Carlo precision therefore depends on \code{N_mcmc}, and results can
+differ from earlier versions for the same seed. The other empty-interval
+policies retain final imputation when requested. Interim prediction still
+averages indicators of completed-trial success, a different quantity.
 }
 
-When imputation is involved, either at interim analyses or through
-\code{imputed_final = TRUE}, the package uses a two-stage impute-then-analyze
+When imputation is involved, either at interim analyses or in final
+analyses requiring imputation, the package uses a two-stage impute-then-analyze
 procedure. First, the piecewise-exponential model is fitted to the
 \emph{observed} time-to-event data and used to complete pending outcomes.
 Second, each completed dataset is analyzed using the model selected by
@@ -611,7 +634,7 @@ specify different roles, not simply different calendar stages:\tabular{ll}{
    Calculation \tab Gamma prior used \cr
    At interim, generate outstanding outcomes for enrolled and future participants \tab \code{prior_surv} \cr
    At interim, test each hypothetical completed trial at the current or maximum sample size \tab \code{prior_surv_final} \cr
-   At final analysis, impute missing outcomes if \code{imputed_final = TRUE} \tab \code{prior_surv_final} \cr
+   At final analysis, impute missing outcomes if \code{imputed_final = TRUE} and \code{empty_interval != "prior"} \tab \code{prior_surv_final} \cr
    Analyze the actual final trial data \tab \code{prior_surv_final} \cr
 }
 
