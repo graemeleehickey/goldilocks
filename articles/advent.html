@@ -198,7 +198,7 @@ same looks.</li>
 <p>ADVENT required the predictive probability rule to be favorable for
 both co-primary endpoints before enrollment stopped for predicted
 success, and unfavorable for either endpoint before stopping for
-futility. The current <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> interface models one
+futility. The current <code><a href="../reference/sim_trial.html">sim_trial()</a></code> interface models one
 endpoint per run. In this vignette we therefore run the effectiveness
 and safety endpoints separately, then explain how those separate
 endpoint-specific runs relate to the reported co-primary design.</p>
@@ -266,7 +266,7 @@ models with noninformative <span class="math inline">\operatorname{Beta}(0.5, 0.
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prior_bin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 <p>The survival-prior arguments still appear below because
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> uses a time-to-event model to impute
+<code><a href="../reference/sim_trial.html">sim_trial()</a></code> uses a time-to-event model to impute
 not-yet-observed outcomes. <code>prior_surv</code> controls the
 piecewise-exponential Gamma prior during interim prediction, while
 <code>prior_surv_final</code> controls it during final multiple
@@ -693,7 +693,7 @@ follow-up horizon is also per subject, not the total duration of the
 trial. Accrual speed remains worth sensitivity checking: faster accrual
 reduces the amount of observed endpoint information available at interim
 looks.</p>
-<p>The following <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> analysis simulates and
+<p>The following <code><a href="../reference/sim_trial.html">sim_trial()</a></code> analysis simulates and
 evaluates the effectiveness endpoint for <strong>one trial
 replicate</strong>. It does not estimate operating characteristics over
 repeated trials.</p>
@@ -701,7 +701,7 @@ repeated trials.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4601</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># One simulated effectiveness-endpoint trial</span></span>
-<span><span class="va">advent_effectiveness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
+<span><span class="va">advent_effectiveness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trial.html">sim_trial</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">eff_hazard_per_day</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">eff_hazard_per_day</span>,</span>
 <span>  cutpoints <span class="op">=</span> <span class="va">eff_event_cutpoints_day</span>,</span>
@@ -769,13 +769,13 @@ threshold. Success in the code means:</p>
 0.08
 \mid \text{data}) &gt; 0.966.
 </span></p>
-<p>This <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> analysis likewise represents
+<p>This <code><a href="../reference/sim_trial.html">sim_trial()</a></code> analysis likewise represents
 <strong>one trial replicate</strong> for the safety endpoint.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4602</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># One simulated safety-endpoint trial</span></span>
-<span><span class="va">advent_safety</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
+<span><span class="va">advent_safety</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trial.html">sim_trial</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">safety_hazard_per_day</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">safety_hazard_per_day</span>,</span>
 <span>  cutpoints <span class="op">=</span> <span class="va">safety_event_cutpoints_day</span>,</span>
@@ -818,8 +818,7 @@ recommendation required high predictive probability for both endpoints.
 A futility recommendation could be triggered by low predictive
 probability for either endpoint. The two separate simulations above do
 not impose that joint rule. Instead, they show how each
-endpoint-specific Bayesian rule maps to
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>.</p>
+endpoint-specific Bayesian rule maps to <code><a href="../reference/sim_trial.html">sim_trial()</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="a-reusable-design-specification">A reusable design specification<a class="anchor" aria-label="anchor" href="#a-reusable-design-specification"></a>

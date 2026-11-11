@@ -57,7 +57,7 @@ alternative:
 
 end_of_study <- 12
 
-result <- survival_adapt(
+result <- sim_trial(
   hazard_treatment = prob_to_haz(0.05, endtime = end_of_study),
   hazard_control = prob_to_haz(0.10, endtime = end_of_study),
   N_total = 80,

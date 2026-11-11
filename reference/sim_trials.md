@@ -1,7 +1,7 @@
 # Estimate operating characteristics by trial simulation
 
 Repeats
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 under fixed design and data-generating assumptions, returning
 trial-level results from which operating characteristics can be
 estimated.
@@ -460,13 +460,13 @@ the list also contains `traces`, a data frame with one row per completed
 interim look and a `trial` identifier. Per-trial calendar-time metrics
 are always retained in `sims`; traces additionally retain calendar time
 and active follow-up at each look. See
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 for details of the summary and trace columns, and
 [`summarise_calendar_time()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_calendar_time.md)
 for wide operating-characteristic tables. The returned object also
 retains the evaluated `decision_design` and resolved `prior_design`
 attributes from
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md).
 An `rng_metadata` attribute records the random-number generator,
 computational method, and seed policy. A `parallel_metadata` attribute
 records the requested and actual computational method and number of
@@ -485,7 +485,7 @@ later call with `do.call(sim_trials, attr(result, "arguments"))`.
 ## Details
 
 This function is a wrapper for
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 that repeatedly simulates independent trials under the same design
 parameters and assumed treatment effect.
 
@@ -498,7 +498,7 @@ forked R processes; on Windows they use PSOCK processes. Set `backend`
 explicitly when a particular computational method is required.
 
 Errors raised by an individual
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 call are isolated so other trials can finish. Failed trials are excluded
 from `sims`, recorded in `failures` with their trial number, error
 class, and message, and reported together in one warning. If every

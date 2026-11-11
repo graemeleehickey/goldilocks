@@ -238,11 +238,11 @@ the final analysis. A promising interim result is not an immediate claim
 of success. The protocol also specifies final analysis after enrollment
 stops for futility; the reconstruction therefore evaluates the final
 posterior criterion in those trials too.</p>
-<p>This last point differs from <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>, which
-counts a binding futility decision as final failure. The example helper
-preserves the PROMISE II procedure without changing the package’s
-general stopping rules. It records both the reason for stopping
-enrollment and the eventual final result.</p>
+<p>This last point differs from <code><a href="../reference/sim_trial.html">sim_trial()</a></code>, which counts a
+binding futility decision as final failure. The example helper preserves
+the PROMISE II procedure without changing the package’s general stopping
+rules. It records both the reason for stopping enrollment and the
+eventual final result.</p>
 <p>The protocol’s COVID-19 provision could allow additional enrollment
 when a parallel analysis censoring COVID-19 deaths did not cross its
 futility boundary. However, the principal analysis retained the cohort
@@ -316,7 +316,7 @@ follow-up is also censored at the current calendar date. The same event
 and dropout histories are retained across looks and at final
 analysis.</p>
 <p>This mechanism is not the exponential dropout model used by
-<code>sim_comp_data(prop_loss = 0.10)</code>. The helper therefore
+<code>sim_trial_data(prop_loss = 0.10)</code>. The helper therefore
 generates the SAP’s dropout times explicitly and uses
 <code><a href="../reference/pwe_sim.html">pwe_sim()</a></code> for event times.</p>
 <p>The expected enrollment schedule is 1, 2, 2, 3, 3, 4, and 4 patients

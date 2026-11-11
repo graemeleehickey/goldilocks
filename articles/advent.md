@@ -96,7 +96,7 @@ ADVENT required the predictive probability rule to be favorable for both
 co-primary endpoints before enrollment stopped for predicted success,
 and unfavorable for either endpoint before stopping for futility. The
 current
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 interface models one endpoint per run. In this vignette we therefore run
 the effectiveness and safety endpoints separately, then explain how
 those separate endpoint-specific runs relate to the reported co-primary
@@ -139,7 +139,7 @@ prior_bin <- c(0.5, 0.5)
 ```
 
 The survival-prior arguments still appear below because
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 uses a time-to-event model to impute not-yet-observed outcomes.
 `prior_surv` controls the piecewise-exponential Gamma prior during
 interim prediction, while `prior_surv_final` controls it during final
@@ -466,7 +466,7 @@ reduces the amount of observed endpoint information available at interim
 looks.
 
 The following
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 analysis simulates and evaluates the effectiveness endpoint for **one
 trial replicate**. It does not estimate operating characteristics over
 repeated trials.
@@ -476,7 +476,7 @@ repeated trials.
 set.seed(4601)
 
 # One simulated effectiveness-endpoint trial
-advent_effectiveness <- survival_adapt(
+advent_effectiveness <- sim_trial(
   hazard_treatment = eff_hazard_per_day,
   hazard_control = eff_hazard_per_day,
   cutpoints = eff_event_cutpoints_day,
@@ -538,7 +538,7 @@ threshold. Success in the code means:
 0.08 \mid \text{data}) \> 0.966.
 
 This
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 analysis likewise represents **one trial replicate** for the safety
 endpoint.
 
@@ -547,7 +547,7 @@ endpoint.
 set.seed(4602)
 
 # One simulated safety-endpoint trial
-advent_safety <- survival_adapt(
+advent_safety <- sim_trial(
   hazard_treatment = safety_hazard_per_day,
   hazard_control = safety_hazard_per_day,
   cutpoints = safety_event_cutpoints_day,
@@ -593,7 +593,7 @@ A futility recommendation could be triggered by low predictive
 probability for either endpoint. The two separate simulations above do
 not impose that joint rule. Instead, they show how each
 endpoint-specific Bayesian rule maps to
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md).
 
 ## A reusable design specification
 

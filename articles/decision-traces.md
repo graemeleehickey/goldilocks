@@ -7,7 +7,7 @@ library(goldilocks)
 
 An adaptive trial is easier to assess when the final result can be
 connected back to the interim decisions that led to it. By default,
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 returns a one-row trial summary. Set `return_trace = TRUE` to retain the
 summary together with one record for each completed interim look.
 
@@ -39,7 +39,7 @@ end_of_study <- 24
 hazard_control <- prob_to_haz(c(0.20, 0.35), 12, end_of_study)
 hazard_treatment <- prob_to_haz(c(0.12, 0.24), 12, end_of_study)
 
-trial <- survival_adapt(
+trial <- sim_trial(
   hazard_treatment = hazard_treatment,
   hazard_control = hazard_control,
   cutpoints = 12,

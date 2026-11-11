@@ -114,7 +114,7 @@ two_arm_args <- list(
   imputed_final = FALSE
 )
 
-out_two_arm <- do.call(survival_adapt, two_arm_args)
+out_two_arm <- do.call(sim_trial, two_arm_args)
 out_two_arm
 #>   prob_threshold margin alternative N_treatment N_control N_enrolled N_max
 #> 1           0.95      0        less          60        60        120   120
@@ -164,7 +164,7 @@ reproducible:
 compare_binary_imputation <- function(imputation) {
   set.seed(2101)
   fit <- do.call(
-    survival_adapt,
+    sim_trial,
     c(two_arm_args, list(binary_imputation = imputation))
   )
   fit[c("ppp_success", "post_prob_ha", "est_final")]
@@ -208,7 +208,7 @@ benchmark <- 0.30
 target <- 0.20
 ht_single <- prob_to_haz(target, endtime = end_of_study)
 
-out_single_arm <- survival_adapt(
+out_single_arm <- sim_trial(
   hazard_treatment = ht_single,
   hazard_control = NULL,
   cutpoints = NULL,
@@ -314,7 +314,7 @@ calculation. Applying rules to saved paths or summarizing results
 preserves the original counts without another warning; for saved paths,
 those counts also include looks and horizons a candidate might not
 reach. A direct call to
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 or
 [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
 similarly issues at most one quadrature warning.

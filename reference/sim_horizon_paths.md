@@ -192,7 +192,7 @@ sim_horizon_paths(
 
   Dropout probability by `dropout_horizon`, with the same arm-specific
   conventions as
-  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md).
+  [`sim_trial_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md).
   The corresponding dropout hazard is held fixed across all endpoint
   horizons.
 

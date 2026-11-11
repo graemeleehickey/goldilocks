@@ -75,7 +75,7 @@ Hickey</h4>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://graemeleehickey.github.io/goldilocks/">goldilocks</a></span><span class="op">)</span></span></code></pre></div>
 <p>An adaptive trial is easier to assess when the final result can be
 connected back to the interim decisions that led to it. By default,
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> returns a one-row trial summary. Set
+<code><a href="../reference/sim_trial.html">sim_trial()</a></code> returns a one-row trial summary. Set
 <code>return_trace = TRUE</code> to retain the summary together with one
 record for each completed interim look.</p>
 <div class="section level2">
@@ -104,7 +104,7 @@ follow-up at interim looks due to staged enrollment.</p>
 <span><span class="va">hazard_control</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.20</span>, <span class="fl">0.35</span><span class="op">)</span>, <span class="fl">12</span>, <span class="va">end_of_study</span><span class="op">)</span></span>
 <span><span class="va">hazard_treatment</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.12</span>, <span class="fl">0.24</span><span class="op">)</span>, <span class="fl">12</span>, <span class="va">end_of_study</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">trial</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
+<span><span class="va">trial</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trial.html">sim_trial</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">hazard_treatment</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="va">hazard_control</span>,</span>
 <span>  cutpoints <span class="op">=</span> <span class="fl">12</span>,</span>

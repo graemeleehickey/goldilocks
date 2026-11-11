@@ -73,7 +73,7 @@ Hickey</h4>
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://graemeleehickey.github.io/goldilocks/">goldilocks</a></span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> simulates a complete adaptive trial.
+<p><code><a href="../reference/sim_trial.html">sim_trial()</a></code> simulates a complete adaptive trial.
 <code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> instead applies the same predictive
 decision calculation to one observed interim data cut. It does not
 generate event, censoring, or enrollment times, and it does not retain a
@@ -364,7 +364,7 @@ based on the observed interim data.</p>
 automatically replace an informative predictive prior with a weak
 analysis prior.</strong> The two priors need not be distinct; the
 default intentionally uses one prior for both roles.</p>
-<p>Use these same two arguments in <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> or
+<p>Use these same two arguments in <code><a href="../reference/sim_trial.html">sim_trial()</a></code> or
 <code><a href="../reference/sim_trials.html">sim_trials()</a></code> when calibrating the design. The small Monte
 Carlo sizes here demonstrate the API; precision and operating
 characteristics must be assessed for the deployed design. At the actual

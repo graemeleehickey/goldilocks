@@ -179,7 +179,7 @@ p_{\text{control}}</span></p>
 <span>  imputed_final <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">out_two_arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">survival_adapt</span>, <span class="va">two_arm_args</span><span class="op">)</span></span>
+<span><span class="va">out_two_arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">sim_trial</span>, <span class="va">two_arm_args</span><span class="op">)</span></span>
 <span><span class="va">out_two_arm</span></span>
 <span><span class="co">#&gt;   prob_threshold margin alternative N_treatment N_control N_enrolled N_max</span></span>
 <span><span class="co">#&gt; 1           0.95      0        less          60        60        120   120</span></span>
@@ -231,7 +231,7 @@ reproducible:</p>
 <code class="sourceCode R"><span><span class="va">compare_binary_imputation</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">imputation</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2101</span><span class="op">)</span></span>
 <span>  <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span></span>
-<span>    <span class="va">survival_adapt</span>,</span>
+<span>    <span class="va">sim_trial</span>,</span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">two_arm_args</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>binary_imputation <span class="op">=</span> <span class="va">imputation</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span>  <span class="va">fit</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ppp_success"</span>, <span class="st">"post_prob_ha"</span>, <span class="st">"est_final"</span><span class="op">)</span><span class="op">]</span></span>
@@ -272,7 +272,7 @@ exceeds <code>prob_ha</code>.</p>
 <span><span class="va">target</span> <span class="op">&lt;-</span> <span class="fl">0.20</span></span>
 <span><span class="va">ht_single</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prob_to_haz.html">prob_to_haz</a></span><span class="op">(</span><span class="va">target</span>, endtime <span class="op">=</span> <span class="va">end_of_study</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">out_single_arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
+<span><span class="va">out_single_arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trial.html">sim_trial</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht_single</span>,</span>
 <span>  hazard_control <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cutpoints <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -378,7 +378,7 @@ imputed datasets, because repeated count combinations can reuse a
 calculation. Applying rules to saved paths or summarizing results
 preserves the original counts without another warning; for saved paths,
 those counts also include looks and horizons a candidate might not
-reach. A direct call to <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> or
+reach. A direct call to <code><a href="../reference/sim_trial.html">sim_trial()</a></code> or
 <code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> similarly issues at most one quadrature
 warning.</p>
 </div>

@@ -278,7 +278,7 @@ or futile, while the final success criterion remains frequentist.
 
 set.seed(3425422)
 
-anthem_trial <- do.call(survival_adapt, c(
+anthem_trial <- do.call(sim_trial, c(
   anthem_common,
   list(
     hazard_treatment = hazard_treatment_target_week,

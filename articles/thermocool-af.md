@@ -541,7 +541,7 @@ regulatory calibration of boundaries as extreme as 0.99 and 0.01.
 
 set.seed(1030236)
 
-thermocool_trial <- survival_adapt(
+thermocool_trial <- sim_trial(
   hazard_treatment = hazard_treatment,
   hazard_control = hazard_control,
   cutpoints = analysis_cutpoints_month,

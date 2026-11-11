@@ -87,8 +87,8 @@ distinguishable and prespecified.</p>
 <code><a href="../reference/sim_trials.html">sim_trials()</a></code> simulates repeated trials to estimate
 operating characteristics;</li>
 <li>
-<code><a href="../reference/survival_adapt.html">survival_adapt()</a></code> simulates and evaluates one adaptive
-trial; and</li>
+<code><a href="../reference/sim_trial.html">sim_trial()</a></code> simulates and evaluates one adaptive trial;
+and</li>
 <li>
 <code><a href="../reference/evaluate_interim.html">evaluate_interim()</a></code> applies the prespecified interim
 rule to an observed trial data cut.</li>
@@ -103,7 +103,7 @@ are used for simulated and observed interim analyses.</p>
 <script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\ndigraph statistical_workflow {\n  graph [rankdir = TB, fontsize = 12, nodesep = 0.32, ranksep = 0.48]\n  node [shape = box, style = \"filled,rounded\", fontname = Helvetica,\n        fontsize = 10, fillcolor = \"#f5f5f5\", color = \"#777777\"]\n  edge [fontname = Helvetica, fontsize = 9, color = \"#666666\"]\n\n  assumptions [label = \"Prespecified assumptions\nendpoint, accrual, treatment effect, missingness\",\n               fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  simulated [label = \"Simulated trial data\"]\n  observed [label = \"Observed interim data cut\"]\n  posterior [label = \"Posterior distribution of event-time hazards\"]\n  current [label = \"Predict success after follow-up\nof currently enrolled participants\"]\n  maximum [label = \"Predict success after enrollment\nto the maximum sample size\"]\n  decision [label = \"Apply Qn, Sn, and Fn\nimmediate success / expected success / futility / continue\",\n            fillcolor = \"#fff2cc\", color = \"#d6b656\"]\n  final [label = \"Prespecified final analysis\nwhen required\"]\n  repeated [label = \"Repeat under null and alternative scenarios\"]\n  oc [label = \"Operating characteristics\ntype I error, power, stopping, sample size, duration\",\n      fillcolor = \"#d5e8d4\", color = \"#82b366\"]\n\n  assumptions -> simulated\n  assumptions -> posterior [style = dashed, label = \"analysis priors\"]\n  simulated -> posterior [label = \"interim data\"]\n  observed -> posterior\n  posterior -> current\n  posterior -> maximum\n  current -> decision\n  maximum -> decision\n  decision -> final [label = \"expected success or maximum N\"]\n  decision -> repeated [label = \"terminal trial result\"]\n  final -> repeated\n  repeated -> oc\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><div class="section level3">
 <h3 id="data-generating-assumptions">Data-generating assumptions<a class="anchor" aria-label="anchor" href="#data-generating-assumptions"></a>
 </h3>
-<p>For simulation, <code><a href="../reference/sim_comp_data.html">sim_comp_data()</a></code> generates enrollment
+<p>For simulation, <code><a href="../reference/sim_trial_data.html">sim_trial_data()</a></code> generates enrollment
 times, randomized treatment assignments, event times, and loss to
 follow-up. The first participant enrolls at time zero; subsequent
 enrollment follows a piecewise-constant Poisson process. Event times
@@ -325,7 +325,7 @@ therefore be examined in sensitivity analyses.</p>
 <h2 id="summaries-for-design-evaluation">Summaries for design evaluation<a class="anchor" aria-label="anchor" href="#summaries-for-design-evaluation"></a>
 </h2>
 <div class="grViz html-widget html-fill-item" id="htmlwidget-e5c8c404fe174e4c81bd" style="width:960px;height:441.6px;"></div>
-<script type="application/json" data-for="htmlwidget-e5c8c404fe174e4c81bd">{"x":{"diagram":"\ndigraph summaries {\n  graph [rankdir = LR, fontsize = 12, nodesep = 0.28, ranksep = 0.45]\n  node [shape = box, style = \"filled,rounded\", fontname = Helvetica,\n        fontsize = 9, fillcolor = \"#f5f5f5\", color = \"#777777\"]\n  edge [fontname = Helvetica, fontsize = 8, color = \"#666666\"]\n\n  one [label = \"One simulated trial\nsurvival_adapt()\",\n       fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  many [label = \"Repeated simulated trials\nsim_trials()\",\n        fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  observed [label = \"Observed interim data\nevaluate_interim()\",\n            fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n  trace [label = \"Interim decision history\nsummarise_trial_trace() / plot_trial_trace()\"]\n  enrollment [label = \"Enrollment and calendar time\nplot_enrollment() / summarise_calendar_time()\"]\n  oc [label = \"Operating characteristics\nsummarise_sims() / plot_sim_ocs()\"]\n  stopping [label = \"Stopping and decision regions\nplot_sim_stopping() / plot_sim_decisions()\"]\n\n  one -> trace\n  one -> enrollment\n  observed -> trace\n  many -> enrollment\n  many -> oc\n  many -> stopping\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>For one simulated trial or an observed data cut, the interim decision
+<script type="application/json" data-for="htmlwidget-e5c8c404fe174e4c81bd">{"x":{"diagram":"\ndigraph summaries {\n  graph [rankdir = LR, fontsize = 12, nodesep = 0.28, ranksep = 0.45]\n  node [shape = box, style = \"filled,rounded\", fontname = Helvetica,\n        fontsize = 9, fillcolor = \"#f5f5f5\", color = \"#777777\"]\n  edge [fontname = Helvetica, fontsize = 8, color = \"#666666\"]\n\n  one [label = \"One simulated trial\nsim_trial()\",\n       fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  many [label = \"Repeated simulated trials\nsim_trials()\",\n        fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n  observed [label = \"Observed interim data\nevaluate_interim()\",\n            fillcolor = \"#dae8fc\", color = \"#6c8ebf\"]\n\n  trace [label = \"Interim decision history\nsummarise_trial_trace() / plot_trial_trace()\"]\n  enrollment [label = \"Enrollment and calendar time\nplot_enrollment() / summarise_calendar_time()\"]\n  oc [label = \"Operating characteristics\nsummarise_sims() / plot_sim_ocs()\"]\n  stopping [label = \"Stopping and decision regions\nplot_sim_stopping() / plot_sim_decisions()\"]\n\n  one -> trace\n  one -> enrollment\n  observed -> trace\n  many -> enrollment\n  many -> oc\n  many -> stopping\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>For one simulated trial or an observed data cut, the interim decision
 history shows the two predictive probabilities, their Monte Carlo
 uncertainty, the three decision thresholds, and the action at each
 completed look. For repeated simulations, <code><a href="../reference/summarise_sims.html">summarise_sims()</a></code>
@@ -425,13 +425,13 @@ calculations.</p>
 <td align="left"><code>R/analysis_riskdiff.R</code></td>
 </tr>
 <tr class="odd">
-<td align="left">Shared tests, pooling, and binary endpoint
-validation</td>
+<td align="left">Shared normal-test scores and binary endpoint
+checks</td>
 <td align="left"><code>R/analysis_common.R</code></td>
 </tr>
 <tr class="even">
-<td align="left">Completed-data dispatch</td>
-<td align="left"><code>R/analysis_completed.R</code></td>
+<td align="left">Completed-data analysis and binary counts</td>
+<td align="left"><code>R/analysis_comp.R</code></td>
 </tr>
 <tr class="odd">
 <td align="left">Predictively completed trial analysis</td>
@@ -442,17 +442,20 @@ validation</td>
 <td align="left"><code>R/analysis_interim.R</code></td>
 </tr>
 <tr class="odd">
-<td align="left">Final analysis and imputation orchestration</td>
+<td align="left">Final analysis, imputation, and Rubin pooling</td>
 <td align="left"><code>R/analysis_final.R</code></td>
 </tr>
 </tbody>
 </table>
-<p>Public entry points retain their function names:
-<code>survival_adapt.R</code>, <code>sim_trials.R</code>, and
-<code>evaluate_interim.R</code>. Hazard posterior calculations and
-imputation are shared across analysis methods, so their files retain
-names such as <code>survival_posterior.R</code> and
-<code>predictive_imputation.R</code>.</p>
+<p>The main functions are defined in files with matching names:
+<code>sim_trial.R</code>, <code>sim_trial_data.R</code>,
+<code>sim_trials.R</code>, and <code>evaluate_interim.R</code>. Hazard
+posterior calculations and imputation are shared across analysis methods
+in <code>survival_post.R</code> and
+<code>predictive_imputation.R</code>. The earlier names
+<code><a href="../reference/sim_trial.html">survival_adapt()</a></code> and <code><a href="../reference/sim_trial_data.html">sim_comp_data()</a></code> remain
+compatibility aliases for <code><a href="../reference/sim_trial.html">sim_trial()</a></code> and
+<code><a href="../reference/sim_trial_data.html">sim_trial_data()</a></code>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

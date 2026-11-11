@@ -84,7 +84,7 @@ used for <code>lambda_time</code>. The first value is zero.</p>
     <p><strong>Major behavior change from goldilocks 0.5.0 and earlier.</strong>
 Versions through 0.5.0 generated Poisson counts in unit-time bins.
 <code>enrollment()</code> returned rebased integer bin times, after which
-<code><a href="sim_comp_data.html">sim_comp_data()</a></code> added independent uniform jitter and sorted the result.
+<code><a href="sim_trial_data.html">sim_trial_data()</a></code> added independent uniform jitter and sorted the result.
 From version 0.6.0, enrollment times are drawn directly from the exact
 continuous-time piecewise-constant Poisson process. Consequently:</p><ul><li><p>seeded simulations do not reproduce enrollment or downstream trial results
 obtained with version 0.5.0 or earlier;</p></li>

@@ -5,7 +5,7 @@
 library(goldilocks)
 ```
 
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 simulates a complete adaptive trial.
 [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
 instead applies the same predictive decision calculation to one observed
@@ -253,7 +253,7 @@ predictive prior with a weak analysis prior.** The two priors need not
 be distinct; the default intentionally uses one prior for both roles.
 
 Use these same two arguments in
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 or
 [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
 when calibrating the design. The small Monte Carlo sizes here

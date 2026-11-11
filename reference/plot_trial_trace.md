@@ -17,7 +17,7 @@ plot_trial_trace(x)
 - x:
 
   A required `goldilocks_trial` result from
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md),
+  [`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md),
   a `goldilocks_interim` result from
   [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md),
   or an interim trace data frame.

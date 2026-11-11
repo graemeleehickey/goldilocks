@@ -70,6 +70,21 @@ Both respect the interim calendar date.
 
 ### Scope and compatibility
 
+- [`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
+  and
+  [`sim_trial_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md)
+  are the preferred names for simulating one adaptive trial and
+  generating participant-level trial data, respectively.
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
+  and
+  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md)
+  remain exported aliases with identical arguments and calculations and
+  no deprecation warnings. Examples, vignettes, and reference links use
+  the new names.
+- Internal analysis and prediction functions use consistent names, with
+  `comp`, `post`, and `cond` abbreviating completed, posterior, and
+  conditional. These renames do not change statistical calculations or
+  simulation results.
 - [`prob_to_haz()`](https://graemeleehickey.github.io/goldilocks/reference/prob_to_haz.md)
   is the preferred name for converting cumulative event probabilities to
   piecewise hazards.
@@ -94,7 +109,7 @@ Both respect the interim calendar date.
   `planned_collection_time`, and `collection_person_time` have also been
   removed; analysis and decision times remain available.
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md),
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md),
+  [`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md),
   and
   [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
   interfaces are unchanged. Complete paths use separate trial and stage
@@ -194,7 +209,7 @@ Both respect the interim calendar date.
   allowed block sizes while retaining the existing allocation sequence
   for previously valid settings.
 - Removed unused intermediate enrollment counts from
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md);
+  [`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md);
   the reported `N_enrolled` continues to use the final enrolled cohort.
 - The internal log-rank calculation now returns a single signed
   statistic when `onlyz = TRUE`.
@@ -244,7 +259,7 @@ calendar-time summaries.
   imputation is unsupported, and zero total variance in Rubin pooling is
   non-estimable.
 - In direct calls to
-  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md),
+  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md),
   rename `cutpoints` to `generation_cutpoints`. The simulation entry
   points retain `cutpoints` for the analysis partition and accept
   `generation_cutpoints` separately.
@@ -381,7 +396,7 @@ calendar-time summaries.
 - New
   [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
   applies the same posterior predictive decision rule used by
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
   to an observed interim data cut. Follow-up status distinguishes
   events, completed follow-up, pending outcomes, and early censoring.
   The potential number of future participants in each arm is derived
@@ -392,7 +407,7 @@ calendar-time summaries.
   information needed for audit
   ([\#81](https://github.com/graemeleehickey/goldilocks/issues/81)).
 
-- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
   and
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   now allow event-time generation and the predictive model to use
@@ -402,7 +417,7 @@ calendar-time summaries.
   imputation, Bayesian survival analysis, and interval-specific priors.
   `generation_cutpoints` defaults to `cutpoints`, preserving existing
   calls and seeded results. In direct calls to
-  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md),
+  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md),
   the previous named argument `cutpoints` must now be written as
   `generation_cutpoints`
   ([\#95](https://github.com/graemeleehickey/goldilocks/issues/95)).
@@ -432,7 +447,7 @@ calendar-time summaries.
   ([\#70](https://github.com/graemeleehickey/goldilocks/issues/70)).
 
 - Results from
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
   and
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   now retain all evaluated design and analysis settings, including
@@ -627,7 +642,7 @@ CRAN release: 2026-07-29
   interim looks, and the maximum sample size for constant or piecewise
   enrollment rates. Design settings may be supplied directly or taken
   from a
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
   or
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   result.
@@ -670,7 +685,7 @@ CRAN release: 2026-07-29
   `N_mcmc` for the number of posterior draws; the separate `bin_N`
   argument has been removed. Results retain the posterior mean treatment
   effect rather than all individual posterior draws.
-- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
   can now retain an interim decision trace containing predictive
   probabilities, decision thresholds, stopping outcomes, arm-level
   sample sizes, and relevant warnings. New functions summarize and plot
@@ -713,7 +728,7 @@ CRAN release: 2026-07-29
   Non-inferiority may therefore be specified as `h0 = log(margin)`.
 - Performance checks now cover posterior probabilities, posterior
   sampling, imputation, and representative
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
   simulations
   ([\#42](https://github.com/graemeleehickey/goldilocks/issues/42)).
 - Treatment assignment is described consistently as `treatment = 1` for
@@ -745,7 +760,7 @@ CRAN release: 2026-07-29
 - [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
   now uses the same default alternative hypothesis and futility
   threshold as
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md),
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md),
   so omitted arguments define the same design
   ([\#47](https://github.com/graemeleehickey/goldilocks/issues/47)).
 - Interim looks must be strictly increasing, preventing duplicate or
@@ -901,7 +916,7 @@ CRAN release: 2026-06-10
 ### Documentation
 
 - Removed the `est_interim` element from the
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
   return-value documentation. This field was documented but never
   computed or returned.
 - Documented the two-stage posterior procedure used when
@@ -914,7 +929,7 @@ CRAN release: 2026-06-10
   ([\#25](https://github.com/graemeleehickey/goldilocks/issues/25)).
 - Documented the minimum `interim_look` requirement (at least the block
   size for two-arm designs) in the
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
   `interim_look` parameter.
 - Improved the “Example: Two-armed RCT” vignette: the
   [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md)
@@ -986,7 +1001,7 @@ CRAN release: 2025-01-08
 
 - Assigned complete-trial simulation, interim stopping decisions, and
   final analyses to
-  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md),
+  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md),
   `test_stop_success()`, and `test_final()`, respectively.
 - Updated package links and documentation and removed the obsolete
   AppVeyor check.

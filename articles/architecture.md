@@ -13,7 +13,7 @@ The package supports three related analyses:
 
 1.  [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md)
     simulates repeated trials to estimate operating characteristics;
-2.  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+2.  [`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
     simulates and evaluates one adaptive trial; and
 3.  [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
     applies the prespecified interim rule to an observed trial data cut.
@@ -26,7 +26,7 @@ used for simulated and observed interim analyses.
 ### Data-generating assumptions
 
 For simulation,
-[`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md)
+[`sim_trial_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md)
 generates enrollment times, randomized treatment assignments, event
 times, and loss to follow-up. The first participant enrolls at time
 zero; subsequent enrollment follows a piecewise-constant Poisson
@@ -248,13 +248,21 @@ estimate, and supporting calculations.
 | `bayes-surv` | `R/analysis_bayes_surv.R` |
 | `bayes-bin` | `R/analysis_bayes_bin.R` |
 | `riskdiff-wald`, `riskdiff-fm` | `R/analysis_riskdiff.R` |
-| Shared tests, pooling, and binary endpoint validation | `R/analysis_common.R` |
-| Completed-data dispatch | `R/analysis_completed.R` |
+| Shared normal-test scores and binary endpoint checks | `R/analysis_common.R` |
+| Completed-data analysis and binary counts | `R/analysis_comp.R` |
 | Predictively completed trial analysis | `R/analysis_predictive.R` |
 | Interim decision rules | `R/analysis_interim.R` |
-| Final analysis and imputation orchestration | `R/analysis_final.R` |
+| Final analysis, imputation, and Rubin pooling | `R/analysis_final.R` |
 
-Public entry points retain their function names: `survival_adapt.R`,
-`sim_trials.R`, and `evaluate_interim.R`. Hazard posterior calculations
-and imputation are shared across analysis methods, so their files retain
-names such as `survival_posterior.R` and `predictive_imputation.R`.
+The main functions are defined in files with matching names:
+`sim_trial.R`, `sim_trial_data.R`, `sim_trials.R`, and
+`evaluate_interim.R`. Hazard posterior calculations and imputation are
+shared across analysis methods in `survival_post.R` and
+`predictive_imputation.R`. The earlier names
+[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
+and
+[`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md)
+remain compatibility aliases for
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
+and
+[`sim_trial_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md).

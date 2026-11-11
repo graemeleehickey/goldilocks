@@ -32,7 +32,7 @@ plot_enrollment(
 - x:
 
   `NULL` (the default), or a result returned by
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  [`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
   or
   [`sim_trials()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trials.md).
   Results created by current versions of `goldilocks` retain the

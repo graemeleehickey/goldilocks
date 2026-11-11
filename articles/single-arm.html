@@ -81,7 +81,7 @@ experimental therapy and the comparator is an external benchmark, often
 called a performance goal (PG) or objective performance criterion (OPC)
 – are common in early-phase oncology, rare-disease, and proof-of-concept
 studies. This vignette shows how to set up a Goldilocks single-arm
-design with <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>.</p>
+design with <code><a href="../reference/sim_trial.html">sim_trial()</a></code>.</p>
 <p>Two practical constraints on single-arm designs in this package:</p>
 <ul>
 <li>A single-arm trial is signaled by setting
@@ -168,9 +168,9 @@ CDF at 24 months. The observed proportion censored by dropout can be
 lower because events can occur first; it is not a fixed count of four
 losses among 80 participants. Survival analyses retain the follow-up
 observed before dropout.</p>
-<p>Now we run <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>:</p>
+<p>Now we run <code><a href="../reference/sim_trial.html">sim_trial()</a></code>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/survival_adapt.html">survival_adapt</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_trial.html">sim_trial</a></span><span class="op">(</span></span>
 <span>  hazard_treatment <span class="op">=</span> <span class="va">ht</span>,</span>
 <span>  hazard_control   <span class="op">=</span> <span class="cn">NULL</span>,              <span class="co"># single-arm</span></span>
 <span>  cutpoints        <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -323,7 +323,7 @@ comparison in a way that randomization would otherwise neutralize. A
 Bayesian framework can incorporate uncertainty about the benchmark
 itself – e.g. by replacing a fixed <code>h0</code> with a prior
 distribution informed by historical data – but this is outside the scope
-of the simple <code>h0</code> scalar that <code><a href="../reference/survival_adapt.html">survival_adapt()</a></code>
+of the simple <code>h0</code> scalar that <code><a href="../reference/sim_trial.html">sim_trial()</a></code>
 exposes, and would require a custom analysis. When in doubt, simulating
 the design under several plausible values of the true rate (including
 ones near the benchmark) is a useful way to characterize its
@@ -342,7 +342,7 @@ two-arm setting and with non-constant hazards. The same
 piecewise-exponential specification applies to single-arm trials when
 <code>hazard_control = NULL</code> and <code>hazard_treatment</code>
 contains one hazard per interval.</li>
-<li>The help page for <a href="https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.html"><code>survival_adapt()</code></a>
+<li>The help page for <a href="https://graemeleehickey.github.io/goldilocks/reference/sim_trial.html"><code>sim_trial()</code></a>
 documents all arguments.</li>
 </ul>
 </div>

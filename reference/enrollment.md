@@ -40,7 +40,7 @@ unit used for `lambda_time`. The first value is zero.
 **Major behavior change from goldilocks 0.5.0 and earlier.** Versions
 through 0.5.0 generated Poisson counts in unit-time bins. `enrollment()`
 returned rebased integer bin times, after which
-[`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md)
+[`sim_trial_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md)
 added independent uniform jitter and sorted the result. From version
 0.6.0, enrollment times are drawn directly from the exact
 continuous-time piecewise-constant Poisson process. Consequently:

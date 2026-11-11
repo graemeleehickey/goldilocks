@@ -16,7 +16,7 @@ performance goal (PG) or objective performance criterion (OPC) – are
 common in early-phase oncology, rare-disease, and proof-of-concept
 studies. This vignette shows how to set up a Goldilocks single-arm
 design with
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md).
 
 Two practical constraints on single-arm designs in this package:
 
@@ -108,11 +108,11 @@ among 80 participants. Survival analyses retain the follow-up observed
 before dropout.
 
 Now we run
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md):
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md):
 
 ``` r
 
-out <- survival_adapt(
+out <- sim_trial(
   hazard_treatment = ht,
   hazard_control   = NULL,              # single-arm
   cutpoints        = NULL,
@@ -266,7 +266,7 @@ Bayesian framework can incorporate uncertainty about the benchmark
 itself – e.g. by replacing a fixed `h0` with a prior distribution
 informed by historical data – but this is outside the scope of the
 simple `h0` scalar that
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 exposes, and would require a custom analysis. When in doubt, simulating
 the design under several plausible values of the true rate (including
 ones near the benchmark) is a useful way to characterize its
@@ -286,5 +286,5 @@ sensitivity.
   `hazard_control = NULL` and `hazard_treatment` contains one hazard per
   interval.
 - The help page for
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.html)
+  [`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.html)
   documents all arguments.

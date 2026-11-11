@@ -980,7 +980,7 @@ including parallel runs, and the returned result retains counts in
 `attr(result, "quadrature_diagnostics")`. The integration,
 probabilities, stopping decisions, and inclusion of trials in summaries
 are unchanged. A direct
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 or
 [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
 call also combines its detections into one warning.

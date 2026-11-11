@@ -10,7 +10,8 @@
 Core functions for simulating and summarizing Goldilocks adaptive trial
 designs.
 
-- [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+- [`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
+  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
   : Simulate and analyze one Goldilocks adaptive trial
 - [`evaluate_interim()`](https://graemeleehickey.github.io/goldilocks/reference/evaluate_interim.md)
   : Evaluate an externally observed interim data cut
@@ -58,7 +59,8 @@ designs.
 Simulate complete trial datasets, including enrollment, randomization,
 and time-to-event outcomes.
 
-- [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_comp_data.md)
+- [`sim_trial_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md)
+  [`sim_comp_data()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial_data.md)
   : Simulate complete trial data under piecewise-exponential event rates
 - [`enrollment()`](https://graemeleehickey.github.io/goldilocks/reference/enrollment.md)
   : Simulate exact continuous-time enrollment

@@ -118,7 +118,7 @@ stops for futility; the reconstruction therefore evaluates the final
 posterior criterion in those trials too.
 
 This last point differs from
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md),
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md),
 which counts a binding futility decision as final failure. The example
 helper preserves the PROMISE II procedure without changing the package’s
 general stopping rules. It records both the reason for stopping
@@ -180,7 +180,7 @@ follow-up is also censored at the current calendar date. The same event
 and dropout histories are retained across looks and at final analysis.
 
 This mechanism is not the exponential dropout model used by
-`sim_comp_data(prop_loss = 0.10)`. The helper therefore generates the
+`sim_trial_data(prop_loss = 0.10)`. The helper therefore generates the
 SAP’s dropout times explicitly and uses
 [`pwe_sim()`](https://graemeleehickey.github.io/goldilocks/reference/pwe_sim.md)
 for event times.

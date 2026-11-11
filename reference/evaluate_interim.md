@@ -1,7 +1,7 @@
 # Evaluate an externally observed interim data cut
 
 Applies the same posterior predictive decision calculation used by
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
 to subject-level data observed at one interim look. The function does
 not simulate a trial or modify `data`. Participants who could still be
 enrolled before the maximum sample size are represented according to

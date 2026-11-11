@@ -58,7 +58,7 @@ Interim predictions use only the data available at that calendar date.
 The eventual outcomes used in the cohort final analyses are not
 available to these predictions. Dropout and final imputation follow the
 same rules as
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md).
 
 ## Simulate null and alternative trial paths
 

@@ -2,7 +2,7 @@
 
 Prints the final trial summary and reports how many interim looks were
 completed for a `goldilocks_trial` object returned by
-[`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md).
+[`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md).
 
 ## Usage
 
@@ -16,7 +16,7 @@ print(x, ...)
 - x:
 
   A `goldilocks_trial` result returned by
-  [`survival_adapt()`](https://graemeleehickey.github.io/goldilocks/reference/survival_adapt.md)
+  [`sim_trial()`](https://graemeleehickey.github.io/goldilocks/reference/sim_trial.md)
   when `return_trace = TRUE`.
 
 - ...:

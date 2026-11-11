@@ -30,7 +30,7 @@ time through month nine, while follow-up continues through month twelve.
 ``` r
 
 set.seed(1410)
-trial <- survival_adapt(
+trial <- sim_trial(
   hazard_control = c(0.10, 0.10),
   hazard_treatment = c(0.10, 0.04),
   cutpoints = 3,
