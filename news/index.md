@@ -143,6 +143,10 @@ Both respect the interim calendar date.
 
 ### Bug fixes
 
+- Applying stopping rules to saved paths now skips looks with `Fn = 0`,
+  `Sn = 1`, and `Qn = 1`. Failed calculations at these disabled looks no
+  longer exclude trials with valid final analyses. Skipped looks are
+  omitted from the returned decision trace.
 - Frequentist risk-difference analyses (`method = "riskdiff-wald"` or
   `"riskdiff-fm"`) require `-1 < h0 < 1`, rejecting the degenerate
   boundary null values. Bayesian probability-scale margins retain their

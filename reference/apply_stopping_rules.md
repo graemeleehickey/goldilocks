@@ -115,6 +115,11 @@ rules. The first stopping decision is terminal. Expected success
 requires a final analysis of the stopping cohort; immediate success and
 futility do not.
 
+A look with `Fn = 0`, `Sn = 1`, and `Qn = 1` is skipped: its saved
+predictive scores are not required, and it has no row in the returned
+trace. If every look is skipped, `ppp_success` is `NA`, and success is
+determined by the maximum-sample final analysis.
+
 Only failures needed by the candidate invalidate a trial. Failures at
 unreached looks, unused maximum-cohort predictions, or optional final
 analyses remain in the saved paths but do not remove an evaluable trial.

@@ -143,6 +143,7 @@ strictly greater than <code>prob_ha</code>. Decisions retain the ordered immedia
 success (<code>Qn</code>), expected success (<code>Sn</code>), and binding futility (<code>Fn</code>) rules.
 The first stopping decision is terminal. Expected success requires a final
 analysis of the stopping cohort; immediate success and futility do not.</p>
+<p>A look with <code>Fn = 0</code>, <code>Sn = 1</code>, and <code>Qn = 1</code> is skipped: its saved predictive scores are not required, and it has no row in the returned trace. If every look is skipped, <code>ppp_success</code> is <code>NA</code>, and success is determined by the maximum-sample final analysis.</p>
 <p>Only failures needed by the candidate invalidate a trial. Failures at
 unreached looks, unused maximum-cohort predictions, or optional final
 analyses remain in the saved paths but do not remove an evaluable trial. A missing

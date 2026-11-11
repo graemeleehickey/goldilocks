@@ -107,6 +107,10 @@ success are available through
 [`summarise_sims()`](https://graemeleehickey.github.io/goldilocks/reference/summarise_sims.md).
 The latter always refers to maximum \\N\\ at `final_horizon`.
 
+Looks with `Fn = 0`, `Sn = 1`, and `Qn = 1` are skipped and omitted from
+the returned trace, as in
+[`apply_stopping_rules()`](https://graemeleehickey.github.io/goldilocks/reference/apply_stopping_rules.md).
+
 Under a generating scenario where every endpoint null hypothesis is
 true, the fraction of trials declaring success at any selected endpoint
 estimates the overall type I error. Calibrate the schedule and
