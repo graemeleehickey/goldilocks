@@ -347,58 +347,6 @@ group_binary_analyses <- function(
   )
 }
 
-#' Analyze one completed binary endpoint from sufficient statistics
-#'
-#' @param counts A one-row data frame containing the event counts and sample
-#'   sizes for the control and treatment arms.
-#' @inheritParams analyse_predictive_binary_counts
-#'
-#' @return A list containing the completed-data success score and estimated
-#'   treatment effect.
-#'
-#' @keywords internal
-#' @noRd
-analyse_binary_counts <- function(
-  counts,
-  single_arm,
-  N_mcmc,
-  method,
-  alternative,
-  h0,
-  prior_bin,
-  bin_method
-) {
-  if (method == "bayes-bin") {
-    return(bayes_binomial_from_counts(
-      events_control = counts$events_control,
-      n_control = counts$n_control,
-      events_treatment = counts$events_treatment,
-      n_treatment = counts$n_treatment,
-      single_arm = single_arm,
-      alternative = alternative,
-      h0 = h0,
-      prior_bin = prior_bin,
-      bin_method = bin_method,
-      N_mcmc = N_mcmc
-    ))
-  }
-
-  risk_difference_analysis <- if (method == "riskdiff-fm") {
-    risk_difference_fm_from_counts
-  } else {
-    risk_difference_wald_from_counts
-  }
-  fit <- risk_difference_analysis(
-    events_control = counts$events_control,
-    n_control = counts$n_control,
-    events_treatment = counts$events_treatment,
-    n_treatment = counts$n_treatment,
-    alternative = alternative,
-    h0 = h0
-  )
-  list(success = fit$success, effect = fit$estimate)
-}
-
 # Shared diagnostics for deterministic binary-analysis reuse.
 binary_count_reuse_summary <- function(
   method,

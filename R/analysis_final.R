@@ -244,3 +244,80 @@ analyse_final <- function(
 
   return(c(post_paa, est_final))
 }
+
+#' @title Pool scalar treatment effects using Rubin's rules
+#'
+#' @description Combines scalar treatment-effect estimates and their
+#'   within-imputation variances, then evaluates the pooled estimate against its
+#'   null value using Rubin's large-sample degrees of freedom.
+#'   Zero total variance raises a non-estimability error; either variance
+#'   component may be zero if their combined total is positive.
+#'
+#' @param estimates A numeric vector of treatment-effect estimates, one per
+#'   imputed data set. At least two values are required.
+#' @param variances A numeric vector of corresponding finite, non-negative
+#'   within-imputation variances.
+#' @inheritParams survival_adapt
+#'
+#' @return A list containing the pooled success score, effect estimate, standard
+#'   error, and degrees of freedom.
+#'
+#' @importFrom stats pt var
+#' @noRd
+pool_rubin_scalar <- function(estimates, variances, alternative, h0) {
+  m <- length(estimates)
+  if (m < 2 || length(variances) != m) {
+    stop("Rubin pooling requires at least two paired estimates and variances")
+  }
+  if (
+    anyNA(estimates) ||
+      anyNA(variances) ||
+      any(!is.finite(estimates)) ||
+      any(!is.finite(variances)) ||
+      any(variances < 0)
+  ) {
+    stop(
+      "Rubin pooling requires finite estimates and non-negative variances"
+    )
+  }
+
+  estimate <- mean(estimates)
+  within_variance <- mean(variances)
+  between_variance <- var(estimates)
+  total_variance <- within_variance + (1 + 1 / m) * between_variance
+  if (!is.finite(total_variance) || total_variance < 0) {
+    stop("Rubin pooling requires a finite non-negative total variance")
+  }
+  if (total_variance == 0) {
+    stop(errorCondition(
+      "Rubin-pooled analysis is non-estimable: total variance is zero.",
+      class = "goldilocks_non_estimable"
+    ))
+  }
+
+  relative_increase <- if (within_variance == 0) {
+    Inf
+  } else {
+    (1 + 1 / m) * between_variance / within_variance
+  }
+  degrees_freedom <- if (relative_increase == 0) {
+    Inf
+  } else {
+    (m - 1) * (1 + 1 / relative_increase)^2
+  }
+
+  statistic <- (estimate - h0) / sqrt(total_variance)
+  success <- switch(
+    alternative,
+    "less" = 1 - pt(statistic, df = degrees_freedom),
+    "greater" = pt(statistic, df = degrees_freedom),
+    "two.sided" = 1 - 2 * pt(-abs(statistic), df = degrees_freedom)
+  )
+
+  list(
+    success = success,
+    estimate = estimate,
+    std_error = sqrt(total_variance),
+    degrees_freedom = degrees_freedom
+  )
+}
