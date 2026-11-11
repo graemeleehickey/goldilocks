@@ -532,7 +532,7 @@ test_that("Bayesian cumulative hazards preserve posterior draws and arm ordering
       case$end_of_study
     )
 
-    actual <- bayes_surv_cumulative_hazards(
+    actual <- bayes_surv_cum_haz_draws(
       post_lambda = post_lambda,
       interval_widths = interval_widths,
       single_arm = case$single_arm
@@ -554,7 +554,7 @@ test_that("Bayesian cumulative hazards preserve posterior draws and arm ordering
 
 test_that("Bayesian cumulative hazards reject incompatible inputs", {
   expect_error(
-    bayes_surv_cumulative_hazards(
+    bayes_surv_cum_haz_draws(
       post_lambda = matrix(0.1, nrow = 2, ncol = 2),
       interval_widths = c(6, 6),
       single_arm = FALSE

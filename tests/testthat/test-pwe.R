@@ -395,7 +395,7 @@ test_that("ppwe returns probabilities in (0, 1)", {
 
 test_that("stable hazard-probability transforms retain boundary precision", {
   cumulative_hazard <- c(0, 1e-20, .Machine$double.eps, 1, 1000, Inf, NA)
-  probability <- cumulative_hazard_to_probability(cumulative_hazard)
+  probability <- cum_haz_to_prob(cumulative_hazard)
 
   expect_identical(probability[1], 0)
   expect_equal(probability[2], 1e-20, tolerance = 1e-35)

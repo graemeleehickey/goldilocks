@@ -27,14 +27,14 @@
 haz_to_prop <- function(post, cutpoints, end_of_study, single_arm) {
   validate_cutpoints(cutpoints)
   validate_endpoint_time(end_of_study, cutpoints, "end_of_study")
-  hazards <- bayes_surv_cumulative_hazards(
+  hazards <- bayes_surv_cum_haz_draws(
     post, endpoint_interval_widths(cutpoints, end_of_study), single_arm
   )
-  p_treatment <- cumulative_hazard_to_probability(hazards$treatment)
+  p_treatment <- cum_haz_to_prob(hazards$treatment)
   p_control <- if (single_arm) {
     NA_real_
   } else {
-    cumulative_hazard_to_probability(hazards$control)
+    cum_haz_to_prob(hazards$control)
   }
   # Calculate the difference before rounding arm risks for display. Both risks
   # can be reported as one while their difference remains nonzero.

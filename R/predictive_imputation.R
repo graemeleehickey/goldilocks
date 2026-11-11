@@ -356,7 +356,7 @@ impute_predictive_arm <- function(
         )
       }
     )
-    probability <- cumulative_hazard_to_probability(
+    probability <- cum_haz_to_prob(
       remaining_exposure %*% t(hazards)
     )
     return(list(

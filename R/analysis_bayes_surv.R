@@ -129,7 +129,7 @@ analyse_prepared_bayes_surv <- function(
     empty_interval = empty_interval
   )
 
-  cumulative_hazards <- bayes_surv_cumulative_hazards(
+  cumulative_hazards <- bayes_surv_cum_haz_draws(
     post_lambda = post_lambda,
     interval_widths = interval_widths,
     single_arm = single_arm
@@ -163,7 +163,7 @@ analyse_bayes_surv_posterior_draws <- function(
   # Use the same cumulative-hazard comparison as prepared predictive analyses.
   # Converting each arm to an event risk first can round both risks to one
   # and incorrectly turn a nonzero treatment difference into a tie.
-  cumulative_hazards <- bayes_surv_cumulative_hazards(
+  cumulative_hazards <- bayes_surv_cum_haz_draws(
     post_lambda = post_lambda,
     interval_widths = endpoint_interval_widths(cutpoints, end_of_study),
     single_arm = single_arm
@@ -186,12 +186,13 @@ analyse_bayes_surv_posterior_draws <- function(
 #'   durations through the endpoint horizon.
 #' @inheritParams analyse_bayes_surv_posterior_draws
 #'
-#' @return A list with cumulative-hazard vectors named `treatment` and `control`.
-#'   The control component is `NULL` for single-arm analyses.
+#' @return A list with cumulative-hazard vectors named `treatment` and `control`,
+#'   with one entry per posterior draw. The control component is `NULL` for
+#'   single-arm analyses.
 #'
 #' @keywords internal
 #' @noRd
-bayes_surv_cumulative_hazards <- function(
+bayes_surv_cum_haz_draws <- function(
   post_lambda,
   interval_widths,
   single_arm
@@ -272,7 +273,7 @@ bayes_surv_risk_difference <- function(treatment, control) {
 
 #' Summarize Bayesian-survival posterior draws without rounded-risk comparisons
 #'
-#' @param cumulative_hazards A list returned by `bayes_surv_cumulative_hazards()`.
+#' @param cumulative_hazards A list returned by `bayes_surv_cum_haz_draws()`.
 #' @inheritParams analyse_bayes_surv_posterior_draws
 #'
 #' @return See `analyse_bayes_surv_sufficient_stats()`.
@@ -287,7 +288,7 @@ summarise_bayes_surv_hazards <- function(
   treatment <- cumulative_hazards$treatment
   control <- cumulative_hazards$control
   if (is.null(control)) {
-    effect_draws <- cumulative_hazard_to_probability(treatment)
+    effect_draws <- cum_haz_to_prob(treatment)
     # p_T < h0 is equivalent to H_T < -log(1-h0). Thresholds zero and one
     # map to zero and infinity, preserving strict comparisons at both ends.
     threshold <- probability_to_cumulative_hazard(h0)

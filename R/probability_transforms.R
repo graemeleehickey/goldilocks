@@ -9,7 +9,7 @@
 #' @return A numeric vector of event probabilities in `[0, 1]`.
 #'
 #' @noRd
-cumulative_hazard_to_probability <- function(cumulative_hazard) {
+cum_haz_to_prob <- function(cumulative_hazard) {
   -expm1(-cumulative_hazard)
 }
 

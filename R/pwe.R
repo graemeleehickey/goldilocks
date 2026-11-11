@@ -219,7 +219,7 @@ pwe_conditional_event_probability <- function(
     1,
     pmax(
       0,
-      cumulative_hazard_to_probability(remaining_cumulative_hazard)
+      cum_haz_to_prob(remaining_cumulative_hazard)
     )
   )
 }
@@ -257,7 +257,7 @@ ppwe <- function(hazard, end_of_study, cutpoints = NULL) {
   validate_hazard_matrix(hazard, cutpoints)
 
   duration <- endpoint_interval_widths(cutpoints, end_of_study)
-  cumulative_hazard_to_probability(drop(hazard %*% duration))
+  cum_haz_to_prob(drop(hazard %*% duration))
 }
 
 #' Calculate analysis-interval widths through the endpoint horizon

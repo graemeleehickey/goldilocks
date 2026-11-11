@@ -84,8 +84,8 @@ risk_difference_fm_from_counts_internal <- getFromNamespace(
   "risk_difference_fm_from_counts",
   "goldilocks"
 )
-cumulative_hazard_to_probability_internal <- getFromNamespace(
-  "cumulative_hazard_to_probability",
+cum_haz_to_prob_internal <- getFromNamespace(
+  "cum_haz_to_prob",
   "goldilocks"
 )
 probability_to_cumulative_hazard_internal <- getFromNamespace(
@@ -542,8 +542,8 @@ trial_hazard_treatment <- prop_to_haz(
 )
 
 benchmark_results <- bench::mark(
-  cumulative_hazard_to_probability = {
-    cumulative_hazard_to_probability_internal(cumulative_hazard_values)
+  cum_haz_to_prob = {
+    cum_haz_to_prob_internal(cumulative_hazard_values)
   },
   probability_to_cumulative_hazard = {
     probability_to_cumulative_hazard_internal(probability_values)
