@@ -90,4 +90,4 @@ jobs:
             ${{ runner.temp }}/r-check/*.Rcheck/*.log
             ${{ runner.temp }}/r-check/*.Rcheck/*.timings
             ${{ runner.temp }}/r-check/*.Rcheck/tests/testthat.Rout*
-            ${{ runner.temp }}/r-check/*.Rcheck/vign_test/goldilocks/vignettes/*.html
+            ${{ runner.temp }}/r-check/*.Rcheck/vign_test/goldilocks/vignettes
